@@ -42,9 +42,9 @@ namespace Advobot.Logging.Preconditions
 			var channels = await service.GetLogChannelsAsync(context.Guild.Id).CAF();
 			if (GetId(channels) != 0)
 			{
-				return PreconditionUtils.FromSuccess();
+				return PreconditionResult.FromSuccess();
 			}
-			return PreconditionUtils.FromError(LogPreconditionError.Format(LogName.WithNoMarkdown()));
+			return PreconditionResult.FromError(LogPreconditionError.Format(LogName.WithNoMarkdown()));
 		}
 
 		/// <summary>

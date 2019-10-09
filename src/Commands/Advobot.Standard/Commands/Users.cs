@@ -444,7 +444,7 @@ namespace Advobot.Standard.Commands
 			public Task<RuntimeResult> Command(
 				[Positive]
 				int requestCount,
-				IGuildUser user
+				IUser user
 			) => CommandRunner(requestCount, Context.Channel, user);
 
 			[Command]
@@ -459,7 +459,7 @@ namespace Advobot.Standard.Commands
 			public Task<RuntimeResult> Command(
 				[Positive]
 				int requestCount,
-				IGuildUser user,
+				IUser user,
 				[CanModifyChannel(ManageMessages)]
 				ITextChannel channel
 			) => CommandRunner(requestCount, channel, user);
@@ -470,7 +470,7 @@ namespace Advobot.Standard.Commands
 				int requestCount,
 				[CanModifyChannel(ManageMessages)]
 				ITextChannel channel,
-				IGuildUser user
+				IUser user
 			) => CommandRunner(requestCount, channel, user);
 
 			private async Task<RuntimeResult> CommandRunner(
@@ -478,6 +478,7 @@ namespace Advobot.Standard.Commands
 				ITextChannel channel,
 				IUser? user)
 			{
+				var options = GenerateRequestOptions();
 				//If not the context channel then get the first message in that channel
 				var thisChannel = Context.Message.Channel.Id == channel.Id;
 				IMessage start = Context.Message;
@@ -494,13 +495,13 @@ namespace Advobot.Standard.Commands
 					predicate = x => x.Author.Id == user?.Id;
 				}
 				var now = Time.UtcNow;
-				var deleted = await MessageUtils.DeleteMessagesAsync(channel, start, req, now, GenerateRequestOptions(), predicate).CAF();
+				var deleted = await MessageUtils.DeleteMessagesAsync(channel, start, req, now, options, predicate).CAF();
 
 				//If the context channel isn't the targetted channel then delete the start message
 				//Increase by one to account for it not being targetted.
 				if (!thisChannel)
 				{
-					await start.DeleteAsync(GenerateRequestOptions()).CAF();
+					await start.DeleteAsync(options).CAF();
 					++deleted;
 				}
 

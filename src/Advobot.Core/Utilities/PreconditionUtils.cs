@@ -44,14 +44,6 @@ namespace Advobot.Utilities
 			=> invoker.GetHierarchy() > t.Position;
 
 		/// <summary>
-		/// Creates <see cref="PreconditionResult.FromError(string)"/>.
-		/// </summary>
-		/// <param name="error"></param>
-		/// <returns></returns>
-		public static PreconditionResult FromError(string error)
-			=> PreconditionResult.FromError(error);
-
-		/// <summary>
 		/// Creates a <see cref="PreconditionResult"/> from the exist status of an object.
 		/// </summary>
 		/// <param name="precondition"></param>
@@ -83,7 +75,7 @@ namespace Advobot.Utilities
 		/// </summary>
 		/// <returns></returns>
 		public static PreconditionResult FromInvalidInvoker()
-			=> FromError("Invalid invoking user.");
+			=> PreconditionResult.FromError("Invalid invoking user.");
 
 		/// <summary>
 		/// Creates an <see cref="PreconditionResult.FromError(string)"/> saying <paramref name="attr"/> only supports specific types.
@@ -97,15 +89,8 @@ namespace Advobot.Utilities
 		{
 			var t = attr.GetType().Name;
 			var s = supported.Select(x => x.Name).Join(", ");
-			return FromError($"{t} only supports {s}.");
+			return PreconditionResult.FromError($"{t} only supports {s}.");
 		}
-
-		/// <summary>
-		/// Creates <see cref="PreconditionResult.FromSuccess"/>.
-		/// </summary>
-		/// <returns></returns>
-		public static PreconditionResult FromSuccess()
-			=> PreconditionResult.FromSuccess();
 
 		/// <summary>
 		/// Gets the subject of a sentence
@@ -188,7 +173,7 @@ namespace Advobot.Utilities
 		{
 			if (target == null)
 			{
-				return FromError($"Unable to find a matching `{typeof(T).Name}`.");
+				return PreconditionResult.FromError($"Unable to find a matching `{typeof(T).Name}`.");
 			}
 
 			var bot = await invoker.Guild.GetCurrentUserAsync().CAF();
@@ -203,10 +188,10 @@ namespace Advobot.Utilities
 				{
 					var subject = user.GetSubject(bot.Id);
 					var error = $"{subject} do not have the ability to modify `{target.Format()}`.";
-					return FromError(error);
+					return PreconditionResult.FromError(error);
 				}
 			}
-			return FromSuccess();
+			return PreconditionResult.FromSuccess();
 		}
 	}
 }

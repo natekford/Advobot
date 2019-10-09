@@ -35,9 +35,9 @@ namespace Advobot.Gacha.ParameterPreconditions
 			var claim = await db.GetClaimAsync(context.Guild.Id, character).CAF();
 			if (claim?.GetUserId() == context.User.Id)
 			{
-				return PreconditionUtils.FromSuccess();
+				return PreconditionResult.FromSuccess();
 			}
-			return PreconditionUtils.FromError("You do not currently own this character.");
+			return PreconditionResult.FromError("You do not currently own this character.");
 		}
 	}
 }

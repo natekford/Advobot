@@ -60,17 +60,17 @@ namespace Advobot.Attributes.Preconditions.QuantityLimits
 			{
 				if (current > 0)
 				{
-					return PreconditionUtils.FromSuccess();
+					return PreconditionResult.FromSuccess();
 				}
-				return PreconditionUtils.FromError($"There are no {QuantityName}s to remove.");
+				return PreconditionResult.FromError($"There are no {QuantityName}s to remove.");
 			}
 
 			var max = await GetMaximumAllowedAsync(context, services).CAF();
 			if (max > current)
 			{
-				return PreconditionUtils.FromSuccess();
+				return PreconditionResult.FromSuccess();
 			}
-			return PreconditionUtils.FromError($"There are only `{max}` {QuantityName}s allowed.");
+			return PreconditionResult.FromError($"There are only `{max}` {QuantityName}s allowed.");
 		}
 
 		/// <summary>

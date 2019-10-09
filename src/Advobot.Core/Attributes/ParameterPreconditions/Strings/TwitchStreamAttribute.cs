@@ -38,9 +38,9 @@ namespace Advobot.Attributes.ParameterPreconditions.Strings
 
 			if (RegexUtils.IsValidTwitchName(value))
 			{
-				return PreconditionUtils.FromSuccess();
+				return PreconditionResult.FromSuccess();
 			}
-			return PreconditionUtils.FromError("Invalid Twitch username supplied.");
+			return PreconditionResult.FromError("Invalid Twitch username supplied.");
 		}
 	}
 }

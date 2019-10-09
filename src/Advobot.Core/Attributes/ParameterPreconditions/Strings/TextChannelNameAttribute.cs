@@ -33,9 +33,9 @@ namespace Advobot.Attributes.ParameterPreconditions.Strings
 
 			if (!value.Contains(" "))
 			{
-				return PreconditionUtils.FromSuccess();
+				return PreconditionResult.FromSuccess();
 			}
-			return PreconditionUtils.FromError("Spaces are not allowed in text channel names.");
+			return PreconditionResult.FromError("Spaces are not allowed in text channel names.");
 		}
 	}
 }

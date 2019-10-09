@@ -30,9 +30,9 @@ namespace Advobot.Attributes.Preconditions
 			var application = await context.Client.GetApplicationInfoAsync().CAF();
 			if (application.Owner.Id == context.User.Id)
 			{
-				return PreconditionUtils.FromSuccess();
+				return PreconditionResult.FromSuccess();
 			}
-			return PreconditionUtils.FromError("You are not the bot owner.");
+			return PreconditionResult.FromError("You are not the bot owner.");
 		}
 	}
 }

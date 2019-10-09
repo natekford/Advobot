@@ -56,9 +56,9 @@ namespace Advobot.Logging.ParameterPreconditions
 			var channels = await service.GetLogChannelsAsync(context.Guild.Id).CAF();
 			if (GetId(channels) != channel.Id)
 			{
-				return PreconditionUtils.FromSuccess();
+				return PreconditionResult.FromSuccess();
 			}
-			return PreconditionUtils.FromError(LogParameterPreconditionSummary.Format(
+			return PreconditionResult.FromError(LogParameterPreconditionSummary.Format(
 				channel.Format().WithBlock(),
 				LogName.WithNoMarkdown()
 			));

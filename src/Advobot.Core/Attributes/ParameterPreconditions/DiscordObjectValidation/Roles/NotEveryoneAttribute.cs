@@ -28,9 +28,9 @@ namespace Advobot.Attributes.ParameterPreconditions.DiscordObjectValidation.Role
 		{
 			if (context.Guild.EveryoneRole.Id != role.Id)
 			{
-				return PreconditionUtils.FromSuccess().AsTask();
+				return PreconditionResult.FromSuccess().AsTask();
 			}
-			return PreconditionUtils.FromError("The role cannot be the everyone role.").AsTask();
+			return PreconditionResult.FromError("The role cannot be the everyone role.").AsTask();
 		}
 	}
 }

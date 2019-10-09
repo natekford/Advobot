@@ -41,9 +41,9 @@ namespace Advobot.Attributes.Preconditions
 			var meta = command.Module.Attributes.GetAttribute<MetaAttribute>();
 			if (settings.CommandSettings.CanUserInvokeCommand(user, context.Channel, meta))
 			{
-				return PreconditionUtils.FromSuccess();
+				return PreconditionResult.FromSuccess();
 			}
-			return PreconditionUtils.FromError("This command is disabled.");
+			return PreconditionResult.FromError("This command is disabled.");
 		}
 	}
 }

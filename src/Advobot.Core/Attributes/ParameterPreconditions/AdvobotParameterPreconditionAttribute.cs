@@ -40,7 +40,7 @@ namespace Advobot.Attributes.ParameterPreconditions
 			//If optional, return success when nothing is supplied
 			if (IsOptionalSuccess && parameter.IsOptional && parameter.DefaultValue == value)
 			{
-				return PreconditionUtils.FromSuccess();
+				return PreconditionResult.FromSuccess();
 			}
 
 			if (AllowEnumerating && value is IEnumerable enumerable)
@@ -55,7 +55,7 @@ namespace Advobot.Attributes.ParameterPreconditions
 					}
 				}
 				//If nothing failed then it gets to this point, so return success
-				return PreconditionUtils.FromSuccess();
+				return PreconditionResult.FromSuccess();
 			}
 			return await SingularCheckPermissionsAsync(context, parameter, value, services).CAF();
 		}

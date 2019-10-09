@@ -53,9 +53,9 @@ namespace Advobot.Attributes.ParameterPreconditions.BannedPhrases
 			var settings = await settingsFactory.GetOrCreateAsync(context.Guild).CAF();
 			if (!GetPhrases(settings).Select(x => x.Phrase).Contains(regex))
 			{
-				return PreconditionUtils.FromSuccess();
+				return PreconditionResult.FromSuccess();
 			}
-			return PreconditionUtils.FromError($"`{regex}` is already a banned regex.");
+			return PreconditionResult.FromError($"`{regex}` is already a banned regex.");
 		}
 	}
 }

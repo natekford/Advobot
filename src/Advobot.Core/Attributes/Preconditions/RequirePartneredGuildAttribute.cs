@@ -27,9 +27,9 @@ namespace Advobot.Attributes.Preconditions
 		{
 			if (context.Guild.Features.Count > 0)
 			{
-				return PreconditionUtils.FromSuccess().AsTask();
+				return PreconditionResult.FromSuccess().AsTask();
 			}
-			return PreconditionUtils.FromError("This guild is not partnered.").AsTask();
+			return PreconditionResult.FromError("This guild is not partnered.").AsTask();
 		}
 	}
 }

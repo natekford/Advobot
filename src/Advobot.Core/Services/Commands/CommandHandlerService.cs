@@ -45,7 +45,6 @@ namespace Advobot.Services.Commands
 		private readonly IServiceProvider _Provider;
 		private readonly ITimerService _Timers;
 		private int _LoadedState;
-		private ulong _OwnerId;
 		private bool IsLoaded => _LoadedState != default;
 
 		/// <inheritdoc />
@@ -169,8 +168,7 @@ namespace Advobot.Services.Commands
 		{
 			var argPos = -1;
 			if (!IsLoaded || _BotSettings.Pause || message.Author.IsBot || string.IsNullOrWhiteSpace(message.Content)
-				//Disallow running commands if the user is blocked, unless the owner of the bot blocks themselves either accidentally or idiotically
-				|| (_BotSettings.UsersIgnoredFromCommands.Contains(message.Author.Id) && message.Author.Id != _OwnerId)
+				|| _BotSettings.UsersIgnoredFromCommands.Contains(message.Author.Id)
 				|| !(message is IUserMessage msg)
 				|| !(msg.Author is IGuildUser user)
 				|| !(await _GuildSettings.GetOrCreateAsync(user.Guild).CAF() is IGuildSettings settings)
@@ -236,8 +234,6 @@ namespace Advobot.Services.Commands
 				return;
 			}
 
-			var application = await _Client.GetApplicationInfoAsync().CAF();
-			_OwnerId = application.Owner.Id;
 			await _Client.UpdateGameAsync(_BotSettings).CAF();
 			ConsoleUtils.WriteLine($"Version: {Constants.BOT_VERSION}; " +
 				$"Prefix: {_BotSettings.Prefix}; " +

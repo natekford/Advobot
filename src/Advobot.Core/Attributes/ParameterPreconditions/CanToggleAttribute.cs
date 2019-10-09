@@ -31,9 +31,9 @@ namespace Advobot.Attributes.ParameterPreconditions
 			}
 			else if (entry.AbleToBeToggled)
 			{
-				return PreconditionUtils.FromSuccess().AsTask();
+				return PreconditionResult.FromSuccess().AsTask();
 			}
-			return PreconditionUtils.FromError($"`{entry.Name}` cannot be toggled.").AsTask();
+			return PreconditionResult.FromError($"`{entry.Name}` cannot be toggled.").AsTask();
 		}
 	}
 }

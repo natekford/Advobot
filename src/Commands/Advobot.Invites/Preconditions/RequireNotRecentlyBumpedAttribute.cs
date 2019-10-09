@@ -36,15 +36,15 @@ namespace Advobot.Invites.Preconditions
 			var invite = await inviteService.GetAsync(context.Guild.Id).CAF();
 			if (invite == null)
 			{
-				return PreconditionUtils.FromError("There is no listed invite.");
+				return PreconditionResult.FromError("There is no listed invite.");
 			}
 
 			var time = services.GetRequiredService<ITime>();
 			if ((time.UtcNow - invite.GetLastBumped()).TotalHours > 1)
 			{
-				return PreconditionUtils.FromSuccess();
+				return PreconditionResult.FromSuccess();
 			}
-			return PreconditionUtils.FromError("The last invite bump was too recent.");
+			return PreconditionResult.FromError("The last invite bump was too recent.");
 		}
 	}
 }

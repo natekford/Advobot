@@ -27,9 +27,9 @@ namespace Advobot.Gacha.ParameterPreconditions
 			}
 			else if (user.GetUserId() == context.User.Id)
 			{
-				return PreconditionUtils.FromSuccess().AsTask();
+				return PreconditionResult.FromSuccess().AsTask();
 			}
-			return PreconditionUtils.FromError("You cannot use yourself as an argument.").AsTask();
+			return PreconditionResult.FromError("You cannot use yourself as an argument.").AsTask();
 		}
 	}
 }

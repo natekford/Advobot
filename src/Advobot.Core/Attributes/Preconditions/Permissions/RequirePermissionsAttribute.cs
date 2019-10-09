@@ -77,14 +77,14 @@ namespace Advobot.Attributes.Preconditions.Permissions
 				var subject = user.GetSubject(bot.Id);
 				if (perms == null)
 				{
-					return PreconditionUtils.FromError($"{subject} have no permissions.");
+					return PreconditionResult.FromError($"{subject} have no permissions.");
 				}
 				else if (!Permissions.Any(x => perms.HasFlag(x)))
 				{
-					return PreconditionUtils.FromError($"{subject} do not have any suitable permissions.");
+					return PreconditionResult.FromError($"{subject} do not have any suitable permissions.");
 				}
 			}
-			return PreconditionUtils.FromSuccess();
+			return PreconditionResult.FromSuccess();
 		}
 
 		/// <summary>
