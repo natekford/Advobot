@@ -20,5 +20,11 @@ namespace Advobot.Levels.Utilities
 
 		public static async Task<IUser?> GetUserAsync(this BaseSocketClient client, ulong id)
 			=> client.GetUser(id) ?? (IUser)await client.Rest.GetUserAsync(id).CAF();
+
+		public static ulong GetUserId(this ISearchArgs args)
+			=> args.UserId.GetId();
+
+		private static ulong GetId(this string? value)
+			=> value == null ? 0 : ulong.Parse(value);
 	}
 }

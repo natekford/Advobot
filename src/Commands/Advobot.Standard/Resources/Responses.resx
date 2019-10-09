@@ -687,4 +687,7 @@ Type {1} for help with a command.</value>
   <data name="GuildsModifiedContentFilter" xml:space="preserve">
     <value>Successfully modified the explicit content filter level for this guild to {0}.</value>
   </data>
+  <data name="MiscTitleNamedArguments" xml:space="preserve">
+    <value>Named Arguments</value>
+  </data>
 </root>

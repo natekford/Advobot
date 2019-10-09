@@ -1329,6 +1329,15 @@ namespace Advobot.Standard.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Named Arguments.
+        /// </summary>
+        internal static string MiscTitleNamedArguments {
+            get {
+                return ResourceManager.GetString("MiscTitleNamedArguments", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to  + .
         /// </summary>
         internal static string MiscVariableAnd {

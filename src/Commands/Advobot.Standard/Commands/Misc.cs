@@ -50,14 +50,13 @@ namespace Advobot.Standard.Commands
 			[Command, Priority(2)]
 			[LocalizedSummary(nameof(Summaries.HelpCommandHelp))]
 			public Task<RuntimeResult> CommandAsync(
+				[LocalizedSummary(nameof(Summaries.HelpVariableExactCommand))]
+				[LocalizedName(nameof(Names.Command))]
+				IModuleHelpEntry helpEntry,
 				[LocalizedSummary(nameof(Summaries.HelpVariableCommandPosition))]
 				[LocalizedName(nameof(Names.Position))]
 				[Positive]
-				int position,
-				[LocalizedSummary(nameof(Summaries.HelpVariableExactCommand))]
-				[LocalizedName(nameof(Names.Command))]
-				[Remainder]
-				IModuleHelpEntry helpEntry
+				int position
 			) => Responses.Misc.Help(helpEntry, position - 1);
 
 			[Command(RunMode = RunMode.Async), Priority(0)]

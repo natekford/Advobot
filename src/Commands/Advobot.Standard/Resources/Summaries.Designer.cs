@@ -529,7 +529,7 @@ namespace Advobot.Standard.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The name of a command. This does need to be exact..
+        ///   Looks up a localized string similar to The name of a command. This does need to be the exact name of a command and in quotes..
         /// </summary>
         internal static string HelpVariableExactCommand {
             get {

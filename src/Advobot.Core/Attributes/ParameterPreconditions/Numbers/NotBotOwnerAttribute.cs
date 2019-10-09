@@ -16,8 +16,10 @@ namespace Advobot.Attributes.ParameterPreconditions.Numbers
 	public sealed class NotBotOwnerAttribute
 		: AdvobotParameterPreconditionAttribute
 	{
+		/// <inheritdoc />
 		public override string Summary => "Not the bot owner";
 
+		/// <inheritdoc />
 		protected override async Task<PreconditionResult> SingularCheckPermissionsAsync(
 			ICommandContext context,
 			ParameterInfo parameter,

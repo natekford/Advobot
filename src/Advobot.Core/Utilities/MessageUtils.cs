@@ -17,6 +17,9 @@ namespace Advobot.Utilities
 	/// </summary>
 	public static class MessageUtils
 	{
+		/// <summary>
+		/// The oldest messages are allowed to be when bulk deleting.
+		/// </summary>
 		public static readonly TimeSpan OldestAllowed = TimeSpan.FromDays(14);
 
 		/// <summary>

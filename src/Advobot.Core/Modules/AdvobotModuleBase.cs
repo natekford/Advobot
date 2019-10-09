@@ -77,9 +77,9 @@ namespace Advobot.Modules
 		/// <param name="minVal"></param>
 		/// <param name="maxVal"></param>
 		/// <returns></returns>
-		public async Task<int?> NextIndexAsync(int minVal, int maxVal)
+		public Task<int?> NextIndexAsync(int minVal, int maxVal)
 		{
-			return await NextValueAsync((IMessage x, out int? value) =>
+			return NextValueAsync((IMessage x, out int? value) =>
 			{
 				value = null;
 				var sameInvoker = x.Author.Id == Context.User.Id && x.Channel.Id == Context.Channel.Id;
@@ -95,7 +95,7 @@ namespace Advobot.Modules
 					return true;
 				}
 				return false;
-			}).CAF();
+			});
 		}
 
 		/// <summary>

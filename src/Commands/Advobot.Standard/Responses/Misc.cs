@@ -157,13 +157,14 @@ namespace Advobot.Standard.Responses
 			var description = info.CreateCollection();
 			description.Add(MiscTitleDescription, command.Summary);
 
-			var embed = CreateHelpEmbed(module.Aliases[0], info.ToString());
+			var embed = CreateHelpEmbed(command.Aliases[0], info.ToString());
 			foreach (var parameter in command.Parameters)
 			{
 				var paramInfo = new InformationMatrix();
 				var paramTop = paramInfo.CreateCollection();
 				paramTop.Add(MiscTitleBasePermissions, FormatPreconditions(parameter.Preconditions));
 				paramTop.Add(MiscTitleDescription, parameter.Summary);
+				paramTop.Add(MiscTitleNamedArguments, parameter.NamedArguments.Join());
 
 				embed.TryAddField(FormatParameter(parameter), paramInfo.ToString(), true, out _);
 			}

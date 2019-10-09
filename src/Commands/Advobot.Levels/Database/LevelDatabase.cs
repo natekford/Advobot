@@ -9,7 +9,7 @@ using Advobot.Databases.AbstractSQL;
 using Advobot.Levels.Metadata;
 using Advobot.Levels.Models;
 using Advobot.Levels.ReadOnlyModels;
-
+using Advobot.Levels.Utilities;
 using AdvorangesUtils;
 
 using Dapper;
@@ -150,7 +150,7 @@ namespace Advobot.Levels.Database
 					++rank;
 				}
 			}
-			return new Rank(args.UserIdValue ?? 0, xp, rank, total);
+			return new Rank(args.GetUserId(), xp, rank, total);
 		}
 
 		public async Task<IReadOnlyList<IRank>> GetRanksAsync(ISearchArgs args, int offset, int limit)
