@@ -13,18 +13,12 @@ using Discord.Commands;
 namespace Advobot.TypeReaders
 {
 	/// <summary>
-	/// Attempts to find an <see cref="IInviteMetadata"/> on a guild.
+	/// Attempts to find an <see cref="IInviteMetadata"/> on the guild.
 	/// </summary>
 	[TypeReaderTargetType(typeof(IInviteMetadata))]
 	public sealed class InviteTypeReader : TypeReader
 	{
-		/// <summary>
-		/// Checks for any invites matching the input code.
-		/// </summary>
-		/// <param name="context"></param>
-		/// <param name="input"></param>
-		/// <param name="services"></param>
-		/// <returns></returns>
+		/// <inheritdoc />
 		public override async Task<TypeReaderResult> ReadAsync(
 			ICommandContext context,
 			string input,
@@ -41,7 +35,6 @@ namespace Advobot.TypeReaders
 
 			{
 				var invite = await context.Client.GetInviteAsync(input).CAF();
-				//TODO: put the invite.GuildId == context.Guild.Id into parameter precon?
 				if (invite is IInviteMetadata meta && invite.GuildId == context.Guild.Id)
 				{
 					return TypeReaderResult.FromSuccess(meta);

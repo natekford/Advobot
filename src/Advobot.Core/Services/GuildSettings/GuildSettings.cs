@@ -75,6 +75,9 @@ namespace Advobot.Services.GuildSettings
 			set => ThrowIfElseSet(ref _Culture, value, x => CultureInfo.GetCultureInfo(x) == null, "Invalid culture provided.");
 		}
 
+		[JsonProperty("DeleteInvokingMessages")]
+		public bool DeleteInvokingMessages { get; set; }
+
 		/// <inheritdoc />
 		[Setting(nameof(GuildSettingNames.GoodbyeMessage), ResetValueClass = typeof(Null))]
 		[JsonProperty("GoodbyeMessage")]

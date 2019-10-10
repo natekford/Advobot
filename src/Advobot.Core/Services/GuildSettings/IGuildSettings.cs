@@ -3,13 +3,14 @@
 using Advobot.Services.GuildSettings.Settings;
 using Advobot.Services.GuildSettings.UserInformation;
 using Advobot.Settings;
+using Discord;
 
 namespace Advobot.Services.GuildSettings
 {
 	/// <summary>
-	/// Holds guild settings.
+	/// Auto mod guild settings.
 	/// </summary>
-	public interface IGuildSettings : ISettingsBase
+	public interface IAutoModGuildSettings
 	{
 		/// <summary>
 		/// Banned names for joining users.
@@ -32,6 +33,37 @@ namespace Advobot.Services.GuildSettings
 		IList<BannedPhrase> BannedPhraseStrings { get; }
 
 		/// <summary>
+		/// Channels which have messages deleted in them unless they have an image attached.
+		/// </summary>
+		IList<ulong> ImageOnlyChannels { get; }
+
+		/// <summary>
+		/// Roles that persist across a user leaving and rejoining.
+		/// </summary>
+		IList<PersistentRole> PersistentRoles { get; }
+
+		/// <summary>
+		/// To limit raids.
+		/// </summary>
+		IList<RaidPrev> RaidPrevention { get; }
+
+		/// <summary>
+		/// To limit spam.
+		/// </summary>
+		IList<SpamPrev> SpamPrevention { get; }
+
+		/// <summary>
+		/// Users which have been affected by banned phrases.
+		/// </summary>
+		IList<BannedPhraseUserInfo> GetBannedPhraseUsers();
+	}
+
+	/// <summary>
+	/// Command guild settings.
+	/// </summary>
+	public interface ICommandGuildSettings
+	{
+		/// <summary>
 		/// Permissions given through the bot and not Discord itself.
 		/// </summary>
 		IList<BotUser> BotUsers { get; }
@@ -42,29 +74,30 @@ namespace Advobot.Services.GuildSettings
 		CommandSettings CommandSettings { get; }
 
 		/// <summary>
+		/// Channels ignored from commands.
+		/// </summary>
+		IList<ulong> IgnoredCommandChannels { get; }
+	}
+
+	/// <summary>
+	/// Core guild settings.
+	/// </summary>
+	public interface ICoreGuildSettings
+	{
+		/// <summary>
 		/// The culture to use for the bot's responses.
 		/// </summary>
 		string Culture { get; set; }
 
 		/// <summary>
-		/// Message to display when a user leaves the guild.
+		/// Whether or not to delete messages invoking a command after the command has been invoked.
 		/// </summary>
-		GuildNotification? GoodbyeMessage { get; set; }
+		bool DeleteInvokingMessages { get; set; }
 
 		/// <summary>
 		/// The guild's id.
 		/// </summary>
 		ulong GuildId { get; }
-
-		/// <summary>
-		/// Channels ignored from commands.
-		/// </summary>
-		IList<ulong> IgnoredCommandChannels { get; }
-
-		/// <summary>
-		/// Channels which have messages deleted in them unless they have an image attached.
-		/// </summary>
-		IList<ulong> ImageOnlyChannels { get; }
 
 		/// <summary>
 		/// The id for the mute role.
@@ -77,48 +110,72 @@ namespace Advobot.Services.GuildSettings
 		bool NonVerboseErrors { get; set; }
 
 		/// <summary>
-		/// Roles that persist across a user leaving and rejoining.
-		/// </summary>
-		IList<PersistentRole> PersistentRoles { get; }
-
-		/// <summary>
 		/// The prefix to use for the guild. If this is null, the bot prefix will be used.
 		/// </summary>
 		string? Prefix { get; set; }
+	}
 
-		/// <summary>
-		/// Quotes which can be called up through their name.
-		/// </summary>
-		IList<Quote> Quotes { get; }
+	/// <summary>
+	/// Holds guild settings.
+	/// </summary>
+	public interface IGuildSettings :
+		IAutoModGuildSettings,
+		ICommandGuildSettings,
+		ICoreGuildSettings,
+		INotificationGuildSettings,
+		IQuoteGuildSettings,
+		IRuleGuildSettings,
+		ISelfAssignableRoleGuildSettings,
+		ISettingsBase
+	{
+	}
 
+	/// <summary>
+	/// Notification guild settings.
+	/// </summary>
+	public interface INotificationGuildSettings
+	{
 		/// <summary>
-		/// To limit raids.
+		/// Message to display when a user leaves the guild.
 		/// </summary>
-		IList<RaidPrev> RaidPrevention { get; }
-
-		/// <summary>
-		/// List of rules for easy formatting.
-		/// </summary>
-		RuleHolder Rules { get; }
-
-		/// <summary>
-		/// Roles users can assign themselves.
-		/// </summary>
-		IList<SelfAssignableRoles> SelfAssignableGroups { get; }
-
-		/// <summary>
-		/// To limit spam.
-		/// </summary>
-		IList<SpamPrev> SpamPrevention { get; }
+		GuildNotification? GoodbyeMessage { get; set; }
 
 		/// <summary>
 		/// Message to display when a user joins the guild.
 		/// </summary>
 		GuildNotification? WelcomeMessage { get; set; }
+	}
 
+	/// <summary>
+	/// Holds quote guild settings.
+	/// </summary>
+	public interface IQuoteGuildSettings
+	{
 		/// <summary>
-		/// Users which have been affected by banned phrases.
+		/// Quotes which can be called up through their name.
 		/// </summary>
-		IList<BannedPhraseUserInfo> GetBannedPhraseUsers();
+		IList<Quote> Quotes { get; }
+	}
+
+	/// <summary>
+	/// Rule guild settings.
+	/// </summary>
+	public interface IRuleGuildSettings
+	{
+		/// <summary>
+		/// List of rules for easy formatting.
+		/// </summary>
+		RuleHolder Rules { get; }
+	}
+
+	/// <summary>
+	/// Self assingable role guild settings.
+	/// </summary>
+	public interface ISelfAssignableRoleGuildSettings
+	{
+		/// <summary>
+		/// Roles users can assign themselves.
+		/// </summary>
+		IList<SelfAssignableRoles> SelfAssignableGroups { get; }
 	}
 }

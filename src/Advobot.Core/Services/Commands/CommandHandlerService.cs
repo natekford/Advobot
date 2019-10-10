@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using System.Reflection;
-using System.Threading;
 using System.Threading.Tasks;
 
 using Advobot.Attributes;
@@ -44,8 +43,7 @@ namespace Advobot.Services.Commands
 		private readonly IHelpEntryService _HelpEntries;
 		private readonly IServiceProvider _Provider;
 		private readonly ITimerService _Timers;
-		private int _LoadedState;
-		private bool IsLoaded => _LoadedState != default;
+		private bool _IsReady;
 
 		/// <inheritdoc />
 		public event Func<ICommandContext, IResult, Task> CommandInvoked
@@ -167,7 +165,8 @@ namespace Advobot.Services.Commands
 		private async Task HandleCommand(IMessage message)
 		{
 			var argPos = -1;
-			if (!IsLoaded || _BotSettings.Pause || message.Author.IsBot || string.IsNullOrWhiteSpace(message.Content)
+			if (!_IsReady || _BotSettings.Pause || message.Author.IsBot
+				|| string.IsNullOrWhiteSpace(message.Content)
 				|| _BotSettings.UsersIgnoredFromCommands.Contains(message.Author.Id)
 				|| !(message is IUserMessage msg)
 				|| !(msg.Author is IGuildUser user)
@@ -227,17 +226,15 @@ namespace Advobot.Services.Commands
 			return Task.CompletedTask;
 		}
 
-		private async Task OnReady(DiscordSocketClient _)
+		private Task OnReady(DiscordSocketClient _)
 		{
-			if (Interlocked.Exchange(ref _LoadedState, 1) != default)
-			{
-				return;
-			}
+			_Client.ShardReady -= OnReady;
 
-			await _Client.UpdateGameAsync(_BotSettings).CAF();
 			ConsoleUtils.WriteLine($"Version: {Constants.BOT_VERSION}; " +
 				$"Prefix: {_BotSettings.Prefix}; " +
 				$"Launch Time: {ProcessInfoUtils.GetUptime().TotalMilliseconds:n}ms");
+			_IsReady = true;
+			return _Client.UpdateGameAsync(_BotSettings);
 		}
 	}
 }

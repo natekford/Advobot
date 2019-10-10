@@ -74,7 +74,6 @@ namespace Advobot.Logging.Context
 		private static async Task HandleAsync<T>(T? context, LoggingArgs<T> args)
 			where T : class, ILoggingContext
 		{
-			//TODO: reimplement pause handling
 			if (context?.CanLog(args.Action) != true)
 			{
 				return;
