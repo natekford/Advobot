@@ -42,9 +42,9 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Advobot.Levels", "src\Comma
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Advobot.Invites", "src\Commands\Advobot.Invites\Advobot.Invites.csproj", "{24CF7ABF-DFB5-40DB-BB53-E90788F2F524}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Advobot.Logging", "src\Commands\Advobot.Logging\Advobot.Logging.csproj", "{74CC37E0-4AF6-4985-913C-A26211963CB1}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Advobot.Logging", "src\Commands\Advobot.Logging\Advobot.Logging.csproj", "{74CC37E0-4AF6-4985-913C-A26211963CB1}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Advobot.Commands", "src\Commands\Advobot.Commands\Advobot.Commands.csproj", "{CC10F866-3691-4CD1-AE94-0F365EC0BF6E}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Advobot.AllCommands", "src\Commands\Advobot.AllCommands\Advobot.AllCommands.csproj", "{5EFBA40F-670C-4FD5-B1CC-09308DE609F2}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -92,10 +92,10 @@ Global
 		{74CC37E0-4AF6-4985-913C-A26211963CB1}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{74CC37E0-4AF6-4985-913C-A26211963CB1}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{74CC37E0-4AF6-4985-913C-A26211963CB1}.Release|Any CPU.Build.0 = Release|Any CPU
-		{CC10F866-3691-4CD1-AE94-0F365EC0BF6E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{CC10F866-3691-4CD1-AE94-0F365EC0BF6E}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{CC10F866-3691-4CD1-AE94-0F365EC0BF6E}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{CC10F866-3691-4CD1-AE94-0F365EC0BF6E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{5EFBA40F-670C-4FD5-B1CC-09308DE609F2}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{5EFBA40F-670C-4FD5-B1CC-09308DE609F2}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{5EFBA40F-670C-4FD5-B1CC-09308DE609F2}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{5EFBA40F-670C-4FD5-B1CC-09308DE609F2}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -108,16 +108,16 @@ Global
 		{51D74221-B5CA-47FD-BE5A-856187354300} = {AE3034B5-0282-4AEA-A15B-BD1ED4485C12}
 		{24CF7ABF-DFB5-40DB-BB53-E90788F2F524} = {AE3034B5-0282-4AEA-A15B-BD1ED4485C12}
 		{74CC37E0-4AF6-4985-913C-A26211963CB1} = {AE3034B5-0282-4AEA-A15B-BD1ED4485C12}
-		{CC10F866-3691-4CD1-AE94-0F365EC0BF6E} = {AE3034B5-0282-4AEA-A15B-BD1ED4485C12}
+		{5EFBA40F-670C-4FD5-B1CC-09308DE609F2} = {AE3034B5-0282-4AEA-A15B-BD1ED4485C12}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
-		BuildVersion_BuildVersioningStyle = None.None.Increment.None
-		BuildVersion_UseUniversalClock = True
-		BuildVersion_UseGlobalSettings = False
-		BuildVersion_AssemblyInfoFilename = src\Advobot.Core\obj\Debug\netstandard2.0\Advobot.Core.AssemblyInfo.cs
-		BuildVersion_StartDate = 2000/1/1
-		BuildVersion_UpdateFileVersion = True
-		BuildVersion_UpdateAssemblyVersion = True
 		SolutionGuid = {4DFA053C-9378-4F41-B1C1-6DE68D9CF75D}
+		BuildVersion_UpdateAssemblyVersion = True
+		BuildVersion_UpdateFileVersion = True
+		BuildVersion_StartDate = 2000/1/1
+		BuildVersion_AssemblyInfoFilename = src\Advobot.Core\obj\Debug\netstandard2.0\Advobot.Core.AssemblyInfo.cs
+		BuildVersion_UseGlobalSettings = False
+		BuildVersion_UseUniversalClock = True
+		BuildVersion_BuildVersioningStyle = None.None.Increment.None
 	EndGlobalSection
 EndGlobal

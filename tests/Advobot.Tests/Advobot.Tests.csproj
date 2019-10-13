@@ -21,7 +21,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\src\Advobot.Core\Advobot.Core.csproj" />
-    <ProjectReference Include="..\..\src\Commands\Advobot.Commands\Advobot.Commands.csproj" />
+    <ProjectReference Include="..\..\src\Commands\Advobot.AllCommands\Advobot.AllCommands.csproj" />
   </ItemGroup>
 
   <Target Name="ChangeAliasesOfNugetRefs" BeforeTargets="FindReferenceAssembliesForReferences;ResolveReferences">
