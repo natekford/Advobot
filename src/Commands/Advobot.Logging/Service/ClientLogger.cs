@@ -1,8 +1,11 @@
-﻿using System.Linq;
+﻿using System;
+using System.Linq;
 using System.Threading.Tasks;
 
 using Advobot.Classes;
+using Advobot.Formatting;
 using Advobot.Logging.Context;
+using Advobot.Modules;
 using Advobot.Utilities;
 
 using AdvorangesUtils;
@@ -18,14 +21,32 @@ namespace Advobot.Logging.Service
 		private readonly BaseSocketClient _Client;
 		private readonly ILoggingService _Logging;
 
+		private readonly InformationMatrixFormattingArgs _ResultFormattingArgs = new InformationMatrixFormattingArgs
+		{
+			InformationSeparator = "\n\t",
+			TitleFormatter = x => x.FormatTitle() + ":",
+		};
+
 		public ClientLogger(ILoggingService logging, BaseSocketClient client)
 		{
 			_Logging = logging;
 			_Client = client;
 		}
 
-		public async Task OnCommandInvoked(ICommandContext context, IResult _)
+		public async Task OnCommandInvoked(CommandInfo command, ICommandContext context, IResult result)
 		{
+			var color = result.IsSuccess ? ConsoleColor.Green : ConsoleColor.Red;
+			ConsoleUtils.WriteLine(FormatResult(command, context, result), color);
+
+			if (result is AdvobotResult a)
+			{
+				await a.SendAsync(context).CAF();
+			}
+			else if (!result.IsSuccess)
+			{
+				await MessageUtils.SendMessageAsync(context.Channel, result.ErrorReason).CAF();
+			}
+
 			var loggingContext = await _Logging.CreateAsync(context.Message).CAF();
 			if (loggingContext.ModLog == null || !loggingContext.ChannelCanBeLogged())
 			{
@@ -80,10 +101,26 @@ namespace Advobot.Logging.Service
 			return Task.CompletedTask;
 		}
 
-		public Task OnLogMessageSent(LogMessage message)
+		private string FormatResult(CommandInfo command, ICommandContext context, IResult result)
 		{
-			message.Write();
-			return Task.CompletedTask;
+			var time = context.Message.CreatedAt.UtcDateTime.ToReadable();
+			if (context is IElapsed elapsed)
+			{
+				time += $" ({elapsed.Elapsed.Milliseconds}ms)";
+			}
+
+			var info = new InformationMatrix();
+			var collection = info.CreateCollection();
+			collection.Add("Command", command.Aliases[0]);
+			collection.Add("Guild", context.Guild.Format());
+			collection.Add("Channel", context.Channel.Format());
+			collection.Add("Time", time);
+			collection.Add("Text", context.Message.Content);
+			if (!result.IsSuccess && result.ErrorReason != null)
+			{
+				collection.Add("Error", result.ErrorReason);
+			}
+			return info.ToString(_ResultFormattingArgs);
 		}
 	}
 }

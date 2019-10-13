@@ -21,12 +21,11 @@ namespace Advobot.Formatting
 		/// </summary>
 		/// <param name="title"></param>
 		/// <param name="value"></param>
-		/// <param name="joiner"></param>
-		public void Add(string title, string value, string joiner = " ")
+		public void Add(string title, string value)
 		{
 			if (!string.IsNullOrWhiteSpace(value))
 			{
-				_Information.Add(new Information(title, value, joiner));
+				_Information.Add(new Information(title, value));
 			}
 		}
 
@@ -48,6 +47,10 @@ namespace Advobot.Formatting
 
 		/// <inheritdoc />
 		public override string ToString()
-			=> _Information.Join(x => x.ToString(), "\n");
+			=> ToString(InformationMatrixFormattingArgs.Default);
+
+		/// <inheritdoc />
+		public string ToString(InformationMatrixFormattingArgs args)
+			=> _Information.Join(x => x.ToString(args), args.InformationSeparator);
 	}
 }

@@ -31,6 +31,16 @@ namespace Advobot.Attributes.Preconditions
 			CommandInfo command,
 			IServiceProvider services)
 		{
+			foreach (var checker in services.GetServices<ICommandChecker>())
+			{
+				var result = await checker.CanInvokeAsync(context, command).CAF();
+				if (!result.IsSuccess)
+				{
+					return result;
+				}
+			}
+			return PreconditionResult.FromSuccess();
+
 			if (!(context.User is IGuildUser user))
 			{
 				return PreconditionUtils.FromInvalidInvoker();

@@ -6,6 +6,9 @@ using Advobot.Logging.ReadOnlyModels;
 using Advobot.Services.Commands;
 using Advobot.Services.Time;
 
+using AdvorangesUtils;
+
+using Discord;
 using Discord.WebSocket;
 
 namespace Advobot.Logging.Service
@@ -30,8 +33,9 @@ namespace Advobot.Logging.Service
 			client.GuildUnavailable += _ClientLogger.OnGuildUnavailable;
 			client.JoinedGuild += _ClientLogger.OnJoinedGuild;
 			client.LeftGuild += _ClientLogger.OnLeftGuild;
-			client.Log += _ClientLogger.OnLogMessageSent;
+			client.Log += OnLogMessageSent;
 			commandHandler.CommandInvoked += _ClientLogger.OnCommandInvoked;
+			commandHandler.Log += OnLogMessageSent;
 
 			_MessageLogger = new MessageLogger(this);
 			client.MessageDeleted += _MessageLogger.OnMessageDeleted;
@@ -82,5 +86,15 @@ namespace Advobot.Logging.Service
 
 		public Task UpdateServerLogChannelAsync(ulong guildId, ulong channelId)
 			=> _Db.UpdateServerLogChannelAsync(guildId, channelId);
+
+		private Task OnLogMessageSent(LogMessage message)
+		{
+			if (!string.IsNullOrWhiteSpace(message.Message))
+			{
+				ConsoleUtils.WriteLine(message.Message, name: message.Source);
+			}
+			message.Exception?.Write();
+			return Task.CompletedTask;
+		}
 	}
 }

@@ -57,7 +57,7 @@ namespace Advobot.Services.LogCounters
 			client.MessageUpdated += (_, __, ___) => Add(MessageDeletes, 1);
 			client.MessageDeleted += (_, __) => Add(MessageDeletes, 1);
 
-			commandHandler.CommandInvoked += (_, result) =>
+			commandHandler.CommandInvoked += (_, __, result) =>
 			{
 				(result.IsSuccess ? SuccessfulCommands : FailedCommands).Add(1);
 				AttemptedCommands.Add(1);

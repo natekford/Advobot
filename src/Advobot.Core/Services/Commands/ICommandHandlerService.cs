@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 
 using Advobot.CommandAssemblies;
-
+using Discord;
 using Discord.Commands;
 
 namespace Advobot.Services.Commands
@@ -16,7 +16,12 @@ namespace Advobot.Services.Commands
 		/// <summary>
 		/// Tells whether a command was executed correctly, failed, or ignored.
 		/// </summary>
-		event Func<ICommandContext, IResult, Task> CommandInvoked;
+		event Func<CommandInfo, ICommandContext, IResult, Task> CommandInvoked;
+
+		/// <summary>
+		/// Notifies about log messages.
+		/// </summary>
+		event Func<LogMessage, Task> Log;
 
 		/// <summary>
 		/// Adds the commands contained within each assembly.

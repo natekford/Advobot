@@ -21,7 +21,7 @@ namespace Advobot.Attributes
 		/// <summary>
 		/// Whether or not the command is enabled by default.
 		/// </summary>
-		public bool IsEnabled { get; set; } = false;
+		public bool IsEnabled { get; set; }
 
 		/// <summary>
 		/// Creates an instance of <see cref="MetaAttribute"/>.

@@ -1,4 +1,5 @@
-﻿using System.Diagnostics;
+﻿using System;
+using System.Diagnostics;
 
 using Advobot.Services.GuildSettings;
 
@@ -35,7 +36,7 @@ namespace Advobot.Modules
 		/// <summary>
 		/// The time since starting the command.
 		/// </summary>
-		public long ElapsedMilliseconds => _Stopwatch.ElapsedMilliseconds;
+		public TimeSpan Elapsed => _Stopwatch.Elapsed;
 
 		IGuildUser IAdvobotCommandContext.User => User;
 

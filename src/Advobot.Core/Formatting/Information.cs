@@ -1,17 +1,10 @@
-﻿using Advobot.Utilities;
-
-namespace Advobot.Formatting
+﻿namespace Advobot.Formatting
 {
 	/// <summary>
 	/// Holds a title and value.
 	/// </summary>
 	public sealed class Information
 	{
-		/// <summary>
-		/// What to put in between <see cref="Title"/> and <see cref="Value"/>
-		/// </summary>
-		public string Joiner { get; }
-
 		/// <summary>
 		/// The name of this information.
 		/// </summary>
@@ -27,16 +20,18 @@ namespace Advobot.Formatting
 		/// </summary>
 		/// <param name="title"></param>
 		/// <param name="value"></param>
-		/// <param name="joiner"></param>
-		public Information(string title, string value, string joiner)
+		public Information(string title, string value)
 		{
 			Title = title;
-			Joiner = joiner;
 			Value = value;
 		}
 
 		/// <inheritdoc />
 		public override string ToString()
-			=> Title.WithTitleCaseAndColon() + Joiner + Value;
+			=> ToString(InformationMatrixFormattingArgs.Default);
+
+		/// <inheritdoc />
+		public string ToString(InformationMatrixFormattingArgs args)
+			=> args.TitleFormatter(Title) + args.TitleAndValueSeparator + Value;
 	}
 }

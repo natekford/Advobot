@@ -1,9 +1,11 @@
 ﻿using System.Collections.Generic;
-
+using System.Threading.Tasks;
+using Advobot.Attributes;
 using Advobot.Services.GuildSettings.Settings;
 using Advobot.Services.GuildSettings.UserInformation;
 using Advobot.Settings;
 using Discord;
+using Discord.Commands;
 
 namespace Advobot.Services.GuildSettings
 {
@@ -56,6 +58,20 @@ namespace Advobot.Services.GuildSettings
 		/// Users which have been affected by banned phrases.
 		/// </summary>
 		IList<BannedPhraseUserInfo> GetBannedPhraseUsers();
+	}
+
+	/// <summary>
+	/// Checks whether a command can be invoked.
+	/// </summary>
+	public interface ICommandChecker
+	{
+		/// <summary>
+		/// Checks whether <paramref name="command"/> can be invoked in <paramref name="context"/>.
+		/// </summary>
+		/// <param name="context"></param>
+		/// <param name="command"></param>
+		/// <returns></returns>
+		Task<PreconditionResult> CanInvokeAsync(ICommandContext context, CommandInfo command);
 	}
 
 	/// <summary>

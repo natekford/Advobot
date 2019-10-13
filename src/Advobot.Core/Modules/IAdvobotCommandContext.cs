@@ -8,17 +8,12 @@ namespace Advobot.Modules
 	/// <summary>
 	/// Holds guild specific user/channel and guild settings.
 	/// </summary>
-	public interface IAdvobotCommandContext : ICommandContext
+	public interface IAdvobotCommandContext : ICommandContext, IElapsed
 	{
 		/// <summary>
 		/// The guild text channel.
 		/// </summary>
 		new ITextChannel Channel { get; }
-
-		/// <summary>
-		/// Time elapsed between receiving the message starting this command and ending it.
-		/// </summary>
-		long ElapsedMilliseconds { get; }
 
 		/// <summary>
 		/// The settings used by the guild.

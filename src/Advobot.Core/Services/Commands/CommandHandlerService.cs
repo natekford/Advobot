@@ -29,27 +29,35 @@ namespace Advobot.Services.Commands
 	/// </summary>
 	internal sealed class CommandHandlerService : ICommandHandlerService
 	{
-		private static readonly TimeSpan _RemovalTime = TimeSpan.FromSeconds(10);
-
 		private readonly IBotSettings _BotSettings;
 		private readonly DiscordShardedClient _Client;
 		private readonly CommandServiceConfig _CommandConfig;
 
-		private readonly AsyncEvent<Func<ICommandContext, IResult, Task>> _CommandInvoked
-			= new AsyncEvent<Func<ICommandContext, IResult, Task>>();
+		private readonly AsyncEvent<Func<CommandInfo, ICommandContext, IResult, Task>> _CommandInvoked
+			= new AsyncEvent<Func<CommandInfo, ICommandContext, IResult, Task>>();
 
 		private readonly Localized<CommandService> _CommandService;
 		private readonly IGuildSettingsFactory _GuildSettings;
 		private readonly IHelpEntryService _HelpEntries;
+
+		private readonly AsyncEvent<Func<LogMessage, Task>> _Log
+			= new AsyncEvent<Func<LogMessage, Task>>();
+
 		private readonly IServiceProvider _Provider;
-		private readonly ITimerService _Timers;
 		private bool _IsReady;
 
 		/// <inheritdoc />
-		public event Func<ICommandContext, IResult, Task> CommandInvoked
+		public event Func<CommandInfo, ICommandContext, IResult, Task> CommandInvoked
 		{
 			add => _CommandInvoked.Add(value);
 			remove => _CommandInvoked.Remove(value);
+		}
+
+		/// <inheritdoc />
+		public event Func<LogMessage, Task> Log
+		{
+			add => _Log.Add(value);
+			remove => _Log.Remove(value);
 		}
 
 		/// <summary>
@@ -61,15 +69,13 @@ namespace Advobot.Services.Commands
 		/// <param name="botSettings"></param>
 		/// <param name="guildSettings"></param>
 		/// <param name="help"></param>
-		/// <param name="timers"></param>
 		public CommandHandlerService(
 			IServiceProvider provider,
 			CommandServiceConfig config,
 			DiscordShardedClient client,
 			IBotSettings botSettings,
 			IGuildSettingsFactory guildSettings,
-			IHelpEntryService help,
-			ITimerService timers)
+			IHelpEntryService help)
 		{
 			_Provider = provider;
 			_CommandConfig = config;
@@ -77,7 +83,6 @@ namespace Advobot.Services.Commands
 			_BotSettings = botSettings;
 			_GuildSettings = guildSettings;
 			_HelpEntries = help;
-			_Timers = timers;
 			_CommandService = new Localized<CommandService>(_ =>
 			{
 				var commands = new CommandService(_CommandConfig);
@@ -148,20 +153,6 @@ namespace Advobot.Services.Commands
 				|| (r is PreconditionGroupResult g && g.PreconditionResults.All(x => CanBeIgnored(c, x)));
 		}
 
-		private static string FormatResult(IAdvobotCommandContext context, IResult result)
-		{
-			var resp = $"\n\tGuild: {context.Guild.Format()}" +
-				$"\n\tChannel: {context.Channel.Format()}" +
-				$"\n\tUser: {context.User.Format()}" +
-				$"\n\tTime: {context.Message.CreatedAt.UtcDateTime.ToReadable()} ({context.ElapsedMilliseconds}ms)" +
-				$"\n\tText: {context.Message.Content}";
-			if (!result.IsSuccess && result.ErrorReason != null)
-			{
-				resp += $"\n\tError: {result.ErrorReason}";
-			}
-			return resp;
-		}
-
 		private async Task HandleCommand(IMessage message)
 		{
 			var argPos = -1;
@@ -186,14 +177,18 @@ namespace Advobot.Services.Commands
 
 		private async Task OnCommandExecuted(
 			Optional<CommandInfo> command,
-			ICommandContext originalContext,
+			ICommandContext context,
 			IResult result)
 		{
-			if (!(originalContext is IAdvobotCommandContext context))
+			if (!(command.Value is CommandInfo c))
 			{
-				throw new ArgumentException(nameof(originalContext));
+				throw new ArgumentNullException(nameof(command));
 			}
-			else if (CanBeIgnored(context, result))
+			if (!(context is IAdvobotCommandContext ctx))
+			{
+				throw new ArgumentException(nameof(context));
+			}
+			if (CanBeIgnored(ctx, result))
 			{
 				return;
 			}
@@ -204,27 +199,11 @@ namespace Advobot.Services.Commands
 				await context.Message.DeleteAsync(_Options).CAF();
 			}*/
 
-			await _CommandInvoked.InvokeAsync(context, result).CAF();
-			var color = result.IsSuccess ? ConsoleColor.Green : ConsoleColor.Red;
-			ConsoleUtils.WriteLine(FormatResult(context, result), color);
-
-			if (result is AdvobotResult a)
-			{
-				await a.SendAsync(context).CAF();
-			}
-			else if (!result.IsSuccess)
-			{
-				var message = await MessageUtils.SendMessageAsync(context.Channel, result.ErrorReason).CAF();
-				var removable = new RemovableMessage(context, new[] { message }, _RemovalTime);
-				_Timers.Add(removable);
-			}
+			await _CommandInvoked.InvokeAsync(c, ctx, result).CAF();
 		}
 
-		private Task OnLog(LogMessage message)
-		{
-			message.Write();
-			return Task.CompletedTask;
-		}
+		private Task OnLog(LogMessage arg)
+			=> _Log.InvokeAsync(arg);
 
 		private Task OnReady(DiscordSocketClient _)
 		{

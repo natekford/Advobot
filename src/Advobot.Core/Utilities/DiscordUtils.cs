@@ -153,18 +153,5 @@ namespace Advobot.Utilities
 				.OrderBy(x => x.JoinedAt.GetValueOrDefault().Ticks)
 				.ToArray();
 		}
-
-		/// <summary>
-		/// Prints <paramref name="message"/> to the console.
-		/// </summary>
-		/// <param name="message"></param>
-		public static void Write(this LogMessage message)
-		{
-			if (!string.IsNullOrWhiteSpace(message.Message))
-			{
-				ConsoleUtils.WriteLine(message.Message, name: message.Source);
-			}
-			message.Exception?.Write();
-		}
 	}
 }

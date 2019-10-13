@@ -56,10 +56,14 @@ namespace Advobot.Formatting
 
 		/// <inheritdoc />
 		public override string ToString()
+			=> ToString(InformationMatrixFormattingArgs.Default);
+
+		/// <inheritdoc />
+		public string ToString(InformationMatrixFormattingArgs args)
 		{
 			//Any collections with no information in them dont need to be added
 			var valid = Collections.Where(x => x.Information.Count > 0);
-			return valid.Join(x => x.ToString(), "\n\n");
+			return valid.Join(x => x.ToString(args), args.CollectionSeparator);
 		}
 	}
 }
