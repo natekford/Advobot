@@ -6,14 +6,12 @@ using System.Reflection;
 using System.Threading.Tasks;
 
 using Advobot.Attributes;
-using Advobot.Classes;
 using Advobot.CommandAssemblies;
 using Advobot.Localization;
 using Advobot.Modules;
 using Advobot.Services.BotSettings;
 using Advobot.Services.GuildSettings;
 using Advobot.Services.HelpEntries;
-using Advobot.Services.Timers;
 using Advobot.Utilities;
 
 using AdvorangesUtils;
@@ -44,7 +42,12 @@ namespace Advobot.Services.Commands
 			= new AsyncEvent<Func<LogMessage, Task>>();
 
 		private readonly IServiceProvider _Provider;
-		private bool _IsReady;
+
+		private readonly AsyncEvent<Func<Task>> _Ready
+			= new AsyncEvent<Func<Task>>();
+
+		private int _ShardsReady;
+		private bool IsReady => _ShardsReady == _Client.Shards.Count;
 
 		/// <inheritdoc />
 		public event Func<CommandInfo, ICommandContext, IResult, Task> CommandInvoked
@@ -58,6 +61,13 @@ namespace Advobot.Services.Commands
 		{
 			add => _Log.Add(value);
 			remove => _Log.Remove(value);
+		}
+
+		/// <inheritdoc />
+		public event Func<Task> Ready
+		{
+			add => _Ready.Add(value);
+			remove => _Ready.Remove(value);
 		}
 
 		/// <summary>
@@ -156,7 +166,7 @@ namespace Advobot.Services.Commands
 		private async Task HandleCommand(IMessage message)
 		{
 			var argPos = -1;
-			if (!_IsReady || _BotSettings.Pause || message.Author.IsBot
+			if (!IsReady || _BotSettings.Pause || message.Author.IsBot
 				|| string.IsNullOrWhiteSpace(message.Content)
 				|| _BotSettings.UsersIgnoredFromCommands.Contains(message.Author.Id)
 				|| !(message is IUserMessage msg)
@@ -205,15 +215,17 @@ namespace Advobot.Services.Commands
 		private Task OnLog(LogMessage arg)
 			=> _Log.InvokeAsync(arg);
 
-		private Task OnReady(DiscordSocketClient _)
+		private async Task OnReady(DiscordSocketClient _)
 		{
+			if (++_ShardsReady < _Client.Shards.Count)
+			{
+				return;
+			}
+
 			_Client.ShardReady -= OnReady;
 
-			ConsoleUtils.WriteLine($"Version: {Constants.BOT_VERSION}; " +
-				$"Prefix: {_BotSettings.Prefix}; " +
-				$"Launch Time: {ProcessInfoUtils.GetUptime().TotalMilliseconds:n}ms");
-			_IsReady = true;
-			return _Client.UpdateGameAsync(_BotSettings);
+			await _Client.UpdateGameAsync(_BotSettings).CAF();
+			await _Ready.InvokeAsync().CAF();
 		}
 	}
 }

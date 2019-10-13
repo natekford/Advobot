@@ -3,6 +3,7 @@ using System.Threading.Tasks;
 
 using Advobot.Logging.Database;
 using Advobot.Logging.ReadOnlyModels;
+using Advobot.Services.BotSettings;
 using Advobot.Services.Commands;
 using Advobot.Services.Time;
 
@@ -16,6 +17,7 @@ namespace Advobot.Logging.Service
 	public sealed class LoggingService : ILoggingService
 	{
 		private readonly ClientLogger _ClientLogger;
+		private readonly CommandHandlerLogger _CommandHandlerLogger;
 		private readonly LoggingDatabase _Db;
 		private readonly MessageLogger _MessageLogger;
 		private readonly UserLogger _UserLogger;
@@ -24,17 +26,21 @@ namespace Advobot.Logging.Service
 			LoggingDatabase db,
 			BaseSocketClient client,
 			ICommandHandlerService commandHandler,
+			IBotSettings botSettings,
 			ITime time)
 		{
 			_Db = db;
 
-			_ClientLogger = new ClientLogger(this, client);
+			_ClientLogger = new ClientLogger(client);
 			client.GuildAvailable += _ClientLogger.OnGuildAvailable;
 			client.GuildUnavailable += _ClientLogger.OnGuildUnavailable;
 			client.JoinedGuild += _ClientLogger.OnJoinedGuild;
 			client.LeftGuild += _ClientLogger.OnLeftGuild;
 			client.Log += OnLogMessageSent;
-			commandHandler.CommandInvoked += _ClientLogger.OnCommandInvoked;
+
+			_CommandHandlerLogger = new CommandHandlerLogger(this, botSettings);
+			commandHandler.CommandInvoked += _CommandHandlerLogger.OnCommandInvoked;
+			commandHandler.Ready += _CommandHandlerLogger.OnReady;
 			commandHandler.Log += OnLogMessageSent;
 
 			_MessageLogger = new MessageLogger(this);

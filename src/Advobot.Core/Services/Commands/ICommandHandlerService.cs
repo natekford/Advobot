@@ -24,6 +24,11 @@ namespace Advobot.Services.Commands
 		event Func<LogMessage, Task> Log;
 
 		/// <summary>
+		/// The command handler is finished starting up.
+		/// </summary>
+		event Func<Task> Ready;
+
+		/// <summary>
 		/// Adds the commands contained within each assembly.
 		/// </summary>
 		/// <param name="commands"></param>
