@@ -162,7 +162,13 @@ namespace Advobot.Utilities
 			{
 				return int.MaxValue;
 			}
-			return u.RoleIds.Max(x => u.Guild.GetRole(x).Position);
+
+			var position = 0;
+			foreach (var roleId in u.RoleIds)
+			{
+				position = Math.Max(position, u.Guild.GetRole(roleId).Position);
+			}
+			return position;
 		}
 
 		private static async Task<PreconditionResult> ValidateAsync<T>(

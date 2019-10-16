@@ -12,11 +12,8 @@ namespace Advobot.UI.ViewModels
 	public sealed class ColorsViewModel : SettingsViewModel
 	{
 		private readonly IColorSettings<ISolidColorBrush> _Colors;
-
 		private readonly NetCoreBrushFactory _Factory = new NetCoreBrushFactory();
-
 		private readonly ColorValidationAttribute _Validator = new ColorValidationAttribute();
-
 		private string _Throwaway = "";
 
 		[ColorValidation]

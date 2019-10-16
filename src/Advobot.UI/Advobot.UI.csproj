@@ -29,10 +29,10 @@
   </ItemGroup>
   
   <ItemGroup>
-    <PackageReference Include="Avalonia" Version="0.8.999" />
-    <PackageReference Include="Avalonia.AvaloniaEdit" Version="0.8.0" />
-    <PackageReference Include="Avalonia.Desktop" Version="0.8.999" />
-    <PackageReference Include="ReactiveUI" Version="10.4.1" />
+    <PackageReference Include="Avalonia" Version="0.9.0-preview1" />
+    <PackageReference Include="Avalonia.AvaloniaEdit" Version="0.9.0-preview1" />
+    <PackageReference Include="Avalonia.Desktop" Version="0.9.0-preview1" />
+    <PackageReference Include="ReactiveUI" Version="10.5.7" />
     <PackageReference Include="System.Reactive.Core" Version="4.2.0" />
     <PackageReference Include="System.Reactive.Interfaces" Version="4.2.0" />
     <PackageReference Include="System.Reactive.Linq" Version="4.2.0" />

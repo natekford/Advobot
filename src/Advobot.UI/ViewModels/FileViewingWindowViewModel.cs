@@ -24,29 +24,17 @@ namespace Advobot.UI.ViewModels
 			.GetCustomAttribute<AssemblyProductAttribute>()?.Product ?? "";
 
 		private readonly FileInfo _File;
-
 		private readonly Type? _FileType;
-
 		private bool _IsDirty;
-
 		private int _LastSaved;
-
-		private string _Output = "";
-
+		private string _Output;
 		private ISolidColorBrush _SavingBackground = Brushes.Yellow;
-
 		private CancellationTokenSource? _SavingNotificationCancelToken;
-
 		private bool _SavingOpen;
-
 		private string _SavingText = "";
-
 		private string _WindowTitle = "";
-
 		public ICommand CloseCommand { get; }
-
 		public ICommand CopyCommand { get; }
-
 		public ICommand DeleteCommand { get; }
 
 		public string Output
@@ -91,7 +79,7 @@ namespace Advobot.UI.ViewModels
 			_FileType = fileType;
 
 			WindowTitle = $"Advobot - Currently viewing {_File}";
-			Output = File.ReadAllText(file.FullName);
+			_Output = File.ReadAllText(file.FullName);
 			_LastSaved = Output.GetHashCode();
 			_IsDirty = false;
 

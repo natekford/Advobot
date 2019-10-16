@@ -88,7 +88,7 @@ namespace Advobot.Classes
 			{
 				Title = Title,
 				Description = Description,
-				Color = Color == 0 ? (Color?)null : new Color(Color),
+				Color = Color == 0 ? default(Color?) : new Color(Color),
 				ImageUrl = ImageUrl?.ToString(),
 				Url = Url?.ToString(),
 				ThumbnailUrl = ThumbUrl?.ToString(),

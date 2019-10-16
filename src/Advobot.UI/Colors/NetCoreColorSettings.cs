@@ -120,14 +120,14 @@ namespace Advobot.UI.Colors
 		private static void LoadSyntaxHighlighting(string loc, string name, string[] extensions)
 		{
 			using var s = Assembly.GetExecutingAssembly().GetManifestResourceStream(loc);
-			using var r = new XmlTextReader(s) ?? throw new InvalidOperationException($"{loc} is missing.");
+			using var r = new XmlTextReader(s);
 
 			var highlighting = HighlightingLoader.Load(r, HighlightingManager.Instance);
 			HighlightingManager.Inst‌​ance.RegisterHighlighting(name, extensions, highlighting);
 		}
 
 		private static FileInfo StaticGetFile(IBotDirectoryAccessor accessor)
-					=> accessor.GetBaseBotDirectoryFile("UISettings.json");
+			=> accessor.GetBaseBotDirectoryFile("UISettings.json");
 
 		private void SetSyntaxHighlightingColors(params string[] names)
 		{

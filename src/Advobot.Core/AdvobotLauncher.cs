@@ -16,6 +16,7 @@ using Advobot.Services.GuildSettings;
 using Advobot.Services.HelpEntries;
 using Advobot.Services.ImageResizing;
 using Advobot.Services.LogCounters;
+using Advobot.Services.Temp;
 using Advobot.Services.Time;
 using Advobot.Services.Timers;
 using Advobot.Settings;
@@ -174,7 +175,8 @@ namespace Advobot
 				.AddSingleton<IGuildSettingsFactory, GuildSettingsFactory>()
 				.AddSingleton<ILogCounterService, LogCounterService>()
 				.AddSingleton<ITimerService, TimerService>()
-				.AddSingleton<IImageResizer, ImageResizer>();
+				.AddSingleton<IImageResizer, ImageResizer>()
+				.AddSingleton<TempService>();
 
 			switch (config.DatabaseType)
 			{
