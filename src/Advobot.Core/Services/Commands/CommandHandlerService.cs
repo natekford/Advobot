@@ -190,15 +190,11 @@ namespace Advobot.Services.Commands
 			ICommandContext context,
 			IResult result)
 		{
-			if (!(command.Value is CommandInfo c))
-			{
-				throw new ArgumentNullException(nameof(command));
-			}
 			if (!(context is IAdvobotCommandContext ctx))
 			{
 				throw new ArgumentException(nameof(context));
 			}
-			if (CanBeIgnored(ctx, result))
+			if (!command.IsSpecified || CanBeIgnored(ctx, result))
 			{
 				return;
 			}
@@ -209,7 +205,7 @@ namespace Advobot.Services.Commands
 				await context.Message.DeleteAsync(_Options).CAF();
 			}*/
 
-			await _CommandInvoked.InvokeAsync(c, ctx, result).CAF();
+			await _CommandInvoked.InvokeAsync(command.Value, ctx, result).CAF();
 		}
 
 		private Task OnLog(LogMessage arg)
