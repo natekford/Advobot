@@ -54,7 +54,6 @@ namespace Advobot.Services.Temp
 
 			client.MessageReceived += HandleMessageReceived;
 			client.UserJoined += HandleUserJoined;
-			client.UserLeft += HandleUserLeft;
 		}
 
 		private async Task HandleMessageReceived(SocketMessage message)
@@ -133,22 +132,6 @@ namespace Advobot.Services.Temp
 			if (roles.Length > 0)
 			{
 				await user.AddRolesAsync(roles, _PersistentRolesOptions).CAF();
-			}
-			//Welcome message
-			if (settings.WelcomeMessage != null)
-			{
-				await settings.WelcomeMessage.SendAsync(user.Guild, user).CAF();
-			}
-		}
-
-		private async Task HandleUserLeft(SocketGuildUser user)
-		{
-			var settings = await _SettingsFactory.GetOrCreateAsync(user.Guild).CAF();
-
-			//Goodbye message
-			if (settings.GoodbyeMessage != null)
-			{
-				await settings.GoodbyeMessage.SendAsync(user.Guild, user).CAF();
 			}
 		}
 	}

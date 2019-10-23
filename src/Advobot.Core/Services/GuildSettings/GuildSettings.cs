@@ -24,8 +24,6 @@ namespace Advobot.Services.GuildSettings
 
 		private string _Culture = "en-US";
 
-		private GuildNotification? _GoodbyeMessage;
-
 		private ulong _MuteRoleId;
 
 		private bool _NonVerboseErrors;
@@ -33,8 +31,6 @@ namespace Advobot.Services.GuildSettings
 		private GuildSettingsFactory? _Parent;
 
 		private string? _Prefix;
-
-		private GuildNotification? _WelcomeMessage;
 
 		/// <inheritdoc />
 		[Setting(nameof(GuildSettingNames.BannedPhraseNames), ResetValueClass = typeof(ClearList))]
@@ -77,15 +73,6 @@ namespace Advobot.Services.GuildSettings
 
 		[JsonProperty("DeleteInvokingMessages")]
 		public bool DeleteInvokingMessages { get; set; }
-
-		/// <inheritdoc />
-		[Setting(nameof(GuildSettingNames.GoodbyeMessage), ResetValueClass = typeof(Null))]
-		[JsonProperty("GoodbyeMessage")]
-		public GuildNotification? GoodbyeMessage
-		{
-			get => _GoodbyeMessage;
-			set => SetValue(ref _GoodbyeMessage, value);
-		}
 
 		/// <inheritdoc />
 		[JsonIgnore]
@@ -157,15 +144,6 @@ namespace Advobot.Services.GuildSettings
 		[Setting(nameof(GuildSettingNames.SpamPrevention), ResetValueClass = typeof(ClearList))]
 		[JsonProperty("SpamPrevention")]
 		public IList<SpamPrev> SpamPrevention { get; set; } = new ObservableCollection<SpamPrev>();
-
-		/// <inheritdoc />
-		[Setting(nameof(GuildSettingNames.WelcomeMessage), ResetValueClass = typeof(Null))]
-		[JsonProperty("WelcomeMessage")]
-		public GuildNotification? WelcomeMessage
-		{
-			get => _WelcomeMessage;
-			set => SetValue(ref _WelcomeMessage, value);
-		}
 
 		//IDatabaseEntry
 		object IDatabaseEntry.Id { get => GuildId; set => GuildId = (ulong)value; }

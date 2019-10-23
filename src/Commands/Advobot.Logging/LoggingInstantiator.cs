@@ -5,6 +5,7 @@ using Advobot.CommandAssemblies;
 using Advobot.Logging.Database;
 using Advobot.Logging.OptionSetters;
 using Advobot.Logging.Service;
+using Advobot.Services.GuildSettings;
 using Advobot.Utilities;
 
 using AdvorangesUtils;

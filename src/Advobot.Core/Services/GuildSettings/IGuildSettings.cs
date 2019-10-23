@@ -61,20 +61,6 @@ namespace Advobot.Services.GuildSettings
 	}
 
 	/// <summary>
-	/// Checks whether a command can be invoked.
-	/// </summary>
-	public interface ICommandChecker
-	{
-		/// <summary>
-		/// Checks whether <paramref name="command"/> can be invoked in <paramref name="context"/>.
-		/// </summary>
-		/// <param name="context"></param>
-		/// <param name="command"></param>
-		/// <returns></returns>
-		Task<PreconditionResult> CanInvokeAsync(ICommandContext context, CommandInfo command);
-	}
-
-	/// <summary>
 	/// Command guild settings.
 	/// </summary>
 	public interface ICommandGuildSettings
@@ -138,28 +124,11 @@ namespace Advobot.Services.GuildSettings
 		IAutoModGuildSettings,
 		ICommandGuildSettings,
 		ICoreGuildSettings,
-		INotificationGuildSettings,
 		IQuoteGuildSettings,
 		IRuleGuildSettings,
 		ISelfAssignableRoleGuildSettings,
 		ISettingsBase
 	{
-	}
-
-	/// <summary>
-	/// Notification guild settings.
-	/// </summary>
-	public interface INotificationGuildSettings
-	{
-		/// <summary>
-		/// Message to display when a user leaves the guild.
-		/// </summary>
-		GuildNotification? GoodbyeMessage { get; set; }
-
-		/// <summary>
-		/// Message to display when a user joins the guild.
-		/// </summary>
-		GuildNotification? WelcomeMessage { get; set; }
 	}
 
 	/// <summary>
