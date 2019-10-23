@@ -25,7 +25,9 @@ namespace Advobot.Logging
 				.AddSingleton<NotificationDatabase>()
 				.AddSingleton<INotificationService, NotificationService>()
 				.AddSingleton<INotificationDatabaseStarter, NotificationDatabaseStarter>()
-				.AddDefaultOptionsSetter<DefaultLogActionsSetter>();
+				.AddDefaultOptionsSetter<DefaultLogActionsSetter>()
+				.AddDefaultOptionsSetter<DefaultWelcomeNotificationSetter>()
+				.AddDefaultOptionsSetter<DefaultGoodbyeNotificationSetter>();
 			return Task.CompletedTask;
 		}
 

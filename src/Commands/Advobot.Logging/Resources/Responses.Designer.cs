@@ -61,7 +61,7 @@ namespace Advobot.Logging.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Successfully set the log actions back to the default ones..
+        ///   Looks up a localized string similar to Successfully set the log actions back to default..
         /// </summary>
         internal static string LoggingDefaultLogActions {
             get {
@@ -147,6 +147,15 @@ namespace Advobot.Logging.Resources {
         internal static string LogPreconditionSummary {
             get {
                 return ResourceManager.GetString("LogPreconditionSummary", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Successfully set {0} back to default..
+        /// </summary>
+        internal static string NotificationDefault {
+            get {
+                return ResourceManager.GetString("NotificationDefault", resourceCulture);
             }
         }
         

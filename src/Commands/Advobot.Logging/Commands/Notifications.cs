@@ -5,6 +5,7 @@ using Advobot.Attributes.ParameterPreconditions.DiscordObjectValidation.Channels
 using Advobot.Attributes.Preconditions.Permissions;
 using Advobot.Logging.Localization;
 using Advobot.Logging.Models;
+using Advobot.Logging.OptionSetters;
 using Advobot.Logging.Resources;
 
 using AdvorangesUtils;
@@ -29,6 +30,7 @@ namespace Advobot.Logging.Commands
 		public sealed class ModifyGoodbyeMessage : NotificationModuleBase
 		{
 			private const Notification Event = Notification.Goodbye;
+			public DefaultGoodbyeNotificationSetter DefaultSetter { get; set; } = null!;
 
 			[LocalizedCommand(nameof(Groups.Channel))]
 			[LocalizedAlias(nameof(Aliases.Channel))]
@@ -46,6 +48,14 @@ namespace Advobot.Logging.Commands
 			{
 				await Notifications.SetContentAsync(Event, Context.Guild.Id, content).CAF();
 				return Responses.Notifications.ModifiedContent(Event, content);
+			}
+
+			[LocalizedCommand(nameof(Groups.Default))]
+			[LocalizedAlias(nameof(Aliases.Default))]
+			public async Task<RuntimeResult> Default()
+			{
+				await DefaultSetter.SetAsync(Context).CAF();
+				return Responses.Notifications.Default(Event);
 			}
 
 			[LocalizedCommand(nameof(Groups.Disable))]
@@ -81,6 +91,7 @@ namespace Advobot.Logging.Commands
 		public sealed class ModifyWelcomeMessage : NotificationModuleBase
 		{
 			private const Notification Event = Notification.Welcome;
+			public DefaultWelcomeNotificationSetter DefaultSetter { get; set; } = null!;
 
 			[LocalizedCommand(nameof(Groups.Channel))]
 			[LocalizedAlias(nameof(Aliases.Channel))]
@@ -98,6 +109,14 @@ namespace Advobot.Logging.Commands
 			{
 				await Notifications.SetContentAsync(Event, Context.Guild.Id, content).CAF();
 				return Responses.Notifications.ModifiedContent(Event, content);
+			}
+
+			[LocalizedCommand(nameof(Groups.Default))]
+			[LocalizedAlias(nameof(Aliases.Default))]
+			public async Task<RuntimeResult> Default()
+			{
+				await DefaultSetter.SetAsync(Context).CAF();
+				return Responses.Notifications.Default(Event);
 			}
 
 			[LocalizedCommand(nameof(Groups.Disable))]

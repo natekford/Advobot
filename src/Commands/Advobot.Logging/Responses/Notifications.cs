@@ -15,6 +15,13 @@ namespace Advobot.Logging.Responses
 		{
 		}
 
+		public static AdvobotResult Default(Notification notif)
+		{
+			return Success(NotificationDefault.Format(
+				notif.ToString().WithBlock()
+			));
+		}
+
 		public static AdvobotResult Disabled(Notification notif)
 		{
 			return Success(NotificationDisabled.Format(
