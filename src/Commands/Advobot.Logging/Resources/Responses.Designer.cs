@@ -151,6 +151,60 @@ namespace Advobot.Logging.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Successfully disabled {0}..
+        /// </summary>
+        internal static string NotificationDisabled {
+            get {
+                return ResourceManager.GetString("NotificationDisabled", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Successfully modified the channel for {0} to {1}..
+        /// </summary>
+        internal static string NotificationModifedChannel {
+            get {
+                return ResourceManager.GetString("NotificationModifedChannel", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Successfully modified the content for {0} to {1}..
+        /// </summary>
+        internal static string NotificationModifiedContent {
+            get {
+                return ResourceManager.GetString("NotificationModifiedContent", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Successfully modified the embed for {0} to.
+        /// </summary>
+        internal static string NotificationModifiedEmbed {
+            get {
+                return ResourceManager.GetString("NotificationModifiedEmbed", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Failed to send the {0} notification because it has no channel..
+        /// </summary>
+        internal static string NotificationSendNoChannel {
+            get {
+                return ResourceManager.GetString("NotificationSendNoChannel", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Failed to send the {0} notification because it does not exist..
+        /// </summary>
+        internal static string NotificationSendNull {
+            get {
+                return ResourceManager.GetString("NotificationSendNull", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to disabled.
         /// </summary>
         internal static string VariableDisabled {
@@ -187,11 +241,29 @@ namespace Advobot.Logging.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to invalid user.
+        /// </summary>
+        internal static string VariableInvalidUser {
+            get {
+                return ResourceManager.GetString("VariableInvalidUser", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to mod.
         /// </summary>
         internal static string VariableModLog {
             get {
                 return ResourceManager.GetString("VariableModLog", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Nothing.
+        /// </summary>
+        internal static string VariableNothing {
+            get {
+                return ResourceManager.GetString("VariableNothing", resourceCulture);
             }
         }
         

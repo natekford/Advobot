@@ -148,4 +148,28 @@
   <data name="VariableUnignored" xml:space="preserve">
     <value>unignored</value>
   </data>
+  <data name="NotificationDisabled" xml:space="preserve">
+    <value>Successfully disabled {0}.</value>
+  </data>
+  <data name="NotificationModifedChannel" xml:space="preserve">
+    <value>Successfully modified the channel for {0} to {1}.</value>
+  </data>
+  <data name="NotificationModifiedContent" xml:space="preserve">
+    <value>Successfully modified the content for {0} to {1}.</value>
+  </data>
+  <data name="NotificationModifiedEmbed" xml:space="preserve">
+    <value>Successfully modified the embed for {0} to</value>
+  </data>
+  <data name="VariableNothing" xml:space="preserve">
+    <value>Nothing</value>
+  </data>
+  <data name="NotificationSendNull" xml:space="preserve">
+    <value>Failed to send the {0} notification because it does not exist.</value>
+  </data>
+  <data name="NotificationSendNoChannel" xml:space="preserve">
+    <value>Failed to send the {0} notification because it has no channel.</value>
+  </data>
+  <data name="VariableInvalidUser" xml:space="preserve">
+    <value>invalid user</value>
+  </data>
 </root>

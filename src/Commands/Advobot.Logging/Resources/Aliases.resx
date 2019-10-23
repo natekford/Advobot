@@ -127,4 +127,28 @@
   <data name="ModifyServerLog" xml:space="preserve">
     <value>msl</value>
   </data>
+  <data name="Notifications" xml:space="preserve">
+    <value>n</value>
+  </data>
+  <data name="ModifyGoodbyeMessage" xml:space="preserve">
+    <value>mgm</value>
+  </data>
+  <data name="ModifyWelcomeMessage" xml:space="preserve">
+    <value>mwm</value>
+  </data>
+  <data name="Channel" xml:space="preserve">
+    <value>ch</value>
+  </data>
+  <data name="Content" xml:space="preserve">
+    <value>c</value>
+  </data>
+  <data name="Disable" xml:space="preserve">
+    <value>d</value>
+  </data>
+  <data name="Embed" xml:space="preserve">
+    <value>e</value>
+  </data>
+  <data name="Send" xml:space="preserve">
+    <value>s</value>
+  </data>
 </root>

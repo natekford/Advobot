@@ -373,57 +373,5 @@ namespace Advobot.Settings.Commands
 				}
 			}
 		}*/
-
-		/*
-		[Category(typeof(ModifyGuildNotifs)), Group(nameof(ModifyGuildNotifs)), TopLevelShortAlias(typeof(ModifyGuildNotifs))]
-		[Summary("The bot send a message to the given channel when the self explantory event happens. " +
-			"`" + GuildNotification.USER_MENTION + "` will be replaced with the formatted user. " +
-			"`" + GuildNotification.USER_STRING + "` will be replaced with a mention of the joining user.")]
-		[PermissionRequirement(null, null)]
-		[DefaultEnabled(false)]
-		[SaveGuildSettings]
-		public sealed class ModifyGuildNotifs : AdvobotModuleBase
-		{
-			[ImplicitCommand]
-			public async Task Welcome([ValidateObject(Verif.CanModifyPermissions, IfNullCheckFromContext = true)] ITextChannel channel, [Remainder] NamedArguments<GuildNotification> args)
-			{
-				if (!args.TryCreateObject(new object[] { channel }, out var obj, out var error))
-				{
-					await MessageUtils.SendErrorMessageAsync(Context, error).CAF();
-					return;
-				}
-				Context.GuildSettings.WelcomeMessage = obj;
-				await MessageUtils.MakeAndDeleteSecondaryMessageAsync(Context, "Successfully set the welcome message.").CAF();
-			}
-			[ImplicitCommand]
-			public async Task Goodbye([ValidateObject(Verif.CanModifyPermissions, IfNullCheckFromContext = true)] ITextChannel channel, [Remainder] NamedArguments<GuildNotification> args)
-			{
-				if (!args.TryCreateObject(new object[] { channel }, out var obj, out var error))
-				{
-					await MessageUtils.SendErrorMessageAsync(Context, error).CAF();
-					return;
-				}
-				Context.GuildSettings.GoodbyeMessage = obj;
-				await MessageUtils.MakeAndDeleteSecondaryMessageAsync(Context, "Successfully set the goodbye message.").CAF();
-			}
-		}*/
-
-		[LocalizedGroup(nameof(Groups.TestGuildNotifs))]
-		[LocalizedAlias(nameof(Aliases.TestGuildNotifs))]
-		[LocalizedSummary(nameof(Summaries.TestGuildNotifs))]
-		[Meta("f5d09649-ac5c-4281-86d9-01a3f7fd43fa")]
-		[RequireGuildPermissions]
-		public sealed class TestGuildNotifs : AdvobotModuleBase
-		{
-			[LocalizedCommand(nameof(Groups.Welcome))]
-			[LocalizedAlias(nameof(Aliases.Welcome))]
-			public Task<RuntimeResult> Welcome()
-				=> Responses.GuildSettings.SendWelcomeNotification(Context.Settings.WelcomeMessage);
-
-			[LocalizedCommand(nameof(Groups.Goodbye))]
-			[LocalizedAlias(nameof(Aliases.Goodbye))]
-			public Task<RuntimeResult> Goodbye()
-				=> Responses.GuildSettings.SendGoodbyeNotification(Context.Settings.GoodbyeMessage);
-		}
 	}
 }

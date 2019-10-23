@@ -3,10 +3,11 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
 using System.Resources;
-
+using Advobot.Services;
 using Advobot.Services.BotSettings;
 using Advobot.Services.GuildSettings;
 using Advobot.Settings;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace Advobot.Utilities
 {
@@ -15,6 +16,20 @@ namespace Advobot.Utilities
 	/// </summary>
 	public static class AdvobotUtils
 	{
+		/// <summary>
+		/// Adds a default options setter.
+		/// </summary>
+		/// <typeparam name="T"></typeparam>
+		/// <param name="services"></param>
+		/// <returns></returns>
+		public static IServiceCollection AddDefaultOptionsSetter<T>(this IServiceCollection services)
+			where T : class, IDefaultOptionsSetter
+		{
+			return services
+				.AddSingleton<T>()
+				.AddSingleton<IDefaultOptionsSetter>(x => x.GetRequiredService<T>());
+		}
+
 		/// <summary>
 		/// Returns a UTC <see cref="DateTimeOffset"/>.
 		/// </summary>
@@ -81,7 +96,7 @@ namespace Advobot.Utilities
 		/// <param name="accessor"></param>
 		/// <param name="fileNameParts"></param>
 		/// <returns></returns>
-		public static FileInfo ValidateDbPath(IBotDirectoryAccessor accessor, params string[] fileNameParts)
+		public static FileInfo ValidateDbPath(this IBotDirectoryAccessor accessor, params string[] fileNameParts)
 		{
 			static void ExtensionValidation(ref string fileName)
 			{

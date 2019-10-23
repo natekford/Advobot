@@ -1,7 +1,9 @@
 ﻿namespace Advobot.Logging
 {
-	public enum LogAction : ulong
+	public enum LogAction : long
 	{
+		None = 0,
+
 		/// <summary>
 		/// Log users joining the guild.
 		/// </summary>

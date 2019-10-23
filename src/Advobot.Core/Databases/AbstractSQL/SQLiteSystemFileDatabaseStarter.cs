@@ -10,7 +10,10 @@ namespace Advobot.Databases.AbstractSQL
 	/// </summary>
 	public abstract class SQLiteSystemFileDatabaseStarter : IDatabaseStarter
 	{
-		private readonly IBotDirectoryAccessor _Accessor;
+		/// <summary>
+		/// The bot's directory.
+		/// </summary>
+		protected IBotDirectoryAccessor Accessor { get; }
 
 		/// <summary>
 		/// Creates an instance of <see cref="SQLiteSystemFileDatabaseStarter"/>.
@@ -18,13 +21,13 @@ namespace Advobot.Databases.AbstractSQL
 		/// <param name="accessor"></param>
 		protected SQLiteSystemFileDatabaseStarter(IBotDirectoryAccessor accessor)
 		{
-			_Accessor = accessor;
+			Accessor = accessor;
 		}
 
 		/// <inheritdoc />
 		public virtual Task EnsureCreatedAsync()
 		{
-			var location = GetLocation(_Accessor);
+			var location = GetLocation();
 			if (!File.Exists(location))
 			{
 				Directory.CreateDirectory(Path.GetDirectoryName(location));
@@ -35,13 +38,12 @@ namespace Advobot.Databases.AbstractSQL
 
 		/// <inheritdoc />
 		public virtual string GetConnectionString()
-			=> $"Data Source={GetLocation(_Accessor)}";
+			=> $"Data Source={GetLocation()}";
 
 		/// <summary>
 		/// Gets the location of the system file being used as a database.
 		/// </summary>
-		/// <param name="accessor"></param>
 		/// <returns></returns>
-		public abstract string GetLocation(IBotDirectoryAccessor accessor);
+		public abstract string GetLocation();
 	}
 }

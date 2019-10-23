@@ -31,14 +31,14 @@ namespace Advobot.Modules
 		/// </summary>
 		public new SocketGuildUser User { get; }
 
-		ITextChannel IAdvobotCommandContext.Channel => Channel;
+		ITextChannel IGuildCommandContext.Channel => Channel;
 
 		/// <summary>
 		/// The time since starting the command.
 		/// </summary>
 		public TimeSpan Elapsed => _Stopwatch.Elapsed;
 
-		IGuildUser IAdvobotCommandContext.User => User;
+		IGuildUser IGuildCommandContext.User => User;
 
 		/// <summary>
 		/// Creates an instance of <see cref="AdvobotCommandContext"/>.

@@ -160,6 +160,15 @@ namespace Advobot.Standard.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Creates a voice channel and a role which restricts access to that voice channel..
+        /// </summary>
+        internal static string CreateRoleRestrictedChannel {
+            get {
+                return ResourceManager.GetString("CreateRoleRestrictedChannel", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Creates a webhook for the guild..
         /// </summary>
         internal static string CreateWebhook {

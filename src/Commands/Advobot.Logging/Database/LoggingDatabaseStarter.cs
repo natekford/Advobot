@@ -10,7 +10,7 @@ namespace Advobot.Logging.Database
 		{
 		}
 
-		public override string GetLocation(IBotDirectoryAccessor accessor)
-			=> AdvobotUtils.ValidateDbPath(accessor, "SQLite", "Logging.db").FullName;
+		public override string GetLocation()
+			=> Accessor.ValidateDbPath("SQLite", "Logging.db").FullName;
 	}
 }

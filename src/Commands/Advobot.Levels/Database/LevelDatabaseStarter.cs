@@ -10,7 +10,7 @@ namespace Advobot.Levels.Database
 		{
 		}
 
-		public override string GetLocation(IBotDirectoryAccessor accessor)
-			=> AdvobotUtils.ValidateDbPath(accessor, "SQLite", "Levels.db").FullName;
+		public override string GetLocation()
+			=> Accessor.ValidateDbPath("SQLite", "Levels.db").FullName;
 	}
 }

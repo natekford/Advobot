@@ -176,6 +176,7 @@ namespace Advobot
 				.AddSingleton<ILogCounterService, LogCounterService>()
 				.AddSingleton<ITimerService, TimerService>()
 				.AddSingleton<IImageResizer, ImageResizer>()
+				//TODO: remove eventually
 				.AddSingleton<TempService>();
 
 			switch (config.DatabaseType)

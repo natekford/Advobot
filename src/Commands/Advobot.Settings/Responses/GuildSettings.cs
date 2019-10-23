@@ -65,23 +65,6 @@ namespace Advobot.Settings.Responses
 			=> Success(Default.FormatInterpolated($"Successfully reset the setting {name}"));
 
 		public static AdvobotResult ResetAll()
-					=> Success($"Successfully reset all settings.");
-
-		public static AdvobotResult SendGoodbyeNotification(GuildNotification? notif)
-			=> SendNotification(notif, "goodbye");
-
-		public static AdvobotResult SendWelcomeNotification(GuildNotification? notif)
-					=> SendNotification(notif, "welcome");
-
-		private static AdvobotResult SendNotification(GuildNotification? notif, string notifName)
-		{
-			if (notif == null)
-			{
-				return Failure($"The {notifName} notification does not exist.").WithTime(DefaultTime);
-			}
-			return Success(notif.Content ?? Constants.ZERO_LENGTH_CHAR)
-				.WithEmbed(notif.CustomEmbed?.BuildWrapper())
-				.WithOverrideDestinationChannelId(notif.ChannelId);
-		}
+			=> Success($"Successfully reset all settings.");
 	}
 }

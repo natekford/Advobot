@@ -112,4 +112,10 @@
   <data name="ModifyServerLog" xml:space="preserve">
     <value>Modifies which channel is designated as the server log.</value>
   </data>
+  <data name="ModifyGoodbyeMessage" xml:space="preserve">
+    <value>Modifies a message sent when a user leaves the server.</value>
+  </data>
+  <data name="ModifyWelcomeMessage" xml:space="preserve">
+    <value>Modifies a message sent when a user joins the server.</value>
+  </data>
 </root>

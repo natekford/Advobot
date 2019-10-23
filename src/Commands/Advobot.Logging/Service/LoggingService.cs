@@ -72,26 +72,14 @@ namespace Advobot.Logging.Service
 		public Task RemoveIgnoredChannelsAsync(ulong guildId, IEnumerable<ulong> channels)
 			=> _Db.DeleteIgnoredChannelsAsync(guildId, channels);
 
-		public Task RemoveImageLogChannelAsync(ulong guildId)
-			=> _Db.DeleteImageLogChannelAsync(guildId);
-
 		public Task RemoveLogActionsAsync(ulong guildId, IEnumerable<LogAction> actions)
 			=> _Db.DeleteLogActionsAsync(guildId, actions);
 
-		public Task RemoveModLogChannelAsync(ulong guildId)
-			=> _Db.DeleteModLogChannelAsync(guildId);
+		public Task RemoveLogChannelAsync(Log log, ulong guildId)
+			=> _Db.UpdateLogChannelAsync(log, guildId, null);
 
-		public Task RemoveServerLogChannelAsync(ulong guildId)
-			=> _Db.DeleteServerLogChannelAsync(guildId);
-
-		public Task UpdateImageLogChannelAsync(ulong guildId, ulong channelId)
-			=> _Db.UpdateImageLogChannelAsync(guildId, channelId);
-
-		public Task UpdateModLogChannelAsync(ulong guildId, ulong channelId)
-			=> _Db.UpdateModLogChannelAsync(guildId, channelId);
-
-		public Task UpdateServerLogChannelAsync(ulong guildId, ulong channelId)
-			=> _Db.UpdateServerLogChannelAsync(guildId, channelId);
+		public Task SetLogChannelAsync(Log log, ulong guildId, ulong channelId)
+			=> _Db.UpdateLogChannelAsync(log, guildId, channelId);
 
 		private Task OnLogMessageSent(LogMessage message)
 		{

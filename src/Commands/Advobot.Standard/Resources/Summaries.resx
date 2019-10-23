@@ -465,4 +465,7 @@
   <data name="SpeakThroughWebhookText" xml:space="preserve">
     <value>The text to say through the webhook.</value>
   </data>
+  <data name="CreateRoleRestrictedChannel" xml:space="preserve">
+    <value>Creates a voice channel and a role which restricts access to that voice channel.</value>
+  </data>
 </root>

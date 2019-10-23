@@ -2,7 +2,6 @@
 using System.Threading.Tasks;
 
 using Advobot.Logging.ReadOnlyModels;
-using Advobot.Services.GuildSettings.Settings;
 
 namespace Advobot.Logging.Service
 {
@@ -20,18 +19,10 @@ namespace Advobot.Logging.Service
 
 		Task RemoveIgnoredChannelsAsync(ulong guildId, IEnumerable<ulong> channels);
 
-		Task RemoveImageLogChannelAsync(ulong guildId);
-
 		Task RemoveLogActionsAsync(ulong guildId, IEnumerable<LogAction> actions);
 
-		Task RemoveModLogChannelAsync(ulong guildId);
+		Task RemoveLogChannelAsync(Log log, ulong guildId);
 
-		Task RemoveServerLogChannelAsync(ulong guildId);
-
-		Task UpdateImageLogChannelAsync(ulong guildId, ulong channelId);
-
-		Task UpdateModLogChannelAsync(ulong guildId, ulong channelId);
-
-		Task UpdateServerLogChannelAsync(ulong guildId, ulong channelId);
+		Task SetLogChannelAsync(Log log, ulong guildId, ulong channelId);
 	}
 }

@@ -79,11 +79,47 @@ namespace Advobot.Logging.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Channel.
+        /// </summary>
+        internal static string Channel {
+            get {
+                return ResourceManager.GetString("Channel", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Content.
+        /// </summary>
+        internal static string Content {
+            get {
+                return ResourceManager.GetString("Content", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Default.
         /// </summary>
         internal static string Default {
             get {
                 return ResourceManager.GetString("Default", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Disable.
+        /// </summary>
+        internal static string Disable {
+            get {
+                return ResourceManager.GetString("Disable", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Embed.
+        /// </summary>
+        internal static string Embed {
+            get {
+                return ResourceManager.GetString("Embed", resourceCulture);
             }
         }
         
@@ -102,6 +138,15 @@ namespace Advobot.Logging.Resources {
         internal static string ModifyActions {
             get {
                 return ResourceManager.GetString("ModifyActions", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to ModifyGoodbyeMessage.
+        /// </summary>
+        internal static string ModifyGoodbyeMessage {
+            get {
+                return ResourceManager.GetString("ModifyGoodbyeMessage", resourceCulture);
             }
         }
         
@@ -142,11 +187,38 @@ namespace Advobot.Logging.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to ModifyWelcomeMessage.
+        /// </summary>
+        internal static string ModifyWelcomeMessage {
+            get {
+                return ResourceManager.GetString("ModifyWelcomeMessage", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Notifications.
+        /// </summary>
+        internal static string Notifications {
+            get {
+                return ResourceManager.GetString("Notifications", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Remove.
         /// </summary>
         internal static string Remove {
             get {
                 return ResourceManager.GetString("Remove", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Send.
+        /// </summary>
+        internal static string Send {
+            get {
+                return ResourceManager.GetString("Send", resourceCulture);
             }
         }
     }

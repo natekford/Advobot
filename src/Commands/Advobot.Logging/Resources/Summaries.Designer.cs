@@ -70,6 +70,15 @@ namespace Advobot.Logging.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Modifies a message sent when a user leaves the server..
+        /// </summary>
+        internal static string ModifyGoodbyeMessage {
+            get {
+                return ResourceManager.GetString("ModifyGoodbyeMessage", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Ignores all logging info that would have been gotten from a channel..
         /// </summary>
         internal static string ModifyIgnoredChannels {
@@ -102,6 +111,15 @@ namespace Advobot.Logging.Resources {
         internal static string ModifyServerLog {
             get {
                 return ResourceManager.GetString("ModifyServerLog", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Modifies a message sent when a user joins the server..
+        /// </summary>
+        internal static string ModifyWelcomeMessage {
+            get {
+                return ResourceManager.GetString("ModifyWelcomeMessage", resourceCulture);
             }
         }
     }

@@ -1,16 +1,14 @@
-﻿using System.Collections.Generic;
-using System.Linq;
+﻿using System.Linq;
 using System.Threading.Tasks;
 
 using Advobot.Attributes;
 using Advobot.Attributes.ParameterPreconditions.DiscordObjectValidation.Channels;
 using Advobot.Attributes.Preconditions.Permissions;
 using Advobot.Logging.Localization;
+using Advobot.Logging.OptionSetters;
 using Advobot.Logging.ParameterPreconditions;
 using Advobot.Logging.Preconditions;
 using Advobot.Logging.Resources;
-using Advobot.Services.GuildSettings.Settings;
-using Advobot.Utilities;
 
 using AdvorangesUtils;
 
@@ -34,17 +32,7 @@ namespace Advobot.Logging.Commands
 		[RequireGuildPermissions]
 		public sealed class ModifyActions : LoggingModuleBase
 		{
-			private static readonly IReadOnlyList<LogAction> _All
-				= AdvobotUtils.GetValues<LogAction>();
-
-			private static readonly IReadOnlyList<LogAction> _Default = new[]
-			{
-				LogAction.UserJoined,
-				LogAction.UserLeft,
-				LogAction.MessageReceived,
-				LogAction.MessageUpdated,
-				LogAction.MessageDeleted
-			};
+			public DefaultLogActionsSetter DefaultSetter { get; set; } = null!;
 
 			[LocalizedCommand(nameof(Groups.All))]
 			[LocalizedAlias(nameof(Aliases.All))]
@@ -52,11 +40,11 @@ namespace Advobot.Logging.Commands
 			{
 				if (enable)
 				{
-					await Logging.AddLogActionsAsync(Context.Guild.Id, _All).CAF();
+					await Logging.AddLogActionsAsync(Context.Guild.Id, DefaultLogActionsSetter.All).CAF();
 				}
 				else
 				{
-					await Logging.RemoveLogActionsAsync(Context.Guild.Id, _All).CAF();
+					await Logging.RemoveLogActionsAsync(Context.Guild.Id, DefaultLogActionsSetter.All).CAF();
 				}
 				return Responses.Logging.ModifiedAllLogActions(enable);
 			}
@@ -79,8 +67,7 @@ namespace Advobot.Logging.Commands
 			[LocalizedAlias(nameof(Aliases.Default))]
 			public async Task<RuntimeResult> Default()
 			{
-				await Logging.RemoveLogActionsAsync(Context.Guild.Id, _All).CAF();
-				await Logging.AddLogActionsAsync(Context.Guild.Id, _Default).CAF();
+				await DefaultSetter.SetAsync(Context).CAF();
 				return Responses.Logging.DefaultLogActions();
 			}
 		}
@@ -124,12 +111,14 @@ namespace Advobot.Logging.Commands
 		[RequireGuildPermissions]
 		public sealed class ModifyImageLog : LoggingModuleBase
 		{
+			private const Log LogType = Log.Server;
+
 			[Command]
 			public async Task<RuntimeResult> Command(
 				[NotImageLog, CanModifyChannel(ManageChannels | ManageRoles)]
 				ITextChannel channel)
 			{
-				await Logging.UpdateImageLogChannelAsync(Context.Guild.Id, channel.Id).CAF();
+				await Logging.SetLogChannelAsync(LogType, Context.Guild.Id, channel.Id).CAF();
 				return Responses.Logging.SetLog(VariableImageLog, channel);
 			}
 
@@ -138,7 +127,7 @@ namespace Advobot.Logging.Commands
 			[RequireImageLog]
 			public async Task<RuntimeResult> Remove()
 			{
-				await Logging.RemoveImageLogChannelAsync(Context.Guild.Id).CAF();
+				await Logging.RemoveLogChannelAsync(LogType, Context.Guild.Id).CAF();
 				return Responses.Logging.Removed(VariableImageLog);
 			}
 		}
@@ -150,12 +139,14 @@ namespace Advobot.Logging.Commands
 		[RequireGuildPermissions]
 		public sealed class ModifyModLog : LoggingModuleBase
 		{
+			private const Log LogType = Log.Server;
+
 			[Command]
 			public async Task<RuntimeResult> Command(
 				[NotModLog, CanModifyChannel(ManageChannels | ManageRoles)]
 				ITextChannel channel)
 			{
-				await Logging.UpdateModLogChannelAsync(Context.Guild.Id, channel.Id).CAF();
+				await Logging.SetLogChannelAsync(LogType, Context.Guild.Id, channel.Id).CAF();
 				return Responses.Logging.SetLog(VariableModLog, channel);
 			}
 
@@ -164,7 +155,7 @@ namespace Advobot.Logging.Commands
 			[RequireModLog]
 			public async Task<RuntimeResult> Remove()
 			{
-				await Logging.RemoveModLogChannelAsync(Context.Guild.Id).CAF();
+				await Logging.RemoveLogChannelAsync(LogType, Context.Guild.Id).CAF();
 				return Responses.Logging.Removed(VariableModLog);
 			}
 		}
@@ -176,12 +167,14 @@ namespace Advobot.Logging.Commands
 		[RequireGuildPermissions]
 		public sealed class ModifyServerLog : LoggingModuleBase
 		{
+			private const Log LogType = Log.Server;
+
 			[Command]
 			public async Task<RuntimeResult> Command(
 				[NotServerLog, CanModifyChannel(ManageChannels | ManageRoles)]
 				ITextChannel channel)
 			{
-				await Logging.UpdateServerLogChannelAsync(Context.Guild.Id, channel.Id).CAF();
+				await Logging.SetLogChannelAsync(LogType, Context.Guild.Id, channel.Id).CAF();
 				return Responses.Logging.SetLog(VariableServerLog, channel);
 			}
 
@@ -190,7 +183,7 @@ namespace Advobot.Logging.Commands
 			[RequireServerLog]
 			public async Task<RuntimeResult> Remove()
 			{
-				await Logging.RemoveServerLogChannelAsync(Context.Guild.Id).CAF();
+				await Logging.RemoveLogChannelAsync(LogType, Context.Guild.Id).CAF();
 				return Responses.Logging.Removed(VariableServerLog);
 			}
 		}

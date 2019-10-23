@@ -214,6 +214,15 @@ namespace Advobot.Standard.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to crrc.
+        /// </summary>
+        internal static string CreateRoleRestrictedChannel {
+            get {
+                return ResourceManager.GetString("CreateRoleRestrictedChannel", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to cw.
         /// </summary>
         internal static string CreateWebhook {

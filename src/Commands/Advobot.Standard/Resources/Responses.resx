@@ -690,4 +690,7 @@ Type {1} for help with a command.</value>
   <data name="MiscTitleNamedArguments" xml:space="preserve">
     <value>Named Arguments</value>
   </data>
+  <data name="ChannelsCreatededRoleRestrictedChannel" xml:space="preserve">
+    <value>Successfully created {0} and restricted access to people with {1}.</value>
+  </data>
 </root>

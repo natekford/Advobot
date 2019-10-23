@@ -10,7 +10,7 @@ namespace Advobot.Gacha.Database
 		{
 		}
 
-		public override string GetLocation(IBotDirectoryAccessor accessor)
-			=> AdvobotUtils.ValidateDbPath(accessor, "SQLite", "Gacha.db").FullName;
+		public override string GetLocation()
+			=> Accessor.ValidateDbPath("SQLite", "Gacha.db").FullName;
 	}
 }

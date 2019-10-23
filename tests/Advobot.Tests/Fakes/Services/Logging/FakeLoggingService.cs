@@ -31,18 +31,10 @@ namespace Advobot.Tests.Fakes.Services.Logging
 
 		public Task RemoveIgnoredChannelsAsync(ulong guildId, IEnumerable<ulong> channels) => throw new NotImplementedException();
 
-		public Task RemoveImageLogChannelAsync(ulong guildId) => throw new NotImplementedException();
-
 		public Task RemoveLogActionsAsync(ulong guildId, IEnumerable<LogAction> actions) => throw new NotImplementedException();
 
-		public Task RemoveModLogChannelAsync(ulong guildId) => throw new NotImplementedException();
+		public Task RemoveLogChannelAsync(Log log, ulong guildId) => throw new NotImplementedException();
 
-		public Task RemoveServerLogChannelAsync(ulong guildId) => throw new NotImplementedException();
-
-		public Task UpdateImageLogChannelAsync(ulong guildId, ulong channelId) => throw new NotImplementedException();
-
-		public Task UpdateModLogChannelAsync(ulong guildId, ulong channelId) => throw new NotImplementedException();
-
-		public Task UpdateServerLogChannelAsync(ulong guildId, ulong channelId) => throw new NotImplementedException();
+		public Task SetLogChannelAsync(Log log, ulong guildId, ulong channelId) => throw new NotImplementedException();
 	}
 }

@@ -3,7 +3,9 @@ using System.Threading.Tasks;
 
 using Advobot.CommandAssemblies;
 using Advobot.Logging.Database;
+using Advobot.Logging.OptionSetters;
 using Advobot.Logging.Service;
+using Advobot.Utilities;
 
 using AdvorangesUtils;
 
@@ -18,17 +20,31 @@ namespace Advobot.Logging
 			services
 				.AddSingleton<LoggingDatabase>()
 				.AddSingleton<ILoggingService, LoggingService>()
-				.AddSingleton<ILoggingDatabaseStarter, LoggingDatabaseStarter>();
+				.AddSingleton<ILoggingDatabaseStarter, LoggingDatabaseStarter>()
+				.AddSingleton<NotificationDatabase>()
+				.AddSingleton<INotificationService, NotificationService>()
+				.AddSingleton<INotificationDatabaseStarter, NotificationDatabaseStarter>()
+				.AddDefaultOptionsSetter<DefaultLogActionsSetter>();
 			return Task.CompletedTask;
 		}
 
 		public async Task ConfigureServicesAsync(IServiceProvider services)
 		{
-			var db = services.GetRequiredService<LoggingDatabase>();
-			await db.CreateDatabaseAsync().CAF();
+			{
+				var db = services.GetRequiredService<LoggingDatabase>();
+				await db.CreateDatabaseAsync().CAF();
 
-			//Needed to instasntiate the log service
-			services.GetRequiredService<ILoggingService>();
+				//Needed to instasntiate the log service
+				services.GetRequiredService<ILoggingService>();
+			}
+
+			{
+				var db = services.GetRequiredService<NotificationDatabase>();
+				await db.CreateDatabaseAsync().CAF();
+
+				//Needed to instasntiate the notification service
+				services.GetRequiredService<INotificationService>();
+			}
 		}
 	}
 }

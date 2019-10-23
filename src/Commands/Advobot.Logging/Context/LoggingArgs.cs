@@ -1,8 +1,6 @@
 ﻿using System;
 using System.Threading.Tasks;
 
-using Advobot.Services.GuildSettings.Settings;
-
 namespace Advobot.Logging.Context
 {
 	public sealed class LoggingArgs<T> where T : ILoggingContext

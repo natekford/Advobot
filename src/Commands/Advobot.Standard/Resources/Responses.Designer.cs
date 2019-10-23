@@ -79,6 +79,15 @@ namespace Advobot.Standard.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Successfully created {0} and restricted access to people with {1}..
+        /// </summary>
+        internal static string ChannelsCreatededRoleRestrictedChannel {
+            get {
+                return ResourceManager.GetString("ChannelsCreatededRoleRestrictedChannel", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Failed to copy channel permissions because {0} and {1} are not the same type..
         /// </summary>
         internal static string ChannelsFailedPermissionCopy {

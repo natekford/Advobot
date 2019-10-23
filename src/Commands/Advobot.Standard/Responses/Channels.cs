@@ -47,6 +47,16 @@ namespace Advobot.Standard.Responses
 			));
 		}
 
+		public static AdvobotResult CreatededRoleRestrictedChannel(
+			IVoiceChannel channel,
+			IRole role)
+		{
+			return Success(ChannelsCreatededRoleRestrictedChannel.Format(
+				channel.Format().WithBlock(),
+				role.Format().WithBlock()
+			));
+		}
+
 		public static AdvobotResult Display(
 			IEnumerable<IGuildChannel> channels,
 			[CallerMemberName] string caller = "")

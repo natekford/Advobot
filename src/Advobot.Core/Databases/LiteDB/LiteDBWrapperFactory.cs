@@ -31,7 +31,7 @@ namespace Advobot.Databases.LiteDB
 		/// <inheritdoc />
 		public IDatabaseWrapper CreateWrapper(string databaseName)
 		{
-			var file = AdvobotUtils.ValidateDbPath(_Accessor, "LiteDB", databaseName);
+			var file = _Accessor.ValidateDbPath("LiteDB", databaseName);
 			return new LiteDBWrapper(GetDatabase(file));
 		}
 

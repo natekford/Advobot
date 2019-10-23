@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Data;
 using System.Data.SQLite;
@@ -9,7 +8,6 @@ using System.Threading.Tasks;
 using Advobot.Databases.AbstractSQL;
 using Advobot.Logging.Models;
 using Advobot.Logging.ReadOnlyModels;
-using Advobot.Services.GuildSettings.Settings;
 
 using AdvorangesUtils;
 
@@ -19,6 +17,10 @@ namespace Advobot.Logging.Database
 {
 	public sealed class LoggingDatabase : DatabaseBase<SQLiteConnection>
 	{
+		private const string ImageLogId = "ImageLogId";
+		private const string ModLogId = "ModLogId";
+		private const string ServerLogId = "ServerLogId";
+
 		public LoggingDatabase(ILoggingDatabaseStarter starter) : base(starter)
 		{
 		}
@@ -62,13 +64,13 @@ namespace Advobot.Logging.Database
 			using var connection = await GetConnectionAsync().CAF();
 
 			//Log channels
-			await connection.ExecuteAsync(@"
+			await connection.ExecuteAsync($@"
 			CREATE TABLE IF NOT EXISTS LogChannel
 			(
 				GuildId						TEXT NOT NULL,
-				ImageLogId					TEXT,
-				ModLogId					TEXT,
-				ServerLogId					TEXT,
+				{ImageLogId}				TEXT,
+				{ModLogId}					TEXT,
+				{ServerLogId}				TEXT,
 				PRIMARY KEY(GuildId)
 			);
 			").CAF();
@@ -118,9 +120,6 @@ namespace Advobot.Logging.Database
 			return await BulkModify(SQL, @params).CAF();
 		}
 
-		public Task DeleteImageLogChannelAsync(ulong guildId)
-			=> DeleteLogChannelAsync(guildId, "ImageLogId");
-
 		public async Task<int> DeleteLogActionsAsync(ulong guildId, IEnumerable<LogAction> actions)
 		{
 			const string SQL = @"
@@ -134,12 +133,6 @@ namespace Advobot.Logging.Database
 			});
 			return await BulkModify(SQL, @params).CAF();
 		}
-
-		public Task DeleteModLogChannelAsync(ulong guildId)
-			=> DeleteLogChannelAsync(guildId, "ModLogId");
-
-		public Task DeleteServerLogChannelAsync(ulong guildId)
-			=> DeleteLogChannelAsync(guildId, "ServerLogId");
 
 		public async Task<IReadOnlyList<ulong>> GetIgnoredChannelsAsync(ulong guildId)
 		{
@@ -179,39 +172,12 @@ namespace Advobot.Logging.Database
 			", param).CAF() ?? new LogChannels();
 		}
 
-		public Task UpdateImageLogChannelAsync(ulong guildId, ulong channelId)
-			=> UpdateLogChannelAsync(guildId, channelId, "ImageLogId");
-
-		public Task UpdateModLogChannelAsync(ulong guildId, ulong channelId)
-			=> UpdateLogChannelAsync(guildId, channelId, "ModLogId");
-
-		public Task UpdateServerLogChannelAsync(ulong guildId, ulong channelId)
-			=> UpdateLogChannelAsync(guildId, channelId, "ServerLogId");
-
-		protected override Task<int> BulkModify<TParams>(
-			IDbConnection connection,
-			string sql,
-			IEnumerable<TParams> @params,
-			IDbTransaction transaction)
-			=> connection.ExecuteAsync(sql, @params, transaction);
-
-		private async Task DeleteLogChannelAsync(ulong guildId, string name)
+		public async Task UpdateLogChannelAsync(Log log, ulong guildId, ulong? channelId)
 		{
 			using var connection = await GetConnectionAsync().CAF();
 
-			var param = new { GuildId = guildId.ToString() };
-			await connection.ExecuteAsync($@"
-				UPDATE LogChannel
-				SET {name} = NULL
-				WHERE GuildId = @GuildId
-			", param).CAF();
-		}
-
-		private async Task UpdateLogChannelAsync(ulong guildId, ulong channelId, string name)
-		{
-			using var connection = await GetConnectionAsync().CAF();
-
-			var param = new { GuildId = guildId.ToString(), ChannelId = channelId.ToString() };
+			var name = GetLogName(log);
+			var param = new { GuildId = guildId.ToString(), ChannelId = channelId?.ToString() };
 			await connection.ExecuteAsync($@"
 				INSERT OR IGNORE INTO LogChannel
 					( GuildId, {name} )
@@ -222,5 +188,20 @@ namespace Advobot.Logging.Database
 				WHERE GuildId = @GuildId
 			", param).CAF();
 		}
+
+		protected override Task<int> BulkModify<TParams>(
+			IDbConnection connection,
+			string sql,
+			IEnumerable<TParams> @params,
+			IDbTransaction transaction)
+			=> connection.ExecuteAsync(sql, @params, transaction);
+
+		private string GetLogName(Log log) => log switch
+		{
+			Log.Image => ImageLogId,
+			Log.Mod => ModLogId,
+			Log.Server => ServerLogId,
+			_ => throw new ArgumentOutOfRangeException(nameof(log))
+		};
 	}
 }

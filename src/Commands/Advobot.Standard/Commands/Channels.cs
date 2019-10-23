@@ -116,6 +116,36 @@ namespace Advobot.Standard.Commands
 			}
 		}
 
+		[LocalizedGroup(nameof(Groups.CreateRoleRestrictedChannel))]
+		[LocalizedAlias(nameof(Aliases.CreateRoleRestrictedChannel))]
+		[LocalizedSummary(nameof(Summaries.CreateRoleRestrictedChannel))]
+		[Meta("b3934ed0-8da2-4259-969c-558da8380df8", IsEnabled = true)]
+		[RequireGuildPermissions(GuildPermission.ManageChannels | GuildPermission.ManageRoles)]
+		public sealed class CreateRoleRestrictedChannel : AdvobotModuleBase
+		{
+			private static readonly OverwritePermissions _CanJoin
+				= new OverwritePermissions(connect: PermValue.Allow);
+
+			private static readonly OverwritePermissions _CannotJoin
+				= new OverwritePermissions(connect: PermValue.Deny);
+
+			private static readonly GuildPermissions _None = new GuildPermissions(0);
+
+			[Command]
+			public async Task<RuntimeResult> Command(
+				[Remainder, ChannelName, RoleName]
+				string name
+			)
+			{
+				var options = GenerateRequestOptions();
+				var role = await Context.Guild.CreateRoleAsync(name, _None, null, false, options).CAF();
+				var channel = await Context.Guild.CreateVoiceChannelAsync(name, null, options).CAF();
+				await channel.AddPermissionOverwriteAsync(Context.Guild.EveryoneRole, _CannotJoin).CAF();
+				await channel.AddPermissionOverwriteAsync(role, _CanJoin).CAF();
+				return Responses.Channels.CreatededRoleRestrictedChannel(channel, role);
+			}
+		}
+
 		[LocalizedGroup(nameof(Groups.DeleteChannel))]
 		[LocalizedAlias(nameof(Aliases.DeleteChannel))]
 		[LocalizedSummary(nameof(Summaries.DeleteChannel))]

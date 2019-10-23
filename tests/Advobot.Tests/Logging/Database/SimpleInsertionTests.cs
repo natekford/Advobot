@@ -109,7 +109,7 @@ namespace Advobot.Tests.Logging.Database
 
 			//Add image log
 			{
-				await db.UpdateImageLogChannelAsync(GUILD_ID, IMAGE_LOG_ID).CAF();
+				await db.UpdateLogChannelAsync(Log.Image, GUILD_ID, IMAGE_LOG_ID).CAF();
 
 				var retrieved = await db.GetLogChannelsAsync(GUILD_ID).CAF();
 				Assert.AreEqual(IMAGE_LOG_ID, retrieved.ImageLogId);
@@ -119,7 +119,7 @@ namespace Advobot.Tests.Logging.Database
 
 			//Add mod log
 			{
-				await db.UpdateModLogChannelAsync(GUILD_ID, MOD_LOG_ID).CAF();
+				await db.UpdateLogChannelAsync(Log.Mod, GUILD_ID, MOD_LOG_ID).CAF();
 
 				var retrieved = await db.GetLogChannelsAsync(GUILD_ID).CAF();
 				Assert.AreEqual(IMAGE_LOG_ID, retrieved.ImageLogId);
@@ -129,7 +129,7 @@ namespace Advobot.Tests.Logging.Database
 
 			//Add server log
 			{
-				await db.UpdateServerLogChannelAsync(GUILD_ID, SERVER_LOG_ID).CAF();
+				await db.UpdateLogChannelAsync(Log.Server, GUILD_ID, SERVER_LOG_ID).CAF();
 
 				var retrieved = await db.GetLogChannelsAsync(GUILD_ID).CAF();
 				Assert.AreEqual(IMAGE_LOG_ID, retrieved.ImageLogId);
@@ -139,7 +139,7 @@ namespace Advobot.Tests.Logging.Database
 
 			//Remove image log
 			{
-				await db.DeleteImageLogChannelAsync(GUILD_ID).CAF();
+				await db.UpdateLogChannelAsync(Log.Image, GUILD_ID, null).CAF();
 
 				var retrieved = await db.GetLogChannelsAsync(GUILD_ID).CAF();
 				Assert.AreEqual(0UL, retrieved.ImageLogId);
@@ -149,7 +149,7 @@ namespace Advobot.Tests.Logging.Database
 
 			//Remove mod log
 			{
-				await db.DeleteModLogChannelAsync(GUILD_ID).CAF();
+				await db.UpdateLogChannelAsync(Log.Mod, GUILD_ID, null).CAF();
 
 				var retrieved = await db.GetLogChannelsAsync(GUILD_ID).CAF();
 				Assert.AreEqual(0UL, retrieved.ImageLogId);
@@ -159,7 +159,7 @@ namespace Advobot.Tests.Logging.Database
 
 			//Remove server log
 			{
-				await db.DeleteServerLogChannelAsync(GUILD_ID).CAF();
+				await db.UpdateLogChannelAsync(Log.Server, GUILD_ID, null).CAF();
 
 				var retrieved = await db.GetLogChannelsAsync(GUILD_ID).CAF();
 				Assert.AreEqual(0UL, retrieved.ImageLogId);

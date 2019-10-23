@@ -469,4 +469,7 @@
   <data name="Animated" xml:space="preserve">
     <value>Animated</value>
   </data>
+  <data name="CreateRoleRestrictedChannel" xml:space="preserve">
+    <value>CreateRoleRestrictedChannel</value>
+  </data>
 </root>
