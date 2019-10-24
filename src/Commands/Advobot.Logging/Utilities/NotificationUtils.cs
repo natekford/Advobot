@@ -39,19 +39,19 @@ namespace Advobot.Logging.Utilities
 			return embed;
 		}
 
-		public static bool HasAtleastOneNonNullProperty(this IReadOnlyCustomEmbed custom)
+		public static bool EmbedEmpty(this IReadOnlyCustomEmbed custom)
 		{
-			return custom.AuthorIconUrl != null
-				|| custom.AuthorName != null
-				|| custom.AuthorUrl != null
-				|| custom.Color != 0
-				|| custom.Description != null
-				|| custom.Footer != null
-				|| custom.FooterIconUrl != null
-				|| custom.ImageUrl != null
-				|| custom.ThumbnailUrl != null
-				|| custom.Title != null
-				|| custom.Url != null;
+			return custom.AuthorIconUrl == null
+				&& custom.AuthorName == null
+				&& custom.AuthorUrl == null
+				&& custom.Color == 0
+				&& custom.Description == null
+				&& custom.Footer == null
+				&& custom.FooterIconUrl == null
+				&& custom.ImageUrl == null
+				&& custom.ThumbnailUrl == null
+				&& custom.Title == null
+				&& custom.Url == null;
 		}
 
 		public static async Task<IUserMessage?> SendAsync(
@@ -68,7 +68,7 @@ namespace Advobot.Logging.Utilities
 			var content = notification.Content
 				?.CaseInsReplace(USER_MENTION, user?.Mention ?? VariableInvalidUser)
 				?.CaseInsReplace(USER_STRING, user?.Format() ?? VariableInvalidUser);
-			var embed = notification.BuildWrapper();
+			var embed = notification.EmbedEmpty() ? null : notification.BuildWrapper();
 			return await MessageUtils.SendMessageAsync(channel, content, embed).CAF();
 		}
 	}

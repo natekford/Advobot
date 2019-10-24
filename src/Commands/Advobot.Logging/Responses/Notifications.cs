@@ -50,7 +50,7 @@ namespace Advobot.Logging.Responses
 			var response = Success(NotificationModifiedEmbed.Format(
 				notif.ToString().WithBlock()
 			));
-			if (embed?.HasAtleastOneNonNullProperty() == true)
+			if (embed?.EmbedEmpty() == false)
 			{
 				response.WithEmbed(embed.BuildWrapper());
 			}
@@ -76,7 +76,7 @@ namespace Advobot.Logging.Responses
 
 			var response = Success(notification.Content ?? Constants.ZERO_LENGTH_CHAR)
 				.WithOverrideDestinationChannelId(notification.ChannelId);
-			if (notification.HasAtleastOneNonNullProperty())
+			if (!notification.EmbedEmpty())
 			{
 				response.WithEmbed(notification.BuildWrapper());
 			}
