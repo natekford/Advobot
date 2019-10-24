@@ -1,8 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Threading;
 using System.Threading.Tasks;
 
 using Advobot.Attributes.Preconditions;
+using Advobot.Criterions;
 using Advobot.Services.BotSettings;
 using Advobot.Services.Timers;
 using Advobot.Utilities;
@@ -22,13 +24,15 @@ namespace Advobot.Modules
 	public abstract class AdvobotModuleBase : ModuleBase<AdvobotCommandContext>
 	{
 		/// <summary>
-		/// Attempts to parse a value from a message.
+		/// The settings for the bot.
 		/// </summary>
-		/// <typeparam name="T"></typeparam>
-		/// <param name="message"></param>
-		/// <param name="value"></param>
-		/// <returns></returns>
-		public delegate bool MessageTryParser<T>(IMessage message, out T value);
+		public IBotSettings BotSettings { get; set; } = null!;
+
+		/// <summary>
+		/// The default time to wait for a user's response.
+		/// </summary>
+		[DontInject]
+		public TimeSpan DefaultInteractivityTime { get; set; } = TimeSpan.FromSeconds(5);
 
 		/// <summary>
 		/// The prefix for this context.
@@ -36,95 +40,9 @@ namespace Advobot.Modules
 		public string Prefix => Context.Settings.GetPrefix(BotSettings);
 
 		/// <summary>
-		/// How long timed messages should stay for.
-		/// </summary>
-		[DontInject]
-		public TimeSpan MessageTime { get; set; } = TimeSpan.FromSeconds(5);
-
-		/// <summary>
 		/// The timers to use for deleting messages and other things.
 		/// </summary>
-#pragma warning disable CS8618 // Non-nullable field is uninitialized.
-		public ITimerService Timers { get; set; }
-#pragma warning restore CS8618 // Non-nullable field is uninitialized.
-		/// <summary>
-		/// The settings for the bot.
-		/// </summary>
-#pragma warning disable CS8618 // Non-nullable field is uninitialized.
-		public IBotSettings BotSettings { get; set; }
-#pragma warning restore CS8618 // Non-nullable field is uninitialized.
-
-		/// <summary>
-		/// Uses user input to get the item at a specified index. This is blocking.
-		/// </summary>
-		/// <typeparam name="T"></typeparam>
-		/// <param name="source"></param>
-		/// <param name="format"></param>
-		/// <returns></returns>
-		public async Task<T> NextItemAtIndexAsync<T>(
-			IReadOnlyList<T> source,
-			Func<T, string> format)
-		{
-			var message = await ReplyAsync($"Did you mean any of the following:\n{source.FormatNumberedList(format)}").CAF();
-			var index = await NextIndexAsync(0, source.Count - 1).CAF();
-			await message.DeleteAsync(GenerateRequestOptions()).CAF();
-			return index != null ? source[index.Value] : default;
-		}
-
-		/// <summary>
-		/// Gets the next valid index supplied by the user. This is blocking.
-		/// </summary>
-		/// <param name="minVal"></param>
-		/// <param name="maxVal"></param>
-		/// <returns></returns>
-		public Task<int?> NextIndexAsync(int minVal, int maxVal)
-		{
-			return NextValueAsync((IMessage x, out int? value) =>
-			{
-				value = null;
-				var sameInvoker = x.Author.Id == Context.User.Id && x.Channel.Id == Context.Channel.Id;
-				if (!sameInvoker || !int.TryParse(x.Content, out var position))
-				{
-					return false;
-				}
-
-				var index = position - 1;
-				if (index >= minVal && index <= maxVal)
-				{
-					value = index;
-					return true;
-				}
-				return false;
-			});
-		}
-
-		/// <summary>
-		/// Gets the next message which makes <paramref name="tryParser"/> return true. This is blocking.
-		/// </summary>
-		/// <param name="tryParser"></param>
-		/// <returns></returns>
-		/// <remarks>Heavily taken from https://github.com/foxbot/Discord.Addons.Interactive/blob/518d59227b5ede902f3d61fb8b07246fda017955/Discord.Addons.Interactive/InteractiveService.cs#L35</remarks>
-		public async Task<T> NextValueAsync<T>(MessageTryParser<T> tryParser)
-		{
-			var eventTrigger = new TaskCompletionSource<T>();
-
-			async Task Handler(IMessage message)
-			{
-				if (tryParser(message, out var value))
-				{
-					eventTrigger.SetResult(value);
-					await message.DeleteAsync().CAF();
-				}
-			}
-
-			Context.Client.MessageReceived += Handler;
-			var trigger = eventTrigger.Task;
-			var delay = Task.Delay(MessageTime);
-			var task = await Task.WhenAny(trigger, delay).CAF();
-			Context.Client.MessageReceived -= Handler;
-
-			return task == trigger ? await trigger.CAF() : default;
-		}
+		public ITimerService Timers { get; set; } = null!;
 
 		/// <summary>
 		/// Gets a <see cref="RequestOptions"/> that mainly is used for the reason in the audit log.
@@ -133,5 +51,118 @@ namespace Advobot.Modules
 		/// <returns></returns>
 		public RequestOptions GenerateRequestOptions(string? reason = null)
 			=> Context.GenerateRequestOptions(reason);
+
+		/// <summary>
+		/// Gets the next valid index supplied by the user. This is blocking.
+		/// </summary>
+		/// <param name="minVal"></param>
+		/// <param name="maxVal"></param>
+		/// <param name="timeout"></param>
+		/// <param name="token"></param>
+		/// <returns></returns>
+		public Task<int?> NextIndexAsync(
+			int minVal,
+			int maxVal,
+			TimeSpan? timeout = null,
+			CancellationToken token = default)
+		{
+			var criteria = new ICriterion<IMessage>[]
+			{
+				new EnsureSourceChannelCriterion(),
+				new EnsureSourceUserCriterion(),
+			};
+			return NextValueAsync(criteria, (IMessage x) =>
+			{
+				if (!int.TryParse(x.Content, out var position))
+				{
+					return Task.FromResult<(bool, int?)>((false, null));
+				}
+
+				var index = position - 1;
+				if (index >= minVal && index <= maxVal)
+				{
+					return Task.FromResult<(bool, int?)>((true, index));
+				}
+				return Task.FromResult<(bool, int?)>((false, null));
+			}, timeout, token);
+		}
+
+		/// <summary>
+		/// Uses user input to get the item at a specified index. This is blocking.
+		/// </summary>
+		/// <typeparam name="T"></typeparam>
+		/// <param name="source"></param>
+		/// <param name="format"></param>
+		/// <param name="timeout"></param>
+		/// <param name="token"></param>
+		/// <returns></returns>
+		public async Task<T> NextItemAtIndexAsync<T>(
+			IReadOnlyList<T> source,
+			Func<T, string> format,
+			TimeSpan? timeout = null,
+			CancellationToken token = default)
+		{
+			var message = await ReplyAsync($"Did you mean any of the following:\n{source.FormatNumberedList(format)}").CAF();
+			var index = await NextIndexAsync(0, source.Count - 1, timeout, token).CAF();
+			await message.DeleteAsync(GenerateRequestOptions()).CAF();
+			return index != null ? source[index.Value] : default;
+		}
+
+		/// <summary>
+		/// Gets the next message which makes <paramref name="tryParser"/> return true. This is blocking.
+		/// </summary>
+		/// <param name="criteria"></param>
+		/// <param name="tryParser"></param>
+		/// <param name="timeout"></param>
+		/// <param name="token"></param>
+		/// <returns></returns>
+		/// <remarks>Heavily taken from https://github.com/foxbot/Discord.Addons.Interactive/blob/master/Discord.Addons.Interactive/InteractiveService.cs</remarks>
+		public async Task<T> NextValueAsync<T>(
+			IEnumerable<ICriterion<IMessage>> criteria,
+			MessageTryParser<T> tryParser,
+			TimeSpan? timeout = null,
+			CancellationToken token = default)
+		{
+			timeout ??= DefaultInteractivityTime;
+
+			var eventTrigger = new TaskCompletionSource<T>();
+			var cancelTrigger = new TaskCompletionSource<bool>();
+			token.Register(() => cancelTrigger.SetResult(true));
+
+			async Task Handler(IMessage message)
+			{
+				foreach (var criterion in criteria)
+				{
+					var result = await criterion.JudgeAsync(Context, message).CAF();
+					if (!result)
+					{
+						return;
+					}
+				}
+
+				var (success, value) = await tryParser(message).CAF();
+				if (success)
+				{
+					eventTrigger.SetResult(value);
+				}
+			}
+
+			Context.Client.MessageReceived += Handler;
+			var trigger = eventTrigger.Task;
+			var cancel = cancelTrigger.Task;
+			var delay = Task.Delay(timeout.Value);
+			var task = await Task.WhenAny(trigger, delay, cancel).CAF();
+			Context.Client.MessageReceived -= Handler;
+
+			return task == trigger ? await trigger.CAF() : default;
+		}
+
+		/// <summary>
+		/// Attempts to parse a value from a message.
+		/// </summary>
+		/// <typeparam name="T"></typeparam>
+		/// <param name="message"></param>
+		/// <returns></returns>
+		public delegate Task<(bool, T)> MessageTryParser<T>(IMessage message);
 	}
 }

@@ -3,14 +3,15 @@ using System.Linq;
 using System.Threading.Tasks;
 
 using Advobot.Attributes;
+using Advobot.Criterions;
 using Advobot.Gacha.Localization;
 using Advobot.Gacha.ParameterPreconditions;
 using Advobot.Gacha.ReadOnlyModels;
 using Advobot.Gacha.Resources;
 using Advobot.Gacha.Trading;
-
+using Advobot.Gacha.Utilities;
 using AdvorangesUtils;
-
+using Discord;
 using Discord.Commands;
 
 namespace Advobot.Gacha.Commands
@@ -40,9 +41,11 @@ namespace Advobot.Gacha.Commands
 		[Meta("db62db89-d645-4bdd-9794-2945ca8dde9c")]
 		public sealed class GachaGive : GachaModuleBase
 		{
+			private static readonly TimeSpan _Timeout = TimeSpan.FromMinutes(3);
+
 			[Command(RunMode = RunMode.Async)]
-			public Task Command(
-				[NotSelf]
+			public async Task<RuntimeResult> Command(
+				[NotSelf, InGuild]
 				IReadOnlyUser user,
 				[OwnsCharacters]
 				params IReadOnlyCharacter[] characters)
@@ -50,7 +53,41 @@ namespace Advobot.Gacha.Commands
 				var trades = new TradeCollection(Context.Guild);
 				trades.AddRange(characters.Select(x => new Trade(user, x)));
 
-				throw new NotImplementedException();
+				//TODO: reset when user reinvokes command
+				var guildUser = Context.Guild.GetUser(user.GetUserId());
+				var criteria = new ICriterion<IMessage>[]
+				{
+					new EnsureSourceChannelCriterion(),
+					new EnsureFromUserCriterion(guildUser),
+				};
+
+				var response = await NextValueAsync(criteria, (message) =>
+				{
+					if (message.Content.CaseInsEquals("y"))
+					{
+						return Task.FromResult<(bool, bool?)>((true, true));
+					}
+					else if (message.Content.CaseInsEquals("n"))
+					{
+						return Task.FromResult<(bool, bool?)>((true, false));
+					}
+					else
+					{
+						return Task.FromResult<(bool, bool?)>((false, null));
+					}
+				}, _Timeout).CAF();
+				if (response == null)
+				{
+					return Responses.Gacha.Timeout();
+				}
+				else if (response.Value)
+				{
+					return Responses.Gacha.GiveAccepted(trades);
+				}
+				else
+				{
+					return Responses.Gacha.GiveRejected(trades);
+				}
 			}
 		}
 
