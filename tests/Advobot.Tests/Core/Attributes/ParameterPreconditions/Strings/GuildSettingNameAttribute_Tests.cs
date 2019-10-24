@@ -29,8 +29,8 @@ namespace Advobot.Tests.Core.Attributes.ParameterPreconditions.Strings
 		{
 			var settings = new[]
 			{
-				GuildSettingNames.WelcomeMessage,
-				GuildSettingNames.GoodbyeMessage,
+				//GuildSettingNames.WelcomeMessage,
+				//GuildSettingNames.GoodbyeMessage,
 				GuildSettingNames.GuildCulture,
 				GuildSettingNames.Prefix,
 				//GuildSettingNames.ServerLog,

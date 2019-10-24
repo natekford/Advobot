@@ -89,8 +89,8 @@ namespace Advobot.Gacha.Displays
 				return embed.Build();
 			}
 
-			var owner = await _Client.GetUserAsync(_Claim.GetUserId()).CAF();
-			var ownerStr = owner?.ToString() ?? _Claim.UserId;
+			var owner = await _Client.GetUserAsync(_Claim.UserId).CAF();
+			var ownerStr = owner?.ToString() ?? _Claim.UserId.ToString();
 
 			embed.Color = GachaConstants.Claimed;
 			embed.Footer.Text += $"| Belongs to {ownerStr}";
@@ -106,7 +106,7 @@ namespace Advobot.Gacha.Displays
 		protected override Task HandleInteractionAsync(IInteractionContext context)
 		{
 			if (context.Action is Confirmation c && c.Value && _Claim != null
-				&& context.User.Id == _Claim.GetUserId())
+				&& context.User.Id == _Claim.UserId)
 			{
 				var url = _Images[PageIndex].Url;
 				return Database.UpdateClaimImageUrlAsync(_Claim, url);

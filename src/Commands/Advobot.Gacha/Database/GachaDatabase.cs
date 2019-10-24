@@ -364,7 +364,12 @@ namespace Advobot.Gacha.Database
 		{
 			using var connection = await GetConnectionAsync().CAF();
 
-			var param = new { user.GuildId, user.UserId, character.CharacterId };
+			var param = new
+			{
+				GuildId = user.GuildId.ToString(),
+				UserId = user.UserId.ToString(),
+				character.CharacterId
+			};
 			return await connection.QuerySingleOrDefaultAsync<Claim>(@"
 				SELECT *
 				FROM Claim
@@ -389,7 +394,11 @@ namespace Advobot.Gacha.Database
 		{
 			using var connection = await GetConnectionAsync().CAF();
 
-			var param = new { user.GuildId, user.UserId };
+			var param = new
+			{
+				GuildId = user.GuildId.ToString(),
+				UserId = user.UserId.ToString()
+			};
 			var query = await connection.QueryAsync<Claim>(@"
 				SELECT *
 				FROM Claim
@@ -473,7 +482,11 @@ namespace Advobot.Gacha.Database
 		{
 			using var connection = await GetConnectionAsync().CAF();
 
-			var param = new { GuildId = guildId.ToString(), character.CharacterId };
+			var param = new
+			{
+				GuildId = guildId.ToString(),
+				character.CharacterId
+			};
 			var query = await connection.QueryAsync<Wish>(@"
 				SELECT *
 				FROM Wish
@@ -486,13 +499,17 @@ namespace Advobot.Gacha.Database
 		{
 			using var connection = await GetConnectionAsync().CAF();
 
-			var param = new { user.GuildId, user.UserId };
-			var query = await connection.QueryAsync<Wish>(@"
+			var param = new
+			{
+				GuildId = user.GuildId.ToString(),
+				UserId = user.UserId.ToString()
+			};
+			var result = await connection.QueryAsync<Wish>(@"
 				SELECT *
 				FROM Wish
 				WHERE GuildId = @GuildId AND UserId = @UserId
 			", param).CAF();
-			return query.ToArray();
+			return result.ToArray();
 		}
 
 		public async Task<int> TradeAsync(IEnumerable<ITrade> trades)
@@ -502,15 +519,27 @@ namespace Advobot.Gacha.Database
 				SET UserId = @ReceiverId
 				WHERE GuildId = @GuildId AND CharacterId = @CharacterId
 			";
-			return await BulkModify(SQL, trades).CAF();
+			var @params = trades.Select(x => new
+			{
+				GuildId = x.GuildId.ToString(),
+				ReceiverId = x.ReceiverId.ToString(),
+				x.CharacterId
+			});
+			return await BulkModify(SQL, @params).CAF();
 		}
 
 		public async Task UpdateClaimImageUrlAsync(IReadOnlyClaim claim, string? url)
 		{
 			using var connection = await GetConnectionAsync().CAF();
 
-			var param = new { claim.GuildId, claim.UserId, claim.CharacterId, Url = url };
-			await connection.QueryAsync(@"
+			var param = new
+			{
+				GuildId = claim.GuildId.ToString(),
+				UserId = claim.UserId.ToString(),
+				claim.CharacterId,
+				Url = url
+			};
+			await connection.ExecuteAsync(@"
 				UPDATE Claim
 				SET ImageUrl = @Url
 				WHERE GuildId = @GuildId AND UserId = @UserId AND CharacterId = @CharacterId

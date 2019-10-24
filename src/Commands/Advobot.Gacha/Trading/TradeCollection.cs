@@ -9,7 +9,7 @@ namespace Advobot.Gacha.Trading
 	public sealed class TradeCollection : IReadOnlyList<ITrade>, IList<ITrade>
 	{
 		private readonly List<ITrade> _Gives = new List<ITrade>();
-		private readonly string _GuildId;
+		private readonly ulong _GuildId;
 
 		public int Count => _Gives.Count;
 
@@ -27,7 +27,7 @@ namespace Advobot.Gacha.Trading
 
 		public TradeCollection(ulong guildId)
 		{
-			_GuildId = guildId.ToString();
+			_GuildId = guildId;
 		}
 
 		public void Add(ITrade item)

@@ -1,6 +1,6 @@
 ﻿using System;
 using System.Linq;
-
+using Advobot.Databases.Relationships;
 using Advobot.Invites.ReadOnlyModels;
 
 using Discord;
@@ -15,6 +15,8 @@ namespace Advobot.Invites.Models
 		public long LastBumped { get; set; }
 		public int MemberCount { get; set; }
 		public string Name { get; set; }
+
+		ulong IGuildChild.GuildId => ulong.Parse(GuildId);
 
 		public ListedInvite()
 		{

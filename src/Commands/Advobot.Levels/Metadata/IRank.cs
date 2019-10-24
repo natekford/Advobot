@@ -1,4 +1,4 @@
-﻿using Advobot.Levels.Relationships;
+﻿using Advobot.Databases.Relationships;
 
 namespace Advobot.Levels.Metadata
 {

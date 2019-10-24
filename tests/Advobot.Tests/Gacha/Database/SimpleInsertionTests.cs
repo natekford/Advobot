@@ -95,7 +95,7 @@ namespace Advobot.Tests.Gacha.Database
 			var user = GachaTestUtils.GenerateFakeUser();
 			await db.AddUserAsync(user).CAF();
 
-			var retrieved = await db.GetUserAsync(user.GetGuildId(), user.GetUserId()).CAF();
+			var retrieved = await db.GetUserAsync(user.GuildId, user.UserId).CAF();
 			Assert.IsNotNull(retrieved);
 			Assert.AreEqual(user.UserId, retrieved.UserId);
 			Assert.AreEqual(user.GuildId, retrieved.GuildId);

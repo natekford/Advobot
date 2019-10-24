@@ -68,9 +68,9 @@ namespace Advobot.Standard.Commands
 			)
 			{
 				var entry = await NextItemAtIndexAsync(helpEntries.ToArray(), x => x.Name).CAF();
-				if (entry != null)
+				if (entry.HasValue)
 				{
-					return Responses.Misc.Help(entry, Context.Settings);
+					return Responses.Misc.Help(entry.Value, Context.Settings);
 				}
 				return AdvobotResult.IgnoreFailure;
 			}

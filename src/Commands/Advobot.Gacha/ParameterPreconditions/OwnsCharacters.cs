@@ -33,7 +33,7 @@ namespace Advobot.Gacha.ParameterPreconditions
 
 			var db = services.GetRequiredService<GachaDatabase>();
 			var claim = await db.GetClaimAsync(context.Guild.Id, character).CAF();
-			if (claim?.GetUserId() == context.User.Id)
+			if (claim?.UserId == context.User.Id)
 			{
 				return PreconditionResult.FromSuccess();
 			}

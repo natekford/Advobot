@@ -3,14 +3,18 @@ using System.Linq;
 using System.Threading.Tasks;
 
 using Advobot.Attributes;
-using Advobot.Criterions;
 using Advobot.Gacha.Localization;
 using Advobot.Gacha.ParameterPreconditions;
 using Advobot.Gacha.ReadOnlyModels;
 using Advobot.Gacha.Resources;
 using Advobot.Gacha.Trading;
 using Advobot.Gacha.Utilities;
+using Advobot.Interactivity;
+using Advobot.Interactivity.Criterions;
+using Advobot.Interactivity.TryParsers;
+using Advobot.Modules;
 using AdvorangesUtils;
+
 using Discord;
 using Discord.Commands;
 
@@ -54,39 +58,49 @@ namespace Advobot.Gacha.Commands
 				trades.AddRange(characters.Select(x => new Trade(user, x)));
 
 				//TODO: reset when user reinvokes command
-				var guildUser = Context.Guild.GetUser(user.GetUserId());
 				var criteria = new ICriterion<IMessage>[]
 				{
 					new EnsureSourceChannelCriterion(),
-					new EnsureFromUserCriterion(guildUser),
+					new EnsureFromUserCriterion(user.UserId),
 				};
 
-				var response = await NextValueAsync(criteria, (message) =>
+				var tryParser = new AcceptTryParser();
+
+				var options = new InteractivityOptions
 				{
-					if (message.Content.CaseInsEquals("y"))
-					{
-						return Task.FromResult<(bool, bool?)>((true, true));
-					}
-					else if (message.Content.CaseInsEquals("n"))
-					{
-						return Task.FromResult<(bool, bool?)>((true, false));
-					}
-					else
-					{
-						return Task.FromResult<(bool, bool?)>((false, null));
-					}
-				}, _Timeout).CAF();
-				if (response == null)
+					Timeout = _Timeout,
+					Token = default,
+				};
+
+				var response = await NextValueAsync(criteria, tryParser, options).CAF();
+				if (response.HasBeenCanceled)
+				{
+					return AdvobotResult.IgnoreFailure;
+				}
+				else if (response.HasTimedOut)
 				{
 					return Responses.Gacha.Timeout();
 				}
-				else if (response.Value)
+				else if (response.HasValue && response.Value)
 				{
 					return Responses.Gacha.GiveAccepted(trades);
 				}
-				else
+				return Responses.Gacha.GiveRejected(trades);
+			}
+
+			public sealed class AcceptTryParser : IMessageTryParser<bool>
+			{
+				public ValueTask<Optional<bool>> TryParseAsync(IMessage message)
 				{
-					return Responses.Gacha.GiveRejected(trades);
+					if (message.Content.CaseInsEquals("y"))
+					{
+						return new ValueTask<Optional<bool>>(true);
+					}
+					else if (message.Content.CaseInsEquals("n"))
+					{
+						return new ValueTask<Optional<bool>>(false);
+					}
+					return new ValueTask<Optional<bool>>(Optional<bool>.Unspecified);
 				}
 			}
 		}

@@ -1,13 +1,13 @@
-﻿using Advobot.Gacha.ReadOnlyModels;
+﻿using Advobot.Databases.Relationships;
+using Advobot.Gacha.ReadOnlyModels;
+using Advobot.Gacha.Relationships;
 
 namespace Advobot.Gacha.Trading
 {
-	public interface ITrade
+	public interface ITrade : ICharacterChild, IGuildChild
 	{
 		IReadOnlyCharacter Character { get; }
-		long CharacterId { get; }
-		string GuildId { get; }
 		IReadOnlyUser Receiver { get; }
-		string ReceiverId { get; }
+		ulong ReceiverId { get; }
 	}
 }

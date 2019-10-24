@@ -2,7 +2,7 @@
 
 using Discord.Commands;
 
-namespace Advobot.Criterions
+namespace Advobot.Interactivity.Criterions
 {
 	/// <summary>
 	/// Determines if a message is valid.

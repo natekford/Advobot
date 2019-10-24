@@ -25,7 +25,7 @@ namespace Advobot.Gacha.ParameterPreconditions
 			{
 				return this.FromOnlySupports(typeof(IReadOnlyUser));
 			}
-			else if (await context.Guild.GetUserAsync(user.GetUserId()).CAF() == null)
+			else if (await context.Guild.GetUserAsync(user.UserId).CAF() == null)
 			{
 				return PreconditionResult.FromSuccess();
 			}

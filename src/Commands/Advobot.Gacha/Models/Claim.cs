@@ -1,5 +1,6 @@
 ﻿using System;
 
+using Advobot.Databases.Relationships;
 using Advobot.Gacha.ReadOnlyModels;
 using Advobot.Gacha.Utilities;
 
@@ -14,6 +15,9 @@ namespace Advobot.Gacha.Models
 		public bool IsPrimaryClaim { get; set; }
 		public string UserId { get; set; }
 
+		ulong IGuildChild.GuildId => ulong.Parse(GuildId);
+		ulong IUserChild.UserId => ulong.Parse(UserId);
+
 		public Claim()
 		{
 			GuildId = "";
@@ -22,8 +26,8 @@ namespace Advobot.Gacha.Models
 
 		public Claim(IReadOnlyUser user, IReadOnlyCharacter character)
 		{
-			GuildId = user.GuildId;
-			UserId = user.UserId;
+			GuildId = user.GuildId.ToString();
+			UserId = user.UserId.ToString();
 			CharacterId = character.CharacterId;
 		}
 

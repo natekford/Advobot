@@ -3,6 +3,7 @@ using System.Threading.Tasks;
 
 using Advobot.Invites.Database;
 using Advobot.Invites.Models;
+using Advobot.Invites.ReadOnlyModels;
 using Advobot.Services.Time;
 using Advobot.Tests.Fakes.Database;
 using Advobot.Tests.Fakes.Discord;
@@ -31,7 +32,7 @@ namespace Advobot.Tests.Invites
 				.BuildServiceProvider();
 		}
 
-		protected static (FakeGuild Guild, ListedInvite Invite) CreateFakeInvite(FakeClient client, ITime time)
+		protected static (FakeGuild Guild, IReadOnlyListedInvite Invite) CreateFakeInvite(FakeClient client, ITime time)
 		{
 			var guild = new FakeGuild(client);
 			var channel = new FakeTextChannel(guild);

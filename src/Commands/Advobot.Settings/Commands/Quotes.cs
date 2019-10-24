@@ -69,9 +69,9 @@ namespace Advobot.Settings.Commands
 			public async Task<RuntimeResult> Command([Remainder, OverrideTypeReader(typeof(CloseQuoteTypeReader))] IEnumerable<Quote> quote)
 			{
 				var entry = await NextItemAtIndexAsync(quote.ToArray(), x => x.Name).CAF();
-				if (entry != null)
+				if (entry.HasValue)
 				{
-					return Responses.Quotes.Quote(entry);
+					return Responses.Quotes.Quote(entry.Value);
 				}
 				return AdvobotResult.IgnoreFailure;
 			}

@@ -100,7 +100,7 @@ namespace Advobot.Gacha.Displays
 			var sb = new StringBuilder("Wished by ");
 			foreach (var wish in _Wishes)
 			{
-				var mention = MentionUtils.MentionUser(wish.GetUserId()) + " ";
+				var mention = MentionUtils.MentionUser(wish.UserId) + " ";
 				if (sb.Length + mention.Length > DiscordConfig.MaxMessageSize)
 				{
 					break;

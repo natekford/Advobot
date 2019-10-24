@@ -1,8 +1,8 @@
 ﻿using System;
 
+using Advobot.Databases.Relationships;
 using Advobot.Levels.Database;
 using Advobot.Levels.ReadOnlyModels;
-using Advobot.Levels.Relationships;
 
 using Discord;
 

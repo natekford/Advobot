@@ -3,7 +3,7 @@
 using Discord;
 using Discord.Commands;
 
-namespace Advobot.Criterions
+namespace Advobot.Interactivity.Criterions
 {
 	/// <summary>
 	/// Determines if a message is from the specified user.
@@ -15,10 +15,10 @@ namespace Advobot.Criterions
 		/// <summary>
 		/// Creates an instance of <see cref="EnsureFromUserCriterion"/>.
 		/// </summary>
-		/// <param name="user"></param>
-		public EnsureFromUserCriterion(IUser user)
+		/// <param name="userId"></param>
+		public EnsureFromUserCriterion(ulong userId)
 		{
-			_UserId = user.Id;
+			_UserId = userId;
 		}
 
 		/// <inheritdoc />

@@ -25,7 +25,7 @@ namespace Advobot.Gacha.ParameterPreconditions
 			{
 				return this.FromOnlySupports(typeof(IReadOnlyUser)).AsTask();
 			}
-			else if (user.GetUserId() == context.User.Id)
+			else if (user.GuildId == context.User.Id)
 			{
 				return PreconditionResult.FromSuccess().AsTask();
 			}

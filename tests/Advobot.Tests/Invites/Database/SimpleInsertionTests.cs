@@ -2,6 +2,7 @@
 using System.Threading.Tasks;
 
 using Advobot.Invites.Models;
+using Advobot.Invites.ReadOnlyModels;
 using Advobot.Tests.Fakes.Discord;
 
 using AdvorangesUtils;
@@ -40,7 +41,7 @@ namespace Advobot.Tests.Invites.Database
 			var client = new FakeClient();
 			var guild = new FakeGuild(client);
 
-			var keyword = new Keyword(guild, "bird");
+			var keyword = (IReadOnlyKeyword)new Keyword(guild, "bird");
 			await db.AddKeywordAsync(keyword).CAF();
 
 			var retrievedList = await db.GetKeywords(guild.Id).CAF();

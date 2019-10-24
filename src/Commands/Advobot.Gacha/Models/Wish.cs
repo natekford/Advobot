@@ -1,5 +1,6 @@
 ﻿using System;
 
+using Advobot.Databases.Relationships;
 using Advobot.Gacha.ReadOnlyModels;
 using Advobot.Gacha.Utilities;
 
@@ -12,6 +13,9 @@ namespace Advobot.Gacha.Models
 		public string UserId { get; set; }
 		public long WishId { get; set; } = TimeUtils.UtcNowTicks;
 
+		ulong IGuildChild.GuildId => ulong.Parse(GuildId);
+		ulong IUserChild.UserId => ulong.Parse(UserId);
+
 		public Wish()
 		{
 			GuildId = "";
@@ -20,8 +24,8 @@ namespace Advobot.Gacha.Models
 
 		public Wish(IReadOnlyUser user, IReadOnlyCharacter character)
 		{
-			GuildId = user.GuildId;
-			UserId = user.UserId;
+			GuildId = user.GuildId.ToString();
+			UserId = user.UserId.ToString();
 			CharacterId = character.CharacterId;
 		}
 

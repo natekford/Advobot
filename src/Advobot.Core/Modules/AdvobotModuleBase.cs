@@ -4,7 +4,9 @@ using System.Threading;
 using System.Threading.Tasks;
 
 using Advobot.Attributes.Preconditions;
-using Advobot.Criterions;
+using Advobot.Interactivity;
+using Advobot.Interactivity.Criterions;
+using Advobot.Interactivity.TryParsers;
 using Advobot.Services.BotSettings;
 using Advobot.Services.Timers;
 using Advobot.Utilities;
@@ -57,34 +59,20 @@ namespace Advobot.Modules
 		/// </summary>
 		/// <param name="minVal"></param>
 		/// <param name="maxVal"></param>
-		/// <param name="timeout"></param>
-		/// <param name="token"></param>
+		/// <param name="options"></param>
 		/// <returns></returns>
-		public Task<int?> NextIndexAsync(
+		public Task<InteractiveResult<int>> NextIndexAsync(
 			int minVal,
 			int maxVal,
-			TimeSpan? timeout = null,
-			CancellationToken token = default)
+			InteractivityOptions? options = null)
 		{
 			var criteria = new ICriterion<IMessage>[]
 			{
 				new EnsureSourceChannelCriterion(),
 				new EnsureSourceUserCriterion(),
 			};
-			return NextValueAsync(criteria, (IMessage x) =>
-			{
-				if (!int.TryParse(x.Content, out var position))
-				{
-					return Task.FromResult<(bool, int?)>((false, null));
-				}
-
-				var index = position - 1;
-				if (index >= minVal && index <= maxVal)
-				{
-					return Task.FromResult<(bool, int?)>((true, index));
-				}
-				return Task.FromResult<(bool, int?)>((false, null));
-			}, timeout, token);
+			var tryParser = new IndexTryParser(minVal, maxVal);
+			return NextValueAsync(criteria, tryParser, options);
 		}
 
 		/// <summary>
@@ -93,19 +81,17 @@ namespace Advobot.Modules
 		/// <typeparam name="T"></typeparam>
 		/// <param name="source"></param>
 		/// <param name="format"></param>
-		/// <param name="timeout"></param>
-		/// <param name="token"></param>
+		/// <param name="options"></param>
 		/// <returns></returns>
-		public async Task<T> NextItemAtIndexAsync<T>(
+		public async Task<InteractiveResult<T>> NextItemAtIndexAsync<T>(
 			IReadOnlyList<T> source,
 			Func<T, string> format,
-			TimeSpan? timeout = null,
-			CancellationToken token = default)
+			InteractivityOptions? options = null)
 		{
 			var message = await ReplyAsync($"Did you mean any of the following:\n{source.FormatNumberedList(format)}").CAF();
-			var index = await NextIndexAsync(0, source.Count - 1, timeout, token).CAF();
+			var index = await NextIndexAsync(0, source.Count - 1, options).CAF();
 			await message.DeleteAsync(GenerateRequestOptions()).CAF();
-			return index != null ? source[index.Value] : default;
+			return index.HasValue ? source[index.Value] : InteractiveResult<T>.PropagateError(index);
 		}
 
 		/// <summary>
@@ -113,21 +99,22 @@ namespace Advobot.Modules
 		/// </summary>
 		/// <param name="criteria"></param>
 		/// <param name="tryParser"></param>
-		/// <param name="timeout"></param>
-		/// <param name="token"></param>
+		/// <param name="options"></param>
 		/// <returns></returns>
 		/// <remarks>Heavily taken from https://github.com/foxbot/Discord.Addons.Interactive/blob/master/Discord.Addons.Interactive/InteractiveService.cs</remarks>
-		public async Task<T> NextValueAsync<T>(
+		public async Task<InteractiveResult<T>> NextValueAsync<T>(
 			IEnumerable<ICriterion<IMessage>> criteria,
-			MessageTryParser<T> tryParser,
-			TimeSpan? timeout = null,
-			CancellationToken token = default)
+			IMessageTryParser<T> tryParser,
+			InteractivityOptions? options = null)
 		{
-			timeout ??= DefaultInteractivityTime;
+			var timeout = options?.Timeout ?? DefaultInteractivityTime;
 
 			var eventTrigger = new TaskCompletionSource<T>();
 			var cancelTrigger = new TaskCompletionSource<bool>();
-			token.Register(() => cancelTrigger.SetResult(true));
+			if (options?.Token is CancellationToken token)
+			{
+				token.Register(() => cancelTrigger.SetResult(true));
+			}
 
 			async Task Handler(IMessage message)
 			{
@@ -140,29 +127,29 @@ namespace Advobot.Modules
 					}
 				}
 
-				var (success, value) = await tryParser(message).CAF();
-				if (success)
+				var parsed = await tryParser.TryParseAsync(message).CAF();
+				if (parsed.IsSpecified)
 				{
-					eventTrigger.SetResult(value);
+					eventTrigger.SetResult(parsed.Value);
 				}
 			}
 
 			Context.Client.MessageReceived += Handler;
 			var trigger = eventTrigger.Task;
 			var cancel = cancelTrigger.Task;
-			var delay = Task.Delay(timeout.Value);
+			var delay = Task.Delay(timeout);
 			var task = await Task.WhenAny(trigger, delay, cancel).CAF();
 			Context.Client.MessageReceived -= Handler;
 
-			return task == trigger ? await trigger.CAF() : default;
+			if (task == cancel)
+			{
+				return InteractiveResult<T>.Canceled;
+			}
+			else if (task == delay)
+			{
+				return InteractiveResult<T>.TimedOut;
+			}
+			return await trigger.CAF();
 		}
-
-		/// <summary>
-		/// Attempts to parse a value from a message.
-		/// </summary>
-		/// <typeparam name="T"></typeparam>
-		/// <param name="message"></param>
-		/// <returns></returns>
-		public delegate Task<(bool, T)> MessageTryParser<T>(IMessage message);
 	}
 }

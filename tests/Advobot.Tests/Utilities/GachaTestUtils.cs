@@ -55,8 +55,8 @@ namespace Advobot.GachaTests.Utilities
 		{
 			return new User
 			{
-				UserId = (userId ?? Rng.NextUlong()).ToString(),
-				GuildId = (guildId ?? Rng.NextUlong()).ToString(),
+				UserId = (userId ?? Rng.NextUlongAboveLongMax()).ToString(),
+				GuildId = (guildId ?? Rng.NextUlongAboveLongMax()).ToString(),
 			};
 		}
 
@@ -66,11 +66,24 @@ namespace Advobot.GachaTests.Utilities
 		public static bool NextBool(this Random rng)
 			=> rng.NextDouble() >= 0.5;
 
+		/*
 		public static ulong NextUlong(this Random rng)
 		{
 			var buffer = new byte[sizeof(ulong)];
 			rng.NextBytes(buffer);
 			return BitConverter.ToUInt64(buffer, 0);
+		}*/
+
+		public static ulong NextUlongAboveLongMax(this Random rng)
+		{
+			ulong value;
+			var buffer = new byte[sizeof(ulong)];
+			do
+			{
+				rng.NextBytes(buffer);
+				value = BitConverter.ToUInt64(buffer, 0);
+			} while (value < long.MaxValue);
+			return value;
 		}
 	}
 }
