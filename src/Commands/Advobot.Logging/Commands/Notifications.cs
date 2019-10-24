@@ -30,7 +30,7 @@ namespace Advobot.Logging.Commands
 		public sealed class ModifyGoodbyeMessage : NotificationModuleBase
 		{
 			private const Notification Event = Notification.Goodbye;
-			public DefaultGoodbyeNotificationSetter DefaultSetter { get; set; } = null!;
+			public GoodbyeNotificationResetter DefaultSetter { get; set; } = null!;
 
 			[LocalizedCommand(nameof(Groups.Channel))]
 			[LocalizedAlias(nameof(Aliases.Channel))]
@@ -54,7 +54,7 @@ namespace Advobot.Logging.Commands
 			[LocalizedAlias(nameof(Aliases.Default))]
 			public async Task<RuntimeResult> Default()
 			{
-				await DefaultSetter.SetAsync(Context).CAF();
+				await DefaultSetter.ResetAsync(Context).CAF();
 				return Responses.Notifications.Default(Event);
 			}
 
@@ -91,7 +91,7 @@ namespace Advobot.Logging.Commands
 		public sealed class ModifyWelcomeMessage : NotificationModuleBase
 		{
 			private const Notification Event = Notification.Welcome;
-			public DefaultWelcomeNotificationSetter DefaultSetter { get; set; } = null!;
+			public WelcomeNotificationResetter DefaultSetter { get; set; } = null!;
 
 			[LocalizedCommand(nameof(Groups.Channel))]
 			[LocalizedAlias(nameof(Aliases.Channel))]
@@ -115,7 +115,7 @@ namespace Advobot.Logging.Commands
 			[LocalizedAlias(nameof(Aliases.Default))]
 			public async Task<RuntimeResult> Default()
 			{
-				await DefaultSetter.SetAsync(Context).CAF();
+				await DefaultSetter.ResetAsync(Context).CAF();
 				return Responses.Notifications.Default(Event);
 			}
 

@@ -23,11 +23,11 @@ namespace Advobot.Utilities
 		/// <param name="services"></param>
 		/// <returns></returns>
 		public static IServiceCollection AddDefaultOptionsSetter<T>(this IServiceCollection services)
-			where T : class, IDefaultOptionsSetter
+			where T : class, IResetter
 		{
 			return services
 				.AddSingleton<T>()
-				.AddSingleton<IDefaultOptionsSetter>(x => x.GetRequiredService<T>());
+				.AddSingleton<IResetter>(x => x.GetRequiredService<T>());
 		}
 
 		/// <summary>

@@ -11,7 +11,7 @@ using Discord.Commands;
 
 namespace Advobot.Logging.OptionSetters
 {
-	public sealed class DefaultLogActionsSetter : IDefaultOptionsSetter
+	public sealed class LogActionsResetter : IResetter
 	{
 		private readonly ILoggingService _Logging;
 
@@ -27,12 +27,12 @@ namespace Advobot.Logging.OptionSetters
 			LogAction.MessageDeleted
 		};
 
-		public DefaultLogActionsSetter(ILoggingService logging)
+		public LogActionsResetter(ILoggingService logging)
 		{
 			_Logging = logging;
 		}
 
-		public async Task SetAsync(ICommandContext context)
+		public async Task ResetAsync(ICommandContext context)
 		{
 			await _Logging.RemoveLogActionsAsync(context.Guild.Id, All).CAF();
 			await _Logging.AddLogActionsAsync(context.Guild.Id, Default).CAF();

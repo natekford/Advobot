@@ -32,7 +32,7 @@ namespace Advobot.Logging.Commands
 		[RequireGuildPermissions]
 		public sealed class ModifyActions : LoggingModuleBase
 		{
-			public DefaultLogActionsSetter DefaultSetter { get; set; } = null!;
+			public LogActionsResetter DefaultSetter { get; set; } = null!;
 
 			[LocalizedCommand(nameof(Groups.All))]
 			[LocalizedAlias(nameof(Aliases.All))]
@@ -40,11 +40,11 @@ namespace Advobot.Logging.Commands
 			{
 				if (enable)
 				{
-					await Logging.AddLogActionsAsync(Context.Guild.Id, DefaultLogActionsSetter.All).CAF();
+					await Logging.AddLogActionsAsync(Context.Guild.Id, LogActionsResetter.All).CAF();
 				}
 				else
 				{
-					await Logging.RemoveLogActionsAsync(Context.Guild.Id, DefaultLogActionsSetter.All).CAF();
+					await Logging.RemoveLogActionsAsync(Context.Guild.Id, LogActionsResetter.All).CAF();
 				}
 				return Responses.Logging.ModifiedAllLogActions(enable);
 			}
@@ -67,7 +67,7 @@ namespace Advobot.Logging.Commands
 			[LocalizedAlias(nameof(Aliases.Default))]
 			public async Task<RuntimeResult> Default()
 			{
-				await DefaultSetter.SetAsync(Context).CAF();
+				await DefaultSetter.ResetAsync(Context).CAF();
 				return Responses.Logging.DefaultLogActions();
 			}
 		}

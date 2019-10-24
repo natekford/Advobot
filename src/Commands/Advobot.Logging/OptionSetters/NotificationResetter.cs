@@ -9,17 +9,17 @@ using Discord.Commands;
 
 namespace Advobot.Logging.OptionSetters
 {
-	public abstract class DefaultNotificationSetter : IDefaultOptionsSetter
+	public abstract class NotificationResetter : IResetter
 	{
 		private readonly INotificationService _Notifications;
 		protected abstract Notification Event { get; }
 
-		protected DefaultNotificationSetter(INotificationService notifications)
+		protected NotificationResetter(INotificationService notifications)
 		{
 			_Notifications = notifications;
 		}
 
-		public async Task SetAsync(ICommandContext context)
+		public async Task ResetAsync(ICommandContext context)
 		{
 			await _Notifications.SetContentAsync(Event, context.Guild.Id, null).CAF();
 			await _Notifications.SetEmbedAsync(Event, context.Guild.Id, null).CAF();
