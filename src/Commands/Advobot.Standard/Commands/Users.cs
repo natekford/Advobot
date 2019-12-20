@@ -369,7 +369,7 @@ namespace Advobot.Standard.Commands
 				var result = await Context.User.ValidateRole(muteRole).CAF();
 				if (!result.IsSuccess)
 				{
-					muteRole = await Context.Guild.CreateRoleAsync("Advobot Mute", new GuildPermissions(0)).CAF();
+					muteRole = await Context.Guild.CreateRoleAsync("Advobot Mute", new GuildPermissions(0), null, false, false, null).CAF();
 					Context.Settings.MuteRoleId = muteRole.Id;
 					Context.Settings.Save();
 				}

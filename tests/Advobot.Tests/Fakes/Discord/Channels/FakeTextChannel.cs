@@ -12,9 +12,6 @@ using Discord;
 
 namespace Advobot.Tests.Fakes.Discord.Channels
 {
-	//Because Discord.Net uses a Nuget package for IAsyncEnumerable from pre .Net Core 3.0/Standard 2.0
-	extern alias oldasyncenumerable;
-
 	public sealed class FakeTextChannel : FakeGuildChannel, ITextChannel
 	{
 		public ulong? CategoryId => ProtectedCategoryId;

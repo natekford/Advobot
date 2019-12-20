@@ -38,7 +38,7 @@ namespace Advobot.Tests.Core.TypeReaders
 		[TestMethod]
 		public async Task Valid_Test()
 		{
-			var role = await Context.Guild.CreateRoleAsync("asdf").CAF();
+			var role = await Context.Guild.CreateRoleAsync("asdf", null, null, false, null).CAF();
 			var group = new SelfAssignableRoles(1);
 			group.AddRoles(new[] { role });
 			_Settings.SelfAssignableGroups.Add(group);

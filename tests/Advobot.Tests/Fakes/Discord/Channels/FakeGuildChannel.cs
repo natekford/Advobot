@@ -6,9 +6,6 @@ using Discord;
 
 namespace Advobot.Tests.Fakes.Discord.Channels
 {
-	//Because Discord.Net uses a Nuget package for IAsyncEnumerable from pre .Net Core 3.0/Standard 2.0
-	extern alias oldasyncenumerable;
-
 	public class FakeGuildChannel : FakeMessageChannel, IGuildChannel
 	{
 		protected readonly Dictionary<ulong, Overwrite> _Permissions = new Dictionary<ulong, Overwrite>();
@@ -72,7 +69,7 @@ namespace Advobot.Tests.Fakes.Discord.Channels
 		Task<IGuildUser> IGuildChannel.GetUserAsync(ulong id, CacheMode mode, RequestOptions options)
 			=> throw new NotImplementedException();
 
-		oldasyncenumerable::System.Collections.Generic.IAsyncEnumerable<IReadOnlyCollection<IGuildUser>> IGuildChannel.GetUsersAsync(CacheMode mode, RequestOptions options)
+		IAsyncEnumerable<IReadOnlyCollection<IGuildUser>> IGuildChannel.GetUsersAsync(CacheMode mode, RequestOptions options)
 			=> throw new NotImplementedException();
 
 		private OverwritePermissions? GetPermissionOverwrite(ulong id)

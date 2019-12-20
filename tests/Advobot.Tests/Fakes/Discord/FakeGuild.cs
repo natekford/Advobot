@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -57,6 +58,8 @@ namespace Advobot.Tests.Fakes.Discord
 		public MfaLevel MfaLevel => throw new NotImplementedException();
 		public string Name => "Fake Guild";
 		public ulong OwnerId => FakeOwner.Id;
+		public CultureInfo PreferredCulture => throw new NotImplementedException();
+		public string PreferredLocale => throw new NotImplementedException();
 		public int PremiumSubscriptionCount { get; set; }
 
 		public PremiumTier PremiumTier => PremiumSubscriptionCount switch
@@ -142,6 +145,8 @@ namespace Advobot.Tests.Fakes.Discord
 			};
 			return Task.FromResult<IRole>(role);
 		}
+
+		public Task<IRole> CreateRoleAsync(string name, GuildPermissions? permissions = null, Color? color = null, bool isHoisted = false, bool isMentionable = false, RequestOptions options = null) => throw new NotImplementedException();
 
 		public async Task<ITextChannel> CreateTextChannelAsync(string name, Action<TextChannelProperties> func = null, RequestOptions options = null)
 		{

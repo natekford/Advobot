@@ -75,7 +75,7 @@ namespace Advobot.Databases.MongoDB
 					case DatabaseQuery<T>.DBAction.Upsert:
 						foreach (var value in options.Values)
 						{
-							collection.ReplaceOne(x => x.Id == value.Id, value, options: new UpdateOptions { IsUpsert = true });
+							collection.ReplaceOne(x => x.Id == value.Id, value, options: new ReplaceOptions { IsUpsert = true });
 						}
 						return options.Values;
 
