@@ -171,7 +171,7 @@ namespace Advobot.Logging.Database
 			", param).CAF();
 		}
 
-		protected override Task<int> BulkModify<TParams>(
+		protected override Task<int> BulkModifyAsync<TParams>(
 			IDbConnection connection,
 			string sql,
 			IEnumerable<TParams> @params,

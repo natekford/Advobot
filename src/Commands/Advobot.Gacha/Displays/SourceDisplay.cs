@@ -19,7 +19,7 @@ namespace Advobot.Gacha.Displays
 		private readonly IReadOnlySource _Source;
 
 		public SourceDisplay(
-			GachaDatabase db,
+			IGachaDatabase db,
 			ITime time,
 			IInteractionManager interaction,
 			int id,

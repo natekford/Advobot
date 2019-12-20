@@ -12,7 +12,7 @@ namespace Advobot.Gacha.Models
 		public Gender Gender { get; set; }
 		public string? GenderIcon { get; set; }
 		public bool IsFakeCharacter { get; set; }
-		public string? Name { get; set; }
+		public string Name { get; set; } = null!;
 		public RollType RollType { get; set; }
 		public long SourceId { get; set; }
 

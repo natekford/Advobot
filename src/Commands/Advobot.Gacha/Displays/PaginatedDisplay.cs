@@ -29,7 +29,7 @@ namespace Advobot.Gacha.Displays
 		protected virtual TimeSpan Timeout { get; } = TimeSpan.FromSeconds(30);
 
 		protected PaginatedDisplay(
-			GachaDatabase db,
+			IGachaDatabase db,
 			ITime time,
 			IInteractionManager interaction,
 			int id,

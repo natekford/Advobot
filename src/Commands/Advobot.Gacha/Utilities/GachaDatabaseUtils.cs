@@ -1,9 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Data.SQLite;
+using System.Linq;
 using System.Threading.Tasks;
 
+using Advobot.Gacha.Database;
 using Advobot.Gacha.Metadata;
+using Advobot.Gacha.ReadOnlyModels;
 using Advobot.Gacha.Relationships;
 
 using AdvorangesUtils;
@@ -14,6 +17,12 @@ namespace Advobot.Gacha.Utilities
 {
 	public static class RankUtils
 	{
+		public static Task<IReadOnlyList<IReadOnlyCharacter>> GetCharactersAsync(this IGachaDatabase db, string input)
+		{
+			var matches = db.CharacterIds.FindMatches(input);
+			return db.GetCharactersAsync(matches.Select(x => x.Value.Id));
+		}
+
 		public static int GetRank<T>(IEnumerable<T> values, T amount) where T : IComparable<T>
 		{
 			//Find ones with a higher rank than the wanted one
@@ -60,6 +69,12 @@ namespace Advobot.Gacha.Utilities
 			var normalizedAmount = normalizedDict.TryGetValue(id, out var n) ? n : 0;
 			var normalizedRank = GetRank(normalizedDict.Values, normalizedAmount);
 			return new AmountAndRank(tableName, amount, rank, normalizedAmount, normalizedRank);
+		}
+
+		public static Task<IReadOnlyList<IReadOnlySource>> GetSourcesAsync(this IGachaDatabase db, string input)
+		{
+			var matches = db.SourceIds.FindMatches(input);
+			return db.GetSourcesAsync(matches.Select(x => x.Value.Id));
 		}
 
 		public static double Normalize(DateTimeOffset now, DateTimeOffset timeCreated, int amount)

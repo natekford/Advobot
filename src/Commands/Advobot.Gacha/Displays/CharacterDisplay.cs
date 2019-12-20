@@ -36,7 +36,7 @@ namespace Advobot.Gacha.Displays
 		/// <param name="images"></param>
 		/// <param name="claim"></param>
 		public CharacterDisplay(
-			GachaDatabase db,
+			IGachaDatabase db,
 			ITime time,
 			IInteractionManager interaction,
 			IDiscordClient client,

@@ -31,7 +31,7 @@ namespace Advobot.Gacha.ParameterPreconditions
 				return this.FromOnlySupports(typeof(IReadOnlyCharacter));
 			}
 
-			var db = services.GetRequiredService<GachaDatabase>();
+			var db = services.GetRequiredService<IGachaDatabase>();
 			var claim = await db.GetClaimAsync(context.Guild.Id, character).CAF();
 			if (claim?.UserId == context.User.Id)
 			{

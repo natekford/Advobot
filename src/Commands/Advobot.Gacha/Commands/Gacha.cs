@@ -1,22 +1,21 @@
-﻿using System;
-using System.Linq;
+﻿using System.Linq;
 using System.Threading.Tasks;
 
 using Advobot.Attributes;
 using Advobot.Gacha.Localization;
 using Advobot.Gacha.ParameterPreconditions;
+using Advobot.Gacha.Preconditions;
 using Advobot.Gacha.ReadOnlyModels;
 using Advobot.Gacha.Resources;
 using Advobot.Gacha.Trading;
 using Advobot.Gacha.Utilities;
 using Advobot.Interactivity;
-using Advobot.Interactivity.Criterions;
-using Advobot.Interactivity.TryParsers;
 using Advobot.Modules;
-using AdvorangesUtils;
 
+using AdvorangesUtils;
 using Discord;
 using Discord.Commands;
+using Discord.WebSocket;
 
 namespace Advobot.Gacha.Commands
 {
@@ -43,65 +42,20 @@ namespace Advobot.Gacha.Commands
 		[LocalizedAlias(nameof(Aliases.Give))]
 		[Summary("temp")]
 		[Meta("db62db89-d645-4bdd-9794-2945ca8dde9c")]
-		public sealed class GachaGive : GachaModuleBase
+		[CancelPreviousTrades]
+		public sealed class GachaGive : GachaExchangeModuleBase
 		{
-			private static readonly TimeSpan _Timeout = TimeSpan.FromMinutes(3);
+			protected override ExchangeMethod Method => ExchangeMethod.Gift;
 
 			[Command(RunMode = RunMode.Async)]
-			public async Task<RuntimeResult> Command(
+			public Task<RuntimeResult> Command(
 				[NotSelf, InGuild]
 				IReadOnlyUser user,
 				[OwnsCharacters]
 				params IReadOnlyCharacter[] characters)
 			{
-				var trades = new TradeCollection(Context.Guild);
-				trades.AddRange(characters.Select(x => new Trade(user, x)));
-
-				//TODO: reset when user reinvokes command
-				var criteria = new ICriterion<IMessage>[]
-				{
-					new EnsureSourceChannelCriterion(),
-					new EnsureFromUserCriterion(user.UserId),
-				};
-
-				var tryParser = new AcceptTryParser();
-
-				var options = new InteractivityOptions
-				{
-					Timeout = _Timeout,
-					Token = default,
-				};
-
-				var response = await NextValueAsync(criteria, tryParser, options).CAF();
-				if (response.HasBeenCanceled)
-				{
-					return AdvobotResult.IgnoreFailure;
-				}
-				else if (response.HasTimedOut)
-				{
-					return Responses.Gacha.Timeout();
-				}
-				else if (response.HasValue && response.Value)
-				{
-					return Responses.Gacha.GiveAccepted(trades);
-				}
-				return Responses.Gacha.GiveRejected(trades);
-			}
-
-			public sealed class AcceptTryParser : IMessageTryParser<bool>
-			{
-				public ValueTask<Optional<bool>> TryParseAsync(IMessage message)
-				{
-					if (message.Content.CaseInsEquals("y"))
-					{
-						return new ValueTask<Optional<bool>>(true);
-					}
-					else if (message.Content.CaseInsEquals("n"))
-					{
-						return new ValueTask<Optional<bool>>(false);
-					}
-					return new ValueTask<Optional<bool>>(Optional<bool>.Unspecified);
-				}
+				AddExchange(user, characters);
+				return HandleExchange(user);
 			}
 		}
 
@@ -151,20 +105,25 @@ namespace Advobot.Gacha.Commands
 		[LocalizedAlias(nameof(Aliases.Trade))]
 		[Summary("temp")]
 		[Meta("dfd7e368-5a03-4af7-8054-4eb156a5e4fb")]
-		public sealed class GachaTrade : GachaModuleBase
+		[CancelPreviousTrades]
+		public sealed class GachaTrade : GachaExchangeModuleBase
 		{
+			protected override ExchangeMethod Method => ExchangeMethod.Trade;
+
 			[Command(RunMode = RunMode.Async)]
-			public Task Command(
-				[NotSelf]
+			public Task<RuntimeResult> Command(
+				[NotSelf, InGuild]
 				IReadOnlyUser user,
 				[OwnsCharacters]
 				params IReadOnlyCharacter[] characters
 			)
 			{
-				var trades = new TradeCollection(Context.Guild);
-				trades.AddRange(characters.Select(x => new Trade(user, x)));
-
-				throw new NotImplementedException();
+				var valid = AddExchange(user, characters);
+				if (!valid)
+				{
+					return Responses.Gacha.OtherSideTrade(user);
+				}
+				return HandleExchange(user);
 			}
 		}
 	}

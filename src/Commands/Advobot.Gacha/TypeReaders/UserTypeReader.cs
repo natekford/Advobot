@@ -34,7 +34,7 @@ namespace Advobot.Gacha.TypeReaders
 			}
 
 			var user = (IUser)result.BestMatch;
-			var db = services.GetRequiredService<GachaDatabase>();
+			var db = services.GetRequiredService<IGachaDatabase>();
 			var entry = await db.GetUserAsync(context.Guild.Id, user.Id).CAF();
 			if (entry != null) //Profile already exists, can return that
 			{

@@ -39,8 +39,8 @@ namespace Advobot.Databases.AbstractSQL
 		/// <param name="sql"></param>
 		/// <param name="params"></param>
 		/// <returns></returns>
-		protected Task<int> BulkModify<TParams>(string sql, IEnumerable<TParams> @params)
-			=> Starter.BulkModify<T>((cnn, tr) => BulkModify(cnn, sql, @params, tr));
+		protected Task<int> BulkModifyAsync<TParams>(string sql, IEnumerable<TParams> @params)
+			=> Starter.BulkModify<T>((cnn, tr) => BulkModifyAsync(cnn, sql, @params, tr));
 
 		/// <summary>
 		/// The actual implementation of executing a query in bulk.
@@ -51,7 +51,7 @@ namespace Advobot.Databases.AbstractSQL
 		/// <param name="params"></param>
 		/// <param name="transaction"></param>
 		/// <returns></returns>
-		protected abstract Task<int> BulkModify<TParams>(
+		protected abstract Task<int> BulkModifyAsync<TParams>(
 			IDbConnection connection,
 			string sql,
 			IEnumerable<TParams> @params,

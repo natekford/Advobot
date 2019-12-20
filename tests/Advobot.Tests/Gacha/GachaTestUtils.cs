@@ -76,13 +76,14 @@ namespace Advobot.GachaTests.Utilities
 
 		public static ulong NextUlongAboveLongMax(this Random rng)
 		{
-			ulong value;
 			var buffer = new byte[sizeof(ulong)];
-			do
+			rng.NextBytes(buffer);
+			var value = BitConverter.ToUInt64(buffer, 0);
+			if (value < long.MaxValue)
 			{
-				rng.NextBytes(buffer);
-				value = BitConverter.ToUInt64(buffer, 0);
-			} while (value < long.MaxValue);
+				value += long.MaxValue;
+			}
+
 			return value;
 		}
 	}

@@ -25,6 +25,12 @@ namespace Advobot.Modules
 	[RequireContext(ContextType.Guild, Group = nameof(RequireContextAttribute))]
 	public abstract class AdvobotModuleBase : ModuleBase<AdvobotCommandContext>
 	{
+		private static readonly ICriterion<IMessage>[] _NextIndexCriteria = new ICriterion<IMessage>[]
+		{
+			new EnsureSourceChannelCriterion(),
+			new EnsureSourceUserCriterion(),
+		};
+
 		/// <summary>
 		/// The settings for the bot.
 		/// </summary>
@@ -66,13 +72,10 @@ namespace Advobot.Modules
 			int maxVal,
 			InteractivityOptions? options = null)
 		{
-			var criteria = new ICriterion<IMessage>[]
-			{
-				new EnsureSourceChannelCriterion(),
-				new EnsureSourceUserCriterion(),
-			};
 			var tryParser = new IndexTryParser(minVal, maxVal);
-			return NextValueAsync(criteria, tryParser, options);
+			options ??= new InteractivityOptions();
+			options.Criteria = _NextIndexCriteria;
+			return NextValueAsync(tryParser, options);
 		}
 
 		/// <summary>
@@ -97,13 +100,11 @@ namespace Advobot.Modules
 		/// <summary>
 		/// Gets the next message which makes <paramref name="tryParser"/> return true. This is blocking.
 		/// </summary>
-		/// <param name="criteria"></param>
 		/// <param name="tryParser"></param>
 		/// <param name="options"></param>
 		/// <returns></returns>
 		/// <remarks>Heavily taken from https://github.com/foxbot/Discord.Addons.Interactive/blob/master/Discord.Addons.Interactive/InteractiveService.cs</remarks>
 		public async Task<InteractiveResult<T>> NextValueAsync<T>(
-			IEnumerable<ICriterion<IMessage>> criteria,
 			IMessageTryParser<T> tryParser,
 			InteractivityOptions? options = null)
 		{
@@ -116,6 +117,7 @@ namespace Advobot.Modules
 				token.Register(() => cancelTrigger.SetResult(true));
 			}
 
+			var criteria = options?.Criteria ?? Array.Empty<ICriterion<IMessage>>();
 			async Task Handler(IMessage message)
 			{
 				foreach (var criterion in criteria)
@@ -135,10 +137,10 @@ namespace Advobot.Modules
 			}
 
 			Context.Client.MessageReceived += Handler;
-			var trigger = eventTrigger.Task;
+			var @event = eventTrigger.Task;
 			var cancel = cancelTrigger.Task;
 			var delay = Task.Delay(timeout);
-			var task = await Task.WhenAny(trigger, delay, cancel).CAF();
+			var task = await Task.WhenAny(@event, delay, cancel).CAF();
 			Context.Client.MessageReceived -= Handler;
 
 			if (task == cancel)
@@ -149,7 +151,7 @@ namespace Advobot.Modules
 			{
 				return InteractiveResult<T>.TimedOut;
 			}
-			return await trigger.CAF();
+			return await @event.CAF();
 		}
 	}
 }

@@ -38,7 +38,7 @@ namespace Advobot.Logging.Database
 				GuildId = guildId.ToString(),
 				ChannelId = x.ToString()
 			});
-			return await BulkModify(SQL, @params).CAF();
+			return await BulkModifyAsync(SQL, @params).CAF();
 		}
 
 		public async Task<int> AddLogActionsAsync(ulong guildId, IEnumerable<LogAction> actions)
@@ -54,7 +54,7 @@ namespace Advobot.Logging.Database
 				GuildId = guildId.ToString(),
 				Action = x.ToString()
 			});
-			return await BulkModify(SQL, @params).CAF();
+			return await BulkModifyAsync(SQL, @params).CAF();
 		}
 
 		public override async Task<IReadOnlyList<string>> CreateDatabaseAsync()
@@ -117,7 +117,7 @@ namespace Advobot.Logging.Database
 				GuildId = guildId.ToString(),
 				ChannelId = x.ToString()
 			});
-			return await BulkModify(SQL, @params).CAF();
+			return await BulkModifyAsync(SQL, @params).CAF();
 		}
 
 		public async Task<int> DeleteLogActionsAsync(ulong guildId, IEnumerable<LogAction> actions)
@@ -131,7 +131,7 @@ namespace Advobot.Logging.Database
 				GuildId = guildId.ToString(),
 				Action = x.ToString()
 			});
-			return await BulkModify(SQL, @params).CAF();
+			return await BulkModifyAsync(SQL, @params).CAF();
 		}
 
 		public async Task<IReadOnlyList<ulong>> GetIgnoredChannelsAsync(ulong guildId)
@@ -189,7 +189,7 @@ namespace Advobot.Logging.Database
 			", param).CAF();
 		}
 
-		protected override Task<int> BulkModify<TParams>(
+		protected override Task<int> BulkModifyAsync<TParams>(
 			IDbConnection connection,
 			string sql,
 			IEnumerable<TParams> @params,

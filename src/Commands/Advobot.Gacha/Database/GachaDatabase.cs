@@ -20,130 +20,116 @@ using Image = Advobot.Gacha.Models.Image;
 
 namespace Advobot.Gacha.Database
 {
-	public sealed class GachaDatabase : DatabaseBase<SQLiteConnection>
+	public sealed class GachaDatabase : DatabaseBase<SQLiteConnection>, IGachaDatabase
 	{
+		private const string INSERT_CHAR = @"
+			INSERT INTO Character
+			( CharacterId, SourceId, Name, GenderIcon, Gender, RollType, FlavorText, IsFakeCharacter )
+			VALUES
+			( @CharacterId, @SourceId, @Name, @GenderIcon, @Gender, @RollType, @FlavorText, @IsFakeCharacter )
+		";
+
+		private const string INSERT_CLAIM = @"
+			INSERT INTO Claim
+			( ClaimId, GuildId, UserId, CharacterId, ImageUrl, IsPrimaryClaim )
+			VALUES
+			( @ClaimId, @GuildId, @UserId, @CharacterId, @ImageUrl, @IsPrimaryClaim )
+		";
+
+		private const string INSERT_IMG = @"
+			INSERT INTO Image
+			( CharacterId, Url )
+			VALUES
+			( @CharacterId, @Url )
+		";
+
+		private const string INSERT_SRC = @"
+			INSERT INTO Source
+			( SourceId, Name, ThumbnailUrl )
+			VALUES
+			( @SourceId, @Name, @ThumbnailUrl )
+		";
+
+		private const string INSERT_USER = @"
+			INSERT INTO User
+			( GuildId, UserId )
+			VALUES
+			( @GuildId, @UserId )
+		";
+
+		private const string INSERT_WISH = @"
+			INSERT INTO Wish
+			( WishId, GuildId, UserId, CharacterId )
+			VALUES
+			( @WishId, @GuildId, @UserId, @CharacterId )
+		";
+
 		private readonly ITime _Time;
+
+		public CloseIds CharacterIds { get; } = new CloseIds
+		{
+			IncludeWhenContains = false,
+			MaxAllowedCloseness = 2,
+		};
+
+		public CloseIds SourceIds { get; } = new CloseIds
+		{
+			IncludeWhenContains = false,
+			MaxAllowedCloseness = 2,
+		};
 
 		public GachaDatabase(ITime time, IGachaDatabaseStarter starter) : base(starter)
 		{
 			_Time = time;
 		}
 
-		public async Task AddCharacterAsync(IReadOnlyCharacter character)
+		public Task AddCharacterAsync(IReadOnlyCharacter character)
 		{
-			using var connection = await GetConnectionAsync().CAF();
-
-			await connection.QueryAsync(@"
-				INSERT INTO Character
-				( CharacterId, SourceId, Name, GenderIcon, Gender, RollType, FlavorText, IsFakeCharacter )
-				VALUES
-				( @CharacterId, @SourceId, @Name, @GenderIcon, @Gender, @RollType, @FlavorText, @IsFakeCharacter )
-			", character).CAF();
+			CharacterIds.Add(character.CharacterId, character.Name);
+			return InsertAsync(INSERT_CHAR, character);
 		}
 
-		public async Task<int> AddCharactersAsync(IEnumerable<IReadOnlyCharacter> characters)
+		public Task<int> AddCharactersAsync(IEnumerable<IReadOnlyCharacter> characters)
 		{
-			const string SQL = @"
-				INSERT INTO Character
-				( CharacterId, SourceId, Name, GenderIcon, Gender, RollType, FlavorText, IsFakeCharacter )
-				VALUES
-				( @CharacterId, @SourceId, @Name, @GenderIcon, @Gender, @RollType, @FlavorText, @IsFakeCharacter )
-			";
-			return await BulkModify(SQL, characters).CAF();
+			foreach (var character in characters)
+			{
+				CharacterIds.Add(character.CharacterId, character.Name);
+			}
+			return BulkModifyAsync(INSERT_CHAR, characters);
 		}
 
-		public async Task AddClaimAsync(IReadOnlyClaim claim)
-		{
-			using var connection = await GetConnectionAsync().CAF();
+		public Task AddClaimAsync(IReadOnlyClaim claim)
+			=> InsertAsync(INSERT_CLAIM, claim);
 
-			await connection.QueryAsync(@"
-				INSERT INTO Claim
-				( ClaimId, GuildId, UserId, CharacterId, ImageUrl, IsPrimaryClaim )
-				VALUES
-				( @ClaimId, @GuildId, @UserId, @CharacterId, @ImageUrl, @IsPrimaryClaim )
-			", claim).CAF();
+		public Task<int> AddClaimsAsync(IEnumerable<IReadOnlyClaim> claims)
+			=> BulkModifyAsync(INSERT_CLAIM, claims);
+
+		public Task AddImageAsync(IReadOnlyImage image)
+			=> InsertAsync(INSERT_IMG, image);
+
+		public Task AddSourceAsync(IReadOnlySource source)
+		{
+			SourceIds.Add(source.SourceId, source.Name);
+			return InsertAsync(INSERT_SRC, source);
 		}
 
-		public async Task<int> AddClaimsAsync(IEnumerable<IReadOnlyClaim> claims)
+		public Task<int> AddSourcesAsync(IEnumerable<IReadOnlySource> sources)
 		{
-			const string SQL = @"
-				INSERT INTO Claim
-				( ClaimId, GuildId, UserId, CharacterId, ImageUrl, IsPrimaryClaim )
-				VALUES
-				( @ClaimId, @GuildId, @UserId, @CharacterId, @ImageUrl, @IsPrimaryClaim )
-			";
-			return await BulkModify(SQL, claims).CAF();
+			foreach (var source in sources)
+			{
+				SourceIds.Add(source.SourceId, source.Name);
+			}
+			return BulkModifyAsync(INSERT_SRC, sources);
 		}
 
-		public async Task AddImageAsync(IReadOnlyImage image)
-		{
-			using var connection = await GetConnectionAsync().CAF();
+		public Task AddUserAsync(IReadOnlyUser user)
+			=> InsertAsync(INSERT_USER, user);
 
-			await connection.QueryAsync(@"
-				INSERT INTO Image
-				( CharacterId, Url )
-				VALUES
-				( @CharacterId, @Url )
-			", image).CAF();
-		}
+		public Task<int> AddUsersAsync(IEnumerable<IReadOnlyUser> users)
+			=> BulkModifyAsync(INSERT_USER, users);
 
-		public async Task AddSourceAsync(IReadOnlySource source)
-		{
-			using var connection = await GetConnectionAsync().CAF();
-
-			await connection.QueryAsync(@"
-				INSERT INTO Source
-				( SourceId, Name, ThumbnailUrl )
-				VALUES
-				( @SourceId, @Name, @ThumbnailUrl )
-			", source).CAF();
-		}
-
-		public async Task<int> AddSourcesAsync(IEnumerable<IReadOnlySource> sources)
-		{
-			const string SQL = @"
-				INSERT INTO Source
-				( SourceId, Name, ThumbnailUrl )
-				VALUES
-				( @SourceId, @Name, @ThumbnailUrl )
-			";
-			return await BulkModify(SQL, sources).CAF();
-		}
-
-		public async Task AddUserAsync(IReadOnlyUser user)
-		{
-			using var connection = await GetConnectionAsync().CAF();
-
-			await connection.QueryAsync(@"
-				INSERT INTO User
-				( GuildId, UserId )
-				VALUES
-				( @GuildId, @UserId )
-			", user).CAF();
-		}
-
-		public async Task<int> AddUsersAsync(IEnumerable<IReadOnlyUser> users)
-		{
-			const string SQL = @"
-				INSERT INTO User
-				( GuildId, UserId )
-				VALUES
-				( @GuildId, @UserId )
-			";
-			return await BulkModify(SQL, users).CAF();
-		}
-
-		public async Task AddWishAsync(IReadOnlyWish wish)
-		{
-			using var connection = await GetConnectionAsync().CAF();
-
-			await connection.QueryAsync(@"
-				INSERT INTO Wish
-				( WishId, GuildId, UserId, CharacterId )
-				VALUES
-				( @WishId, @GuildId, @UserId, @CharacterId )
-			", wish).CAF();
-		}
+		public Task AddWishAsync(IReadOnlyWish wish)
+			=> InsertAsync(INSERT_WISH, wish);
 
 		public override async Task<IReadOnlyList<string>> CreateDatabaseAsync()
 		{
@@ -283,15 +269,29 @@ namespace Advobot.Gacha.Database
 			);
 			").CAF();
 
+			//Cache sources/characters for similar name checking
+			foreach (var source in await connection.QueryAsync<Source>(@"
+				SELECT SourceId, Name
+				FROM Character
+			").CAF())
+			{
+				SourceIds.Add(source.SourceId, source.Name);
+			}
+			foreach (var character in await connection.QueryAsync<Character>(@"
+				SELECT CharacterId, Name
+				FROM Character
+			").CAF())
+			{
+				CharacterIds.Add(character.CharacterId, character.Name);
+			}
+
 			return await connection.GetTableNames((c, sql) => c.QueryAsync<string>(sql)).CAF();
 		}
 
-		public async Task<IReadOnlyCharacter> GetCharacterAsync(long characterId)
+		public async Task<IReadOnlyCharacter> GetCharacterAsync(long id)
 		{
-			using var connection = await GetConnectionAsync().CAF();
-
-			var param = new { CharacterId = characterId };
-			return await connection.QuerySingleOrDefaultAsync<Character>(@"
+			var param = new { CharacterId = id };
+			return await GetOneAsync<Character>(@"
 				SELECT *
 				FROM Character
 				WHERE CharacterId = @CharacterId
@@ -313,47 +313,36 @@ namespace Advobot.Gacha.Database
 
 		public async Task<IReadOnlyList<IReadOnlyCharacter>> GetCharactersAsync()
 		{
-			using var connection = await GetConnectionAsync().CAF();
-
-			var query = await connection.QueryAsync<Character>(@"
+			return await GetManyAsync<Character>(@"
 				SELECT *
 				FROM Character
-			").CAF();
-			return query.ToArray();
+			", null).CAF();
 		}
 
 		public async Task<IReadOnlyList<IReadOnlyCharacter>> GetCharactersAsync(IReadOnlySource source)
 		{
-			using var connection = await GetConnectionAsync().CAF();
-
 			var param = new { source.SourceId };
-			var query = await connection.QueryAsync<Character>(@"
+			return await GetManyAsync<Character>(@"
 				SELECT *
 				FROM Character
 				WHERE SourceId = @SourceId
 			", param).CAF();
-			return query.ToArray();
 		}
 
 		public async Task<IReadOnlyList<IReadOnlyCharacter>> GetCharactersAsync(IEnumerable<long> ids)
 		{
-			using var connection = await GetConnectionAsync().CAF();
-
 			var param = new { Ids = ids };
-			var query = await connection.QueryAsync<Character>(@"
+			return await GetManyAsync<Character>(@"
 				SELECT *
 				FROM Character
 				WHERE CharacterId IN @Ids
 			", param).CAF();
-			return query.ToArray();
 		}
 
 		public async Task<IReadOnlyClaim> GetClaimAsync(ulong guildId, IReadOnlyCharacter character)
 		{
-			using var connection = await GetConnectionAsync().CAF();
-
 			var param = new { GuildId = guildId.ToString(), character.CharacterId };
-			return await connection.QuerySingleOrDefaultAsync<Claim>(@"
+			return await GetOneAsync<Claim>(@"
 				SELECT *
 				FROM Claim
 				WHERE GuildId = @GuildId AND CharacterId = @CharacterId
@@ -362,15 +351,13 @@ namespace Advobot.Gacha.Database
 
 		public async Task<IReadOnlyClaim> GetClaimAsync(IReadOnlyUser user, IReadOnlyCharacter character)
 		{
-			using var connection = await GetConnectionAsync().CAF();
-
 			var param = new
 			{
 				GuildId = user.GuildId.ToString(),
 				UserId = user.UserId.ToString(),
 				character.CharacterId
 			};
-			return await connection.QuerySingleOrDefaultAsync<Claim>(@"
+			return await GetOneAsync<Claim>(@"
 				SELECT *
 				FROM Claim
 				WHERE GuildId = @GuildId AND UserId = @UserId AND CharacterId = @CharacterId
@@ -379,63 +366,60 @@ namespace Advobot.Gacha.Database
 
 		public async Task<IReadOnlyList<IReadOnlyClaim>> GetClaimsAsync(ulong guildId)
 		{
-			using var connection = await GetConnectionAsync().CAF();
-
 			var param = new { GuildId = guildId.ToString() };
-			var query = await connection.QueryAsync<Claim>(@"
+			return await GetManyAsync<Claim>(@"
 				SELECT *
 				FROM Claim
 				WHERE GuildId = @GuildId
 			", param).CAF();
-			return query.ToArray();
 		}
 
 		public async Task<IReadOnlyList<IReadOnlyClaim>> GetClaimsAsync(IReadOnlyUser user)
 		{
-			using var connection = await GetConnectionAsync().CAF();
-
 			var param = new
 			{
 				GuildId = user.GuildId.ToString(),
 				UserId = user.UserId.ToString()
 			};
-			var query = await connection.QueryAsync<Claim>(@"
+			return await GetManyAsync<Claim>(@"
 				SELECT *
 				FROM Claim
 				WHERE GuildId = @GuildId AND UserId = @UserId
 			", param).CAF();
-			return query.ToArray();
 		}
 
 		public async Task<IReadOnlyList<IReadOnlyImage>> GetImagesAsync(IReadOnlyCharacter character)
 		{
-			using var connection = await GetConnectionAsync().CAF();
-
 			var param = new { character.CharacterId };
-			var query = await connection.QueryAsync<Image>(@"
+			return await GetManyAsync<Image>(@"
 				SELECT *
 				FROM Image
 				WHERE CharacterId = @CharacterId
 			", param).CAF();
-			return query.ToArray();
 		}
 
 		public async Task<IReadOnlySource> GetSourceAsync(long sourceId)
 		{
-			using var connection = await GetConnectionAsync().CAF();
-
 			var param = new { SourceId = sourceId };
-			return await connection.QuerySingleOrDefaultAsync<Source>(@"
+			return await GetOneAsync<Source>(@"
 				SELECT *
 				FROM Source
 				WHERE SourceId = @SourceId
 			", param).CAF();
 		}
 
+		public async Task<IReadOnlyList<IReadOnlySource>> GetSourcesAsync(IEnumerable<long> ids)
+		{
+			var param = new { Ids = ids };
+			return await GetManyAsync<Source>(@"
+				SELECT *
+				FROM Source
+				WHERE SourceId IN @Ids
+			", param).CAF();
+		}
+
 		public async Task<IReadOnlyCharacter> GetUnclaimedCharacter(ulong guildId)
 		{
-			using var connection = await GetConnectionAsync().CAF();
-
 			//Time for 500,000 records in both Character and Claim:
 			//NOT IN = 3796ms
 			//NOT EXISTS = 3946ms
@@ -443,7 +427,7 @@ namespace Advobot.Gacha.Database
 			//LEFT JOIN makes the least sense to read, but it's the fastest by a fair bit
 
 			var param = new { GuildId = guildId.ToString() };
-			return await connection.QuerySingleOrDefaultAsync<Character>(@"
+			return await GetOneAsync<Character>(@"
 				SELECT l.*
 				From Character l
 				LEFT JOIN Claim r
@@ -455,10 +439,8 @@ namespace Advobot.Gacha.Database
 
 		public async Task<IReadOnlyUser> GetUserAsync(ulong guildId, ulong userId)
 		{
-			using var connection = await GetConnectionAsync().CAF();
-
 			var param = new { GuildId = guildId.ToString(), UserId = userId.ToString() };
-			return await connection.QuerySingleOrDefaultAsync<User>(@"
+			return await GetOneAsync<User>(@"
 				SELECT GuildId, UserId
 				FROM User
 				WHERE GuildId = @GuildId AND UserId = @UserId
@@ -467,65 +449,51 @@ namespace Advobot.Gacha.Database
 
 		public async Task<IReadOnlyList<IReadOnlyWish>> GetWishesAsync(ulong guildId)
 		{
-			using var connection = await GetConnectionAsync().CAF();
-
 			var param = new { GuildId = guildId.ToString() };
-			var query = await connection.QueryAsync<Wish>(@"
+			return await GetManyAsync<Wish>(@"
 				SELECT *
 				FROM Wish
 				WHERE GuildId = @GuildId
 			", param).CAF();
-			return query.ToArray();
 		}
 
 		public async Task<IReadOnlyList<IReadOnlyWish>> GetWishesAsync(ulong guildId, IReadOnlyCharacter character)
 		{
-			using var connection = await GetConnectionAsync().CAF();
-
-			var param = new
-			{
-				GuildId = guildId.ToString(),
-				character.CharacterId
-			};
-			var query = await connection.QueryAsync<Wish>(@"
+			var param = new { GuildId = guildId.ToString(), character.CharacterId };
+			return await GetManyAsync<Wish>(@"
 				SELECT *
 				FROM Wish
 				WHERE GuildId = @GuildId AND CharacterId = @CharacterId
 			", param).CAF();
-			return query.ToArray();
 		}
 
 		public async Task<IReadOnlyList<IReadOnlyWish>> GetWishesAsync(IReadOnlyUser user)
 		{
-			using var connection = await GetConnectionAsync().CAF();
-
 			var param = new
 			{
 				GuildId = user.GuildId.ToString(),
 				UserId = user.UserId.ToString()
 			};
-			var result = await connection.QueryAsync<Wish>(@"
+			return await GetManyAsync<Wish>(@"
 				SELECT *
 				FROM Wish
 				WHERE GuildId = @GuildId AND UserId = @UserId
 			", param).CAF();
-			return result.ToArray();
 		}
 
 		public async Task<int> TradeAsync(IEnumerable<ITrade> trades)
 		{
-			const string SQL = @"
-				UPDATE Claim
-				SET UserId = @ReceiverId
-				WHERE GuildId = @GuildId AND CharacterId = @CharacterId
-			";
 			var @params = trades.Select(x => new
 			{
 				GuildId = x.GuildId.ToString(),
 				ReceiverId = x.ReceiverId.ToString(),
 				x.CharacterId
 			});
-			return await BulkModify(SQL, @params).CAF();
+			return await BulkModifyAsync(@"
+				UPDATE Claim
+				SET UserId = @ReceiverId
+				WHERE GuildId = @GuildId AND CharacterId = @CharacterId
+			", @params).CAF();
 		}
 
 		public async Task UpdateClaimImageUrlAsync(IReadOnlyClaim claim, string? url)
@@ -546,11 +514,30 @@ namespace Advobot.Gacha.Database
 			", param).CAF();
 		}
 
-		protected override Task<int> BulkModify<TParams>(
+		protected override Task<int> BulkModifyAsync<TParams>(
 			IDbConnection connection,
 			string sql,
 			IEnumerable<TParams> @params,
 			IDbTransaction transaction)
 			=> connection.ExecuteAsync(sql, @params, transaction);
+
+		private async Task<IReadOnlyList<T>> GetManyAsync<T>(string sql, object? param)
+		{
+			using var connection = await GetConnectionAsync().CAF();
+			var result = await connection.QueryAsync<T>(sql, param).CAF();
+			return result.ToArray();
+		}
+
+		private async Task<T> GetOneAsync<T>(string sql, object param)
+		{
+			using var connection = await GetConnectionAsync().CAF();
+			return await connection.QuerySingleOrDefaultAsync<T>(sql, param).CAF();
+		}
+
+		private async Task InsertAsync<T>(string sql, T item)
+		{
+			using var connection = await GetConnectionAsync().CAF();
+			await connection.QueryAsync(sql, item).CAF();
+		}
 	}
 }

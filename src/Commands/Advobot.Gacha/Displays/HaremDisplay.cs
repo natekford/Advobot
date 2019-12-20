@@ -22,7 +22,7 @@ namespace Advobot.Gacha.Displays
 		private readonly IReadOnlyClaim? _Primary;
 
 		public HaremDisplay(
-			GachaDatabase db,
+			IGachaDatabase db,
 			ITime time,
 			IInteractionManager interaction,
 			int id,

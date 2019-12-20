@@ -1,5 +1,8 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Threading;
+using Advobot.Interactivity.Criterions;
+using Discord;
 
 namespace Advobot.Interactivity
 {
@@ -8,6 +11,11 @@ namespace Advobot.Interactivity
 	/// </summary>
 	public class InteractivityOptions
 	{
+		/// <summary>
+		/// Criteria for determing the message can be used.
+		/// </summary>
+		public IEnumerable<ICriterion<IMessage>>? Criteria { get; set; }
+
 		/// <summary>
 		/// The timeout before the interactivity should be stopped.
 		/// </summary>

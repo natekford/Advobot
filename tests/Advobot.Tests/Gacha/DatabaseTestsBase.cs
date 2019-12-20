@@ -24,14 +24,14 @@ namespace Advobot.Tests.Gacha
 		protected DatabaseTestsBase()
 		{
 			Services = new ServiceCollection()
-				.AddSingleton<GachaDatabase>()
+				.AddSingleton<IGachaDatabase, GachaDatabase>()
 				.AddSingleton<ITime, DefaultTime>()
 				.AddSingleton<IGachaDatabaseStarter, FakeGachaDatabaseStarter>()
 				.BuildServiceProvider();
 		}
 
 		protected async Task<(List<IReadOnlySource>, List<IReadOnlyCharacter>)> AddSourcesAndCharacters(
-			GachaDatabase db,
+			IGachaDatabase db,
 			int sourceCount,
 			int charactersPerSource)
 		{
@@ -54,9 +54,9 @@ namespace Advobot.Tests.Gacha
 			return (sources, characters);
 		}
 
-		protected async Task<GachaDatabase> GetDatabaseAsync()
+		protected async Task<IGachaDatabase> GetDatabaseAsync()
 		{
-			var db = Services.GetRequiredService<GachaDatabase>();
+			var db = Services.GetRequiredService<IGachaDatabase>();
 			await db.CreateDatabaseAsync().CAF();
 			return db;
 		}

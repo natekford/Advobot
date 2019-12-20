@@ -104,7 +104,7 @@ namespace Advobot.Tests.Gacha.Database
 			}
 		}
 
-		private async Task<(GachaDatabase, IReadOnlyUser[], List<IReadOnlyCharacter>[])> AddClaimsAsync()
+		private async Task<(IGachaDatabase, IReadOnlyUser[], List<IReadOnlyCharacter>[])> AddClaimsAsync()
 		{
 			var db = await GetDatabaseAsync().CAF();
 			var (_, characters) = await AddSourcesAndCharacters(db, SOURCE_COUNT, CHARACTERS_PER_SOURCE).CAF();

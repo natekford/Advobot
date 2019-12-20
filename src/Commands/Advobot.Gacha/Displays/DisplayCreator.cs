@@ -18,7 +18,7 @@ namespace Advobot.Gacha.Displays
 	{
 		private readonly BaseSocketClient _Client;
 		private readonly ICounterService _Counters;
-		private readonly GachaDatabase _Db;
+		private readonly IGachaDatabase _Db;
 
 		private readonly ConcurrentDictionary<ulong, int> _Ids
 			= new ConcurrentDictionary<ulong, int>();
@@ -27,7 +27,7 @@ namespace Advobot.Gacha.Displays
 		private readonly ITime _Time;
 
 		public DisplayManager(
-			GachaDatabase db,
+			IGachaDatabase db,
 			BaseSocketClient client,
 			ICounterService counters,
 			IInteractionManager interaction,

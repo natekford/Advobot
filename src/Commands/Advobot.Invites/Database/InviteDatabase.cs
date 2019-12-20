@@ -52,7 +52,7 @@ namespace Advobot.Invites.Database
 				VALUES
 				( @GuildId, @Word )
 			";
-			return await BulkModify(SQL, keywords).CAF();
+			return await BulkModifyAsync(SQL, keywords).CAF();
 		}
 
 		public override async Task<IReadOnlyList<string>> CreateDatabaseAsync()
@@ -185,7 +185,7 @@ namespace Advobot.Invites.Database
 			", invite).CAF();
 		}
 
-		protected override Task<int> BulkModify<TParams>(
+		protected override Task<int> BulkModifyAsync<TParams>(
 			IDbConnection connection,
 			string sql,
 			IEnumerable<TParams> @params,

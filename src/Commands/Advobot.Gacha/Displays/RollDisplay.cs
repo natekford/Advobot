@@ -30,7 +30,7 @@ namespace Advobot.Gacha.Displays
 		private readonly IReadOnlyList<IReadOnlyWish> _Wishes;
 
 		public RollDisplay(
-			GachaDatabase db,
+			IGachaDatabase db,
 			ITime time,
 			IInteractionManager interaction,
 			int id,

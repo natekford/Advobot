@@ -1,10 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 
 using Advobot.Classes.CloseWords;
-
-using AdvorangesUtils;
 
 namespace Advobot.Services.HelpEntries
 {
@@ -17,20 +14,18 @@ namespace Advobot.Services.HelpEntries
 		/// Creates an instance of <see cref="CloseHelpEntries"/>.
 		/// </summary>
 		/// <param name="source"></param>
-		/// <param name="maxAllowedCloseness"></param>
-		/// <param name="maxOutput"></param>
-		public CloseHelpEntries(IEnumerable<IModuleHelpEntry> source, int maxAllowedCloseness = 4, int maxOutput = 5)
-			: base(source, maxAllowedCloseness, maxOutput) { }
+		public CloseHelpEntries(IEnumerable<IModuleHelpEntry> source)
+			: base(source) { }
 
 		/// <inheritdoc />
-		protected override bool IsCloseWord(string search, IModuleHelpEntry obj, out CloseWord<IModuleHelpEntry>? closeWord)
+		protected override int FindCloseness(string search, IModuleHelpEntry obj)
 		{
-			var nameCloseness = FindCloseness(obj.Name, search);
-			var aliasCloseness = obj.Aliases.Select(x => FindCloseness(x, search)).DefaultIfEmpty(int.MaxValue).Min();
-			var closeness = Math.Min(nameCloseness, aliasCloseness);
-			var success = closeness < MaxAllowedCloseness || obj.Name.CaseInsContains(search);
-			closeWord = success ? new CloseWord<IModuleHelpEntry>(closeness, obj.Name, obj) : null;
-			return success;
+			var closeness = FindCloseness(obj.Name, search);
+			foreach (var alias in obj.Aliases)
+			{
+				closeness = Math.Min(closeness, FindCloseness(alias, search));
+			}
+			return closeness;
 		}
 	}
 }

@@ -10,7 +10,7 @@ namespace Advobot.Gacha.ReadOnlyModels
 		Gender Gender { get; }
 		string? GenderIcon { get; }
 		bool IsFakeCharacter { get; }
-		string? Name { get; }
+		string Name { get; }
 		RollType RollType { get; }
 	}
 }

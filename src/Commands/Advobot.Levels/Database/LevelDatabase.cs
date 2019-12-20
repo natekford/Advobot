@@ -35,7 +35,7 @@ namespace Advobot.Levels.Database
 				GuildId = guildId.ToString(),
 				ChannelId = x.ToString()
 			});
-			return await BulkModify(SQL, @params).CAF();
+			return await BulkModifyAsync(SQL, @params).CAF();
 		}
 
 		public override async Task<IReadOnlyList<string>> CreateDatabaseAsync()
@@ -98,7 +98,7 @@ namespace Advobot.Levels.Database
 				GuildId = guildId.ToString(),
 				ChannelId = x.ToString()
 			});
-			return await BulkModify(SQL, @params).CAF();
+			return await BulkModifyAsync(SQL, @params).CAF();
 		}
 
 		public async Task<int> GetDistinctUserCountAsync(ISearchArgs args)
@@ -221,7 +221,7 @@ namespace Advobot.Levels.Database
 			", user).CAF();
 		}
 
-		protected override Task<int> BulkModify<TParams>(
+		protected override Task<int> BulkModifyAsync<TParams>(
 			IDbConnection connection,
 			string sql,
 			IEnumerable<TParams> @params,

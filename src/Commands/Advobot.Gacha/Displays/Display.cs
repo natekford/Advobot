@@ -19,12 +19,12 @@ namespace Advobot.Gacha.Displays
 		public int Id { get; }
 		public DateTimeOffset LastInteractedWith { get; protected set; }
 		public IUserMessage? Message { get; protected set; }
-		protected GachaDatabase Database { get; }
+		protected IGachaDatabase Database { get; }
 		protected IInteractionHandler InteractionHandler { get; }
 		protected ITime Time { get; }
 
 		protected Display(
-			GachaDatabase db,
+			IGachaDatabase db,
 			ITime time,
 			IInteractionManager interaction,
 			int id)
