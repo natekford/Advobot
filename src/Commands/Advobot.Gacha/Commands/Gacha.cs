@@ -1,5 +1,4 @@
-﻿using System.Linq;
-using System.Threading.Tasks;
+﻿using System.Threading.Tasks;
 
 using Advobot.Attributes;
 using Advobot.Gacha.Localization;
@@ -8,14 +7,10 @@ using Advobot.Gacha.Preconditions;
 using Advobot.Gacha.ReadOnlyModels;
 using Advobot.Gacha.Resources;
 using Advobot.Gacha.Trading;
-using Advobot.Gacha.Utilities;
-using Advobot.Interactivity;
-using Advobot.Modules;
 
 using AdvorangesUtils;
-using Discord;
+
 using Discord.Commands;
-using Discord.WebSocket;
 
 namespace Advobot.Gacha.Commands
 {

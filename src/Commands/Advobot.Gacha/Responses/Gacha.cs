@@ -1,6 +1,4 @@
-﻿using System.Collections.Generic;
-
-using Advobot.Gacha.ReadOnlyModels;
+﻿using Advobot.Gacha.ReadOnlyModels;
 using Advobot.Gacha.Trading;
 using Advobot.Modules;
 using Advobot.Utilities;

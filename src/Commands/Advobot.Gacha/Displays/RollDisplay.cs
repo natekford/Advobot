@@ -8,7 +8,6 @@ using Advobot.Gacha.Database;
 using Advobot.Gacha.Interaction;
 using Advobot.Gacha.Models;
 using Advobot.Gacha.ReadOnlyModels;
-using Advobot.Gacha.Utilities;
 using Advobot.Services.Time;
 
 using AdvorangesUtils;
