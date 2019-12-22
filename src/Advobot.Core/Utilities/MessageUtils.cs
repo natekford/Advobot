@@ -164,12 +164,12 @@ namespace Advobot.Utilities
 			{
 				file.Name ??= "Long_Message";
 				file.Text += $"Message Content:\n{content}\n\n{file.Text}";
-				content = $"{Constants.ZERO_LENGTH_CHAR}Response is too long; sent as text file instead.";
+				content = $"{Constants.ZERO_WIDTH_SPACE}Response is too long; sent as text file instead.";
 			}
 
 			//Can clear the content if it's going to only be a zero length space and there's an embed
 			//Otherwise there will be unecessary empty space
-			if (!allowZeroWidthLengthMessages && content == Constants.ZERO_LENGTH_CHAR && embed != null)
+			if (!allowZeroWidthLengthMessages && content == Constants.ZERO_WIDTH_SPACE && embed != null)
 			{
 				content = "";
 			}
@@ -221,24 +221,26 @@ namespace Advobot.Utilities
 
 		private static string SanitizeContent(this IMessageChannel channel, string? content)
 		{
+			const string SPACE = Constants.ZERO_WIDTH_SPACE;
+
 			if (content == null)
 			{
-				return Constants.ZERO_LENGTH_CHAR;
+				return SPACE;
 			}
-			if (!content.StartsWith(Constants.ZERO_LENGTH_CHAR))
+			if (!content.StartsWith(SPACE))
 			{
-				content = Constants.ZERO_LENGTH_CHAR + content;
+				content = SPACE + content;
 			}
 			if (channel is IGuildChannel guildChannel)
 			{
 				//Everyone and Here have the same role
-				content = content.CaseInsReplace(guildChannel.Guild.EveryoneRole.Mention, $"@{Constants.ZERO_LENGTH_CHAR}everyone");
+				content = content.CaseInsReplace(guildChannel.Guild.EveryoneRole.Mention, $"@{Constants.ZERO_WIDTH_SPACE}everyone");
 			}
+
 			return content
-				.CaseInsReplace("@everyone", $"@{Constants.ZERO_LENGTH_CHAR}everyone")
-				.CaseInsReplace("@here", $"@{Constants.ZERO_LENGTH_CHAR}here")
-				.CaseInsReplace("discord.gg", $"discord{Constants.ZERO_LENGTH_CHAR}.gg")
-				.CaseInsReplace("\\tts", $"\\{Constants.ZERO_LENGTH_CHAR}tts");
+				.CaseInsReplace("everyone", $"{SPACE}everyone")
+				.CaseInsReplace("here", $"{SPACE}here")
+				.CaseInsReplace("discord.gg", $"{SPACE}discord.gg");
 		}
 	}
 }

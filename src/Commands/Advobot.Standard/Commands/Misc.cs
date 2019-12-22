@@ -171,8 +171,8 @@ namespace Advobot.Standard.Commands
 		public sealed class Test : AdvobotModuleBase
 		{
 			[Command]
-			public Task<RuntimeResult> CommandAsync(int bar)
-				=> AdvobotResult.Success("test1 " + bar.ToString());
+			public Task<RuntimeResult> CommandAsync([Remainder] string input)
+				=> AdvobotResult.Success(input);
 		}
 	}
 }

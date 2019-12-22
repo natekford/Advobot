@@ -16,12 +16,12 @@ namespace Advobot.Classes
 		/// <summary>
 		/// The name of the field.
 		/// </summary>
-		public string Name { get; set; } = Constants.ZERO_LENGTH_CHAR;
+		public string Name { get; set; } = Constants.ZERO_WIDTH_SPACE;
 
 		/// <summary>
 		/// The text of the field.
 		/// </summary>
-		public string Text { get; set; } = Constants.ZERO_LENGTH_CHAR;
+		public string Text { get; set; } = Constants.ZERO_WIDTH_SPACE;
 
 		/// <summary>
 		/// Returns the name and text.

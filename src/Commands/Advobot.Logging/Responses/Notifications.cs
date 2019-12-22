@@ -74,7 +74,7 @@ namespace Advobot.Logging.Responses
 				));
 			}
 
-			var response = Success(notification.Content ?? Constants.ZERO_LENGTH_CHAR)
+			var response = Success(notification.Content ?? Constants.ZERO_WIDTH_SPACE)
 				.WithOverrideDestinationChannelId(notification.ChannelId);
 			if (!notification.EmbedEmpty())
 			{

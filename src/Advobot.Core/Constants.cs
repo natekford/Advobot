@@ -53,7 +53,7 @@ namespace Advobot
 		/// <summary>
 		/// The zero length character to put before every message.
 		/// </summary>
-		public const string ZERO_LENGTH_CHAR = "\u200b";
+		public const string ZERO_WIDTH_SPACE = "\u200b";
 
 		/// <summary>
 		/// The Discord api wrapper version.

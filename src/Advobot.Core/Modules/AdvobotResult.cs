@@ -118,7 +118,7 @@ namespace Advobot.Modules
 		/// <param name="embed"></param>
 		/// <returns></returns>
 		public static AdvobotResult Success(EmbedWrapper embed)
-			=> Success(Constants.ZERO_LENGTH_CHAR).WithEmbed(embed);
+			=> Success(Constants.ZERO_WIDTH_SPACE).WithEmbed(embed);
 
 		/// <summary>
 		/// Creates a successful result.
@@ -126,7 +126,7 @@ namespace Advobot.Modules
 		/// <param name="file"></param>
 		/// <returns></returns>
 		public static AdvobotResult Success(TextFileInfo file)
-			=> Success(Constants.ZERO_LENGTH_CHAR).WithFile(file);
+			=> Success(Constants.ZERO_WIDTH_SPACE).WithFile(file);
 
 		/// <summary>
 		/// Sends this result to the specified context.
