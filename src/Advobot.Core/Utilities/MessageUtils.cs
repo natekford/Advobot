@@ -222,6 +222,10 @@ namespace Advobot.Utilities
 		private static string SanitizeContent(this IMessageChannel channel, string? content)
 		{
 			const string SPACE = Constants.ZERO_WIDTH_SPACE;
+			const string EVERYONE = SPACE + "everyone";
+			const string HERE = SPACE + "here";
+			const string INVITE = SPACE + "discord.gg";
+			const string EVERYONE_MENTION = "@" + EVERYONE;
 
 			if (content == null)
 			{
@@ -234,13 +238,14 @@ namespace Advobot.Utilities
 			if (channel is IGuildChannel guildChannel)
 			{
 				//Everyone and Here have the same role
-				content = content.CaseInsReplace(guildChannel.Guild.EveryoneRole.Mention, $"@{Constants.ZERO_WIDTH_SPACE}everyone");
+				var mention = guildChannel.Guild.EveryoneRole.Mention;
+				content = content.CaseInsReplace(mention, EVERYONE_MENTION);
 			}
 
 			return content
-				.CaseInsReplace("everyone", $"{SPACE}everyone")
-				.CaseInsReplace("here", $"{SPACE}here")
-				.CaseInsReplace("discord.gg", $"{SPACE}discord.gg");
+				.CaseInsReplace("everyone", EVERYONE)
+				.CaseInsReplace("here", HERE)
+				.CaseInsReplace("discord.gg", INVITE);
 		}
 	}
 }
