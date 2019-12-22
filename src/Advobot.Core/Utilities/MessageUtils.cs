@@ -116,6 +116,41 @@ namespace Advobot.Utilities
 		}
 
 		/// <summary>
+		/// Sanitizes a message's content so it won't mention everyone or link invites.
+		/// </summary>
+		/// <param name="channel"></param>
+		/// <param name="content"></param>
+		/// <returns></returns>
+		public static string SanitizeContent(this IMessageChannel channel, string? content)
+		{
+			const string SPACE = Constants.ZERO_WIDTH_SPACE;
+			const string EVERYONE = SPACE + "everyone";
+			const string HERE = SPACE + "here";
+			const string INVITE = SPACE + "discord.gg";
+			const string EVERYONE_MENTION = "@" + EVERYONE;
+
+			if (content == null)
+			{
+				return SPACE;
+			}
+			if (!content.StartsWith(SPACE))
+			{
+				content = SPACE + content;
+			}
+			if (channel is IGuildChannel guildChannel)
+			{
+				//Everyone and Here have the same role
+				var mention = guildChannel.Guild.EveryoneRole.Mention;
+				content = content.CaseInsReplace(mention, EVERYONE_MENTION);
+			}
+
+			return content
+				.CaseInsReplace("everyone", EVERYONE)
+				.CaseInsReplace("here", HERE)
+				.CaseInsReplace("discord.gg", INVITE);
+		}
+
+		/// <summary>
 		/// Sends a message to the given channel with the given content.
 		/// </summary>
 		/// <param name="channel"></param>
@@ -217,35 +252,6 @@ namespace Advobot.Utilities
 				filtered = filtered.Take(length);
 			}
 			source = filtered.ToArray();
-		}
-
-		private static string SanitizeContent(this IMessageChannel channel, string? content)
-		{
-			const string SPACE = Constants.ZERO_WIDTH_SPACE;
-			const string EVERYONE = SPACE + "everyone";
-			const string HERE = SPACE + "here";
-			const string INVITE = SPACE + "discord.gg";
-			const string EVERYONE_MENTION = "@" + EVERYONE;
-
-			if (content == null)
-			{
-				return SPACE;
-			}
-			if (!content.StartsWith(SPACE))
-			{
-				content = SPACE + content;
-			}
-			if (channel is IGuildChannel guildChannel)
-			{
-				//Everyone and Here have the same role
-				var mention = guildChannel.Guild.EveryoneRole.Mention;
-				content = content.CaseInsReplace(mention, EVERYONE_MENTION);
-			}
-
-			return content
-				.CaseInsReplace("everyone", EVERYONE)
-				.CaseInsReplace("here", HERE)
-				.CaseInsReplace("discord.gg", INVITE);
 		}
 	}
 }

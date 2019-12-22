@@ -153,5 +153,9 @@ namespace Advobot.Modules
 			}
 			return await @event.CAF();
 		}
+
+		/// <inheritdoc/>/>
+		protected override Task<IUserMessage> ReplyAsync(string? message = null, bool isTTS = false, Embed? embed = null, RequestOptions? options = null)
+			=> ReplyAsync(Context.Channel.SanitizeContent(message), isTTS, embed, options);
 	}
 }
