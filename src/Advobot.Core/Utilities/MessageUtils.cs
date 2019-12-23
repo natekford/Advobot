@@ -118,36 +118,34 @@ namespace Advobot.Utilities
 		/// <summary>
 		/// Sanitizes a message's content so it won't mention everyone or link invites.
 		/// </summary>
-		/// <param name="channel"></param>
 		/// <param name="content"></param>
 		/// <returns></returns>
-		public static string SanitizeContent(this IMessageChannel channel, string? content)
+		public static string Sanitize(this string? content)
 		{
 			const string SPACE = Constants.ZERO_WIDTH_SPACE;
-			const string EVERYONE = SPACE + "everyone";
-			const string HERE = SPACE + "here";
-			const string INVITE = SPACE + "discord.gg";
-			const string EVERYONE_MENTION = "@" + EVERYONE;
+			const string EVERYONE = "@everyone";
+			const string SANITIZED_EVERYONE = "@" + SPACE + "everyone";
+			const string HERE = "@here";
+			const string SANITIZED_HERE = "@" + SPACE + "here";
+			const string INVITE = "discord.gg";
+			const string SANITIZED_INVITE = SPACE + INVITE;
+			const string INVITE_2 = "discordapp.com/invite";
+			const string SANITIZED_INVITE_2 = INVITE_2 + SPACE;
 
 			if (content == null)
 			{
 				return SPACE;
 			}
-			if (!content.StartsWith(SPACE))
+			else if (!content.StartsWith(SPACE))
 			{
 				content = SPACE + content;
 			}
-			if (channel is IGuildChannel guildChannel)
-			{
-				//Everyone and Here have the same role
-				var mention = guildChannel.Guild.EveryoneRole.Mention;
-				content = content.CaseInsReplace(mention, EVERYONE_MENTION);
-			}
 
 			return content
-				.CaseInsReplace("everyone", EVERYONE)
-				.CaseInsReplace("here", HERE)
-				.CaseInsReplace("discord.gg", INVITE);
+				.CaseInsReplace(EVERYONE, SANITIZED_EVERYONE)
+				.CaseInsReplace(HERE, SANITIZED_HERE)
+				.CaseInsReplace(INVITE, SANITIZED_INVITE)
+				.CaseInsReplace(INVITE_2, SANITIZED_INVITE_2);
 		}
 
 		/// <summary>
@@ -194,7 +192,7 @@ namespace Advobot.Utilities
 			}
 
 			//Make sure none of the content mentions everyone or doesn't have the zero width character
-			content = channel.SanitizeContent(content);
+			content = content.Sanitize();
 			if (content.Length > 2000)
 			{
 				file.Name ??= "Long_Message";
@@ -228,7 +226,7 @@ namespace Advobot.Utilities
 			//If the message fails to send, then return the error
 			catch (Exception e)
 			{
-				return channel.SendMessageAsync(channel.SanitizeContent(e.Message));
+				return channel.SendMessageAsync(e.Message.Sanitize());
 			}
 		}
 
