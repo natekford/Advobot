@@ -128,7 +128,7 @@ namespace Advobot.Utilities
 			const string HERE = "@here";
 			const string SANITIZED_HERE = "@" + SPACE + "here";
 			const string INVITE = "discord.gg";
-			const string SANITIZED_INVITE = SPACE + INVITE;
+			const string SANITIZED_INVITE = INVITE + SPACE;
 			const string INVITE_2 = "discordapp.com/invite";
 			const string SANITIZED_INVITE_2 = INVITE_2 + SPACE;
 
