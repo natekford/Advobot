@@ -123,10 +123,10 @@ namespace Advobot.Utilities
 		public static string Sanitize(this string? content)
 		{
 			const string SPACE = Constants.ZERO_WIDTH_SPACE;
-			const string EVERYONE = "@everyone";
-			const string SANITIZED_EVERYONE = "@" + SPACE + "everyone";
-			const string HERE = "@here";
-			const string SANITIZED_HERE = "@" + SPACE + "here";
+			const string EVERYONE = "everyone";
+			const string SANITIZED_EVERYONE = SPACE + EVERYONE;
+			const string HERE = "here";
+			const string SANITIZED_HERE = SPACE + HERE;
 			const string INVITE = "discord.gg";
 			const string SANITIZED_INVITE = INVITE + SPACE;
 			const string INVITE_2 = "discordapp.com/invite";
@@ -142,8 +142,8 @@ namespace Advobot.Utilities
 			}
 
 			return content
-				.CaseInsReplace(EVERYONE, SANITIZED_EVERYONE)
-				.CaseInsReplace(HERE, SANITIZED_HERE)
+				.Replace(EVERYONE, SANITIZED_EVERYONE)
+				.Replace(HERE, SANITIZED_HERE)
 				.CaseInsReplace(INVITE, SANITIZED_INVITE)
 				.CaseInsReplace(INVITE_2, SANITIZED_INVITE_2);
 		}
