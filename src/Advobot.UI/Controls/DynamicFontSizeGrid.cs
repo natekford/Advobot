@@ -76,7 +76,7 @@ namespace Advobot.UI.Controls
 			{
 				var overrideValue = GetOverrideDynamicFontSize(child);
 				//If the override isn't set, and this is a dynamic font size grid, use its current value
-				if (!(overrideValue > 0) && child is DynamicFontSizeGrid dynamicFontSizeGrid)
+				if (overrideValue <= 0 && child is DynamicFontSizeGrid dynamicFontSizeGrid)
 				{
 					overrideValue = dynamicFontSizeGrid.DynamicFontSize;
 				}

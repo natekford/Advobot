@@ -1,7 +1,5 @@
 ﻿using System;
 
-using Advobot.Services.Timers;
-
 using Discord;
 
 namespace Advobot.Classes
@@ -17,6 +15,11 @@ namespace Advobot.Classes
 		public static readonly PunishmentArgs Default = new PunishmentArgs();
 
 		/// <summary>
+		/// The amount of days worth of messages to delete. This will only be used if the punishment involves banning.
+		/// </summary>
+		public int? Days { get; set; }
+
+		/// <summary>
 		/// The Discord request options.
 		/// </summary>
 		public RequestOptions? Options { get; set; }
@@ -27,30 +30,19 @@ namespace Advobot.Classes
 		public bool PunishmentRemoved { get; private set; }
 
 		/// <summary>
-		/// The amount of time the punishment should last for.
+		/// The role to give or remove. This will only be used if the punishment involves roles.
 		/// </summary>
-		public TimeSpan? Time { get; }
+		public IRole? Role { get; set; }
 
 		/// <summary>
-		/// The timer service that timed objects should be added to.
+		/// The amount of time the punishment should last for.
 		/// </summary>
-		public ITimerService? Timers { get; }
+		public TimeSpan? Time { get; set; }
 
 		/// <summary>
 		/// Creates an instance of <see cref="PunishmentArgs"/> with no time or timers.
 		/// </summary>
 		public PunishmentArgs() { }
-
-		/// <summary>
-		/// Creates an instance of <see cref="PunishmentArgs"/> with timer and timers.
-		/// </summary>
-		/// <param name="timers"></param>
-		/// <param name="time"></param>
-		public PunishmentArgs(ITimerService timers, TimeSpan time)
-		{
-			Timers = timers;
-			Time = time;
-		}
 
 		void IPunishmentRemoved.SetPunishmentRemoved()
 			=> PunishmentRemoved = true;

@@ -20,6 +20,9 @@ namespace Advobot.Services.GuildSettings.Settings
 	/// </summary>
 	public sealed class BannedPhrase : IGuildFormattable
 	{
+		private static readonly RequestOptions _Options
+			= DiscordUtils.GenerateRequestOptions("Banned phrase.");
+
 		/// <summary>
 		/// The phrase which is banned. Can be string or regex pattern.
 		/// </summary>
@@ -63,20 +66,29 @@ namespace Advobot.Services.GuildSettings.Settings
 		/// <param name="info"></param>
 		/// <param name="timers"></param>
 		/// <returns></returns>
-		public Task PunishAsync(IGuildSettings settings, IGuild guild, BannedPhraseUserInfo info, ITimerService timers)
+		public Task PunishAsync(
+			IGuildSettings settings,
+			IGuild guild,
+			BannedPhraseUserInfo info,
+			ITimerService timers)
 		{
 			var count = info.Increment(Punishment);
-			if (!settings.BannedPhrasePunishments.TryGetSingle(x => x.Punishment == Punishment && x.NumberOfRemoves == count, out var punishment))
+			bool Predicate(BannedPhrasePunishment x)
+				=> x.Punishment == Punishment && x.NumberOfRemoves == count;
+			if (!settings.BannedPhrasePunishments.TryGetSingle(Predicate, out var punishment))
 			{
 				return Task.CompletedTask;
 			}
 
 			info.Reset(Punishment);
-			var punishmentArgs = new PunishmentArgs(timers, TimeSpan.FromMinutes(punishment.Time))
+			var punisher = new PunishmentManager(guild, timers);
+			var args = new PunishmentArgs
 			{
-				Options = DiscordUtils.GenerateRequestOptions("Banned phrase."),
+				Time = TimeSpan.FromMinutes(punishment.Time),
+				Options = _Options,
+				Role = punisher.Guild.GetRole(punishment.RoleId),
 			};
-			return PunishmentUtils.GiveAsync(Punishment, guild, info.UserId, punishment.RoleId, punishmentArgs);
+			return punisher.GiveAsync(Punishment, info.UserId, args);
 		}
 	}
 }

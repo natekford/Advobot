@@ -469,4 +469,7 @@
   <data name="CreateRoleRestrictedChannel" xml:space="preserve">
     <value>crrc</value>
   </data>
+  <data name="Many" xml:space="preserve">
+    <value>m</value>
+  </data>
 </root>

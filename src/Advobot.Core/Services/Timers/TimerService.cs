@@ -27,11 +27,13 @@ namespace Advobot.Services.Timers
 	/// </remarks>
 	internal sealed class TimerService : DatabaseWrapperConsumer, ITimerService
 	{
+		private static readonly RequestOptions _Options
+			= DiscordUtils.GenerateRequestOptions("Automatically done from the timer service.");
+
 		private readonly ConcurrentDictionary<ulong, byte> _AlreadyDeletedMessages = new ConcurrentDictionary<ulong, byte>();
 		private readonly BaseSocketClient _Client;
 		private readonly Timer _HourTimer = new Timer(60 * 60 * 1000);
 		private readonly Timer _MinuteTimer = new Timer(60 * 1000);
-		private readonly PunishmentArgs _PunishmentArgs;
 		private readonly AsyncProcessingQueue _RemovableMessages;
 		private readonly AsyncProcessingQueue _RemovablePunishments;
 		private readonly Timer _SecondTimer = new Timer(1000);
@@ -55,16 +57,12 @@ namespace Advobot.Services.Timers
 		{
 			_Time = time;
 			_Client = client;
-			_PunishmentArgs = new PunishmentArgs
-			{
-				Options = DiscordUtils.GenerateRequestOptions("Automatically done from the timer service."),
-			};
 
 			_RemovablePunishments = new AsyncProcessingQueue(1, () =>
 			{
 				var now = _Time.UtcNow;
 				var values = DatabaseWrapper.ExecuteQuery(DatabaseQuery<RemovablePunishment>.Delete(x => x.Time < now));
-				return ProcessRemovablePunishments(_Client, _PunishmentArgs, values);
+				return ProcessRemovablePunishments(_Client, values);
 			});
 			_TimedMessages = new AsyncProcessingQueue(1, () =>
 			{
@@ -76,7 +74,7 @@ namespace Advobot.Services.Timers
 			{
 				var now = _Time.UtcNow;
 				var values = DatabaseWrapper.ExecuteQuery(DatabaseQuery<RemovableMessage>.Delete(x => x.Time < now));
-				return ProcessRemovableMessagesAsync(_Client, _PunishmentArgs, _AlreadyDeletedMessages, values);
+				return ProcessRemovableMessagesAsync(_Client, _AlreadyDeletedMessages, values);
 			});
 
 			_HourTimer.Elapsed += (sender, e) =>
@@ -152,62 +150,78 @@ namespace Advobot.Services.Timers
 			base.BeforeDispose();
 		}
 
-		private static async Task ProcessRemovablePunishments(BaseSocketClient client, PunishmentArgs args, IEnumerable<RemovablePunishment> punishments)
+		private static async Task ProcessRemovablePunishments(
+			BaseSocketClient client,
+			IEnumerable<RemovablePunishment> punishments)
 		{
-			foreach (var guildGroup in punishments.Where(x => x != null).GroupBy(x => x.GuildId))
+			foreach (var group in punishments.Where(x => x != null).GroupBy(x => x.GuildId))
 			{
-				if (!(client.GetGuild(guildGroup.Key) is SocketGuild guild))
+				if (!(client.GetGuild(group.Key) is SocketGuild guild))
 				{
 					continue;
 				}
-				foreach (var punishmentGroup in guildGroup.GroupBy(x => x.PunishmentType))
+
+				var punisher = new PunishmentManager(guild, null);
+				foreach (var p in group)
 				{
-					foreach (var task in punishmentGroup.Select(x => PunishmentUtils.RemoveAsync(x.PunishmentType, guild, x.UserId, x.RoleId, args)))
+					var args = new PunishmentArgs
 					{
-						await task.CAF();
-					}
+						Options = _Options,
+						Role = punisher.Guild.GetRole(p.RoleId),
+					};
+					await punisher.RemoveAsync(p.PunishmentType, p.UserId, args).CAF();
 				}
 			}
 		}
 
-		private static async Task ProcessTimedMessages(BaseSocketClient client, IEnumerable<TimedMessage> timedMessages)
+		private static async Task ProcessTimedMessages(
+			BaseSocketClient client,
+			IEnumerable<TimedMessage> messages)
 		{
-			foreach (var userGroup in timedMessages.GroupBy(x => x.Id))
+			foreach (var group in messages.GroupBy(x => x.Id))
 			{
-				if (!(client.GetUser(userGroup.Key) is SocketUser user))
+				if (!(client.GetUser(group.Key) is SocketUser user))
 				{
 					continue;
 				}
-				foreach (var task in userGroup.Select(x => user.SendMessageAsync(x.Text)))
+
+				foreach (var m in group)
 				{
-					await task.CAF();
+					await user.SendMessageAsync(m.Text).CAF();
 				}
 			}
 		}
 
-		private async Task ProcessRemovableMessagesAsync(BaseSocketClient client, PunishmentArgs args, ConcurrentDictionary<ulong, byte> alreadyDeleted, IEnumerable<RemovableMessage> removableMessages)
+		private async Task ProcessRemovableMessagesAsync(
+			BaseSocketClient client,
+			ConcurrentDictionary<ulong, byte> alreadyDeleted,
+			IEnumerable<RemovableMessage> messages)
 		{
-			foreach (var guildGroup in removableMessages.Where(x => x != null).GroupBy(x => x.GuildId))
+			foreach (var group in messages.Where(x => x != null).GroupBy(x => x.GuildId))
 			{
-				if (!(client.GetGuild(guildGroup.Key) is SocketGuild guild))
+				if (!(client.GetGuild(group.Key) is SocketGuild guild))
 				{
 					continue;
 				}
-				foreach (var channelGroup in guildGroup.GroupBy(x => x.ChannelId))
+
+				foreach (var innerGroup in group.GroupBy(x => x.ChannelId))
 				{
-					if (!(guild.GetTextChannel(channelGroup.Key) is SocketTextChannel channel))
+					if (!(guild.GetTextChannel(innerGroup.Key) is SocketTextChannel channel))
 					{
 						continue;
 					}
 
-					var ids = channelGroup.SelectMany(g => g.MessageIds);
-					var messages = new List<IMessage>();
-					foreach (var id in ids.Where(x => x != 0 && alreadyDeleted.TryAdd(x, 0)))
+					var temp = new List<IMessage>();
+					var ids = innerGroup
+						.SelectMany(g => g.MessageIds)
+						.Where(x => x != 0 && alreadyDeleted.TryAdd(x, 0));
+					foreach (var id in ids)
 					{
-						messages.Add(await channel.GetMessageAsync(id).CAF());
+						temp.Add(await channel.GetMessageAsync(id).CAF());
 					}
+
 					var now = _Time.UtcNow;
-					await MessageUtils.DeleteMessagesAsync(channel, messages, now, args.Options).CAF();
+					await MessageUtils.DeleteMessagesAsync(channel, temp, now, _Options).CAF();
 				}
 			}
 		}

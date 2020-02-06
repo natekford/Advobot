@@ -23,6 +23,10 @@ namespace Advobot.Services.GuildSettings.Settings
 	[NamedArgumentType]
 	public sealed class RaidPrev : TimedPrev<RaidType>
 	{
+		private static readonly RequestOptions _Options
+			= DiscordUtils.GenerateRequestOptions("Raid prevention.");
+
+		[JsonIgnore]
 		private readonly ConcurrentDictionary<ulong, byte> _Instances = new ConcurrentDictionary<ulong, byte>();
 
 		/// <summary>
@@ -77,14 +81,17 @@ namespace Advobot.Services.GuildSettings.Settings
 				return Task.CompletedTask;
 			}
 
-			_Instances.GetOrAdd(SnowflakeUtils.ToSnowflake(user.JoinedAt?.UtcDateTime ?? default), 0);
+			var joined = SnowflakeUtils.ToSnowflake(user.JoinedAt.GetValueOrDefault().UtcDateTime);
+			_Instances.GetOrAdd(joined, 0);
 			if (GetInstanceCount() >= RaidCount)
 			{
-				var punishmentArgs = new PunishmentArgs()
+				var punisher = new PunishmentManager(user.Guild, null);
+				var args = new PunishmentArgs
 				{
-					Options = DiscordUtils.GenerateRequestOptions("Raid prevention."),
+					Options = _Options,
+					Role = punisher.Guild.GetRole(RoleId ?? 0),
 				};
-				return PunishmentUtils.GiveAsync(Punishment, user.Guild, user.Id, RoleId, punishmentArgs);
+				return punisher.GiveAsync(Punishment, user.AsAmbiguous(), args);
 			}
 			return Task.CompletedTask;
 		}

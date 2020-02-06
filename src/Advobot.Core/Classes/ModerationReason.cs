@@ -58,13 +58,11 @@ namespace Advobot.Classes
 		/// <returns></returns>
 		public PunishmentArgs ToPunishmentArgs(AdvobotModuleBase module)
 		{
-			var args = new PunishmentArgs();
-			if (Time != null && module.Timers != null)
+			return new PunishmentArgs
 			{
-				args = new PunishmentArgs(module.Timers, Time.Value);
-			}
-			args.Options = module.GenerateRequestOptions(Reason);
-			return args;
+				Time = Time,
+				Options = module.GenerateRequestOptions(Reason),
+			};
 		}
 	}
 }

@@ -23,6 +23,9 @@ namespace Advobot.Services.GuildSettings.Settings
 	[NamedArgumentType]
 	public sealed class SpamPrev : TimedPrev<SpamType>
 	{
+		private static readonly RequestOptions _Options
+			= DiscordUtils.GenerateRequestOptions("Spam prevention.");
+
 		[JsonIgnore]
 		private readonly ConcurrentDictionary<ulong, SortedSet<ulong>> _Instances = new ConcurrentDictionary<ulong, SortedSet<ulong>>();
 
@@ -88,12 +91,14 @@ namespace Advobot.Services.GuildSettings.Settings
 			if (CountItemsInTimeFrame(instances, TimeInterval) >= SpamInstances)
 			{
 				_Instances.TryRemove(message.Author.Id, out _);
-				var punishmentArgs = new PunishmentArgs()
+
+				var punisher = new PunishmentManager(((ITextChannel)message.Channel).Guild, null);
+				var args = new PunishmentArgs()
 				{
-					Options = DiscordUtils.GenerateRequestOptions("Spam prevention."),
+					Options = _Options,
+					Role = punisher.Guild.GetRole(RoleId ?? 0),
 				};
-				var guild = ((ITextChannel)message.Channel).Guild;
-				await PunishmentUtils.GiveAsync(Punishment, guild, message.Author.Id, RoleId, punishmentArgs).CAF();
+				await punisher.GiveAsync(Punishment, message.Author.AsAmbiguous(), args).CAF();
 				return true;
 			}
 			return false;

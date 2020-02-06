@@ -3,8 +3,6 @@
 using Advobot.Databases.Abstract;
 using Advobot.Services.GuildSettings.Settings;
 
-using Discord;
-
 namespace Advobot.Classes
 {
 	/// <summary>
@@ -42,36 +40,21 @@ namespace Advobot.Classes
 		/// </summary>
 		/// <param name="time"></param>
 		/// <param name="punishment"></param>
-		/// <param name="guild"></param>
-		/// <param name="user"></param>
+		/// <param name="guildId"></param>
+		/// <param name="userId"></param>
+		/// <param name="roleId"></param>
 		public RemovablePunishment(
 			TimeSpan time,
 			Punishment punishment,
-			IGuild guild,
-			IUser user)
+			ulong guildId,
+			ulong userId,
+			ulong roleId = 0)
 			: base(Guid.NewGuid(), time)
 		{
 			PunishmentType = punishment;
-			GuildId = guild.Id;
-			UserId = user.Id;
-			RoleId = 0;
-		}
-
-		/// <summary>
-		/// Creates an instance of <see cref="RemovablePunishment"/>.
-		/// </summary>
-		/// <param name="time"></param>
-		/// <param name="role"></param>
-		/// <param name="guild"></param>
-		/// <param name="user"></param>
-		public RemovablePunishment(
-			TimeSpan time,
-			IRole role,
-			IGuild guild,
-			IUser user)
-			: this(time, Punishment.RoleMute, guild, user)
-		{
-			RoleId = role.Id;
+			GuildId = guildId;
+			UserId = userId;
+			RoleId = roleId;
 		}
 	}
 }

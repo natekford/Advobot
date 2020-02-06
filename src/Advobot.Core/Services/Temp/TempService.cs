@@ -18,6 +18,11 @@ namespace Advobot.Services.Temp
 {
 	internal sealed class TempService
 	{
+		private static readonly PunishmentArgs _BannedNameArgs = new PunishmentArgs
+		{
+			Options = _BannedNameOptions,
+		};
+
 		private static readonly RequestOptions _BannedNameOptions = new RequestOptions
 		{
 			AuditLogReason = "Banned name"
@@ -113,11 +118,8 @@ namespace Advobot.Services.Temp
 			//Banned names
 			if (settings.BannedPhraseNames.Any(x => x.Phrase.CaseInsEquals(user.Username)))
 			{
-				var punishmentArgs = new PunishmentArgs()
-				{
-					Options = _BannedNameOptions,
-				};
-				await PunishmentUtils.GiveAsync(Punishment.Ban, user.Guild, user.Id, 0, punishmentArgs).CAF();
+				var punisher = new PunishmentManager(user.Guild, null);
+				await punisher.BanAsync(user.AsAmbiguous(), _BannedNameArgs).CAF();
 			}
 			//Antiraid
 			foreach (var antiRaid in settings.RaidPrevention)

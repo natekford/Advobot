@@ -601,6 +601,15 @@ namespace Advobot.Standard.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Many.
+        /// </summary>
+        internal static string Many {
+            get {
+                return ResourceManager.GetString("Many", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to MessageBoost.
         /// </summary>
         internal static string MessageBoost {
