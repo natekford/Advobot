@@ -16,7 +16,6 @@
   <ItemGroup>
     <Folder Include="Commands\" />
     <Folder Include="Database\" />
-    <Folder Include="Service\" />
     <Folder Include="Responses\" />
     <Folder Include="Resources\" />
   </ItemGroup>

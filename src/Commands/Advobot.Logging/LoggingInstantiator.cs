@@ -37,7 +37,7 @@ namespace Advobot.Logging
 				var db = services.GetRequiredService<LoggingDatabase>();
 				await db.CreateDatabaseAsync().CAF();
 
-				//Needed to instasntiate the log service
+				//Needed to instantiate the log service
 				services.GetRequiredService<ILoggingService>();
 			}
 
