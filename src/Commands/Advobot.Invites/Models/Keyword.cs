@@ -1,5 +1,6 @@
 ﻿using Advobot.Databases.Relationships;
 using Advobot.Invites.ReadOnlyModels;
+using Advobot.Utilities;
 
 using Discord;
 
@@ -10,7 +11,7 @@ namespace Advobot.Invites.Models
 		public string GuildId { get; set; }
 		public string Word { get; set; }
 
-		ulong IGuildChild.GuildId => ulong.Parse(GuildId);
+		ulong IGuildChild.GuildId => GuildId.ToId();
 
 		public Keyword()
 		{

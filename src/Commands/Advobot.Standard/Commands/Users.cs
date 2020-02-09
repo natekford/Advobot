@@ -67,7 +67,7 @@ namespace Advobot.Standard.Commands
 			[LocalizedCommand(nameof(Groups.Many))]
 			[LocalizedAlias(nameof(Aliases.Many))]
 			[Priority(3)]
-			public Task<RuntimeResult> Many(params IGuildUser[] users)
+			public Task<RuntimeResult> Many([CanModifyUser] params IGuildUser[] users)
 				=> Many(users.Select(x => x.Id).ToArray());
 
 			[LocalizedCommand(nameof(Groups.Many))]
@@ -79,7 +79,6 @@ namespace Advobot.Standard.Commands
 				var args = new PunishmentArgs
 				{
 					Options = GenerateRequestOptions(),
-					Days = 7,
 				};
 
 				var users = new List<IUser>();

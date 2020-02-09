@@ -1,4 +1,4 @@
-﻿using Advobot.Logging.Relationships;
+﻿using Advobot.Databases.Relationships;
 
 namespace Advobot.Logging.ReadOnlyModels
 {

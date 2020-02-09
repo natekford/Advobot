@@ -1,6 +1,6 @@
-﻿using Advobot.Logging.ReadOnlyModels;
-using Advobot.Logging.Relationships;
-using Advobot.Logging.Utilities;
+﻿using Advobot.Databases.Relationships;
+using Advobot.Logging.ReadOnlyModels;
+using Advobot.Utilities;
 
 namespace Advobot.Logging.Models
 {

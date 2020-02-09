@@ -6,7 +6,8 @@ namespace Advobot.Logging.OptionSetters
 	{
 		protected override Notification Event => Notification.Welcome;
 
-		public WelcomeNotificationResetter(INotificationService notifications) : base(notifications)
+		public WelcomeNotificationResetter(INotificationService notifications)
+			: base(notifications)
 		{
 		}
 	}

@@ -23,7 +23,8 @@ namespace Advobot.Utilities
 		/// <typeparam name="T"></typeparam>
 		/// <param name="services"></param>
 		/// <returns></returns>
-		public static IServiceCollection AddDefaultOptionsSetter<T>(this IServiceCollection services)
+		public static IServiceCollection AddDefaultOptionsSetter<T>(
+			this IServiceCollection services)
 			where T : class, IResetter
 		{
 			return services
@@ -89,6 +90,20 @@ namespace Advobot.Utilities
 				cast[i] = (T)uncast.GetValue(i);
 			}
 			return cast;
+		}
+
+		/// <summary>
+		/// Converts <paramref name="value"/> to a <see cref="ulong"/>.
+		/// </summary>
+		/// <param name="value"></param>
+		/// <returns></returns>
+		public static ulong ToId(this string? value)
+		{
+			if (value == null)
+			{
+				return 0;
+			}
+			return ulong.Parse(value);
 		}
 
 		/// <summary>

@@ -6,7 +6,8 @@ namespace Advobot.Logging.OptionSetters
 	{
 		protected override Notification Event => Notification.Goodbye;
 
-		public GoodbyeNotificationResetter(INotificationService notifications) : base(notifications)
+		public GoodbyeNotificationResetter(INotificationService notifications)
+			: base(notifications)
 		{
 		}
 	}

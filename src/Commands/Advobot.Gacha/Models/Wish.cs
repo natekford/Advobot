@@ -3,6 +3,7 @@
 using Advobot.Databases.Relationships;
 using Advobot.Gacha.ReadOnlyModels;
 using Advobot.Gacha.Utilities;
+using Advobot.Utilities;
 
 namespace Advobot.Gacha.Models
 {
@@ -13,8 +14,8 @@ namespace Advobot.Gacha.Models
 		public string UserId { get; set; }
 		public long WishId { get; set; } = TimeUtils.UtcNowTicks;
 
-		ulong IGuildChild.GuildId => ulong.Parse(GuildId);
-		ulong IUserChild.UserId => ulong.Parse(UserId);
+		ulong IGuildChild.GuildId => GuildId.ToId();
+		ulong IUserChild.UserId => UserId.ToId();
 
 		public Wish()
 		{

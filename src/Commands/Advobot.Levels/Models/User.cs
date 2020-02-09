@@ -3,7 +3,7 @@
 using Advobot.Databases.Relationships;
 using Advobot.Levels.Database;
 using Advobot.Levels.ReadOnlyModels;
-
+using Advobot.Utilities;
 using Discord;
 
 namespace Advobot.Levels.Models
@@ -16,9 +16,9 @@ namespace Advobot.Levels.Models
 		public int MessageCount { get; set; }
 		public string UserId { get; set; }
 
-		ulong IChannelChild.ChannelId => ulong.Parse(ChannelId);
-		ulong IGuildChild.GuildId => ulong.Parse(GuildId);
-		ulong IUserChild.UserId => ulong.Parse(UserId);
+		ulong IChannelChild.ChannelId => ChannelId.ToId();
+		ulong IGuildChild.GuildId => GuildId.ToId();
+		ulong IUserChild.UserId => UserId.ToId();
 
 		public User()
 		{

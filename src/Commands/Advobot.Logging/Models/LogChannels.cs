@@ -1,5 +1,5 @@
 ﻿using Advobot.Logging.ReadOnlyModels;
-using Advobot.Logging.Utilities;
+using Advobot.Utilities;
 
 namespace Advobot.Logging.Models
 {
