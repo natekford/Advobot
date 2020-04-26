@@ -3,7 +3,7 @@
 	/// <summary>
 	/// Specify what punishment should be given.
 	/// </summary>
-	public enum Punishment
+	public enum PunishmentType
 	{
 		/// <summary>
 		/// Indicates this is the default value and to do nothing.

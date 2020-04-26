@@ -3,7 +3,6 @@ using System.Threading.Tasks;
 
 using Advobot.Classes;
 using Advobot.Services.GuildSettings;
-using Advobot.Services.GuildSettings.Settings;
 using Advobot.Services.GuildSettings.UserInformation;
 using Advobot.Services.Time;
 using Advobot.Services.Timers;

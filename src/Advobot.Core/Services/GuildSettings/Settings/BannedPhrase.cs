@@ -33,7 +33,7 @@ namespace Advobot.Services.GuildSettings.Settings
 		/// The type of punishment associated with this phrase.
 		/// </summary>
 		[JsonProperty("Punishment")]
-		public Punishment Punishment { get; set; }
+		public PunishmentType Punishment { get; set; }
 
 		/// <summary>
 		/// Creates an instance of <see cref="BannedPhrase"/>.
@@ -48,7 +48,7 @@ namespace Advobot.Services.GuildSettings.Settings
 		/// </summary>
 		/// <param name="phrase"></param>
 		/// <param name="punishment"></param>
-		public BannedPhrase(string phrase, Punishment punishment)
+		public BannedPhrase(string phrase, PunishmentType punishment)
 		{
 			Phrase = phrase;
 			Punishment = punishment;

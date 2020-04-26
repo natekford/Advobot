@@ -99,7 +99,7 @@ namespace Advobot.Services.GuildSettings.Settings
 		private int GetInstanceCount() => Type switch
 		{
 			RaidType.Regular => int.MaxValue,
-			RaidType.RapidJoins => CountItemsInTimeFrame(_Instances.Keys, TimeInterval),
+			RaidType.RapidJoins => _Instances.Keys.CountItemsInTimeFrame(TimeInterval),
 			_ => throw new ArgumentOutOfRangeException(nameof(Type)),
 		};
 	}

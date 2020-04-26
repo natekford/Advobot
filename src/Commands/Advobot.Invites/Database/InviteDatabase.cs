@@ -44,7 +44,7 @@ namespace Advobot.Invites.Database
 			", keyword).CAF();
 		}
 
-		public async Task<int> AddKeywordsAsync(IEnumerable<IReadOnlyKeyword> keywords)
+		public Task<int> AddKeywordsAsync(IEnumerable<IReadOnlyKeyword> keywords)
 		{
 			const string SQL = @"
 				INSERT INTO Keyword
@@ -52,7 +52,7 @@ namespace Advobot.Invites.Database
 				VALUES
 				( @GuildId, @Word )
 			";
-			return await BulkModifyAsync(SQL, keywords).CAF();
+			return BulkModifyAsync(SQL, keywords);
 		}
 
 		public override async Task<IReadOnlyList<string>> CreateDatabaseAsync()

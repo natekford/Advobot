@@ -72,7 +72,7 @@ namespace Advobot.Tests.Core.Attributes.Preconditions.QuantityLimits
 		{
 			_Action = QuantityLimitAction.Remove;
 			_BotSettings.MaxBannedNames = 1;
-			_Settings.BannedPhraseNames.Add(new BannedPhrase("test", Punishment.Nothing));
+			_Settings.BannedPhraseNames.Add(new BannedPhrase("test", PunishmentType.Nothing));
 
 			var result = await CheckAsync().CAF();
 			Assert.IsTrue(result.IsSuccess);

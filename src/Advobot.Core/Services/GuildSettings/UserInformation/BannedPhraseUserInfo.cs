@@ -60,14 +60,14 @@ namespace Advobot.Services.GuildSettings.UserInformation
 		/// </summary>
 		/// <param name="type"></param>
 		/// <returns></returns>
-		public int this[Punishment type] => type switch
+		public int this[PunishmentType type] => type switch
 		{
-			Punishment.Kick => _Kick,
-			Punishment.Ban => _Ban,
-			Punishment.Deafen => _Deafen,
-			Punishment.VoiceMute => _VoiceMute,
-			Punishment.Softban => _Softban,
-			Punishment.RoleMute => _RoleMute,
+			PunishmentType.Kick => _Kick,
+			PunishmentType.Ban => _Ban,
+			PunishmentType.Deafen => _Deafen,
+			PunishmentType.VoiceMute => _VoiceMute,
+			PunishmentType.Softban => _Softban,
+			PunishmentType.RoleMute => _RoleMute,
 			_ => -1,
 		};
 
@@ -83,14 +83,14 @@ namespace Advobot.Services.GuildSettings.UserInformation
 		/// </summary>
 		/// <param name="type"></param>
 		/// <returns></returns>
-		public int Increment(Punishment type) => type switch
+		public int Increment(PunishmentType type) => type switch
 		{
-			Punishment.Kick => Interlocked.Increment(ref _Kick),
-			Punishment.Ban => Interlocked.Increment(ref _Ban),
-			Punishment.Deafen => Interlocked.Increment(ref _Deafen),
-			Punishment.VoiceMute => Interlocked.Increment(ref _VoiceMute),
-			Punishment.Softban => Interlocked.Increment(ref _Softban),
-			Punishment.RoleMute => Interlocked.Increment(ref _RoleMute),
+			PunishmentType.Kick => Interlocked.Increment(ref _Kick),
+			PunishmentType.Ban => Interlocked.Increment(ref _Ban),
+			PunishmentType.Deafen => Interlocked.Increment(ref _Deafen),
+			PunishmentType.VoiceMute => Interlocked.Increment(ref _VoiceMute),
+			PunishmentType.Softban => Interlocked.Increment(ref _Softban),
+			PunishmentType.RoleMute => Interlocked.Increment(ref _RoleMute),
 			_ => -1,
 		};
 
@@ -98,14 +98,14 @@ namespace Advobot.Services.GuildSettings.UserInformation
 		/// Sets the banned phrase count for that punishment back to zero.
 		/// </summary>
 		/// <param name="type"></param>
-		public int Reset(Punishment type) => type switch
+		public int Reset(PunishmentType type) => type switch
 		{
-			Punishment.Kick => Interlocked.Exchange(ref _Kick, 0),
-			Punishment.Ban => Interlocked.Exchange(ref _Ban, 0),
-			Punishment.Deafen => Interlocked.Exchange(ref _Deafen, 0),
-			Punishment.VoiceMute => Interlocked.Exchange(ref _VoiceMute, 0),
-			Punishment.Softban => Interlocked.Exchange(ref _Softban, 0),
-			Punishment.RoleMute => Interlocked.Exchange(ref _RoleMute, 0),
+			PunishmentType.Kick => Interlocked.Exchange(ref _Kick, 0),
+			PunishmentType.Ban => Interlocked.Exchange(ref _Ban, 0),
+			PunishmentType.Deafen => Interlocked.Exchange(ref _Deafen, 0),
+			PunishmentType.VoiceMute => Interlocked.Exchange(ref _VoiceMute, 0),
+			PunishmentType.Softban => Interlocked.Exchange(ref _Softban, 0),
+			PunishmentType.RoleMute => Interlocked.Exchange(ref _RoleMute, 0),
 			_ => -1,
 		};
 

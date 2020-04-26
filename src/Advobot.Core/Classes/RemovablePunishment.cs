@@ -18,10 +18,10 @@ namespace Advobot.Classes
 		/// <summary>
 		/// The type of punishment that was given.
 		/// </summary>
-		public Punishment PunishmentType { get; set; }
+		public PunishmentType PunishmentType { get; set; }
 
 		/// <summary>
-		/// The id of the role given (only applicable if <see cref="PunishmentType"/> is <see cref="Punishment.RoleMute"/>).
+		/// The id of the role given (only applicable if <see cref="PunishmentType"/> is <see cref="PunishmentType.RoleMute"/>).
 		/// </summary>
 		public ulong RoleId { get; set; }
 
@@ -45,7 +45,7 @@ namespace Advobot.Classes
 		/// <param name="roleId"></param>
 		public RemovablePunishment(
 			TimeSpan time,
-			Punishment punishment,
+			PunishmentType punishment,
 			ulong guildId,
 			ulong userId,
 			ulong roleId = 0)

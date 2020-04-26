@@ -13,7 +13,6 @@ namespace Advobot.AutoMod.Models
 		public TimeSpan Duration { get; set; } = Timeout.InfiniteTimeSpan;
 		public bool IgnoreAdmins { get; set; } = true;
 		public bool IgnoreHigherHierarchy { get; set; } = true;
-
 		public long Ticks
 		{
 			get => Duration.Ticks;

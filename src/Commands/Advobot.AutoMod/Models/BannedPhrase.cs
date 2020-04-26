@@ -12,7 +12,7 @@ namespace Advobot.AutoMod.Models
 		public string GuildId { get; set; } = null!;
 		public bool IsRegex { get; set; }
 		public string Phrase { get; set; } = null!;
-		public Punishment Punishment { get; set; }
+		public PunishmentType PunishmentType { get; set; }
 
 		ulong IGuildChild.GuildId => GuildId.ToId();
 

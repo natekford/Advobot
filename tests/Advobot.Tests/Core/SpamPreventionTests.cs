@@ -31,7 +31,7 @@ namespace Advobot.Tests.Core
 			Type = SpamType.Mention,
 			SpamPerMessage = 2,
 			SpamInstances = 5,
-			Punishment = Punishment.Kick,
+			Punishment = PunishmentType.Kick,
 			TimeInterval = TimeSpan.FromSeconds(15),
 		};
 

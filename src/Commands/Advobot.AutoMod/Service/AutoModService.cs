@@ -1,38 +1,48 @@
-﻿using System;
-using System.Collections.Concurrent;
+﻿using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
+
+using Advobot.AutoMod.Database;
 using Advobot.AutoMod.Models;
+using Advobot.AutoMod.Utils;
+using Advobot.Classes;
 using Advobot.Services.GuildSettings.Settings;
 using Advobot.Services.Time;
 using Advobot.Services.Timers;
 using Advobot.Utilities;
+
 using AdvorangesUtils;
+
 using Discord;
 using Discord.WebSocket;
 
 namespace Advobot.AutoMod.Service
 {
-	public interface IAutoModDatabase
-	{
-		Task<AutoModSettings> GetAutoModSettingsAsync(ulong id);
-	}
-
 	public sealed class AutoModService
 	{
-		private readonly IAutoModDatabase _Db;
+		private static readonly Punishment _Ban = new Punishment
+		{
+			PunishmentType = PunishmentType.Ban,
+		};
+		private static readonly RequestOptions _BannedName
+			= DiscordUtils.GenerateRequestOptions("Banned name.");
+		private static readonly RequestOptions _BannedPhrase
+			= DiscordUtils.GenerateRequestOptions("Banned phrase.");
+		private static readonly RequestOptions _ImageOnly
+			= DiscordUtils.GenerateRequestOptions("Image only channel.");
+		private static readonly RequestOptions _PersistentRoles
+			= DiscordUtils.GenerateRequestOptions("Persistent roles.");
+		private static readonly RequestOptions _SpamPrev
+			= DiscordUtils.GenerateRequestOptions("Spam prevention.");
 
-		private readonly GuildSpecific<ulong, EnumMapped<Punishment, int>> _Phrases
-			= new GuildSpecific<ulong, EnumMapped<Punishment, int>>();
-
+		private readonly AutoModDatabase _Db;
+		private readonly GuildSpecific<ulong, EnumMapped<PunishmentType, int>> _Phrases
+			= new GuildSpecific<ulong, EnumMapped<PunishmentType, int>>();
 		private readonly ConcurrentDictionary<ulong, PunishmentManager> _Punishers
 			= new ConcurrentDictionary<ulong, PunishmentManager>();
-
 		private readonly GuildSpecific<RaidType, SortedSet<ulong>> _Raid
 			= new GuildSpecific<RaidType, SortedSet<ulong>>();
-
 		private readonly GuildSpecific<ulong, EnumMapped<SpamType, SortedSet<ulong>>> _Spam
 			= new GuildSpecific<ulong, EnumMapped<SpamType, SortedSet<ulong>>>();
 
@@ -41,7 +51,7 @@ namespace Advobot.AutoMod.Service
 
 		public AutoModService(
 			BaseSocketClient client,
-			IAutoModDatabase db,
+			AutoModDatabase db,
 			ITime time,
 			ITimerService timers)
 		{
@@ -54,29 +64,13 @@ namespace Advobot.AutoMod.Service
 			client.UserJoined += OnUserJoined;
 		}
 
-		private async Task HandleBannedPhrases(IMessage message, IGuildUser user)
+		private PunishmentManager GetPunisher(IGuild guild)
 		{
-		}
-
-		private async Task HandleSpam(IMessage message, IGuildUser user)
-		{
-			static int GetSpamCount(SpamType type, IMessage message) => type switch
+			if (!_Punishers.TryGetValue(guild.Id, out var punisher))
 			{
-				SpamType.Message => int.MaxValue,
-				SpamType.LongMessage => message.Content?.Length ?? 0,
-				SpamType.Link => message.Content?.Split(' ')?.Count(x => Uri.IsWellFormedUriString(x, UriKind.Absolute)) ?? 0,
-				SpamType.Image => message.Attachments.Count(x => x.Height != null || x.Width != null) + message.Embeds.Count(x => x.Image != null || x.Video != null),
-				SpamType.Mention => message.MentionedUserIds.Distinct().Count(),
-				_ => throw new ArgumentOutOfRangeException(nameof(Type)),
-			};
-
-			var TEMP = new List<IReadOnlySpamPrevention>();
-
-			var instances = _Spam.Get(user.Guild, user.Id);
-			foreach (var prev in TEMP)
-			{
-				if (GetSpamCount(prev))
+				_Punishers.TryAdd(guild.Id, new PunishmentManager(guild, _Timers));
 			}
+			return punisher;
 		}
 
 		private async Task OnMessageReceived(IMessage message)
@@ -92,69 +86,151 @@ namespace Advobot.AutoMod.Service
 			{
 				return;
 			}
+
+			var isSpam = await ProcessSpamAsync(message, user).CAF();
+			var isBannedPhrase = await ProcessBannedPhrasesAsync(message, user).CAF();
+			if (isSpam)
+			{
+				await message.DeleteAsync(_SpamPrev).CAF();
+				return;
+			}
+			if (isBannedPhrase)
+			{
+				await message.DeleteAsync(_BannedPhrase).CAF();
+				return;
+			}
+
+			var violatesChannelSettings = await ProcessChannelSettings(message, user).CAF();
+			if (violatesChannelSettings)
+			{
+				await message.DeleteAsync(_ImageOnly).CAF();
+				return;
+			}
 		}
 
 		private Task OnMessageUpdated(Cacheable<IMessage, ulong> cached, IMessage message, ISocketMessageChannel channel)
 			=> OnMessageReceived(message);
 
-		private Task OnUserJoined(IGuildUser user)
+		private async Task OnUserJoined(IGuildUser user)
 		{
-		}
-	}
-
-	public sealed class EnumMapped<TEnum, TValue>
-		where TEnum : Enum
-		where TValue : new()
-	{
-		private static readonly TEnum[] _Values
-			= Enum.GetValues(typeof(TEnum)).Cast<TEnum>().ToArray();
-
-		private readonly Dictionary<TEnum, TValue> _Dict
-			= new Dictionary<TEnum, TValue>();
-
-		public TValue this[TEnum key]
-			=> _Dict[key];
-
-		public EnumMapped()
-		{
-			foreach (var value in _Values)
+			var isBannedName = await ProcessBannedNamesAsync(user).CAF();
+			if (isBannedName)
 			{
-				_Dict[value] = new TValue();
+				return;
 			}
-		}
 
-		public void Reset(TEnum key)
-			=> _Dict[key] = new TValue();
-
-		public void ResetAll()
-		{
-			foreach (var value in _Values)
+			var isRaid = await ProcessAntiRaidAsync(user).CAF();
+			if (isRaid)
 			{
-				_Dict[value] = new TValue();
+				return;
 			}
+
+			await ProcessPersistentRolesAsync(user).CAF();
 		}
 
-		public void Update(TEnum key, TValue value)
-			=> _Dict[key] = value;
-
-		public void Update(TEnum key, Func<TValue, TValue> updater)
-			=> Update(key, updater(_Dict[key]));
-	}
-
-	public sealed class GuildSpecific<TKey, TValue>
-		where TValue : new()
-	{
-		private readonly ConcurrentDictionary<ulong, ConcurrentDictionary<TKey, TValue>> _Dict
-			= new ConcurrentDictionary<ulong, ConcurrentDictionary<TKey, TValue>>();
-
-		public TValue Get(IGuild guild, TKey key)
+		private async Task<bool> ProcessAntiRaidAsync(IGuildUser user)
 		{
-			return _Dict
-				.GetOrAdd(guild.Id, _ => new ConcurrentDictionary<TKey, TValue>())
-				.GetOrAdd(key, _ => new TValue());
 		}
 
-		public void Reset(IGuild guild)
-			=> _Dict.TryRemove(guild.Id, out _);
+		private async Task<bool> ProcessBannedNamesAsync(IGuildUser user)
+		{
+			var names = await _Db.GetBannedNamesAsync(user.GuildId).CAF();
+			foreach (var name in names)
+			{
+				if (name.IsMatch(user.Username))
+				{
+					var punisher = GetPunisher(user.Guild);
+					var ambig = user.AsAmbiguous();
+					await punisher.GiveAsync(_Ban, ambig, _BannedName).CAF();
+					return true;
+				}
+			}
+			return false;
+		}
+
+		private async Task<bool> ProcessBannedPhrasesAsync(IMessage message, IGuildUser user)
+		{
+			var phrases = await _Db.GetBannedPhrasesAsync(user.GuildId).CAF();
+			var instances = _Phrases.Get(user.Guild, user.Id);
+
+			var isDirty = false;
+			foreach (var phrase in phrases)
+			{
+				if (phrase.IsMatch(message.Content))
+				{
+					++instances[phrase.PunishmentType];
+					isDirty = true;
+				}
+			}
+			if (!isDirty)
+			{
+				return false;
+			}
+
+			var punisher = GetPunisher(user.Guild);
+			var ambig = user.AsAmbiguous();
+			var punishments = await _Db.GetBannedPhrasePunishmentsAsync(user.GuildId).CAF();
+			foreach (var punishment in punishments)
+			{
+				foreach (var instance in instances)
+				{
+					if (punishment.PunishmentType == instance.Key &&
+						punishment.Instances == instance.Value)
+					{
+						await punisher.GiveAsync(punishment, ambig, _BannedPhrase).CAF();
+					}
+				}
+			}
+			return true;
+		}
+
+		private async Task<bool> ProcessChannelSettings(IMessage message, IGuildUser user)
+		{
+			var imageOnlyChannels = await _Db.GetImageOnlyChannelsAsync(user.GuildId).CAF();
+			if (imageOnlyChannels.Contains(message.Channel.Id) && message.GetImageCount() == 0)
+			{
+				return true;
+			}
+			return false;
+		}
+
+		private async Task<bool> ProcessPersistentRolesAsync(IGuildUser user)
+		{
+			var persistent = await _Db.GetPersistentRolesAsync(user.GuildId, user.Id).CAF();
+			var roles = persistent.Select(x => user.Guild.GetRole(x.RoleId));
+			await user.AddRolesAsync(roles, _PersistentRoles).CAF();
+			return true;
+		}
+
+		private async Task<bool> ProcessSpamAsync(IMessage message, IGuildUser user)
+		{
+			var prevs = await _Db.GetSpamPreventionAsync(user.GuildId).CAF();
+			var instances = _Spam.Get(user.Guild, user.Id);
+
+			var isDirty = false;
+			foreach (var spamPrev in prevs)
+			{
+				if (spamPrev.IsSpam(message))
+				{
+					instances[spamPrev.SpamType].Add(message.Id);
+					isDirty = true;
+				}
+			}
+			if (!isDirty)
+			{
+				return false;
+			}
+
+			var punisher = GetPunisher(user.Guild);
+			var ambig = user.AsAmbiguous();
+			foreach (var prev in prevs)
+			{
+				if (prev.ShouldPunish(instances[prev.SpamType]))
+				{
+					await punisher.GiveAsync(prev, ambig, _SpamPrev).CAF();
+				}
+			}
+			return true;
+		}
 	}
 }

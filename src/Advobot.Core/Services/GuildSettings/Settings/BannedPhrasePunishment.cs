@@ -21,7 +21,7 @@ namespace Advobot.Services.GuildSettings.Settings
 		/// The punishment to use on a user.
 		/// </summary>
 		[JsonProperty("Punishment")]
-		public Punishment Punishment { get; set; }
+		public PunishmentType Punishment { get; set; }
 
 		/// <summary>
 		/// The role to give a user if the punishment is role.
@@ -46,7 +46,7 @@ namespace Advobot.Services.GuildSettings.Settings
 		/// <param name="punishment"></param>
 		/// <param name="removes"></param>
 		/// <param name="time"></param>
-		public BannedPhrasePunishment(Punishment punishment, int removes, int time)
+		public BannedPhrasePunishment(PunishmentType punishment, int removes, int time)
 		{
 			Punishment = punishment;
 			NumberOfRemoves = removes;
@@ -60,7 +60,7 @@ namespace Advobot.Services.GuildSettings.Settings
 		/// <param name="removes"></param>
 		/// <param name="time"></param>
 		public BannedPhrasePunishment(IRole role, int removes, int time)
-			: this(Punishment.RoleMute, removes, time)
+			: this(PunishmentType.RoleMute, removes, time)
 		{
 			RoleId = role.Id;
 		}

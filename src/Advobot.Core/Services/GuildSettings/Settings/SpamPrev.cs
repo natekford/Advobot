@@ -88,7 +88,7 @@ namespace Advobot.Services.GuildSettings.Settings
 					instances.Add(message.Id);
 				}
 			}
-			if (CountItemsInTimeFrame(instances, TimeInterval) >= SpamInstances)
+			if (instances.CountItemsInTimeFrame(TimeInterval) >= SpamInstances)
 			{
 				_Instances.TryRemove(message.Author.Id, out _);
 

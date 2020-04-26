@@ -37,7 +37,7 @@ namespace Advobot.Tests.Core.Attributes.ParameterPreconditions.BannedPhrases
 		{
 			const string PHRASE = "hi";
 
-			_Settings.BannedPhraseRegex.Add(new BannedPhrase(PHRASE, Punishment.Nothing));
+			_Settings.BannedPhraseRegex.Add(new BannedPhrase(PHRASE, PunishmentType.Nothing));
 
 			var result = await CheckAsync(PHRASE).CAF();
 			Assert.IsFalse(result.IsSuccess);

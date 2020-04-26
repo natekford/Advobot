@@ -54,7 +54,7 @@ namespace Advobot.Settings.Commands
 			[BannedRegexLimit(QuantityLimitAction.Add)]
 			public Task<RuntimeResult> Add(
 				[Regex, NotAlreadyBannedRegex] string regex,
-				Punishment punishment = default)
+				PunishmentType punishment = default)
 			{
 				var phrase = new BannedPhrase(regex, punishment);
 				Settings.BannedPhraseRegex.Add(phrase);
@@ -65,7 +65,7 @@ namespace Advobot.Settings.Commands
 			[LocalizedAlias(nameof(Aliases.ChangePunishment))]
 			public Task<RuntimeResult> ChangePunishment(
 				[OverrideTypeReader(typeof(BannedRegexTypeReader))] BannedPhrase regex,
-				Punishment punishment)
+				PunishmentType punishment)
 			{
 				regex.Punishment = punishment;
 				return Responses.BannedPhrases.ChangePunishment("regex", regex, punishment);

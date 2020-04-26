@@ -37,7 +37,7 @@ namespace Advobot.Tests.Core.TypeReaders.BannedPhraseTypeReaders
 		[TestMethod]
 		public async Task Valid_Test()
 		{
-			var regex = new BannedPhrase("asdf", Punishment.Ban);
+			var regex = new BannedPhrase("asdf", PunishmentType.Ban);
 			_Settings.BannedPhraseRegex.Add(regex);
 
 			var result = await ReadAsync(regex.Phrase).CAF();

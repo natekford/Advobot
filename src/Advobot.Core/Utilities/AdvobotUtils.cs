@@ -2,12 +2,16 @@
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
+using System.Linq;
 using System.Resources;
+
 using Advobot.Services;
 using Advobot.Services.BotSettings;
 using Advobot.Services.GuildSettings;
 using Advobot.Settings;
+
 using Discord;
+
 using Microsoft.Extensions.DependencyInjection;
 
 namespace Advobot.Utilities
@@ -30,6 +34,63 @@ namespace Advobot.Utilities
 			return services
 				.AddSingleton<T>()
 				.AddSingleton<IResetter>(x => x.GetRequiredService<T>());
+		}
+
+		/// <summary>
+		/// Counts how many times something has occurred within a given timeframe.
+		/// Also modifies the queue by removing instances which are too old to matter (locks the source when doing so).
+		/// Returns the listlength if seconds is less than 0 or the listlength is less than 2.
+		/// </summary>
+		/// <param name="source"></param>
+		/// <param name="time"></param>
+		/// <returns></returns>
+		/// <exception cref="ArgumentException">When <paramref name="source"/> is not in order.</exception>
+		public static int CountItemsInTimeFrame(this IEnumerable<ulong> source, TimeSpan? time)
+		{
+			ulong[] copy;
+			lock (source)
+			{
+				copy = source.ToArray();
+			}
+
+			//No timeFrame given means that it's a timed prevention that doesn't check against time
+			if (time == null || copy.Length < 2)
+			{
+				return copy.Length;
+			}
+
+			//If there is a timeFrame then that means to gather the highest amount of messages that are in the time frame
+			var maxCount = 0;
+			for (var i = 0; i < copy.Length; ++i)
+			{
+				//If the queue is out of order that kinda ruins the method
+				if (i > 0 && copy[i - 1] > copy[i])
+				{
+					throw new ArgumentException("The queue must be in order from oldest to newest.", nameof(source));
+				}
+
+				var currentIterCount = 1;
+				var iTime = SnowflakeUtils.FromSnowflake(copy[i]).UtcDateTime;
+				for (var j = i + 1; j < copy.Length; ++j)
+				{
+					var jTime = SnowflakeUtils.FromSnowflake(copy[j]).UtcDateTime;
+					if ((jTime - iTime) < time)
+					{
+						++currentIterCount;
+						continue;
+					}
+					//Optimization by checking if the time difference between two numbers is too high to bother starting at j - 1
+					var jMinOneTime = SnowflakeUtils.FromSnowflake(copy[j - 1]).UtcDateTime;
+					if ((jTime - jMinOneTime) > time)
+					{
+						i = j + 1;
+					}
+					break;
+				}
+				maxCount = Math.Max(maxCount, currentIterCount);
+			}
+
+			return maxCount;
 		}
 
 		/// <summary>

@@ -14,7 +14,7 @@ namespace Advobot.Settings.Responses
 		public static AdvobotResult ChangePunishment(
 			string type,
 			BannedPhrase phrase,
-			Punishment punishment)
+			PunishmentType punishment)
 			=> Success(Default.FormatInterpolated($"Successfully changed the punishment of the banned {type.NoFormatting()} {phrase} to {punishment}."));
 
 		public static AdvobotResult Modified(string type, bool added, BannedPhrase phrase)
