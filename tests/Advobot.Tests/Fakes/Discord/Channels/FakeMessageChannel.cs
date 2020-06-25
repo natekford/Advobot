@@ -39,7 +39,16 @@ namespace Advobot.Tests.Fakes.Discord.Channels
 		public Task<IUserMessage> SendFileAsync(Stream stream, string filename, string text = null, bool isTTS = false, Embed embed = null, RequestOptions options = null, bool isSpoiler = false)
 			=> throw new NotImplementedException();
 
+		public Task<IUserMessage> SendFileAsync(string filePath, string text = null, bool isTTS = false, Embed embed = null, RequestOptions options = null, bool isSpoiler = false, AllowedMentions allowedMentions = null)
+			=> throw new NotImplementedException();
+
+		public Task<IUserMessage> SendFileAsync(Stream stream, string filename, string text = null, bool isTTS = false, Embed embed = null, RequestOptions options = null, bool isSpoiler = false, AllowedMentions allowedMentions = null)
+			=> throw new NotImplementedException();
+
 		public Task<IUserMessage> SendMessageAsync(string text = null, bool isTTS = false, Embed embed = null, RequestOptions options = null)
+			=> throw new NotImplementedException();
+
+		public Task<IUserMessage> SendMessageAsync(string text = null, bool isTTS = false, Embed embed = null, RequestOptions options = null, AllowedMentions allowedMentions = null)
 			=> throw new NotImplementedException();
 
 		public Task TriggerTypingAsync(RequestOptions options = null)

@@ -3,7 +3,6 @@ using System.Threading.Tasks;
 
 using Advobot.UI.ViewModels;
 
-using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Markup.Xaml;
 
@@ -14,13 +13,7 @@ namespace Advobot.UI.Views
 		public MessageBox()
 		{
 			InitializeComponent();
-#if DEBUG
-			this.AttachDevTools();
-#endif
 		}
-
-		private void InitializeComponent()
-			=> AvaloniaXamlLoader.Load(this);
 
 		public static Task<string> ShowAsync(Window window, string messageBoxText, string caption, IEnumerable<string> options)
 		{
@@ -34,5 +27,8 @@ namespace Advobot.UI.Views
 				},
 			}.ShowDialog<string>(window);
 		}
+
+		private void InitializeComponent()
+			=> AvaloniaXamlLoader.Load(this);
 	}
 }

@@ -57,8 +57,11 @@ namespace Advobot.Tests.Fakes.Discord
 		public Task RemoveAllReactionsAsync(RequestOptions options = null)
 			=> throw new NotImplementedException();
 
-		public Task RemoveReactionAsync(IEmote emote, IUser user, RequestOptions options = null)
+		public Task RemoveAllReactionsForEmoteAsync(IEmote emote, RequestOptions options = null)
 			=> throw new NotImplementedException();
+
+		public Task RemoveReactionAsync(IEmote emote, IUser user, RequestOptions options = null)
+					=> throw new NotImplementedException();
 
 		public Task RemoveReactionAsync(IEmote emote, ulong userId, RequestOptions options = null)
 			=> throw new NotImplementedException();

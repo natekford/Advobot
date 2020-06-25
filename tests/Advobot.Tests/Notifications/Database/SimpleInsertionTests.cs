@@ -29,14 +29,14 @@ namespace Advobot.Tests.Notifications.Database
 
 			await db.UpdateNotificationChannelAsync(EVENT, GUILD_ID, CHANNEL_ID).CAF();
 			{
-				var retrieved = await db.GetAsync(EVENT, GUILD_ID).CAF();
+				var retrieved = await db.GetAsync(EVENT, GUILD_ID).CAF()!;
 				Assert.IsNotNull(retrieved);
 				Assert.AreEqual(CHANNEL_ID, retrieved.ChannelId);
 			}
 
 			await db.UpdateNotificationContentAsync(EVENT, GUILD_ID, CONTENT).CAF();
 			{
-				var retrieved = await db.GetAsync(EVENT, GUILD_ID).CAF();
+				var retrieved = await db.GetAsync(EVENT, GUILD_ID).CAF()!;
 				Assert.IsNotNull(retrieved);
 				Assert.AreEqual(CHANNEL_ID, retrieved.ChannelId);
 				Assert.AreEqual(CONTENT, retrieved.Content);
@@ -58,7 +58,7 @@ namespace Advobot.Tests.Notifications.Database
 			};
 			await db.UpdateNotificationEmbedAsync(EVENT, GUILD_ID, embed).CAF();
 			{
-				var retrieved = await db.GetAsync(EVENT, GUILD_ID).CAF();
+				var retrieved = await db.GetAsync(EVENT, GUILD_ID).CAF()!;
 				Assert.IsNotNull(retrieved);
 				Assert.AreEqual(CHANNEL_ID, retrieved.ChannelId);
 				Assert.AreEqual(CONTENT, retrieved.Content);

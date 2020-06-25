@@ -16,9 +16,6 @@ namespace Advobot.UI.Views
 			};
 
 			InitializeComponent();
-#if DEBUG
-			this.AttachDevTools();
-#endif
 		}
 
 		private void InitializeComponent()

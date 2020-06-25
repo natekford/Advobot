@@ -9,7 +9,6 @@ using AdvorangesUtils;
 
 using Avalonia;
 using Avalonia.Controls;
-using Avalonia.Logging.Serilog;
 using Avalonia.Threading;
 
 using ReactiveUI;

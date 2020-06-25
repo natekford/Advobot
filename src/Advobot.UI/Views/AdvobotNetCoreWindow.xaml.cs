@@ -2,7 +2,6 @@
 
 using Advobot.UI.ViewModels;
 
-using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Markup.Xaml;
@@ -13,7 +12,7 @@ namespace Advobot.UI.Views
 	{
 		public new AdvobotNetCoreWindowViewModel DataContext
 		{
-			get => (AdvobotNetCoreWindowViewModel)base.DataContext;
+			get => (AdvobotNetCoreWindowViewModel)base.DataContext!;
 			set
 			{
 				if (!(value is AdvobotNetCoreWindowViewModel))
@@ -33,13 +32,7 @@ namespace Advobot.UI.Views
 				=> Environment.Exit(0);
 
 			InitializeComponent();
-#if DEBUG
-			this.AttachDevTools();
-#endif
 		}
-
-		private void InitializeComponent()
-			=> AvaloniaXamlLoader.Load(this);
 
 		public void EnterKeyPressed(object sender, KeyEventArgs e)
 		{
@@ -48,5 +41,8 @@ namespace Advobot.UI.Views
 				DataContext.TakeInputCommand.Execute(null);
 			}
 		}
+
+		private void InitializeComponent()
+			=> AvaloniaXamlLoader.Load(this);
 	}
 }

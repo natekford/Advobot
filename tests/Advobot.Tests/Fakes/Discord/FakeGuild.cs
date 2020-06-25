@@ -258,5 +258,8 @@ namespace Advobot.Tests.Fakes.Discord
 		public Task ReorderChannelsAsync(IEnumerable<ReorderChannelProperties> args, RequestOptions options = null) => throw new NotImplementedException();
 
 		public Task ReorderRolesAsync(IEnumerable<ReorderRoleProperties> args, RequestOptions options = null) => throw new NotImplementedException();
+
+		public Task<IReadOnlyCollection<IGuildUser>> SearchUsersAsync(string query, int limit = 1000, CacheMode mode = CacheMode.AllowDownload, RequestOptions options = null)
+			=> throw new NotImplementedException();
 	}
 }

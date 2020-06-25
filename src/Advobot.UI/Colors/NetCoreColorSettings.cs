@@ -44,7 +44,11 @@ namespace Advobot.UI.Colors
 		private static readonly Lazy<IResourceDictionary> _Resources = new Lazy<IResourceDictionary>(() =>
 		{
 			var styles = Application.Current.Styles.OfType<StyleInclude>();
-			var colors = styles.Single(x => x.Source.ToString().CaseInsContains("BaseLight.xaml"));
+			var colors = styles.Single(x =>
+			{
+				var src = x.Source;
+				return src?.ToString().CaseInsContains("BaseLight.xaml") == true;
+			});
 			return ((Style)colors.Loaded).Resources;
 		});
 
@@ -146,7 +150,8 @@ namespace Advobot.UI.Colors
 					}
 
 					//Get the set color, if one doesn't exist, use the default light mode
-					var color = ((ISolidColorBrush)Application.Current.Resources[s])?.Color ?? LightMode[s].Color;
+					var appColor = ((ISolidColorBrush?)Application.Current.Resources[s])?.Color;
+					var color = appColor ?? LightMode[s].Color;
 					namedColor.Foreground = new SimpleHighlightingBrush(color);
 				}
 			}

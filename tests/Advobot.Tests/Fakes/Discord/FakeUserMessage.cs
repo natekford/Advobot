@@ -13,6 +13,9 @@ namespace Advobot.Tests.Fakes.Discord
 		public FakeUserMessage(FakeMessageChannel channel, FakeUser author, string content)
 			: base(channel, author, content) { }
 
+		public Task CrosspostAsync(RequestOptions options = null)
+			=> throw new NotImplementedException();
+
 		public Task ModifyAsync(Action<MessageProperties> func, RequestOptions options = null)
 			=> throw new NotImplementedException();
 

@@ -23,7 +23,7 @@ namespace Advobot.Tests.Invites.Database
 			var (Guild, Invite) = CreateFakeInvite(client, Time);
 			await db.AddInviteAsync(Invite).CAF();
 
-			var retrieved = await db.GetInviteAsync(Guild.Id).CAF();
+			var retrieved = await db.GetInviteAsync(Guild.Id).CAF()!;
 			Assert.IsNotNull(retrieved);
 			Assert.AreEqual(Invite.GuildId, retrieved.GuildId);
 			Assert.AreEqual(Invite.Code, retrieved.Code);
