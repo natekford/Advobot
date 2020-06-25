@@ -47,7 +47,7 @@ namespace Advobot.Logging.Service
 			}
 
 			var loggingContext = await _Logging.CreateAsync(context.Message).CAF();
-			if (loggingContext.ModLog == null || !loggingContext.ChannelCanBeLogged())
+			if (loggingContext?.ModLog == null || !loggingContext.ChannelCanBeLogged())
 			{
 				return;
 			}

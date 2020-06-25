@@ -16,7 +16,7 @@ namespace Advobot.Formatting
 	/// </summary>
 	public class DiscordFormattableString : IDiscordFormattableString
 	{
-		private readonly object[] _Args;
+		private readonly object?[] _Args;
 		private readonly string _Format;
 
 		/// <summary>
@@ -33,7 +33,7 @@ namespace Advobot.Formatting
 		/// Creates an instance of <see cref="DiscordFormattableString"/>.
 		/// </summary>
 		/// <param name="value"></param>
-		public DiscordFormattableString(object value)
+		public DiscordFormattableString(object? value)
 		{
 			_Format = "{0}";
 			_Args = new[] { value };
@@ -62,7 +62,7 @@ namespace Advobot.Formatting
 				return ToString(socketClient, socketGuild, formatProvider);
 			}
 
-			var converted = new object[_Args.Length];
+			var converted = new object?[_Args.Length];
 			for (var i = 0; i < _Args.Length; ++i)
 			{
 				converted[i] = await ConvertArgumentAsync(client, guild, _Args[i]).CAF();
@@ -97,7 +97,7 @@ namespace Advobot.Formatting
 
 		private static async Task<IEnumerable> ConvertEnumerableAsync(IDiscordClient c, IGuild g, IEnumerable source)
 		{
-			var output = new List<object>();
+			var output = new List<object?>();
 			foreach (var obj in source)
 			{
 				output.Add(await ConvertArgumentAsync(c, g, obj).CAF());

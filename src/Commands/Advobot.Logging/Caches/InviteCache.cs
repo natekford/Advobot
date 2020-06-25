@@ -77,8 +77,13 @@ namespace Advobot.Logging.Caches
 			return null;
 		}
 
-		private void CacheInvites(IEnumerable<IInviteMetadata> invites)
+		private void CacheInvites(IEnumerable<IInviteMetadata>? invites)
 		{
+			if (invites == null)
+			{
+				return;
+			}
+
 			foreach (var invite in invites)
 			{
 				_Cached[invite.Id] = invite.Uses ?? 0;

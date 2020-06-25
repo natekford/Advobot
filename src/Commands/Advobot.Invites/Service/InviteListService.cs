@@ -40,14 +40,19 @@ namespace Advobot.Invites.Service
 		public async Task<bool> BumpAsync(IGuild guild)
 		{
 			var listedInvite = await _Db.GetInviteAsync(guild.Id).CAF();
+			if (listedInvite == null)
+			{
+				return false;
+			}
+
 			var invites = await guild.GetInvitesAsync().CAF();
 			if (invites.TryGetFirst(x => x.Id == listedInvite.Code, out var invite))
 			{
-				var newListedInvite = new ListedInvite(invite, _Time.UtcNow);
-				await _Db.UpdateInviteAsync(listedInvite).CAF();
+				await _Db.UpdateInviteAsync(new ListedInvite(invite, _Time.UtcNow)).CAF();
 				return true;
 			}
 
+			//The invite was deleted, so we can remove it from the db
 			await RemoveInviteAsync(guild.Id).CAF();
 			return false;
 		}

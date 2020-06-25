@@ -33,6 +33,8 @@ namespace Advobot.AutoMod.Service
 			= DiscordUtils.GenerateRequestOptions("Image only channel.");
 		private static readonly RequestOptions _PersistentRoles
 			= DiscordUtils.GenerateRequestOptions("Persistent roles.");
+		private static readonly RequestOptions _RaidPrev
+			= DiscordUtils.GenerateRequestOptions("Raid prevention.");
 		private static readonly RequestOptions _SpamPrev
 			= DiscordUtils.GenerateRequestOptions("Spam prevention.");
 
@@ -41,8 +43,8 @@ namespace Advobot.AutoMod.Service
 			= new GuildSpecific<ulong, EnumMapped<PunishmentType, int>>();
 		private readonly ConcurrentDictionary<ulong, PunishmentManager> _Punishers
 			= new ConcurrentDictionary<ulong, PunishmentManager>();
-		private readonly GuildSpecific<RaidType, SortedSet<ulong>> _Raid
-			= new GuildSpecific<RaidType, SortedSet<ulong>>();
+		private readonly GuildSpecific<RaidType, HashSet<ulong>> _Raid
+			= new GuildSpecific<RaidType, HashSet<ulong>>();
 		private readonly GuildSpecific<ulong, EnumMapped<SpamType, SortedSet<ulong>>> _Spam
 			= new GuildSpecific<ulong, EnumMapped<SpamType, SortedSet<ulong>>>();
 
@@ -130,6 +132,40 @@ namespace Advobot.AutoMod.Service
 
 		private async Task<bool> ProcessAntiRaidAsync(IGuildUser user)
 		{
+			var prevs = await _Db.GetRaidPreventionAsync(user.GuildId).CAF();
+
+			var isRaid = false;
+			foreach (var raidPrev in prevs)
+			{
+				var instances = _Raid.Get(user.Guild, raidPrev.RaidType);
+				instances.Add(user.Id);
+
+				if (raidPrev.IsRaid(user))
+				{
+					isRaid = true;
+				}
+			}
+			if (!isRaid)
+			{
+				return false;
+			}
+
+			var punisher = GetPunisher(user.Guild);
+			foreach (var raidPrev in prevs)
+			{
+				var instances = _Raid.Get(user.Guild, raidPrev.RaidType);
+				if (!raidPrev.ShouldPunish(instances))
+				{
+					continue;
+				}
+
+				foreach (var instance in instances)
+				{
+					var ambig = new AmbiguousUser(instance);
+					await punisher.GiveAsync(raidPrev, ambig, _RaidPrev).CAF();
+				}
+			}
+			return true;
 		}
 
 		private async Task<bool> ProcessBannedNamesAsync(IGuildUser user)
@@ -186,17 +222,18 @@ namespace Advobot.AutoMod.Service
 
 		private async Task<bool> ProcessChannelSettings(IMessage message, IGuildUser user)
 		{
-			var imageOnlyChannels = await _Db.GetImageOnlyChannelsAsync(user.GuildId).CAF();
-			if (imageOnlyChannels.Contains(message.Channel.Id) && message.GetImageCount() == 0)
-			{
-				return true;
-			}
-			return false;
+			var imgChannels = await _Db.GetImageOnlyChannelsAsync(user.GuildId).CAF();
+			return imgChannels.Contains(message.Channel.Id) && message.GetImageCount() == 0;
 		}
 
 		private async Task<bool> ProcessPersistentRolesAsync(IGuildUser user)
 		{
 			var persistent = await _Db.GetPersistentRolesAsync(user.GuildId, user.Id).CAF();
+			if (persistent.Count == 0)
+			{
+				return false;
+			}
+
 			var roles = persistent.Select(x => user.Guild.GetRole(x.RoleId));
 			await user.AddRolesAsync(roles, _PersistentRoles).CAF();
 			return true;
@@ -207,27 +244,27 @@ namespace Advobot.AutoMod.Service
 			var prevs = await _Db.GetSpamPreventionAsync(user.GuildId).CAF();
 			var instances = _Spam.Get(user.Guild, user.Id);
 
-			var isDirty = false;
+			var isSpam = false;
 			foreach (var spamPrev in prevs)
 			{
 				if (spamPrev.IsSpam(message))
 				{
 					instances[spamPrev.SpamType].Add(message.Id);
-					isDirty = true;
+					isSpam = true;
 				}
 			}
-			if (!isDirty)
+			if (!isSpam)
 			{
 				return false;
 			}
 
 			var punisher = GetPunisher(user.Guild);
 			var ambig = user.AsAmbiguous();
-			foreach (var prev in prevs)
+			foreach (var spamPrev in prevs)
 			{
-				if (prev.ShouldPunish(instances[prev.SpamType]))
+				if (spamPrev.ShouldPunish(instances[spamPrev.SpamType]))
 				{
-					await punisher.GiveAsync(prev, ambig, _SpamPrev).CAF();
+					await punisher.GiveAsync(spamPrev, ambig, _SpamPrev).CAF();
 				}
 			}
 			return true;

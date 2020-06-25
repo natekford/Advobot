@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 
 using Advobot.Services.GuildSettings.Settings;
 
@@ -7,11 +6,8 @@ using Discord;
 
 namespace Advobot.AutoMod.ReadOnlyModels
 {
-	public interface IReadOnlySpamPrevention : IReadOnlyPunishment
+	public interface IReadOnlySpamPrevention : IReadOnlyTimedPrevention
 	{
-		bool Enabled { get; }
-		TimeSpan Interval { get; }
-		int Size { get; }
 		SpamType SpamType { get; }
 
 		bool IsSpam(IMessage message);
