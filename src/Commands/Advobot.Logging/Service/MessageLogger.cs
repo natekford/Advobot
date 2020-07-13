@@ -2,6 +2,7 @@
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection.Emit;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -19,6 +20,11 @@ namespace Advobot.Logging.Service
 {
 	public sealed class MessageLogger
 	{
+		private const int MAX_DESCRIPTION_LENGTH = EmbedBuilder.MaxDescriptionLength - 250;
+		private const int MAX_DESCRIPTION_LINES = EmbedWrapper.MAX_DESCRIPTION_LINES;
+		private const int MAX_FIELD_LENGTH = EmbedFieldBuilder.MaxFieldValueLength - 50;
+		private const int MAX_FIELD_LINES = MAX_DESCRIPTION_LENGTH / 2;
+
 		private static readonly TimeSpan _MessageDeleteDelay = TimeSpan.FromSeconds(3);
 
 		private readonly ConcurrentDictionary<ulong, DeletedMessageCache> _DeletedMessages
@@ -155,8 +161,7 @@ namespace Advobot.Logging.Service
 
 					//Can only stay in an embed if the description is less than 2048
 					//and if the line numbers are less than 20
-					if (sb.Length >= EmbedBuilder.MaxDescriptionLength
-						|| lineCount >= EmbedWrapper.MAX_DESCRIPTION_LINES)
+					if (sb.Length > MAX_DESCRIPTION_LENGTH || lineCount > MAX_DESCRIPTION_LINES)
 					{
 						inEmbed = false;
 						break;
@@ -181,7 +186,8 @@ namespace Advobot.Logging.Service
 						sb.AppendLineFeed(m.Format(withMentions: false).RemoveDuplicateNewLines().RemoveAllMarkdown());
 					}
 
-					await MessageUtils.SendMessageAsync(context.ServerLog, $"**{messages.Count} Deleted Messages:**", file: new TextFileInfo
+					var content = $"**{messages.Count} Deleted Messages:**";
+					await MessageUtils.SendMessageAsync(context.ServerLog, content, file: new TextFileInfo
 					{
 						Name = "Deleted_Messages",
 						Text = sb.ToString(),
@@ -204,34 +210,44 @@ namespace Advobot.Logging.Service
 
 		private Task HandleMessageEditedLoggingAsync(IMessageLoggingContext context, IMessage? before)
 		{
-			var uneditedBMsgContent = before?.Content;
-			var uneditedAMsgContent = context.Message?.Content;
-			if (context.ServerLog == null || uneditedBMsgContent == uneditedAMsgContent)
+			if (context.ServerLog == null || before?.Content == context.Message?.Content)
 			{
 				return Task.CompletedTask;
 			}
 
-			var bMsgContent = (uneditedBMsgContent ?? "Unknown or empty.").RemoveAllMarkdown().RemoveDuplicateNewLines();
-			var aMsgContent = (uneditedAMsgContent ?? "Empty.").RemoveAllMarkdown().RemoveDuplicateNewLines();
-			if (bMsgContent.Length > 750 || aMsgContent.Length > 750) //Send file instead if long
+			static (bool Valid, string Text) FormatContent(IMessage? message)
 			{
-				return MessageUtils.SendMessageAsync(context.ServerLog, file: new TextFileInfo
+				if (message == null)
 				{
-					Name = $"Message_Edit_{AdvorangesUtils.FormattingUtils.ToSaving()}",
-					Text = $"Before:\n{bMsgContent}\n\nAfter:\n{aMsgContent}",
+					return (true, "Unknown");
+				}
+
+				var text = (message.Content ?? "Empty").RemoveAllMarkdown().RemoveDuplicateNewLines();
+				var valid = text.Length <= MAX_FIELD_LENGTH && text.CountLineBreaks() < MAX_FIELD_LINES;
+				return (valid, text);
+			}
+
+			var (beforeValid, beforeContent) = FormatContent(before);
+			var (afterValid, afterContent) = FormatContent(context.Message);
+			if (beforeValid && afterValid) //Send file instead if text too long
+			{
+				return MessageUtils.SendMessageAsync(context.ServerLog, embed: new EmbedWrapper
+				{
+					Color = EmbedWrapper.MessageEdit,
+					Author = context.User.CreateAuthor(),
+					Footer = new EmbedFooterBuilder { Text = "Message Updated", },
+					Fields = new List<EmbedFieldBuilder>
+					{
+						new EmbedFieldBuilder { Name = "Before", Value = beforeContent, },
+						new EmbedFieldBuilder { Name = "After", Value = afterContent, },
+					},
 				});
 			}
 
-			return MessageUtils.SendMessageAsync(context.ServerLog, embed: new EmbedWrapper
+			return MessageUtils.SendMessageAsync(context.ServerLog, file: new TextFileInfo
 			{
-				Color = EmbedWrapper.MessageEdit,
-				Author = context.User.CreateAuthor(),
-				Footer = new EmbedFooterBuilder { Text = "Message Updated", },
-				Fields = new List<EmbedFieldBuilder>
-				{
-					new EmbedFieldBuilder { Name = "Before", Value = bMsgContent, },
-					new EmbedFieldBuilder { Name = "After", Value = aMsgContent, },
-				},
+				Name = "Edited_Message",
+				Text = $"Before:\n{beforeContent}\n\nAfter:\n{afterContent}",
 			});
 		}
 	}

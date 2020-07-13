@@ -23,6 +23,11 @@ namespace Advobot.UI.ViewModels
 			}
 			settings.PropertyChanged += (sender, e) =>
 			{
+				if (e.PropertyName == null)
+				{
+					return;
+				}
+
 				Errors[e.PropertyName] = false;
 				this.RaisePropertyChanged(e.PropertyName);
 				this.RaisePropertyChanged(nameof(CanSave));

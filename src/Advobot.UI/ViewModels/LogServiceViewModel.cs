@@ -23,7 +23,7 @@ namespace Advobot.UI.ViewModels
 		public int UserJoins => _LogService.UserJoins.Count;
 		public int UserLeaves => _LogService.UserLeaves.Count;
 
-		public event PropertyChangedEventHandler PropertyChanged
+		public event PropertyChangedEventHandler? PropertyChanged
 		{
 			add => ((INotifyPropertyChanged)_LogService).PropertyChanged += value;
 			remove => ((INotifyPropertyChanged)_LogService).PropertyChanged -= value;

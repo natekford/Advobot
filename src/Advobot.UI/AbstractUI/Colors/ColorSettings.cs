@@ -118,9 +118,10 @@ namespace Advobot.UI.AbstractUI.Colors
 			}
 			UserDefinedColors.PropertyChanged += (sender, e) =>
 			{
-				if (ActiveTheme == ColorTheme.UserMade)
+				if (ActiveTheme == ColorTheme.UserMade
+					&& sender is ITheme<TBrush> theme && e.PropertyName is string prop)
 				{
-					UpdateResource(e.PropertyName, ((ITheme<TBrush>)sender)[e.PropertyName]);
+					UpdateResource(prop, theme[prop]);
 				}
 			};
 		}

@@ -46,7 +46,7 @@ namespace Advobot.UI.Controls
 				{
 					var action = e.Action switch
 					{
-						NotifyCollectionChangedAction.Add => (Action)(() =>
+						NotifyCollectionChangedAction.Add => (() =>
 						{
 							foreach (var item in e.NewItems)
 							{
@@ -66,7 +66,7 @@ namespace Advobot.UI.Controls
 								}
 							}
 						}),
-						NotifyCollectionChangedAction.Reset => displayList.Clear,
+						NotifyCollectionChangedAction.Reset => (Action)displayList.Clear,
 						_ => throw new ArgumentOutOfRangeException(nameof(e.Action)),
 					};
 					Dispatcher.UIThread.InvokeAsync(action);

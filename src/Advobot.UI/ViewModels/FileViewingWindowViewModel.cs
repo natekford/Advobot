@@ -104,6 +104,11 @@ namespace Advobot.UI.ViewModels
 
 		private async Task Copy(Window window)
 		{
+			if (_File.Directory == null)
+			{
+				return;
+			}
+
 			var newPath = await new SaveFileDialog
 			{
 				Directory = _File.Directory.FullName,

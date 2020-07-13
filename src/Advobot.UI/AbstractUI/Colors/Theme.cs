@@ -2,6 +2,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.Diagnostics.CodeAnalysis;
 
 using Newtonsoft.Json;
 
@@ -112,7 +113,7 @@ namespace Advobot.UI.AbstractUI.Colors
 			=> ((IDictionary<string, TBrush>)_RuntimeBrushes).Remove(item);
 
 		/// <inheritdoc />
-		public bool TryGetValue(string key, out TBrush value)
+		public bool TryGetValue(string key, [MaybeNullWhen(false)] out TBrush value)
 			=> _RuntimeBrushes.TryGetValue(key, out value);
 
 		/// <inheritdoc />
