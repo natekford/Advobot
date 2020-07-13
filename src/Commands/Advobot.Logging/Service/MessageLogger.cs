@@ -19,6 +19,8 @@ namespace Advobot.Logging.Service
 {
 	public sealed class MessageLogger
 	{
+		private static readonly TimeSpan _MessageDeleteDelay = TimeSpan.FromSeconds(3);
+
 		private readonly ConcurrentDictionary<ulong, DeletedMessageCache> _DeletedMessages
 			= new ConcurrentDictionary<ulong, DeletedMessageCache>();
 
@@ -132,7 +134,7 @@ namespace Advobot.Logging.Service
 				{
 					try
 					{
-						await Task.Delay(TimeSpan.FromSeconds(3), cancelToken).CAF();
+						await Task.Delay(_MessageDeleteDelay, cancelToken).CAF();
 					}
 					catch (TaskCanceledException)
 					{
@@ -143,17 +145,22 @@ namespace Advobot.Logging.Service
 				//Give the messages to a new list so they can be removed from the old one
 				var messages = cache.Empty();
 				var sb = new StringBuilder();
-				while (inEmbed)
+
+				var lineCount = 0;
+				foreach (var m in messages)
 				{
-					foreach (var m in messages)
+					var text = m.Format(withMentions: true).RemoveDuplicateNewLines();
+					lineCount += text.CountLineBreaks();
+					sb.AppendLineFeed(text);
+
+					//Can only stay in an embed if the description is less than 2048
+					//and if the line numbers are less than 20
+					if (sb.Length >= EmbedBuilder.MaxDescriptionLength
+						|| lineCount >= EmbedWrapper.MAX_DESCRIPTION_LINES)
 					{
-						sb.AppendLineFeed(m.Format(withMentions: true));
-						//Can only stay in an embed if the description length is less than the max length and if the line numbers are less than 20
-						var validDesc = sb.Length < EmbedBuilder.MaxDescriptionLength;
-						var validLines = sb.ToString().RemoveDuplicateNewLines().CountLineBreaks() < EmbedWrapper.MAX_DESCRIPTION_LINES;
-						inEmbed = validDesc && validLines;
+						inEmbed = false;
+						break;
 					}
-					break;
 				}
 
 				if (inEmbed)
@@ -161,7 +168,7 @@ namespace Advobot.Logging.Service
 					await MessageUtils.SendMessageAsync(context.ServerLog, embed: new EmbedWrapper
 					{
 						Title = "Deleted Messages",
-						Description = sb.ToString().RemoveDuplicateNewLines(),
+						Description = sb.ToString(),
 						Color = EmbedWrapper.MessageDelete,
 						Footer = new EmbedFooterBuilder { Text = "Deleted Messages", },
 					}).CAF();
@@ -171,13 +178,13 @@ namespace Advobot.Logging.Service
 					sb.Clear();
 					foreach (var m in messages)
 					{
-						sb.AppendLineFeed(m.Format(withMentions: false));
+						sb.AppendLineFeed(m.Format(withMentions: false).RemoveDuplicateNewLines().RemoveAllMarkdown());
 					}
 
 					await MessageUtils.SendMessageAsync(context.ServerLog, $"**{messages.Count} Deleted Messages:**", file: new TextFileInfo
 					{
 						Name = "Deleted_Messages",
-						Text = sb.ToString().RemoveDuplicateNewLines().RemoveAllMarkdown(),
+						Text = sb.ToString(),
 					}).CAF();
 				}
 			});

@@ -27,7 +27,7 @@ namespace Advobot.Utilities
 		/// </summary>
 		/// <param name="channel"></param>
 		/// <param name="from"></param>
-		/// <param name="count"></param>
+		/// <param name="requestCount"></param>
 		/// <param name="now"></param>
 		/// <param name="options"></param>
 		/// <param name="predicate"></param>
@@ -35,7 +35,7 @@ namespace Advobot.Utilities
 		public static async Task<int> DeleteMessagesAsync(
 			ITextChannel channel,
 			IMessage? from,
-			int count,
+			int requestCount,
 			DateTimeOffset now,
 			RequestOptions options,
 			Func<IMessage, bool>? predicate = null)
@@ -45,36 +45,32 @@ namespace Advobot.Utilities
 				return 0;
 			}
 
-			var deletedCount = 0;
-			while (count > 0)
+			var totalDeletedCount = 0;
+			while (requestCount > 0)
 			{
 				const int MAX_GATHER = 100;
 
-				//Gather
-				var received = channel.GetMessagesAsync(from, Direction.Before, MAX_GATHER);
-				var flattened = await received.FlattenAsync().CAF();
-				var messages = flattened.ToArray();
-				if (messages.Length == 0)
+				var get = channel.GetMessagesAsync(from, Direction.Before, MAX_GATHER);
+				var retrieved = await get.FirstOrDefaultAsync().CAF();
+				if (retrieved.Count == 0)
 				{
 					break;
 				}
-				from = messages[^1];
 
-				//Sort
-				FilterMessages(ref messages, count, predicate);
-
-				//Delete
-				var deleted = await DeleteMessagesAsync(channel, messages, now, options).CAF();
-				deletedCount += deleted;
-				count -= deleted;
+				var filtered = FilterMessages(retrieved, requestCount, predicate);
+				var deletedCount = await DeleteMessagesAsync(channel, filtered, now, options).CAF();
+				totalDeletedCount += deletedCount;
+				requestCount -= deletedCount;
 				//If less messages are deleted than gathered,
 				//that means there are some that are too old meaning we can stop
-				if (deleted < messages.Length)
+				if (deletedCount < retrieved.Count)
 				{
 					break;
 				}
+
+				from = retrieved.ElementAt(retrieved.Count - 1);
 			}
-			return deletedCount;
+			return totalDeletedCount;
 		}
 
 		/// <summary>
@@ -111,7 +107,7 @@ namespace Advobot.Utilities
 			}
 			catch
 			{
-				return 0;
+				return -1;
 			}
 		}
 
@@ -230,26 +226,21 @@ namespace Advobot.Utilities
 			}
 		}
 
-		private static void FilterMessages(
-			ref IMessage[] source,
-			int length,
-			Func<IMessage, bool>? predicate = null)
+		private static IEnumerable<IMessage> FilterMessages(
+			IReadOnlyCollection<IMessage> messages,
+			int requestCount,
+			Func<IMessage, bool>? predicate)
 		{
-			if (predicate == null && length >= source.Length)
-			{
-				return;
-			}
-
-			IEnumerable<IMessage> filtered = source;
+			IEnumerable<IMessage> filtered = messages;
 			if (predicate != null)
 			{
 				filtered = filtered.Where(predicate);
 			}
-			if (length < source.Length)
+			if (requestCount < messages.Count)
 			{
-				filtered = filtered.Take(length);
+				filtered = filtered.Take(requestCount);
 			}
-			source = filtered.ToArray();
+			return filtered;
 		}
 	}
 }

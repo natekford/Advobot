@@ -16,8 +16,12 @@ namespace Advobot.Classes
 		/// </summary>
 		public string Name
 		{
-			get => $"{_Name}_{FormattingUtils.ToSaving()}.txt";
-			set => _Name = value.FormatTitle().Replace(' ', '_').TrimEnd('_');
+			get => _Name;
+			set
+			{
+				var sanitized = value.Replace(' ', '_').TrimEnd('_');
+				_Name = $"{sanitized}_{FormattingUtils.ToSaving()}.txt";
+			}
 		}
 
 		/// <summary>

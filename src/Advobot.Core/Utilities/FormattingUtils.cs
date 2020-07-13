@@ -120,13 +120,16 @@ namespace Advobot.Utilities
 		public static string Format(this IMessage msg, bool withMentions)
 		{
 			var time = msg.CreatedAt.ToString("HH:mm:ss");
-			var channel = withMentions ? ((IMentionable)msg.Channel).Mention : $"`{msg.Channel.Format()}`";
-			var author = withMentions ? msg.Author.Mention : $"`{msg.Author.Format()}`";
 			var text = string.IsNullOrWhiteSpace(msg.Content)
-				? "Empty message content"
+				? "Empty"
 				: msg.Content.EscapeBackTicks();
-
-			var sb = new StringBuilder($"`[{time}]` {channel} {author} `{msg.Id}`\n```\n{text}");
+			var author = withMentions
+				? msg.Author.Mention
+				: $"{msg.Author.Format()}";
+			var channel = withMentions
+				? $"[Link]({msg.GetJumpUrl()})"
+				: $"{msg.Channel.Format()} ({msg.Id})";
+			var sb = new StringBuilder($"{author} {channel} `[{time}]`\n```{text}");
 
 			var currentEmbed = 1;
 			foreach (var embed in msg.Embeds)
