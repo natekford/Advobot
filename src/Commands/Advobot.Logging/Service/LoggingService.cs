@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 
 using Advobot.Logging.Database;
@@ -87,7 +88,16 @@ namespace Advobot.Logging.Service
 			{
 				ConsoleUtils.WriteLine(message.Message, name: message.Source);
 			}
-			message.Exception?.Write();
+
+			if (message.Exception is GatewayReconnectException)
+			{
+				ConsoleUtils.WriteLine("Gateway reconnection requested.", ConsoleColor.Yellow, message.Source);
+			}
+			else
+			{
+				message.Exception?.Write();
+			}
+
 			return Task.CompletedTask;
 		}
 	}
