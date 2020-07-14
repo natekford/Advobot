@@ -88,17 +88,17 @@ namespace Advobot
 		public async Task GetPathAndKeyAsync()
 		{
 			//Get the save path
-			var startup = true;
+			_Config.ValidatePath(null, true);
 			while (!_Config.ValidatedPath)
 			{
-				startup = _Config.ValidatePath(startup ? null : Console.ReadLine(), startup);
+				_Config.ValidatePath(Console.ReadLine(), false);
 			}
 
 			//Get the bot key
-			startup = true;
+			await _Config.ValidateBotKey(null, true, ClientUtils.RestartBotAsync).CAF();
 			while (!_Config.ValidatedKey)
 			{
-				startup = await _Config.ValidateBotKey(startup ? null : Console.ReadLine(), startup, ClientUtils.RestartBotAsync).CAF();
+				await _Config.ValidateBotKey(Console.ReadLine(), false, ClientUtils.RestartBotAsync).CAF();
 			}
 		}
 

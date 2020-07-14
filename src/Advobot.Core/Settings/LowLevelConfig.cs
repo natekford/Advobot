@@ -200,7 +200,8 @@ namespace Advobot.Settings
 			}
 			if ("appdata".CaseInsEquals(path))
 			{
-				path = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
+				var appdata = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
+				path = Path.Combine(appdata, "Advobot");
 			}
 			if (Directory.Exists(path))
 			{
