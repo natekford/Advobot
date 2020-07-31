@@ -45,7 +45,7 @@ namespace Advobot.Utilities
 		/// <returns></returns>
 		public async Task BanAsync(AmbiguousUser user, PunishmentArgs? args = null)
 		{
-			await Guild.AddBanAsync(user.Id, args?.Days ?? 1, null, args?.Options).CAF();
+			await Guild.AddBanAsync(user.Id, args?.Days ?? 1, args?.Options?.AuditLogReason, args?.Options).CAF();
 			await AfterGiveAsync(PunishmentType.Ban, user.Id, args).CAF();
 		}
 
@@ -93,7 +93,7 @@ namespace Advobot.Utilities
 		public async Task KickAsync(AmbiguousUser user, PunishmentArgs? args = null)
 		{
 			var retrieved = await user.GetAsync(Guild).CAF();
-			await retrieved.KickAsync(null, args?.Options).CAF();
+			await retrieved.KickAsync(args?.Options?.AuditLogReason, args?.Options).CAF();
 			await AfterGiveAsync(PunishmentType.Kick, retrieved, args).CAF();
 		}
 
