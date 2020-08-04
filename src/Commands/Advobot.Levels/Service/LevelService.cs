@@ -8,7 +8,6 @@ using System.Threading.Tasks;
 
 using Advobot.Levels.Database;
 using Advobot.Levels.Metadata;
-using Advobot.Services.GuildSettings;
 using Advobot.Services.Time;
 using Advobot.Utilities;
 

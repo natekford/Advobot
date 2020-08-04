@@ -1,5 +1,4 @@
 ﻿using System.Collections.Generic;
-using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 
 using Advobot.Attributes;
@@ -15,7 +14,6 @@ using Advobot.Settings.Resources;
 
 using AdvorangesUtils;
 
-using Discord;
 using Discord.Commands;
 
 namespace Advobot.Settings.Commands

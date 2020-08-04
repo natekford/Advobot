@@ -1,7 +1,5 @@
 ﻿using Advobot.Services.GuildSettings;
 
-using Discord.Commands;
-
 namespace Advobot.Modules
 {
 	/// <summary>

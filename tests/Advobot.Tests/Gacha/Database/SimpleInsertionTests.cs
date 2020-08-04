@@ -1,7 +1,6 @@
 using System.Linq;
 using System.Threading.Tasks;
 
-using Advobot.Gacha.Utilities;
 using Advobot.GachaTests.Utilities;
 
 using AdvorangesUtils;

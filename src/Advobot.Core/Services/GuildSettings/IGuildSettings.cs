@@ -1,11 +1,8 @@
 ﻿using System.Collections.Generic;
-using System.Threading.Tasks;
-using Advobot.Attributes;
+
 using Advobot.Services.GuildSettings.Settings;
 using Advobot.Services.GuildSettings.UserInformation;
 using Advobot.Settings;
-using Discord;
-using Discord.Commands;
 
 namespace Advobot.Services.GuildSettings
 {

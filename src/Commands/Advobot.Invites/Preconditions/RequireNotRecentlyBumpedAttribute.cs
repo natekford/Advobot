@@ -5,7 +5,6 @@ using Advobot.Invites.Service;
 using Advobot.Invites.Utilities;
 using Advobot.Services.HelpEntries;
 using Advobot.Services.Time;
-using Advobot.Utilities;
 
 using AdvorangesUtils;
 

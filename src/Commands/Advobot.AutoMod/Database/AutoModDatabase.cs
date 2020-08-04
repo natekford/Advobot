@@ -1,16 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Data;
 using System.Data.SQLite;
 using System.Threading.Tasks;
 
 using Advobot.AutoMod.Models;
 using Advobot.AutoMod.ReadOnlyModels;
 using Advobot.SQLite;
-
-using AdvorangesUtils;
-
-using Dapper;
 
 namespace Advobot.AutoMod.Database
 {

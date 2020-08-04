@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace Advobot.Interactivity
+﻿namespace Advobot.Interactivity
 {
 	/// <summary>
 	/// A result for interactivity.

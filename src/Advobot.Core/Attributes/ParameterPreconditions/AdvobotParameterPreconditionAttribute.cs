@@ -3,7 +3,6 @@ using System.Collections;
 using System.Threading.Tasks;
 
 using Advobot.Services.HelpEntries;
-using Advobot.Utilities;
 
 using AdvorangesUtils;
 

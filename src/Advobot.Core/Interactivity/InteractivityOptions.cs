@@ -1,7 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Threading;
+
 using Advobot.Interactivity.Criterions;
+
 using Discord;
 
 namespace Advobot.Interactivity

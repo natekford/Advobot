@@ -1,8 +1,10 @@
 ﻿using System;
 using System.Linq;
+
 using Advobot.Databases.Relationships;
 using Advobot.Invites.ReadOnlyModels;
 using Advobot.Utilities;
+
 using Discord;
 
 namespace Advobot.Invites.Models

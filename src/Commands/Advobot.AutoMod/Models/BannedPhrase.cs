@@ -2,6 +2,7 @@
 using Advobot.Databases.Relationships;
 using Advobot.Services.GuildSettings.Settings;
 using Advobot.Utilities;
+
 using AdvorangesUtils;
 
 namespace Advobot.AutoMod.Models
