@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Globalization;
 using System.Linq;
 
@@ -26,19 +27,28 @@ namespace Advobot.CommandAssemblies
 			get => _InstatiatorType;
 			set
 			{
-				if (value?.GetInterfaces().Contains(typeof(ICommandAssemblyInstantiator)) == false)
+				object i;
+				try
 				{
-					throw new ArgumentException($"{nameof(InstantiatorType)} must implement {nameof(ICommandAssemblyInstantiator)}");
+					i = Activator.CreateInstance(InstantiatorType);
 				}
-				_InstatiatorType = value;
+				catch
+				{
+					throw new ArgumentException("Must have a parameterless constructor.", nameof(InstantiatorType));
+				}
 
-				var instance = Activator.CreateInstance(InstantiatorType);
-				Instantiator = (ICommandAssemblyInstantiator)instance;
+				if (!(i is ICommandAssemblyInstantiator instantiator))
+				{
+					throw new ArgumentException($"Must implement {nameof(ICommandAssemblyInstantiator)}.", nameof(InstantiatorType));
+				}
+
+				_InstatiatorType = value;
+				Instantiator = instantiator;
 			}
 		}
 
 		/// <summary>
-		/// The cultures this command assembly can support.
+		/// The cultures this command assembly supports.
 		/// </summary>
 		public IReadOnlyList<CultureInfo> SupportedCultures { get; }
 
@@ -48,7 +58,7 @@ namespace Advobot.CommandAssemblies
 		/// <param name="supportedCultures"></param>
 		public CommandAssemblyAttribute(params string[] supportedCultures)
 		{
-			SupportedCultures = supportedCultures.Select(CultureInfo.GetCultureInfo).ToArray();
+			SupportedCultures = supportedCultures.Select(CultureInfo.GetCultureInfo).ToImmutableArray();
 		}
 	}
 }

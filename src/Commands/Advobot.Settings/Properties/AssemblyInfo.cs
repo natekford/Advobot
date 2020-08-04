@@ -11,7 +11,7 @@ using Advobot.CommandAssemblies;
 // associated with an assembly.
 [assembly: AssemblyCompany("Advorange")]
 [assembly: AssemblyConfiguration("")]
-[assembly: AssemblyCopyright("Copyright © 2019")]
+[assembly: AssemblyCopyright("Copyright © 2020")]
 [assembly: AssemblyDescription("Commands for changing the settings of Advobot.")]
 [assembly: AssemblyProduct("Advobot")]
 [assembly: AssemblyTitle("Advobot.Settings")]

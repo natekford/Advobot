@@ -6,7 +6,7 @@
     <Company>Advorange</Company>
     <Product>Advobot</Product>
     <Description>The core of Advobot. Classes, interfaces, and actions.</Description>
-    <Copyright>Copyright © 2019</Copyright>
+    <Copyright>Copyright © 2020</Copyright>
     <PackageProjectUrl>https://github.com/advorange/Advobot</PackageProjectUrl>
     <RepositoryUrl>https://github.com/advorange/Advobot</RepositoryUrl>
     <NeutralLanguage>English</NeutralLanguage>

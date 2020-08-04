@@ -9,7 +9,7 @@ using Advobot;
 // associated with an assembly.
 [assembly: AssemblyCompany("Advorange")]
 [assembly: AssemblyConfiguration("")]
-[assembly: AssemblyCopyright("Copyright © 2019")]
+[assembly: AssemblyCopyright("Copyright © 2020")]
 [assembly: AssemblyDescription("Unit tests for Advobot.")]
 [assembly: AssemblyProduct("Advobot")]
 [assembly: AssemblyTitle("Advobot.Tests")]

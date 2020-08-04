@@ -161,7 +161,7 @@ namespace Advobot
 				AutomaticDecompression = DecompressionMethods.GZip | DecompressionMethods.Deflate,
 			});
 
-			var s = new ServiceCollection()
+			var collection = new ServiceCollection()
 				.AddSingleton(commandConfig)
 				.AddSingleton(discordClient)
 				.AddSingleton(httpClient)
@@ -183,32 +183,32 @@ namespace Advobot
 			{
 				//-DatabaseType LiteDB (or no arguments supplied at all)
 				case DatabaseType.LiteDB:
-					s.AddSingleton<IDatabaseWrapperFactory, LiteDBWrapperFactory>();
+					collection.AddSingleton<IDatabaseWrapperFactory, LiteDBWrapperFactory>();
 					break;
 				//-DatabaseType MongoDB -DatabaseConnectionString "mongodb://localhost:27017"
 				case DatabaseType.MongoDB:
-					s.AddSingleton<IDatabaseWrapperFactory, MongoDBWrapperFactory>();
-					s.AddSingleton<IMongoClient>(_ => new MongoClient(config.DatabaseConnectionString));
+					collection.AddSingleton<IDatabaseWrapperFactory, MongoDBWrapperFactory>();
+					collection.AddSingleton<IMongoClient>(_ => new MongoClient(config.DatabaseConnectionString));
 					break;
 			}
 
 			foreach (var assembly in assemblies.Assemblies)
 			{
-				if (assembly.Attribute.Instantiator != null)
+				if (assembly.Instantiator != null)
 				{
-					await assembly.Attribute.Instantiator.AddServicesAsync(s).CAF();
+					await assembly.Instantiator.AddServicesAsync(collection).CAF();
 				}
 			}
 
-			var services = s.BuildServiceProvider();
-			foreach (var service in s)
+			var provider = collection.BuildServiceProvider();
+			foreach (var service in collection)
 			{
 				if (service.Lifetime != ServiceLifetime.Singleton)
 				{
 					continue;
 				}
 
-				var instance = services.GetRequiredService(service.ServiceType);
+				var instance = provider.GetRequiredService(service.ServiceType);
 				if (instance is IUsesDatabase usesDb)
 				{
 					usesDb.Start();
@@ -217,13 +217,13 @@ namespace Advobot
 
 			foreach (var assembly in assemblies.Assemblies)
 			{
-				if (assembly.Attribute.Instantiator != null)
+				if (assembly.Instantiator != null)
 				{
-					await assembly.Attribute.Instantiator.ConfigureServicesAsync(services).CAF();
+					await assembly.Instantiator.ConfigureServicesAsync(provider).CAF();
 				}
 			}
 
-			return services;
+			return provider;
 		}
 
 		private async Task<IServiceProvider> GetServicesAsync(CommandAssemblyCollection assemblies)

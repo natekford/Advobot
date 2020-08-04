@@ -1,4 +1,6 @@
-﻿using System.Reflection;
+﻿using System.Collections.Generic;
+using System.Globalization;
+using System.Reflection;
 
 namespace Advobot.CommandAssemblies
 {
@@ -10,12 +12,17 @@ namespace Advobot.CommandAssemblies
 		/// <summary>
 		/// The assembly marked as a command assembly.
 		/// </summary>
-		public readonly Assembly Assembly;
+		public Assembly Assembly { get; }
 
 		/// <summary>
-		/// The attribute marking it as a command assembly.
+		/// The instantiator to use for this command assembly.
 		/// </summary>
-		public readonly CommandAssemblyAttribute Attribute;
+		public ICommandAssemblyInstantiator? Instantiator { get; }
+
+		/// <summary>
+		/// The cultures this command assembly supports.
+		/// </summary>
+		public IReadOnlyList<CultureInfo> SupportedCultures { get; }
 
 		/// <summary>
 		/// Creates an instance of <see cref="CommandAssembly"/>.
@@ -25,7 +32,8 @@ namespace Advobot.CommandAssemblies
 		public CommandAssembly(Assembly assembly, CommandAssemblyAttribute attribute)
 		{
 			Assembly = assembly;
-			Attribute = attribute;
+			Instantiator = attribute.Instantiator;
+			SupportedCultures = attribute.SupportedCultures;
 		}
 	}
 }

@@ -112,7 +112,7 @@ namespace Advobot.Services.Commands
 			foreach (var assembly in assemblies)
 			{
 				var typeReaders = TypeReaderInfo.Create(assembly.Assembly).Concat(defaultTr);
-				foreach (var culture in assembly.Attribute.SupportedCultures)
+				foreach (var culture in assembly.SupportedCultures)
 				{
 					CultureInfo.CurrentUICulture = culture;
 
