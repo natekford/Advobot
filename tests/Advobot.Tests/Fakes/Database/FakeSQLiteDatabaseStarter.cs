@@ -2,32 +2,36 @@
 using System.IO;
 using System.Threading.Tasks;
 
-using Advobot.Databases.AbstractSQL;
+using Advobot.Gacha.Database;
+using Advobot.Invites.Database;
+using Advobot.Levels.Database;
+using Advobot.Logging.Database;
 
 namespace Advobot.Tests.Fakes.Database
 {
-	public abstract class FakeSQLiteDatabaseStarter : IDatabaseStarter
+	public sealed class FakeSQLiteDatabaseStarter :
+		ILevelDatabaseStarter,
+		ILoggingDatabaseStarter,
+		INotificationDatabaseStarter,
+		IInviteDatabaseStarter,
+		IGachaDatabaseStarter
 	{
+		private readonly string Id = Guid.NewGuid().ToString();
+
 		/// <inheritdoc />
-		public virtual Task EnsureCreatedAsync()
+		public Task EnsureCreatedAsync()
 		{
 			var location = GetLocation();
 			Directory.CreateDirectory(Path.GetDirectoryName(location));
-			if (File.Exists(location))
-			{
-				File.Delete(location);
-			}
 			using (File.Create(location)) { }
 			return Task.CompletedTask;
 		}
 
 		/// <inheritdoc />
-		public virtual string GetConnectionString()
+		public string GetConnectionString()
 			=> $"Data Source={GetLocation()}";
 
-		public abstract string GetDbFileName();
-
 		private string GetLocation()
-			=> Path.Combine(Environment.CurrentDirectory, "TestDatabases", GetDbFileName());
+			=> Path.Combine(Environment.CurrentDirectory, "TestDatabases", $"{Id}.db");
 	}
 }

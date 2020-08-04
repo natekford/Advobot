@@ -1,14 +1,13 @@
 ﻿using System.Collections.Generic;
 using System.Threading.Tasks;
 
-using Advobot.Databases.AbstractSQL;
 using Advobot.Gacha.Metadata;
 using Advobot.Gacha.ReadOnlyModels;
 using Advobot.Gacha.Trading;
 
 namespace Advobot.Gacha.Database
 {
-	public interface IGachaDatabase : IDatabase
+	public interface IGachaDatabase
 	{
 		CloseIds CharacterIds { get; }
 		CloseIds SourceIds { get; }

@@ -5,11 +5,12 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-using Advobot.Databases.AbstractSQL;
 using Advobot.Levels.Metadata;
 using Advobot.Levels.Models;
 using Advobot.Levels.ReadOnlyModels;
 using Advobot.Levels.Utilities;
+using Advobot.SQLite;
+
 using AdvorangesUtils;
 
 using Dapper;
@@ -36,55 +37,6 @@ namespace Advobot.Levels.Database
 				ChannelId = x.ToString()
 			});
 			return await BulkModifyAsync(SQL, @params).CAF();
-		}
-
-		public override async Task<IReadOnlyList<string>> CreateDatabaseAsync()
-		{
-			await Starter.EnsureCreatedAsync().CAF();
-
-			using var connection = await GetConnectionAsync().CAF();
-
-			//User
-			await connection.ExecuteAsync(@"
-			CREATE TABLE IF NOT EXISTS User
-			(
-				GuildId						TEXT NOT NULL,
-				ChannelId					TEXT NOT NULL,
-				UserId						TEXT NOT NULL,
-				Experience					INTEGER NOT NULL,
-				MessageCount				INTEGER NOT NULL,
-				PRIMARY KEY(GuildId, ChannelId, UserId)
-			);
-			CREATE INDEX IF NOT EXISTS User_GuildId_ChannelId_Index ON User
-			(
-				GuildId,
-				ChannelId
-			);
-			CREATE INDEX IF NOT EXISTS User_GuildId_Index ON User
-			(
-				GuildId
-			);
-			CREATE INDEX IF NOT EXISTS User_ChannelId_Index ON User
-			(
-				ChannelId
-			);
-			").CAF();
-
-			//Ignored channel
-			await connection.ExecuteAsync(@"
-			CREATE TABLE IF NOT EXISTS IgnoredChannel
-			(
-				GuildId						TEXT NOT NULL,
-				ChannelId					TEXT NOT NULL,
-				PRIMARY KEY(GuildId, ChannelId)
-			);
-			CREATE INDEX IF NOT EXISTS IgnoredChannel_GuildId_Index ON IgnoredChannel
-			(
-				GuildId
-			);
-			").CAF();
-
-			return await connection.GetTableNames((c, sql) => c.QueryAsync<string>(sql)).CAF();
 		}
 
 		public async Task<int> DeleteIgnoredChannelsAsync(ulong guildId, IEnumerable<ulong> channels)
@@ -220,13 +172,6 @@ namespace Advobot.Levels.Database
 				WHERE UserId = @UserId AND GuildId = @GuildId AND ChannelId = @ChannelId
 			", user).CAF();
 		}
-
-		protected override Task<int> BulkModifyAsync<TParams>(
-			IDbConnection connection,
-			string sql,
-			IEnumerable<TParams> @params,
-			IDbTransaction transaction)
-			=> connection.ExecuteAsync(sql, @params, transaction);
 
 		private void AppendWhereStatement(StringBuilder sb, object? value, string name)
 		{

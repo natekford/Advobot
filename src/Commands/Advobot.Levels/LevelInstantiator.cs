@@ -4,8 +4,7 @@ using System.Threading.Tasks;
 using Advobot.CommandAssemblies;
 using Advobot.Levels.Database;
 using Advobot.Levels.Service;
-
-using AdvorangesUtils;
+using Advobot.SQLite;
 
 using Microsoft.Extensions.DependencyInjection;
 
@@ -20,16 +19,18 @@ namespace Advobot.Levels
 				.AddSingleton<LevelDatabase>()
 				.AddSingleton<ILevelService, LevelService>()
 				.AddSingleton<ILevelDatabaseStarter, LevelDatabaseStarter>();
+
 			return Task.CompletedTask;
 		}
 
-		public async Task ConfigureServicesAsync(IServiceProvider services)
+		public Task ConfigureServicesAsync(IServiceProvider services)
 		{
-			var db = services.GetRequiredService<LevelDatabase>();
-			await db.CreateDatabaseAsync().CAF();
+			services.GetRequiredService<ILevelDatabaseStarter>().MigrateUp();
 
-			//Needed to instantiate the level service
+			// Needed to instantiate the level service
 			services.GetRequiredService<ILevelService>();
+
+			return Task.CompletedTask;
 		}
 	}
 }

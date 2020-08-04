@@ -8,6 +8,7 @@ using Advobot.Gacha.Database;
 using Advobot.Gacha.Displays;
 using Advobot.Gacha.Interaction;
 using Advobot.Gacha.Trading;
+using Advobot.SQLite;
 
 using AdvorangesUtils;
 
@@ -27,13 +28,19 @@ namespace Advobot.Gacha
 				.AddSingleton<IGachaDatabaseStarter, GachaDatabaseStarter>()
 				.AddSingleton<ICounterService, CounterService>()
 				.AddSingleton<ITokenHolderService, TokenHolderService>();
+
 			return Task.CompletedTask;
 		}
 
 		public async Task ConfigureServicesAsync(IServiceProvider services)
 		{
+			services.GetRequiredService<IGachaDatabaseStarter>().MigrateUp();
+
 			var db = services.GetRequiredService<IGachaDatabase>();
-			await db.CreateDatabaseAsync().CAF();
+			if (db is GachaDatabase gdb)
+			{
+				await gdb.CacheNamesAsync().CAF();
+			}
 		}
 	}
 }

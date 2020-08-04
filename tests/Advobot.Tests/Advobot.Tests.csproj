@@ -21,6 +21,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\src\Advobot.Core\Advobot.Core.csproj" />
+    <ProjectReference Include="..\..\src\Advobot.SQLite\Advobot.SQLite.csproj" />
     <ProjectReference Include="..\..\src\Commands\Advobot.AllCommands\Advobot.AllCommands.csproj" />
   </ItemGroup>
 

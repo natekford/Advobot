@@ -218,6 +218,6 @@ namespace Advobot
 		}
 
 		private async Task<IServiceProvider> GetServicesAsync(CommandAssemblyCollection assemblies)
-			=> _Services ?? (_Services = await CreateServicesAsync(assemblies, _Config).CAF());
+			=> _Services ??= await CreateServicesAsync(assemblies, _Config).CAF();
 	}
 }

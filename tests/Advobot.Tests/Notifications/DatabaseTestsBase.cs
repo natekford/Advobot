@@ -3,6 +3,7 @@ using System.Threading.Tasks;
 
 using Advobot.Logging.Database;
 using Advobot.Services.Time;
+using Advobot.SQLite;
 using Advobot.Tests.Fakes.Database;
 
 using AdvorangesUtils;
@@ -22,20 +23,17 @@ namespace Advobot.Tests.Notifications
 		{
 			Services = new ServiceCollection()
 				.AddSingleton<NotificationDatabase>()
-				.AddSingleton<INotificationDatabaseStarter, FakeLoggingDatabaseStarter>()
+				.AddSingleton<INotificationDatabaseStarter, FakeSQLiteDatabaseStarter>()
 				.BuildServiceProvider();
 		}
 
 		protected async Task<NotificationDatabase> GetDatabaseAsync()
 		{
-			var db = Services.GetRequiredService<NotificationDatabase>();
-			await db.CreateDatabaseAsync().CAF();
-			return db;
-		}
+			var starter = Services.GetRequiredService<INotificationDatabaseStarter>();
+			await starter.EnsureCreatedAsync().CAF();
+			starter.MigrateUp();
 
-		private sealed class FakeLoggingDatabaseStarter : FakeSQLiteDatabaseStarter, INotificationDatabaseStarter
-		{
-			public override string GetDbFileName() => "Notifications.db";
+			return Services.GetRequiredService<NotificationDatabase>();
 		}
 	}
 }

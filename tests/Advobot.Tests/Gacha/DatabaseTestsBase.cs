@@ -6,6 +6,7 @@ using Advobot.Gacha.Database;
 using Advobot.Gacha.ReadOnlyModels;
 using Advobot.GachaTests.Utilities;
 using Advobot.Services.Time;
+using Advobot.SQLite;
 using Advobot.Tests.Fakes.Database;
 
 using AdvorangesUtils;
@@ -26,7 +27,7 @@ namespace Advobot.Tests.Gacha
 			Services = new ServiceCollection()
 				.AddSingleton<IGachaDatabase, GachaDatabase>()
 				.AddSingleton<ITime, DefaultTime>()
-				.AddSingleton<IGachaDatabaseStarter, FakeGachaDatabaseStarter>()
+				.AddSingleton<IGachaDatabaseStarter, FakeSQLiteDatabaseStarter>()
 				.BuildServiceProvider();
 		}
 
@@ -56,14 +57,11 @@ namespace Advobot.Tests.Gacha
 
 		protected async Task<IGachaDatabase> GetDatabaseAsync()
 		{
-			var db = Services.GetRequiredService<IGachaDatabase>();
-			await db.CreateDatabaseAsync().CAF();
-			return db;
-		}
+			var starter = Services.GetRequiredService<IGachaDatabaseStarter>();
+			await starter.EnsureCreatedAsync().CAF();
+			starter.MigrateUp();
 
-		private sealed class FakeGachaDatabaseStarter : FakeSQLiteDatabaseStarter, IGachaDatabaseStarter
-		{
-			public override string GetDbFileName() => "Gacha.db";
+			return Services.GetRequiredService<IGachaDatabase>();
 		}
 	}
 }

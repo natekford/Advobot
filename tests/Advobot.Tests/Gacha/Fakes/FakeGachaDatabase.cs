@@ -7,6 +7,7 @@ using Advobot.Gacha.Database;
 using Advobot.Gacha.Metadata;
 using Advobot.Gacha.ReadOnlyModels;
 using Advobot.Gacha.Trading;
+
 using AdvorangesUtils;
 
 namespace Advobot.Tests.Gacha.Fakes
@@ -75,8 +76,6 @@ namespace Advobot.Tests.Gacha.Fakes
 		public Task<int> AddUsersAsync(IEnumerable<IReadOnlyUser> users) => throw new NotImplementedException();
 
 		public Task AddWishAsync(IReadOnlyWish wish) => throw new NotImplementedException();
-
-		public Task<IReadOnlyList<string>> CreateDatabaseAsync() => throw new NotImplementedException();
 
 		public Task<IReadOnlyCharacter> GetCharacterAsync(long id) => throw new NotImplementedException();
 

@@ -24,7 +24,7 @@ namespace Advobot.Tests.Fakes.Discord
 			guild.FakeRoles.Add(this);
 		}
 
-		public int CompareTo(IRole other) => throw new NotImplementedException();
+		public int CompareTo(IRole? other) => throw new NotImplementedException();
 
 		public Task DeleteAsync(RequestOptions options = null)
 		{

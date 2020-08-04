@@ -1,12 +1,11 @@
 ﻿using System.Collections.Generic;
-using System.Data;
 using System.Data.SQLite;
 using System.Linq;
 using System.Threading.Tasks;
 
-using Advobot.Databases.AbstractSQL;
 using Advobot.Invites.Models;
 using Advobot.Invites.ReadOnlyModels;
+using Advobot.SQLite;
 
 using AdvorangesUtils;
 
@@ -53,47 +52,6 @@ namespace Advobot.Invites.Database
 				( @GuildId, @Word )
 			";
 			return BulkModifyAsync(SQL, keywords);
-		}
-
-		public override async Task<IReadOnlyList<string>> CreateDatabaseAsync()
-		{
-			await Starter.EnsureCreatedAsync().CAF();
-
-			using var connection = await GetConnectionAsync().CAF();
-
-			//Invite
-			await connection.ExecuteAsync(@"
-			CREATE TABLE IF NOT EXISTS Invite
-			(
-				GuildId						TEXT NOT NULL,
-				Code						TEXT NOT NULL,
-				Name						TEXT NOT NULL,
-				HasGlobalEmotes				INTEGER NOT NULL,
-				LastBumped					INTEGER NOT NULL,
-				MemberCount					INTEGER NOT NULL,
-				PRIMARY KEY(GuildId)
-			);
-			").CAF();
-
-			//Keyword
-			await connection.ExecuteAsync(@"
-			CREATE TABLE IF NOT EXISTS Keyword
-			(
-				GuildId						TEXT NOT NULL,
-				Word						TEXT NOT NULL COLLATE NOCASE,
-				PRIMARY KEY(GuildId, Word)
-			);
-			CREATE INDEX IF NOT EXISTS Keyword_GuildId ON Keyword
-			(
-				GuildId
-			);
-			CREATE INDEX IF NOT EXISTS Keyword_Word ON Keyword
-			(
-				Word
-			);
-			").CAF();
-
-			return await connection.GetTableNames((c, sql) => c.QueryAsync<string>(sql)).CAF();
 		}
 
 		public async Task DeleteInviteAsync(ulong guildId)
@@ -184,12 +142,5 @@ namespace Advobot.Invites.Database
 				WHERE GuildId = @GuildId
 			", invite).CAF();
 		}
-
-		protected override Task<int> BulkModifyAsync<TParams>(
-			IDbConnection connection,
-			string sql,
-			IEnumerable<TParams> @params,
-			IDbTransaction transaction)
-			=> connection.ExecuteAsync(sql, @params, transaction);
 	}
 }

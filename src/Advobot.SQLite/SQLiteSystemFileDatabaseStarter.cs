@@ -3,7 +3,7 @@ using System.Threading.Tasks;
 
 using Advobot.Settings;
 
-namespace Advobot.Databases.AbstractSQL
+namespace Advobot.SQLite
 {
 	/// <summary>
 	/// Used for starting a SQLite database from a system file.

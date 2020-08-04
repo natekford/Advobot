@@ -2,12 +2,19 @@
 using System.Collections.Generic;
 using System.Data;
 using System.Data.Common;
+using System.Data.SQLite;
 using System.Linq;
 using System.Threading.Tasks;
 
 using AdvorangesUtils;
 
-namespace Advobot.Databases.AbstractSQL
+using Dapper;
+
+using FluentMigrator.Runner;
+
+using Microsoft.Extensions.DependencyInjection;
+
+namespace Advobot.SQLite
 {
 	/// <summary>
 	/// Utilities for SQLite.
@@ -15,24 +22,27 @@ namespace Advobot.Databases.AbstractSQL
 	public static class SQLiteUtils
 	{
 		/// <summary>
-		/// Executes a SQL statement in bulk.
+		/// Runs all migrations which have not been run yet.
 		/// </summary>
 		/// <typeparam name="T"></typeparam>
 		/// <param name="starter"></param>
-		/// <param name="query"></param>
-		/// <returns></returns>
-		public static async Task<int> BulkModify<T>(
-			this IDatabaseStarter starter,
-			Func<IDbConnection, IDbTransaction, Task<int>> query)
-			where T : DbConnection, new()
+		public static void MigrateUp<T>(this T starter) where T : IDatabaseStarter
 		{
-			//Use a transaction to make bulk modifying way faster in SQLite
-			using var connection = await starter.GetConnectionAsync<T>().CAF();
-			using var transaction = await connection.BeginTransactionAsync().CAF();
-
-			var affectedRowCount = await query.Invoke(connection, transaction).CAF();
-			transaction.Commit();
-			return affectedRowCount;
+			new ServiceCollection()
+				.AddFluentMigratorCore()
+				.ConfigureRunner(x =>
+				{
+					x
+					.AddSQLite()
+					.WithGlobalConnectionString(starter.GetConnectionString())
+					.ScanIn(typeof(T).Assembly).For.Migrations();
+				})
+#if DEBUG
+				.AddLogging(x => x.AddFluentMigratorConsole())
+#endif
+				.BuildServiceProvider(false)
+				.GetRequiredService<IMigrationRunner>()
+				.MigrateUp();
 		}
 
 		/// <summary>
@@ -59,15 +69,13 @@ namespace Advobot.Databases.AbstractSQL
 		/// <param name="query"></param>
 		/// <returns></returns>
 		public static async Task<IReadOnlyList<string>> GetTableNames(
-			this IDbConnection connection,
-			Func<IDbConnection, string, Task<IEnumerable<string>>> query)
+			this SQLiteConnection connection)
 		{
-			const string SQL = @"
+			var result = await connection.QueryAsync<string>(@"
 				SELECT name FROM sqlite_master
 				WHERE type='table'
 				ORDER BY name;
-			";
-			var result = await query.Invoke(connection, SQL).CAF();
+			").CAF();
 			return result.ToArray();
 		}
 	}

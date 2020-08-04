@@ -5,9 +5,9 @@ using System.Data.SQLite;
 using System.Linq;
 using System.Threading.Tasks;
 
-using Advobot.Databases.AbstractSQL;
 using Advobot.Logging.Models;
 using Advobot.Logging.ReadOnlyModels;
+using Advobot.SQLite;
 
 using AdvorangesUtils;
 
@@ -17,10 +17,6 @@ namespace Advobot.Logging.Database
 {
 	public sealed class LoggingDatabase : DatabaseBase<SQLiteConnection>
 	{
-		private const string ImageLogId = "ImageLogId";
-		private const string ModLogId = "ModLogId";
-		private const string ServerLogId = "ServerLogId";
-
 		public LoggingDatabase(ILoggingDatabaseStarter starter) : base(starter)
 		{
 		}
@@ -55,55 +51,6 @@ namespace Advobot.Logging.Database
 				Action = x.ToString()
 			});
 			return await BulkModifyAsync(SQL, @params).CAF();
-		}
-
-		public override async Task<IReadOnlyList<string>> CreateDatabaseAsync()
-		{
-			await Starter.EnsureCreatedAsync().CAF();
-
-			using var connection = await GetConnectionAsync().CAF();
-
-			//Log channels
-			await connection.ExecuteAsync($@"
-			CREATE TABLE IF NOT EXISTS LogChannel
-			(
-				GuildId						TEXT NOT NULL,
-				{ImageLogId}				TEXT,
-				{ModLogId}					TEXT,
-				{ServerLogId}				TEXT,
-				PRIMARY KEY(GuildId)
-			);
-			").CAF();
-
-			//Log action
-			await connection.ExecuteAsync(@"
-			CREATE TABLE IF NOT EXISTS LogAction
-			(
-				GuildId						TEXT NOT NULL,
-				Action						TEXT NOT NULL,
-				PRIMARY KEY(GuildId, Action)
-			);
-			CREATE INDEX IF NOT EXISTS LogAction_GuildId_Index ON LogAction
-			(
-				GuildId
-			);
-			").CAF();
-
-			//Ignored channel
-			await connection.ExecuteAsync(@"
-			CREATE TABLE IF NOT EXISTS IgnoredChannel
-			(
-				GuildId						TEXT NOT NULL,
-				ChannelId					TEXT NOT NULL,
-				PRIMARY KEY(GuildId, ChannelId)
-			);
-			CREATE INDEX IF NOT EXISTS IgnoredChannel_GuildId_Index ON IgnoredChannel
-			(
-				GuildId
-			);
-			").CAF();
-
-			return await connection.GetTableNames((c, sql) => c.QueryAsync<string>(sql)).CAF();
 		}
 
 		public async Task<int> DeleteIgnoredChannelsAsync(ulong guildId, IEnumerable<ulong> channels)
@@ -189,18 +136,11 @@ namespace Advobot.Logging.Database
 			", param).CAF();
 		}
 
-		protected override Task<int> BulkModifyAsync<TParams>(
-			IDbConnection connection,
-			string sql,
-			IEnumerable<TParams> @params,
-			IDbTransaction transaction)
-			=> connection.ExecuteAsync(sql, @params, transaction);
-
 		private string GetLogName(Log log) => log switch
 		{
-			Log.Image => ImageLogId,
-			Log.Mod => ModLogId,
-			Log.Server => ServerLogId,
+			Log.Image => "ImageLogId",
+			Log.Mod => "ModLogId",
+			Log.Server => "ServerLogId",
 			_ => throw new ArgumentOutOfRangeException(nameof(log))
 		};
 	}

@@ -5,6 +5,7 @@ using Advobot.Invites.Database;
 using Advobot.Invites.Models;
 using Advobot.Invites.ReadOnlyModels;
 using Advobot.Services.Time;
+using Advobot.SQLite;
 using Advobot.Tests.Fakes.Database;
 using Advobot.Tests.Fakes.Discord;
 using Advobot.Tests.Fakes.Discord.Channels;
@@ -28,7 +29,7 @@ namespace Advobot.Tests.Invites
 			Services = new ServiceCollection()
 				.AddSingleton<InviteDatabase>()
 				.AddSingleton<ITime, DefaultTime>()
-				.AddSingleton<IInviteDatabaseStarter, FakeInviteDatabaseStarter>()
+				.AddSingleton<IInviteDatabaseStarter, FakeSQLiteDatabaseStarter>()
 				.BuildServiceProvider();
 		}
 
@@ -44,14 +45,11 @@ namespace Advobot.Tests.Invites
 
 		protected async Task<InviteDatabase> GetDatabaseAsync()
 		{
-			var db = Services.GetRequiredService<InviteDatabase>();
-			await db.CreateDatabaseAsync().CAF();
-			return db;
-		}
+			var starter = Services.GetRequiredService<IInviteDatabaseStarter>();
+			await starter.EnsureCreatedAsync().CAF();
+			starter.MigrateUp();
 
-		private sealed class FakeInviteDatabaseStarter : FakeSQLiteDatabaseStarter, IInviteDatabaseStarter
-		{
-			public override string GetDbFileName() => "Invites.db";
+			return Services.GetRequiredService<InviteDatabase>();
 		}
 	}
 }

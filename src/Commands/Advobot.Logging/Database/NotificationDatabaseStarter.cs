@@ -1,5 +1,5 @@
-﻿using Advobot.Databases.AbstractSQL;
-using Advobot.Settings;
+﻿using Advobot.Settings;
+using Advobot.SQLite;
 using Advobot.Utilities;
 
 namespace Advobot.Logging.Database

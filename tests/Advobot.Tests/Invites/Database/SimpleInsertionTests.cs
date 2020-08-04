@@ -24,7 +24,11 @@ namespace Advobot.Tests.Invites.Database
 			await db.AddInviteAsync(Invite).CAF();
 
 			var retrieved = await db.GetInviteAsync(Guild.Id).CAF()!;
-			Assert.IsNotNull(retrieved);
+			if (retrieved is null)
+			{
+				Assert.IsNotNull(retrieved);
+				return;
+			}
 			Assert.AreEqual(Invite.GuildId, retrieved.GuildId);
 			Assert.AreEqual(Invite.Code, retrieved.Code);
 			Assert.AreEqual(Invite.HasGlobalEmotes, retrieved.HasGlobalEmotes);

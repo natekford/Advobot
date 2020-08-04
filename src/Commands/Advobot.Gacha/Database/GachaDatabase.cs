@@ -4,13 +4,13 @@ using System.Data.SQLite;
 using System.Linq;
 using System.Threading.Tasks;
 
-using Advobot.Databases.AbstractSQL;
 using Advobot.Gacha.Metadata;
 using Advobot.Gacha.Models;
 using Advobot.Gacha.ReadOnlyModels;
 using Advobot.Gacha.Trading;
 using Advobot.Gacha.Utilities;
 using Advobot.Services.Time;
+using Advobot.SQLite;
 
 using AdvorangesUtils;
 
@@ -131,143 +131,9 @@ namespace Advobot.Gacha.Database
 		public Task AddWishAsync(IReadOnlyWish wish)
 			=> InsertAsync(INSERT_WISH, wish);
 
-		public override async Task<IReadOnlyList<string>> CreateDatabaseAsync()
+		public async Task CacheNamesAsync()
 		{
-			await Starter.EnsureCreatedAsync().CAF();
-
 			using var connection = await GetConnectionAsync().CAF();
-
-			//Source
-			await connection.ExecuteAsync(@"
-			CREATE TABLE IF NOT EXISTS Source
-			(
-				SourceId					INTEGER NOT NULL PRIMARY KEY,
-				Name						TEXT NOT NULL,
-				ThumbnailUrl				TEXT
-			);
-			CREATE UNIQUE INDEX IF NOT EXISTS Source_Name_Index ON Source
-			(
-				Name
-			);
-			").CAF();
-
-			//Character
-			await connection.ExecuteAsync(@"
-			CREATE TABLE IF NOT EXISTS Character
-			(
-				CharacterId					INTEGER NOT NULL PRIMARY KEY,
-				SourceId					INTEGER NOT NULL,
-				Name						TEXT NOT NULL,
-				GenderIcon					TEXT NOT NULL,
-				Gender						INTEGER NOT NULL,
-				RollType					INTEGER NOT NULL,
-				FlavorText					TEXT,
-				IsFakeCharacter				INTEGER NOT NULL,
-				FOREIGN KEY(SourceId) REFERENCES Source(SourceId) ON DELETE CASCADE
-			);
-			CREATE INDEX IF NOT EXISTS Character_SourceId_Index ON Character
-			(
-				SourceId
-			);
-			CREATE INDEX IF NOT EXISTS Character_Name_Index ON Character
-			(
-				Name
-			);
-			CREATE INDEX IF NOT EXISTS Character_Gender_Index ON Character
-			(
-				Gender
-			);
-			").CAF();
-
-			//Alias
-			await connection.ExecuteAsync(@"
-			CREATE TABLE IF NOT EXISTS Alias
-			(
-				CharacterId					INTEGER NOT NULL,
-				Name						TEXT NOT NULL,
-				IsSpoiler					INTEGER NOT NULL,
-				PRIMARY KEY(CharacterId, Name)
-				FOREIGN KEY(CharacterId) REFERENCES Character(CharacterId) ON DELETE CASCADE
-			);
-			CREATE INDEX IF NOT EXISTS Alias_CharacterId_Index ON Alias
-			(
-				CharacterId
-			);
-			").CAF();
-
-			//Image
-			await connection.ExecuteAsync(@"
-			CREATE TABLE IF NOT EXISTS Image
-			(
-				CharacterId					INTEGER NOT NULL,
-				Url							TEXT NOT NULL,
-				PRIMARY KEY(CharacterId, Url),
-				FOREIGN KEY(CharacterId) REFERENCES Character(CharacterId) ON DELETE CASCADE
-			);
-			CREATE INDEX IF NOT EXISTS Image_CharacterId_Index ON Image
-			(
-				CharacterId
-			);
-			").CAF();
-
-			//User
-			await connection.ExecuteAsync(@"
-			CREATE TABLE IF NOT EXISTS User
-			(
-				GuildId						TEXT NOT NULL,
-				UserId						TEXT NOT NULL,
-				PRIMARY KEY(GuildId, UserId)
-			);
-			").CAF();
-
-			//Claim
-			await connection.ExecuteAsync(@"
-			CREATE TABLE IF NOT EXISTS Claim
-			(
-				ClaimId						INTEGER NOT NULL,
-				GuildId						TEXT NOT NULL,
-				UserId						TEXT NOT NULL,
-				CharacterId					INTEGER NOT NULL,
-				ImageUrl					TEXT,
-				IsPrimaryClaim				INTEGER NOT NULL,
-				PRIMARY KEY(GuildId, CharacterId)
-			);
-			CREATE INDEX IF NOT EXISTS Claim_GuildId_Index ON Claim
-			(
-				GuildId
-			);
-			CREATE INDEX IF NOT EXISTS Claim_GuildId_UserId_Index ON Claim
-			(
-				GuildId,
-				UserId
-			);
-			").CAF();
-
-			//Wish
-			await connection.ExecuteAsync(@"
-			CREATE TABLE IF NOT EXISTS Wish
-			(
-				WishId						INTEGER NOT NULL,
-				GuildId						TEXT NOT NULL,
-				UserId						TEXT NOT NULL,
-				CharacterId					INTEGER NOT NULL,
-				PRIMARY KEY(GuildId, UserId, CharacterId)
-			);
-			CREATE INDEX IF NOT EXISTS Wish_GuildId_Index ON Wish
-			(
-				GuildId
-			);
-			CREATE INDEX IF NOT EXISTS Wish_GuildId_UserId_Index ON Wish
-			(
-				GuildId,
-				UserId
-			);
-			CREATE INDEX IF NOT EXISTS Wish_GuildId_CharacterId_Index ON Wish
-			(
-				GuildId,
-				CharacterId
-			);
-			").CAF();
 
 			//Cache sources/characters for similar name checking
 			foreach (var source in await connection.QueryAsync<Source>(@"
@@ -284,8 +150,6 @@ namespace Advobot.Gacha.Database
 			{
 				CharacterIds.Add(character.CharacterId, character.Name);
 			}
-
-			return await connection.GetTableNames((c, sql) => c.QueryAsync<string>(sql)).CAF();
 		}
 
 		public async Task<IReadOnlyCharacter> GetCharacterAsync(long id)
@@ -513,13 +377,6 @@ namespace Advobot.Gacha.Database
 				WHERE GuildId = @GuildId AND UserId = @UserId AND CharacterId = @CharacterId
 			", param).CAF();
 		}
-
-		protected override Task<int> BulkModifyAsync<TParams>(
-			IDbConnection connection,
-			string sql,
-			IEnumerable<TParams> @params,
-			IDbTransaction transaction)
-			=> connection.ExecuteAsync(sql, @params, transaction);
 
 		private async Task<IReadOnlyList<T>> GetManyAsync<T>(string sql, object? param)
 		{

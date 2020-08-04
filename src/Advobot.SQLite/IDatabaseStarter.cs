@@ -1,6 +1,6 @@
 ﻿using System.Threading.Tasks;
 
-namespace Advobot.Databases.AbstractSQL
+namespace Advobot.SQLite
 {
 	/// <summary>
 	/// Starts a SQL database.

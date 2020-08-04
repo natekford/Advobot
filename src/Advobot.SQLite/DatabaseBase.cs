@@ -3,13 +3,17 @@ using System.Data;
 using System.Data.Common;
 using System.Threading.Tasks;
 
-namespace Advobot.Databases.AbstractSQL
+using AdvorangesUtils;
+
+using Dapper;
+
+namespace Advobot.SQLite
 {
 	/// <summary>
 	/// Base class for a SQL database.
 	/// </summary>
 	/// <typeparam name="T"></typeparam>
-	public abstract class DatabaseBase<T> : IDatabase
+	public abstract class DatabaseBase<T>
 		where T : DbConnection, new()
 	{
 		/// <summary>
@@ -27,35 +31,22 @@ namespace Advobot.Databases.AbstractSQL
 		}
 
 		/// <summary>
-		/// Creates the database's tables.
-		/// </summary>
-		/// <returns></returns>
-		public abstract Task<IReadOnlyList<string>> CreateDatabaseAsync();
-
-		/// <summary>
 		/// Executes a query in bulk.
 		/// </summary>
 		/// <typeparam name="TParams"></typeparam>
 		/// <param name="sql"></param>
 		/// <param name="params"></param>
 		/// <returns></returns>
-		protected Task<int> BulkModifyAsync<TParams>(string sql, IEnumerable<TParams> @params)
-			=> Starter.BulkModify<T>((cnn, tr) => BulkModifyAsync(cnn, sql, @params, tr));
+		protected async Task<int> BulkModifyAsync<TParams>(string sql, IEnumerable<TParams> @params)
+		{
+			//Use a transaction to make bulk modifying way faster in SQLite
+			using var connection = await GetConnectionAsync().CAF();
+			using var transaction = await connection.BeginTransactionAsync().CAF();
 
-		/// <summary>
-		/// The actual implementation of executing a query in bulk.
-		/// </summary>
-		/// <typeparam name="TParams"></typeparam>
-		/// <param name="connection"></param>
-		/// <param name="sql"></param>
-		/// <param name="params"></param>
-		/// <param name="transaction"></param>
-		/// <returns></returns>
-		protected abstract Task<int> BulkModifyAsync<TParams>(
-			IDbConnection connection,
-			string sql,
-			IEnumerable<TParams> @params,
-			IDbTransaction transaction);
+			var affectedRowCount = await connection.ExecuteAsync(sql, @params, transaction).CAF();
+			transaction.Commit();
+			return affectedRowCount;
+		}
 
 		/// <summary>
 		/// Gets a database connection.

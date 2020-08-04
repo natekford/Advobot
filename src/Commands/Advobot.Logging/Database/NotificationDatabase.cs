@@ -1,12 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Data;
 using System.Data.SQLite;
 using System.Threading.Tasks;
 
-using Advobot.Databases.AbstractSQL;
 using Advobot.Logging.Models;
 using Advobot.Logging.ReadOnlyModels;
+using Advobot.SQLite;
 
 using AdvorangesUtils;
 
@@ -18,46 +17,6 @@ namespace Advobot.Logging.Database
 	{
 		public NotificationDatabase(INotificationDatabaseStarter starter) : base(starter)
 		{
-		}
-
-		public override async Task<IReadOnlyList<string>> CreateDatabaseAsync()
-		{
-			await Starter.EnsureCreatedAsync().CAF();
-
-			using var connection = await GetConnectionAsync().CAF();
-
-			//Notifications
-			await connection.ExecuteAsync(@"
-			CREATE TABLE IF NOT EXISTS Notification
-			(
-				GuildId						TEXT NOT NULL,
-				ChannelId					TEXT,
-				Event						TEXT NOT NULL,
-				Content						TEXT,
-				AuthorIconUrl				TEXT,
-				AuthorName					TEXT,
-				AuthorUrl					TEXT,
-				Color						INTEGER DEFAULT 0 NOT NULL,
-				Description					TEXT,
-				Footer						TEXT,
-				FooterIconUrl				TEXT,
-				ImageUrl					TEXT,
-				ThumbnailUrl				TEXT,
-				Title						TEXT,
-				Url							TEXT,
-				PRIMARY KEY(GuildId, Event)
-			);
-			CREATE INDEX IF NOT EXISTS Notification_GuildId_Index ON Notification
-			(
-				GuildId
-			);
-			CREATE INDEX IF NOT EXISTS Notification_ChannelId_Index ON Notification
-			(
-				ChannelId
-			);
-			").CAF();
-
-			return await connection.GetTableNames((c, sql) => c.QueryAsync<string>(sql)).CAF();
 		}
 
 		public async Task<IReadOnlyCustomNotification?> GetAsync(
@@ -149,7 +108,7 @@ namespace Advobot.Logging.Database
 				embed?.Title,
 				embed?.Url,
 			};
-			await connection.ExecuteAsync($@"
+			await connection.ExecuteAsync(@"
 				INSERT OR IGNORE INTO Notification
 					( GuildId, Event )
 					VALUES
@@ -170,13 +129,6 @@ namespace Advobot.Logging.Database
 				WHERE GuildId = @GuildId AND Event = @Event
 			", param).CAF();
 		}
-
-		protected override Task<int> BulkModifyAsync<TParams>(
-			IDbConnection connection,
-			string sql,
-			IEnumerable<TParams> @params,
-			IDbTransaction transaction)
-			=> connection.ExecuteAsync(sql, @params, transaction);
 
 		private string GetNotificationName(Notification notification) => notification switch
 		{

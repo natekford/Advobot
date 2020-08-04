@@ -3,6 +3,7 @@ using System.Threading.Tasks;
 
 using Advobot.Logging.Database;
 using Advobot.Services.Time;
+using Advobot.SQLite;
 using Advobot.Tests.Fakes.Database;
 
 using AdvorangesUtils;
@@ -22,20 +23,17 @@ namespace Advobot.Tests.Logging
 		{
 			Services = new ServiceCollection()
 				.AddSingleton<LoggingDatabase>()
-				.AddSingleton<ILoggingDatabaseStarter, FakeLoggingDatabaseStarter>()
+				.AddSingleton<ILoggingDatabaseStarter, FakeSQLiteDatabaseStarter>()
 				.BuildServiceProvider();
 		}
 
 		protected async Task<LoggingDatabase> GetDatabaseAsync()
 		{
-			var db = Services.GetRequiredService<LoggingDatabase>();
-			await db.CreateDatabaseAsync().CAF();
-			return db;
-		}
+			var starter = Services.GetRequiredService<ILoggingDatabaseStarter>();
+			await starter.EnsureCreatedAsync().CAF();
+			starter.MigrateUp();
 
-		private sealed class FakeLoggingDatabaseStarter : FakeSQLiteDatabaseStarter, ILoggingDatabaseStarter
-		{
-			public override string GetDbFileName() => "Logging.db";
+			return Services.GetRequiredService<LoggingDatabase>();
 		}
 	}
 }

@@ -3,6 +3,7 @@ using System.Threading.Tasks;
 
 using Advobot.Levels.Database;
 using Advobot.Services.Time;
+using Advobot.SQLite;
 using Advobot.Tests.Fakes.Database;
 
 using AdvorangesUtils;
@@ -23,20 +24,17 @@ namespace Advobot.Tests.Levels
 			Services = new ServiceCollection()
 				.AddSingleton<LevelDatabase>()
 				.AddSingleton<ITime, DefaultTime>()
-				.AddSingleton<ILevelDatabaseStarter, FakeLevelDatabaseStarter>()
+				.AddSingleton<ILevelDatabaseStarter, FakeSQLiteDatabaseStarter>()
 				.BuildServiceProvider();
 		}
 
 		protected async Task<LevelDatabase> GetDatabaseAsync()
 		{
-			var db = Services.GetRequiredService<LevelDatabase>();
-			await db.CreateDatabaseAsync().CAF();
-			return db;
-		}
+			var starter = Services.GetRequiredService<ILevelDatabaseStarter>();
+			await starter.EnsureCreatedAsync().CAF();
+			starter.MigrateUp();
 
-		private sealed class FakeLevelDatabaseStarter : FakeSQLiteDatabaseStarter, ILevelDatabaseStarter
-		{
-			public override string GetDbFileName() => "Levels.db";
+			return Services.GetRequiredService<LevelDatabase>();
 		}
 	}
 }

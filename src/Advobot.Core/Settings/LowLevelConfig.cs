@@ -112,9 +112,13 @@ namespace Advobot.Settings
 		/// <inheritdoc />
 		public async Task StartAsync(BaseSocketClient client)
 		{
-			if (!(ValidatedPath && ValidatedKey))
+			if (!ValidatedPath)
 			{
-				throw new InvalidOperationException($"Either path or key has not been validated yet.");
+				throw new InvalidOperationException("Path not validated.");
+			}
+			else if (!ValidatedKey)
+			{
+				throw new InvalidOperationException("Key not validated.");
 			}
 
 			//Remove the bot key from being easily accessible via reflection
