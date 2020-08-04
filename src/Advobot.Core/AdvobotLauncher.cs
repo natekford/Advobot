@@ -214,6 +214,15 @@ namespace Advobot
 					usesDb.Start();
 				}
 			}
+
+			foreach (var assembly in assemblies.Assemblies)
+			{
+				if (assembly.Attribute.Instantiator != null)
+				{
+					await assembly.Attribute.Instantiator.ConfigureServicesAsync(services).CAF();
+				}
+			}
+
 			return services;
 		}
 

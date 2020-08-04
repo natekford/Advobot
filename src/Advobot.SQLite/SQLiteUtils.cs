@@ -44,6 +44,31 @@ namespace Advobot.SQLite
 		}
 
 		/// <summary>
+		/// Downgrades to the specified version.
+		/// </summary>
+		/// <typeparam name="T"></typeparam>
+		/// <param name="starter"></param>
+		/// <param name="version"></param>
+		public static void MigrateDown<T>(this T starter, long version) where T : IDatabaseStarter
+		{
+			new ServiceCollection()
+				.AddFluentMigratorCore()
+				.ConfigureRunner(x =>
+				{
+					x
+					.AddSQLite()
+					.WithGlobalConnectionString(starter.GetConnectionString())
+					.ScanIn(typeof(T).Assembly).For.Migrations();
+				})
+#if DEBUG
+				.AddLogging(x => x.AddFluentMigratorConsole())
+#endif
+				.BuildServiceProvider(false)
+				.GetRequiredService<IMigrationRunner>()
+				.MigrateDown(version);
+		}
+
+		/// <summary>
 		/// Creates a new <see cref="DbConnection"/>.
 		/// </summary>
 		/// <typeparam name="T"></typeparam>

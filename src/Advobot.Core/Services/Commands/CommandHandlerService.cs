@@ -111,11 +111,6 @@ namespace Advobot.Services.Commands
 			var defaultTr = TypeReaderInfo.Create(Assembly.GetExecutingAssembly());
 			foreach (var assembly in assemblies)
 			{
-				if (assembly.Attribute.Instantiator != null)
-				{
-					await assembly.Attribute.Instantiator.ConfigureServicesAsync(_Provider).CAF();
-				}
-
 				var typeReaders = TypeReaderInfo.Create(assembly.Assembly).Concat(defaultTr);
 				foreach (var culture in assembly.Attribute.SupportedCultures)
 				{
