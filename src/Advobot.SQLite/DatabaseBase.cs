@@ -1,5 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Data.Common;
+using System.Diagnostics.CodeAnalysis;
+using System.Linq;
 using System.Threading.Tasks;
 
 using AdvorangesUtils;
@@ -30,13 +32,13 @@ namespace Advobot.SQLite
 		}
 
 		/// <summary>
-		/// Executes a query in bulk.
+		/// Executes a query to modify many values.
 		/// </summary>
-		/// <typeparam name="TParams"></typeparam>
+		/// <typeparam name="TParam"></typeparam>
 		/// <param name="sql"></param>
 		/// <param name="params"></param>
 		/// <returns></returns>
-		protected async Task<int> BulkModifyAsync<TParams>(string sql, IEnumerable<TParams> @params)
+		protected async Task<int> BulkModifyAsync<TParam>(string sql, IEnumerable<TParam> @params)
 		{
 			//Use a transaction to make bulk modifying way faster in SQLite
 			using var connection = await GetConnectionAsync().CAF();
@@ -53,5 +55,46 @@ namespace Advobot.SQLite
 		/// <returns></returns>
 		protected Task<T> GetConnectionAsync()
 			=> Starter.GetConnectionAsync<T>();
+
+		/// <summary>
+		/// Executes a query to retrieve multiple values.
+		/// </summary>
+		/// <typeparam name="TRet"></typeparam>
+		/// <param name="sql"></param>
+		/// <param name="param"></param>
+		/// <returns></returns>
+		protected async Task<IReadOnlyList<TRet>> GetManyAsync<TRet>(string sql, object? param)
+		{
+			using var connection = await GetConnectionAsync().CAF();
+			var result = await connection.QueryAsync<TRet>(sql, param).CAF();
+			return result.ToArray();
+		}
+
+		/// <summary>
+		/// Executes a query to retrieve one value.
+		/// </summary>
+		/// <typeparam name="TRet"></typeparam>
+		/// <param name="sql"></param>
+		/// <param name="param"></param>
+		/// <returns></returns>
+		[return: MaybeNull]
+		protected async Task<TRet> GetOneAsync<TRet>(string sql, object param)
+		{
+			using var connection = await GetConnectionAsync().CAF();
+			return await connection.QuerySingleOrDefaultAsync<TRet>(sql, param).CAF();
+		}
+
+		/// <summary>
+		/// Executes a query to modify one value.
+		/// </summary>
+		/// <typeparam name="TParam"></typeparam>
+		/// <param name="sql"></param>
+		/// <param name="param"></param>
+		/// <returns></returns>
+		protected async Task ModifyAsync<TParam>(string sql, TParam param)
+		{
+			using var connection = await GetConnectionAsync().CAF();
+			await connection.ExecuteAsync(sql, param).CAF();
+		}
 	}
 }

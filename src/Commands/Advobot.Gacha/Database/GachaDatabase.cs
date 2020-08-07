@@ -86,7 +86,7 @@ namespace Advobot.Gacha.Database
 		public Task AddCharacterAsync(IReadOnlyCharacter character)
 		{
 			CharacterIds.Add(character.CharacterId, character.Name);
-			return InsertAsync(INSERT_CHAR, character);
+			return ModifyAsync(INSERT_CHAR, character);
 		}
 
 		public Task<int> AddCharactersAsync(IEnumerable<IReadOnlyCharacter> characters)
@@ -99,18 +99,18 @@ namespace Advobot.Gacha.Database
 		}
 
 		public Task AddClaimAsync(IReadOnlyClaim claim)
-			=> InsertAsync(INSERT_CLAIM, claim);
+			=> ModifyAsync(INSERT_CLAIM, claim);
 
 		public Task<int> AddClaimsAsync(IEnumerable<IReadOnlyClaim> claims)
 			=> BulkModifyAsync(INSERT_CLAIM, claims);
 
 		public Task AddImageAsync(IReadOnlyImage image)
-			=> InsertAsync(INSERT_IMG, image);
+			=> ModifyAsync(INSERT_IMG, image);
 
 		public Task AddSourceAsync(IReadOnlySource source)
 		{
 			SourceIds.Add(source.SourceId, source.Name);
-			return InsertAsync(INSERT_SRC, source);
+			return ModifyAsync(INSERT_SRC, source);
 		}
 
 		public Task<int> AddSourcesAsync(IEnumerable<IReadOnlySource> sources)
@@ -123,13 +123,13 @@ namespace Advobot.Gacha.Database
 		}
 
 		public Task AddUserAsync(IReadOnlyUser user)
-			=> InsertAsync(INSERT_USER, user);
+			=> ModifyAsync(INSERT_USER, user);
 
 		public Task<int> AddUsersAsync(IEnumerable<IReadOnlyUser> users)
 			=> BulkModifyAsync(INSERT_USER, users);
 
 		public Task AddWishAsync(IReadOnlyWish wish)
-			=> InsertAsync(INSERT_WISH, wish);
+			=> ModifyAsync(INSERT_WISH, wish);
 
 		public async Task CacheNamesAsync()
 		{
@@ -376,25 +376,6 @@ namespace Advobot.Gacha.Database
 				SET ImageUrl = @Url
 				WHERE GuildId = @GuildId AND UserId = @UserId AND CharacterId = @CharacterId
 			", param).CAF();
-		}
-
-		private async Task<IReadOnlyList<T>> GetManyAsync<T>(string sql, object? param)
-		{
-			using var connection = await GetConnectionAsync().CAF();
-			var result = await connection.QueryAsync<T>(sql, param).CAF();
-			return result.ToArray();
-		}
-
-		private async Task<T> GetOneAsync<T>(string sql, object param)
-		{
-			using var connection = await GetConnectionAsync().CAF();
-			return await connection.QuerySingleOrDefaultAsync<T>(sql, param).CAF();
-		}
-
-		private async Task InsertAsync<T>(string sql, T item)
-		{
-			using var connection = await GetConnectionAsync().CAF();
-			await connection.QueryAsync(sql, item).CAF();
 		}
 	}
 }

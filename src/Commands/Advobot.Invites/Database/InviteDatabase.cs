@@ -19,28 +19,24 @@ namespace Advobot.Invites.Database
 		{
 		}
 
-		public async Task AddInviteAsync(IReadOnlyListedInvite invite)
+		public Task AddInviteAsync(IReadOnlyListedInvite invite)
 		{
-			using var connection = await GetConnectionAsync().CAF();
-
-			await connection.ExecuteAsync(@"
+			return ModifyAsync(@"
 				INSERT INTO Invite
 				( GuildId, Code, Name, HasGlobalEmotes, LastBumped, MemberCount )
 				VALUES
 				( @GuildId, @Code, @Name, @HasGlobalEmotes, @LastBumped, @MemberCount )
-			", invite).CAF();
+			", invite);
 		}
 
-		public async Task AddKeywordAsync(IReadOnlyKeyword keyword)
+		public Task AddKeywordAsync(IReadOnlyKeyword keyword)
 		{
-			using var connection = await GetConnectionAsync().CAF();
-
-			await connection.ExecuteAsync(@"
+			return ModifyAsync(@"
 				INSERT INTO Keyword
 				( GuildId, Word )
 				VALUES
 				( @GuildId, @Word )
-			", keyword).CAF();
+			", keyword);
 		}
 
 		public Task<int> AddKeywordsAsync(IEnumerable<IReadOnlyKeyword> keywords)
@@ -54,34 +50,28 @@ namespace Advobot.Invites.Database
 			return BulkModifyAsync(SQL, keywords);
 		}
 
-		public async Task DeleteInviteAsync(ulong guildId)
+		public Task DeleteInviteAsync(ulong guildId)
 		{
-			using var connection = await GetConnectionAsync().CAF();
-
 			var param = new { GuildId = guildId.ToString() };
-			await connection.ExecuteAsync(@"
+			return ModifyAsync(@"
 				DELETE FROM Invite
 				WHERE GuildId = @GuildId
-			", param).CAF();
+			", param);
 		}
 
-		public async Task DeleteKeywordAsync(ulong guildId, string word)
+		public Task DeleteKeywordAsync(ulong guildId, string word)
 		{
-			using var connection = await GetConnectionAsync().CAF();
-
 			var param = new { GuildId = guildId.ToString(), Word = word };
-			await connection.ExecuteAsync(@"
+			return ModifyAsync(@"
 				DELETE FROM Keyword
 				WHERE GuildId = @GuildId AND Word = @Word
-			", param).CAF();
+			", param);
 		}
 
 		public async Task<IReadOnlyListedInvite?> GetInviteAsync(ulong guildId)
 		{
-			using var connection = await GetConnectionAsync().CAF();
-
 			var param = new { GuildId = guildId.ToString() };
-			return await connection.QuerySingleOrDefaultAsync<ListedInvite>(@"
+			return await GetOneAsync<ListedInvite?>(@"
 				SELECT *
 				FROM Invite
 				WHERE GuildId = @GuildId
@@ -90,49 +80,38 @@ namespace Advobot.Invites.Database
 
 		public async Task<IReadOnlyList<IReadOnlyListedInvite>> GetInvitesAsync()
 		{
-			using var connection = await GetConnectionAsync().CAF();
-
-			var query = await connection.QueryAsync<ListedInvite>(@"
+			return await GetManyAsync<ListedInvite>(@"
 				SELECT *
 				FROM Invite
-			").CAF();
-			return query.ToArray();
+			", null).CAF();
 		}
 
 		public async Task<IReadOnlyList<IReadOnlyListedInvite>> GetInvitesAsync(
 			IEnumerable<string> keywords)
 		{
-			using var connection = await GetConnectionAsync().CAF();
-
 			var param = new { Words = keywords };
-			var query = await connection.QueryAsync<ListedInvite>(@"
+			return await GetManyAsync<ListedInvite>(@"
 				SELECT *
 				FROM Invite
 				INNER JOIN Keyword
 				ON Keyword.GuildId = Invite.GuildId
 				WHERE Keyword.Word IN @Words
 			", param).CAF();
-			return query.ToArray();
 		}
 
 		public async Task<IReadOnlyList<IReadOnlyKeyword>> GetKeywords(ulong guildId)
 		{
-			using var connection = await GetConnectionAsync().CAF();
-
 			var param = new { GuildId = guildId.ToString() };
-			var query = await connection.QueryAsync<Keyword>(@"
+			return await GetManyAsync<Keyword>(@"
 				SELECT *
 				FROM Keyword
 				WHERE GuildId = @GuildId
 			", param).CAF();
-			return query.ToArray();
 		}
 
-		public async Task UpdateInviteAsync(IReadOnlyListedInvite invite)
+		public Task UpdateInviteAsync(IReadOnlyListedInvite invite)
 		{
-			using var connection = await GetConnectionAsync().CAF();
-
-			await connection.ExecuteAsync(@"
+			return ModifyAsync(@"
 				UPDATE Invite
 				SET
 					Name = @Name,
@@ -140,7 +119,7 @@ namespace Advobot.Invites.Database
 					LastBumped = @LastBumped,
 					MemberCount = @MemberCount
 				WHERE GuildId = @GuildId
-			", invite).CAF();
+			", invite);
 		}
 	}
 }

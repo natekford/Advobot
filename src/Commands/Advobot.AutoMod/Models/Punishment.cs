@@ -1,13 +1,15 @@
 ﻿using System;
 
 using Advobot.AutoMod.ReadOnlyModels;
+using Advobot.Databases.Relationships;
 using Advobot.Services.GuildSettings.Settings;
+using Advobot.Utilities;
 
 namespace Advobot.AutoMod.Models
 {
 	public class Punishment : IReadOnlyPunishment
 	{
-		public ulong GuildId { get; set; }
+		public string GuildId { get; set; } = "";
 		public int Instances { get; set; }
 		public TimeSpan? Length
 		{
@@ -22,6 +24,9 @@ namespace Advobot.AutoMod.Models
 		}
 		public long? LengthTicks { get; set; }
 		public PunishmentType PunishmentType { get; set; }
-		public ulong? RoleId { get; set; }
+		public string? RoleId { get; set; }
+
+		ulong IGuildChild.GuildId => GuildId.ToId();
+		ulong IReadOnlyPunishment.RoleId => RoleId.ToId();
 	}
 }

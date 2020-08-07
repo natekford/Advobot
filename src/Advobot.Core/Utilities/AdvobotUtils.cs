@@ -160,7 +160,7 @@ namespace Advobot.Utilities
 		/// <returns></returns>
 		public static ulong ToId(this string? value)
 		{
-			if (value == null)
+			if (string.IsNullOrWhiteSpace(value))
 			{
 				return 0;
 			}

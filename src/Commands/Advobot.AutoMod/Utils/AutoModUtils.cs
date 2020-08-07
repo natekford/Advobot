@@ -45,7 +45,7 @@ namespace Advobot.AutoMod.Utils
 			{
 				Time = punishment.Length,
 				Options = options,
-				Role = punisher.Guild.GetRole(punishment.RoleId ?? 0),
+				Role = punisher.Guild.GetRole(punishment.RoleId),
 			};
 			return punisher.GiveAsync(punishment.PunishmentType, user, args);
 		}

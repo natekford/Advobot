@@ -21,64 +21,60 @@ namespace Advobot.Logging.Database
 		{
 		}
 
-		public async Task<int> AddIgnoredChannelsAsync(ulong guildId, IEnumerable<ulong> channels)
+		public Task<int> AddIgnoredChannelsAsync(ulong guildId, IEnumerable<ulong> channels)
 		{
-			const string SQL = @"
+			var @params = channels.Select(x => new
+			{
+				GuildId = guildId.ToString(),
+				ChannelId = x.ToString()
+			});
+			return BulkModifyAsync(@"
 				INSERT OR REPLACE INTO IgnoredChannel
 				( GuildId, ChannelId )
 				VALUES
 				( @GuildId, @ChannelId )
-			";
-			var @params = channels.Select(x => new
-			{
-				GuildId = guildId.ToString(),
-				ChannelId = x.ToString()
-			});
-			return await BulkModifyAsync(SQL, @params).CAF();
+			", @params);
 		}
 
-		public async Task<int> AddLogActionsAsync(ulong guildId, IEnumerable<LogAction> actions)
+		public Task<int> AddLogActionsAsync(ulong guildId, IEnumerable<LogAction> actions)
 		{
-			const string SQL = @"
+			var @params = actions.Select(x => new
+			{
+				GuildId = guildId.ToString(),
+				Action = x.ToString()
+			});
+			return BulkModifyAsync(@"
 				INSERT OR REPLACE INTO LogAction
 				( GuildId, Action )
 				VALUES
 				( @GuildId, @Action )
-			";
-			var @params = actions.Select(x => new
-			{
-				GuildId = guildId.ToString(),
-				Action = x.ToString()
-			});
-			return await BulkModifyAsync(SQL, @params).CAF();
+			", @params);
 		}
 
-		public async Task<int> DeleteIgnoredChannelsAsync(ulong guildId, IEnumerable<ulong> channels)
+		public Task<int> DeleteIgnoredChannelsAsync(ulong guildId, IEnumerable<ulong> channels)
 		{
-			const string SQL = @"
-				DELETE FROM IgnoredChannel
-				WHERE GuildId = @GuildId AND ChannelId = @ChannelId
-			";
 			var @params = channels.Select(x => new
 			{
 				GuildId = guildId.ToString(),
 				ChannelId = x.ToString()
 			});
-			return await BulkModifyAsync(SQL, @params).CAF();
+			return BulkModifyAsync(@"
+				DELETE FROM IgnoredChannel
+				WHERE GuildId = @GuildId AND ChannelId = @ChannelId
+			", @params);
 		}
 
-		public async Task<int> DeleteLogActionsAsync(ulong guildId, IEnumerable<LogAction> actions)
+		public Task<int> DeleteLogActionsAsync(ulong guildId, IEnumerable<LogAction> actions)
 		{
-			const string SQL = @"
-				DELETE FROM LogAction
-				WHERE GuildId = @GuildId AND Action = @Action
-			";
 			var @params = actions.Select(x => new
 			{
 				GuildId = guildId.ToString(),
 				Action = x.ToString()
 			});
-			return await BulkModifyAsync(SQL, @params).CAF();
+			return BulkModifyAsync(@"
+				DELETE FROM LogAction
+				WHERE GuildId = @GuildId AND Action = @Action
+			", @params);
 		}
 
 		public async Task<IReadOnlyList<ulong>> GetIgnoredChannelsAsync(ulong guildId)
@@ -109,23 +105,19 @@ namespace Advobot.Logging.Database
 
 		public async Task<IReadOnlyLogChannels> GetLogChannelsAsync(ulong guildId)
 		{
-			using var connection = await GetConnectionAsync().CAF();
-
 			var param = new { GuildId = guildId.ToString() };
-			return await connection.QuerySingleOrDefaultAsync<LogChannels>(@"
+			return await GetOneAsync<LogChannels>(@"
 				SELECT ImageLogId, ModLogId, ServerLogId
 				FROM LogChannel
 				WHERE GuildId = @GuildId
 			", param).CAF() ?? new LogChannels();
 		}
 
-		public async Task UpdateLogChannelAsync(Log log, ulong guildId, ulong? channelId)
+		public Task UpdateLogChannelAsync(Log log, ulong guildId, ulong? channelId)
 		{
-			using var connection = await GetConnectionAsync().CAF();
-
 			var name = GetLogName(log);
 			var param = new { GuildId = guildId.ToString(), ChannelId = channelId?.ToString() };
-			await connection.ExecuteAsync($@"
+			return ModifyAsync($@"
 				INSERT OR IGNORE INTO LogChannel
 					( GuildId, {name} )
 					VALUES
@@ -133,7 +125,7 @@ namespace Advobot.Logging.Database
 				UPDATE LogChannel
 				SET {name} = @ChannelId
 				WHERE GuildId = @GuildId
-			", param).CAF();
+			", param);
 		}
 
 		private string GetLogName(Log log) => log switch

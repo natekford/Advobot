@@ -14,6 +14,8 @@ using Advobot.Services.Time;
 using Advobot.Services.Timers;
 using Advobot.Utilities;
 
+using AdvorangesSettingParser.Implementation.Instance;
+
 using AdvorangesUtils;
 
 using Discord;
@@ -96,8 +98,8 @@ namespace Advobot.AutoMod.Service
 				return;
 			}
 
-			var violatesChannelSettings = await ProcessChannelSettings(context).CAF();
-			if (violatesChannelSettings)
+			var isAllowed = await ProcessChannelSettings(context).CAF();
+			if (!isAllowed)
 			{
 				await message.DeleteAsync(_ImageOnly).CAF();
 				return;
@@ -199,7 +201,7 @@ namespace Advobot.AutoMod.Service
 				return false;
 			}
 
-			var punishments = await _Db.GetBannedPhrasePunishmentsAsync(context.Guild.Id).CAF();
+			var punishments = await _Db.GetPunishmentsAsync(context.Guild.Id).CAF();
 			foreach (var punishment in punishments)
 			{
 				foreach (var instance in instances)
@@ -216,8 +218,8 @@ namespace Advobot.AutoMod.Service
 
 		private async Task<bool> ProcessChannelSettings(IAutoModMessageContext context)
 		{
-			var imgChannels = await _Db.GetImageOnlyChannelsAsync(context.Guild.Id).CAF();
-			return imgChannels.Contains(context.Channel.Id) && context.Message.GetImageCount() == 0;
+			var settings = await _Db.GetChannelSettingsAsync(context.Channel.Id).CAF();
+			return settings?.IsAllowed(context.Message) != false;
 		}
 
 		private async Task<bool> ProcessPersistentRolesAsync(IAutoModContext context)

@@ -10,6 +10,6 @@ namespace Advobot.AutoMod.ReadOnlyModels
 		int Instances { get; }
 		TimeSpan? Length { get; }
 		PunishmentType PunishmentType { get; }
-		ulong? RoleId { get; }
+		ulong RoleId { get; }
 	}
 }

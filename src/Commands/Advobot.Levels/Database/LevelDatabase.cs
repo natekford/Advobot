@@ -132,28 +132,20 @@ namespace Advobot.Levels.Database
 
 		public async Task<IReadOnlyUser> GetUserAsync(ISearchArgs args)
 		{
-			using var connection = await GetConnectionAsync().CAF();
-
-			var where = GenerateSingleUserWhereStatement(args);
-			var result = await connection.QuerySingleOrDefaultAsync<User?>($@"
+			return await GetOneAsync<User?>($@"
 				SELECT *
 				FROM User
-				{where}
-			", args).CAF();
-			return result ?? new User(args);
+				{GenerateSingleUserWhereStatement(args)}
+			", args).CAF() ?? new User(args);
 		}
 
 		public async Task<int> GetXpAsync(ISearchArgs args)
 		{
-			using var connection = await GetConnectionAsync().CAF();
-
-			var where = GenerateSingleUserWhereStatement(args);
-			var result = await connection.QuerySingleOrDefaultAsync<int?>($@"
+			return await GetOneAsync<int?>($@"
 				SELECT SUM(Experience)
 				FROM User
-				{where}
-			", args).CAF();
-			return result ?? 0;
+				{GenerateSingleUserWhereStatement(args)}
+			", args).CAF() ?? 0;
 		}
 
 		public async Task UpsertUser(IReadOnlyUser user)

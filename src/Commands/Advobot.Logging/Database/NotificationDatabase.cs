@@ -22,34 +22,30 @@ namespace Advobot.Logging.Database
 			Notification notification,
 			ulong guildId)
 		{
-			using var connection = await GetConnectionAsync().CAF();
-
 			var param = new
 			{
 				GuildId = guildId.ToString(),
 				Event = GetNotificationName(notification),
 			};
-			return await connection.QuerySingleOrDefaultAsync<CustomNotification>(@"
+			return await GetOneAsync<CustomNotification>(@"
 				SELECT *
 				FROM Notification
 				WHERE GuildId = @GuildId AND Event = @Event
 			", param).CAF();
 		}
 
-		public async Task UpdateNotificationChannelAsync(
+		public Task UpdateNotificationChannelAsync(
 			Notification notification,
 			ulong guildId,
 			ulong? channelId)
 		{
-			using var connection = await GetConnectionAsync().CAF();
-
 			var param = new
 			{
 				GuildId = guildId.ToString(),
 				Event = GetNotificationName(notification),
 				ChannelId = channelId?.ToString()
 			};
-			await connection.ExecuteAsync(@"
+			return ModifyAsync(@"
 				INSERT OR IGNORE INTO Notification
 					( GuildId, Event )
 					VALUES
@@ -57,23 +53,21 @@ namespace Advobot.Logging.Database
 				UPDATE Notification
 				SET ChannelId = @ChannelId
 				WHERE GuildId = @GuildId AND Event = @Event
-			", param).CAF();
+			", param);
 		}
 
-		public async Task UpdateNotificationContentAsync(
+		public Task UpdateNotificationContentAsync(
 			Notification notification,
 			ulong guildId,
 			string? content)
 		{
-			using var connection = await GetConnectionAsync().CAF();
-
 			var param = new
 			{
 				GuildId = guildId.ToString(),
 				Event = GetNotificationName(notification),
 				Content = content
 			};
-			await connection.ExecuteAsync(@"
+			return ModifyAsync(@"
 				INSERT OR IGNORE INTO Notification
 					( GuildId, Event )
 					VALUES
@@ -81,16 +75,14 @@ namespace Advobot.Logging.Database
 				UPDATE Notification
 				SET Content = @Content
 				WHERE GuildId = @GuildId AND Event = @Event
-			", param).CAF();
+			", param);
 		}
 
-		public async Task UpdateNotificationEmbedAsync(
+		public Task UpdateNotificationEmbedAsync(
 			Notification notification,
 			ulong guildId,
 			IReadOnlyCustomEmbed? embed)
 		{
-			using var connection = await GetConnectionAsync().CAF();
-
 			var param = new
 			{
 				GuildId = guildId.ToString(),
@@ -107,7 +99,7 @@ namespace Advobot.Logging.Database
 				embed?.Title,
 				embed?.Url,
 			};
-			await connection.ExecuteAsync(@"
+			return ModifyAsync(@"
 				INSERT OR IGNORE INTO Notification
 					( GuildId, Event )
 					VALUES
@@ -126,7 +118,7 @@ namespace Advobot.Logging.Database
 					Title = @Title,
 					Url = @Url
 				WHERE GuildId = @GuildId AND Event = @Event
-			", param).CAF();
+			", param);
 		}
 
 		private string GetNotificationName(Notification notification) => notification switch
