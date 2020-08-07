@@ -27,10 +27,16 @@ namespace Advobot.CommandAssemblies
 			get => _InstatiatorType;
 			set
 			{
+				if (value == null)
+				{
+					_InstatiatorType = null;
+					Instantiator = null;
+				}
+
 				object i;
 				try
 				{
-					i = Activator.CreateInstance(InstantiatorType);
+					i = Activator.CreateInstance(value);
 				}
 				catch
 				{
