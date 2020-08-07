@@ -5,8 +5,6 @@ namespace Advobot.AutoMod.ReadOnlyModels
 {
 	public interface IReadOnlyBannedPhrase : IGuildChild
 	{
-		bool Contains { get; }
-		bool IsRegex { get; }
 		string Phrase { get; }
 		PunishmentType PunishmentType { get; }
 

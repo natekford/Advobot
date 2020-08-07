@@ -20,6 +20,14 @@ namespace Advobot.Classes
 		/// <returns></returns>
 		public static AmbiguousUser AsAmbiguous(this IUser user)
 			=> new AmbiguousUser(user);
+
+		/// <summary>
+		/// Converts the <see cref="ulong"/> to an <see cref="AmbiguousUser"/>.
+		/// </summary>
+		/// <param name="user"></param>
+		/// <returns></returns>
+		public static AmbiguousUser AsAmbiguous(this ulong user)
+			=> new AmbiguousUser(user);
 	}
 
 	/// <summary>

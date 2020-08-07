@@ -9,12 +9,11 @@ namespace Advobot.AutoMod.Models
 {
 	public sealed class BannedPhrase : IReadOnlyBannedPhrase
 	{
-		public bool Contains { get; set; }
 		public string GuildId { get; set; } = null!;
+		public bool IsContains { get; set; }
 		public bool IsRegex { get; set; }
 		public string Phrase { get; set; } = null!;
 		public PunishmentType PunishmentType { get; set; }
-
 		ulong IGuildChild.GuildId => GuildId.ToId();
 
 		public bool IsMatch(string content)
@@ -23,8 +22,11 @@ namespace Advobot.AutoMod.Models
 			{
 				return RegexUtils.IsMatch(content, Phrase);
 			}
-
-			return Contains ? content.CaseInsContains(Phrase) : content.CaseInsEquals(Phrase);
+			else if (IsContains)
+			{
+				return content.CaseInsContains(Phrase);
+			}
+			return content.CaseInsEquals(Phrase);
 		}
 	}
 }

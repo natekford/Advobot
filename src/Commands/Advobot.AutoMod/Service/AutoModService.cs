@@ -3,8 +3,10 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
+using Advobot.AutoMod.Context;
 using Advobot.AutoMod.Database;
 using Advobot.AutoMod.Models;
+using Advobot.AutoMod.ReadOnlyModels;
 using Advobot.AutoMod.Utils;
 using Advobot.Classes;
 using Advobot.Services.GuildSettings.Settings;
@@ -66,31 +68,23 @@ namespace Advobot.AutoMod.Service
 			client.UserJoined += OnUserJoined;
 		}
 
-		private PunishmentManager GetPunisher(IGuild guild)
-		{
-			if (!_Punishers.TryGetValue(guild.Id, out var punisher))
-			{
-				_Punishers.TryAdd(guild.Id, new PunishmentManager(guild, _Timers));
-			}
-			return punisher;
-		}
-
 		private async Task OnMessageReceived(IMessage message)
 		{
-			if (!(message.Author is IGuildUser user))
+			var context = message.CreateContext();
+			if (context is null)
 			{
 				return;
 			}
 
-			var settings = await _Db.GetAutoModSettingsAsync(user.Guild.Id).CAF();
+			var settings = await _Db.GetAutoModSettingsAsync(context.Guild.Id).CAF();
 			var ts = _Time.UtcNow - message.CreatedAt.UtcDateTime;
 			if (!await settings.ShouldScanMessageAsync(message, ts).CAF())
 			{
 				return;
 			}
 
-			var isSpam = await ProcessSpamAsync(message, user).CAF();
-			var isBannedPhrase = await ProcessBannedPhrasesAsync(message, user).CAF();
+			var isSpam = await ProcessSpamAsync(context).CAF();
+			var isBannedPhrase = await ProcessBannedPhrasesAsync(context).CAF();
 			if (isSpam)
 			{
 				await message.DeleteAsync(_SpamPrev).CAF();
@@ -102,7 +96,7 @@ namespace Advobot.AutoMod.Service
 				return;
 			}
 
-			var violatesChannelSettings = await ProcessChannelSettings(message, user).CAF();
+			var violatesChannelSettings = await ProcessChannelSettings(context).CAF();
 			if (violatesChannelSettings)
 			{
 				await message.DeleteAsync(_ImageOnly).CAF();
@@ -115,32 +109,38 @@ namespace Advobot.AutoMod.Service
 
 		private async Task OnUserJoined(IGuildUser user)
 		{
-			var isBannedName = await ProcessBannedNamesAsync(user).CAF();
+			var context = user.CreateContext();
+			if (context is null)
+			{
+				return;
+			}
+
+			var isBannedName = await ProcessBannedNamesAsync(context).CAF();
 			if (isBannedName)
 			{
 				return;
 			}
 
-			var isRaid = await ProcessAntiRaidAsync(user).CAF();
+			var isRaid = await ProcessAntiRaidAsync(context).CAF();
 			if (isRaid)
 			{
 				return;
 			}
 
-			await ProcessPersistentRolesAsync(user).CAF();
+			await ProcessPersistentRolesAsync(context).CAF();
 		}
 
-		private async Task<bool> ProcessAntiRaidAsync(IGuildUser user)
+		private async Task<bool> ProcessAntiRaidAsync(IAutoModContext context)
 		{
-			var prevs = await _Db.GetRaidPreventionAsync(user.GuildId).CAF();
+			var prevs = await _Db.GetRaidPreventionAsync(context.Guild.Id).CAF();
 
 			var isRaid = false;
 			foreach (var raidPrev in prevs)
 			{
-				var instances = _Raid.Get(user.Guild, raidPrev.RaidType);
-				instances.Add(user.Id);
+				var instances = _Raid.Get(context.Guild, raidPrev.RaidType);
+				instances.Add(context.User.Id);
 
-				if (raidPrev.IsRaid(user))
+				if (raidPrev.IsRaid(context.User))
 				{
 					isRaid = true;
 				}
@@ -150,10 +150,9 @@ namespace Advobot.AutoMod.Service
 				return false;
 			}
 
-			var punisher = GetPunisher(user.Guild);
 			foreach (var raidPrev in prevs)
 			{
-				var instances = _Raid.Get(user.Guild, raidPrev.RaidType);
+				var instances = _Raid.Get(context.Guild, raidPrev.RaidType);
 				if (!raidPrev.ShouldPunish(instances))
 				{
 					continue;
@@ -161,38 +160,35 @@ namespace Advobot.AutoMod.Service
 
 				foreach (var instance in instances)
 				{
-					var ambig = new AmbiguousUser(instance);
-					await punisher.GiveAsync(raidPrev, ambig, _RaidPrev).CAF();
+					await PunishAsync(context.Guild, instance.AsAmbiguous(), raidPrev, _RaidPrev).CAF();
 				}
 			}
 			return true;
 		}
 
-		private async Task<bool> ProcessBannedNamesAsync(IGuildUser user)
+		private async Task<bool> ProcessBannedNamesAsync(IAutoModContext context)
 		{
-			var names = await _Db.GetBannedNamesAsync(user.GuildId).CAF();
+			var names = await _Db.GetBannedNamesAsync(context.Guild.Id).CAF();
 			foreach (var name in names)
 			{
-				if (name.IsMatch(user.Username))
+				if (name.IsMatch(context.User.Username))
 				{
-					var punisher = GetPunisher(user.Guild);
-					var ambig = user.AsAmbiguous();
-					await punisher.GiveAsync(_Ban, ambig, _BannedName).CAF();
+					await PunishAsync(context, _Ban, _BannedName).CAF();
 					return true;
 				}
 			}
 			return false;
 		}
 
-		private async Task<bool> ProcessBannedPhrasesAsync(IMessage message, IGuildUser user)
+		private async Task<bool> ProcessBannedPhrasesAsync(IAutoModMessageContext context)
 		{
-			var phrases = await _Db.GetBannedPhrasesAsync(user.GuildId).CAF();
-			var instances = _Phrases.Get(user.Guild, user.Id);
+			var phrases = await _Db.GetBannedPhrasesAsync(context.Guild.Id).CAF();
+			var instances = _Phrases.Get(context.Guild, context.User.Id);
 
 			var isDirty = false;
 			foreach (var phrase in phrases)
 			{
-				if (phrase.IsMatch(message.Content))
+				if (phrase.IsMatch(context.Message.Content))
 				{
 					++instances[phrase.PunishmentType];
 					isDirty = true;
@@ -203,9 +199,7 @@ namespace Advobot.AutoMod.Service
 				return false;
 			}
 
-			var punisher = GetPunisher(user.Guild);
-			var ambig = user.AsAmbiguous();
-			var punishments = await _Db.GetBannedPhrasePunishmentsAsync(user.GuildId).CAF();
+			var punishments = await _Db.GetBannedPhrasePunishmentsAsync(context.Guild.Id).CAF();
 			foreach (var punishment in punishments)
 			{
 				foreach (var instance in instances)
@@ -213,43 +207,43 @@ namespace Advobot.AutoMod.Service
 					if (punishment.PunishmentType == instance.Key &&
 						punishment.Instances == instance.Value)
 					{
-						await punisher.GiveAsync(punishment, ambig, _BannedPhrase).CAF();
+						await PunishAsync(context, punishment, _BannedPhrase).CAF();
 					}
 				}
 			}
 			return true;
 		}
 
-		private async Task<bool> ProcessChannelSettings(IMessage message, IGuildUser user)
+		private async Task<bool> ProcessChannelSettings(IAutoModMessageContext context)
 		{
-			var imgChannels = await _Db.GetImageOnlyChannelsAsync(user.GuildId).CAF();
-			return imgChannels.Contains(message.Channel.Id) && message.GetImageCount() == 0;
+			var imgChannels = await _Db.GetImageOnlyChannelsAsync(context.Guild.Id).CAF();
+			return imgChannels.Contains(context.Channel.Id) && context.Message.GetImageCount() == 0;
 		}
 
-		private async Task<bool> ProcessPersistentRolesAsync(IGuildUser user)
+		private async Task<bool> ProcessPersistentRolesAsync(IAutoModContext context)
 		{
-			var persistent = await _Db.GetPersistentRolesAsync(user.GuildId, user.Id).CAF();
+			var persistent = await _Db.GetPersistentRolesAsync(context.Guild.Id, context.User.Id).CAF();
 			if (persistent.Count == 0)
 			{
 				return false;
 			}
 
-			var roles = persistent.Select(x => user.Guild.GetRole(x.RoleId));
-			await user.AddRolesAsync(roles, _PersistentRoles).CAF();
+			var roles = persistent.Select(x => context.Guild.GetRole(x.RoleId));
+			await context.User.AddRolesAsync(roles, _PersistentRoles).CAF();
 			return true;
 		}
 
-		private async Task<bool> ProcessSpamAsync(IMessage message, IGuildUser user)
+		private async Task<bool> ProcessSpamAsync(IAutoModMessageContext context)
 		{
-			var prevs = await _Db.GetSpamPreventionAsync(user.GuildId).CAF();
-			var instances = _Spam.Get(user.Guild, user.Id);
+			var prevs = await _Db.GetSpamPreventionAsync(context.Guild.Id).CAF();
+			var instances = _Spam.Get(context.Guild, context.User.Id);
 
 			var isSpam = false;
 			foreach (var spamPrev in prevs)
 			{
-				if (spamPrev.IsSpam(message))
+				if (spamPrev.IsSpam(context.Message))
 				{
-					instances[spamPrev.SpamType].Add(message.Id);
+					instances[spamPrev.SpamType].Add(context.Message.Id);
 					isSpam = true;
 				}
 			}
@@ -258,16 +252,30 @@ namespace Advobot.AutoMod.Service
 				return false;
 			}
 
-			var punisher = GetPunisher(user.Guild);
-			var ambig = user.AsAmbiguous();
 			foreach (var spamPrev in prevs)
 			{
 				if (spamPrev.ShouldPunish(instances[spamPrev.SpamType]))
 				{
-					await punisher.GiveAsync(spamPrev, ambig, _SpamPrev).CAF();
+					await PunishAsync(context, spamPrev, _SpamPrev).CAF();
 				}
 			}
 			return true;
+		}
+
+		private Task PunishAsync(
+			IAutoModContext context,
+			IReadOnlyPunishment punishment,
+			RequestOptions options)
+			=> PunishAsync(context.Guild, context.User.AsAmbiguous(), punishment, options);
+
+		private Task PunishAsync(
+			IGuild guild,
+			AmbiguousUser user,
+			IReadOnlyPunishment punishment,
+			RequestOptions options)
+		{
+			var punisher = _Punishers.GetOrAdd(guild.Id, _ => new PunishmentManager(guild, _Timers));
+			return punisher.GiveAsync(punishment, user, options);
 		}
 	}
 }
