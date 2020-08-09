@@ -28,35 +28,30 @@ namespace Advobot.Gacha.Database
 			VALUES
 			( @CharacterId, @SourceId, @Name, @GenderIcon, @Gender, @RollType, @FlavorText, @IsFakeCharacter )
 		";
-
 		private const string INSERT_CLAIM = @"
 			INSERT INTO Claim
 			( ClaimId, GuildId, UserId, CharacterId, ImageUrl, IsPrimaryClaim )
 			VALUES
 			( @ClaimId, @GuildId, @UserId, @CharacterId, @ImageUrl, @IsPrimaryClaim )
 		";
-
 		private const string INSERT_IMG = @"
 			INSERT INTO Image
 			( CharacterId, Url )
 			VALUES
 			( @CharacterId, @Url )
 		";
-
 		private const string INSERT_SRC = @"
 			INSERT INTO Source
 			( SourceId, Name, ThumbnailUrl )
 			VALUES
 			( @SourceId, @Name, @ThumbnailUrl )
 		";
-
 		private const string INSERT_USER = @"
 			INSERT INTO User
 			( GuildId, UserId )
 			VALUES
 			( @GuildId, @UserId )
 		";
-
 		private const string INSERT_WISH = @"
 			INSERT INTO Wish
 			( WishId, GuildId, UserId, CharacterId )
@@ -65,25 +60,23 @@ namespace Advobot.Gacha.Database
 		";
 
 		private readonly ITime _Time;
-
 		public CloseIds CharacterIds { get; } = new CloseIds
 		{
 			IncludeWhenContains = false,
 			MaxAllowedCloseness = 2,
 		};
-
 		public CloseIds SourceIds { get; } = new CloseIds
 		{
 			IncludeWhenContains = false,
 			MaxAllowedCloseness = 2,
 		};
 
-		public GachaDatabase(ITime time, IGachaDatabaseStarter starter) : base(starter)
+		public GachaDatabase(ITime time, IConnectionFor<GachaDatabase> conn) : base(conn)
 		{
 			_Time = time;
 		}
 
-		public Task AddCharacterAsync(IReadOnlyCharacter character)
+		public Task<int> AddCharacterAsync(IReadOnlyCharacter character)
 		{
 			CharacterIds.Add(character.CharacterId, character.Name);
 			return ModifyAsync(INSERT_CHAR, character);
@@ -98,16 +91,16 @@ namespace Advobot.Gacha.Database
 			return BulkModifyAsync(INSERT_CHAR, characters);
 		}
 
-		public Task AddClaimAsync(IReadOnlyClaim claim)
+		public Task<int> AddClaimAsync(IReadOnlyClaim claim)
 			=> ModifyAsync(INSERT_CLAIM, claim);
 
 		public Task<int> AddClaimsAsync(IEnumerable<IReadOnlyClaim> claims)
 			=> BulkModifyAsync(INSERT_CLAIM, claims);
 
-		public Task AddImageAsync(IReadOnlyImage image)
+		public Task<int> AddImageAsync(IReadOnlyImage image)
 			=> ModifyAsync(INSERT_IMG, image);
 
-		public Task AddSourceAsync(IReadOnlySource source)
+		public Task<int> AddSourceAsync(IReadOnlySource source)
 		{
 			SourceIds.Add(source.SourceId, source.Name);
 			return ModifyAsync(INSERT_SRC, source);
@@ -122,13 +115,13 @@ namespace Advobot.Gacha.Database
 			return BulkModifyAsync(INSERT_SRC, sources);
 		}
 
-		public Task AddUserAsync(IReadOnlyUser user)
+		public Task<int> AddUserAsync(IReadOnlyUser user)
 			=> ModifyAsync(INSERT_USER, user);
 
 		public Task<int> AddUsersAsync(IEnumerable<IReadOnlyUser> users)
 			=> BulkModifyAsync(INSERT_USER, users);
 
-		public Task AddWishAsync(IReadOnlyWish wish)
+		public Task<int> AddWishAsync(IReadOnlyWish wish)
 			=> ModifyAsync(INSERT_WISH, wish);
 
 		public async Task CacheNamesAsync()

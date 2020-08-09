@@ -27,6 +27,11 @@ namespace Advobot.AutoMod.Migrations
 				GuildId,
 				UserId
 			);
+			CREATE INDEX IF NOT EXISTS PersistentRole_GuildId_RoleId_Index ON PersistentRole
+			(
+				GuildId,
+				RoleId
+			);
 			");
 		}
 	}

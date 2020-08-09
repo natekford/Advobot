@@ -77,10 +77,10 @@ namespace Advobot.Logging.Service
 			=> _Db.DeleteLogActionsAsync(guildId, actions);
 
 		public Task RemoveLogChannelAsync(Log log, ulong guildId)
-			=> _Db.UpdateLogChannelAsync(log, guildId, null);
+			=> _Db.UpsertLogChannelAsync(log, guildId, null);
 
 		public Task SetLogChannelAsync(Log log, ulong guildId, ulong channelId)
-			=> _Db.UpdateLogChannelAsync(log, guildId, channelId);
+			=> _Db.UpsertLogChannelAsync(log, guildId, channelId);
 
 		private Task OnLogMessageSent(LogMessage message)
 		{

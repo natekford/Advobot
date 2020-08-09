@@ -15,7 +15,7 @@ namespace Advobot.Invites.Database
 {
 	public sealed class InviteDatabase : DatabaseBase<SQLiteConnection>
 	{
-		public InviteDatabase(IInviteDatabaseStarter starter) : base(starter)
+		public InviteDatabase(IConnectionFor<InviteDatabase> conn) : base(conn)
 		{
 		}
 

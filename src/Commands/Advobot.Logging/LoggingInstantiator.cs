@@ -18,11 +18,11 @@ namespace Advobot.Logging
 		{
 			services
 				.AddSingleton<LoggingDatabase>()
+				.AddSQLiteFileDatabaseConnectionStringFor<LoggingDatabase>("Logging.db")
 				.AddSingleton<ILoggingService, LoggingService>()
-				.AddSingleton<ILoggingDatabaseStarter, LoggingDatabaseStarter>()
 				.AddSingleton<NotificationDatabase>()
+				.AddSQLiteFileDatabaseConnectionStringFor<NotificationDatabase>("Notification.db")
 				.AddSingleton<INotificationService, NotificationService>()
-				.AddSingleton<INotificationDatabaseStarter, NotificationDatabaseStarter>()
 				.AddDefaultOptionsSetter<LogActionsResetter>()
 				.AddDefaultOptionsSetter<WelcomeNotificationResetter>()
 				.AddDefaultOptionsSetter<GoodbyeNotificationResetter>();
@@ -33,14 +33,14 @@ namespace Advobot.Logging
 		public Task ConfigureServicesAsync(IServiceProvider services)
 		{
 			{
-				services.GetRequiredService<ILoggingDatabaseStarter>().MigrateUp();
+				services.GetRequiredService<IConnectionFor<LoggingDatabase>>().MigrateUp();
 
 				// Needed to instantiate the log service
 				services.GetRequiredService<ILoggingService>();
 			}
 
 			{
-				services.GetRequiredService<INotificationDatabaseStarter>().MigrateUp();
+				services.GetRequiredService<IConnectionFor<NotificationDatabase>>().MigrateUp();
 
 				// Needed to instasntiate the notification service
 				services.GetRequiredService<INotificationService>();

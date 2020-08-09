@@ -3,7 +3,7 @@
 using Advobot.Attributes.ParameterPreconditions.Strings;
 using Advobot.Services.HelpEntries;
 using Advobot.Tests.Fakes.Services.HelpEntries;
-using Advobot.Tests.PreconditionTestsBases;
+using Advobot.Tests.TestBases;
 
 using AdvorangesUtils;
 

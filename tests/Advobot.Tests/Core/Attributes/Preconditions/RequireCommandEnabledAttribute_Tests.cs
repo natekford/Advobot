@@ -7,7 +7,7 @@ using Advobot.Services.GuildSettings;
 using Advobot.Services.HelpEntries;
 using Advobot.Tests.Fakes.Services.GuildSettings;
 using Advobot.Tests.Fakes.Services.HelpEntries;
-using Advobot.Tests.PreconditionTestsBases;
+using Advobot.Tests.TestBases;
 
 using AdvorangesUtils;
 

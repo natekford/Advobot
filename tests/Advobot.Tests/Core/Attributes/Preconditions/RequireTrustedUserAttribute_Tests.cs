@@ -4,7 +4,7 @@ using System.Threading.Tasks;
 using Advobot.Attributes.Preconditions;
 using Advobot.Services.BotSettings;
 using Advobot.Tests.Fakes.Services.BotSettings;
-using Advobot.Tests.PreconditionTestsBases;
+using Advobot.Tests.TestBases;
 
 using AdvorangesUtils;
 

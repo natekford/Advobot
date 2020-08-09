@@ -19,49 +19,46 @@ namespace Advobot.Levels.Database
 {
 	public sealed class LevelDatabase : DatabaseBase<SQLiteConnection>
 	{
-		public LevelDatabase(ILevelDatabaseStarter starter) : base(starter)
+		public LevelDatabase(IConnectionFor<LevelDatabase> conn) : base(conn)
 		{
 		}
 
 		public async Task<int> AddIgnoredChannelsAsync(ulong guildId, IEnumerable<ulong> channels)
 		{
-			const string SQL = @"
-				INSERT OR REPLACE INTO IgnoredChannel
-				( GuildId, ChannelId )
-				VALUES
-				( @GuildId, @ChannelId )
-			";
 			var @params = channels.Select(x => new
 			{
 				GuildId = guildId.ToString(),
 				ChannelId = x.ToString()
 			});
-			return await BulkModifyAsync(SQL, @params).CAF();
+			return await BulkModifyAsync(@"
+				INSERT OR IGNORE INTO IgnoredChannel
+				( GuildId, ChannelId )
+				VALUES
+				( @GuildId, @ChannelId )
+			", @params).CAF();
 		}
 
 		public async Task<int> DeleteIgnoredChannelsAsync(ulong guildId, IEnumerable<ulong> channels)
 		{
-			const string SQL = @"
-				DELETE FROM IgnoredChannel
-				WHERE GuildId = @GuildId AND ChannelId = @ChannelId
-			";
 			var @params = channels.Select(x => new
 			{
 				GuildId = guildId.ToString(),
 				ChannelId = x.ToString()
 			});
-			return await BulkModifyAsync(SQL, @params).CAF();
+			return await BulkModifyAsync(@"
+				DELETE FROM IgnoredChannel
+				WHERE GuildId = @GuildId AND ChannelId = @ChannelId
+			", @params).CAF();
 		}
 
 		public async Task<int> GetDistinctUserCountAsync(ISearchArgs args)
 		{
 			using var connection = await GetConnectionAsync().CAF();
 
-			var where = GenerateWhereStatement(args);
 			return await connection.QuerySingleAsync<int>($@"
 				SELECT COUNT(DISTINCT UserId)
 				FROM User
-				{where}
+				{GenerateWhereStatement(args)}
 			", args).CAF();
 		}
 
@@ -117,11 +114,10 @@ namespace Advobot.Levels.Database
 				Offset = offset,
 				Limit = limit,
 			};
-			var where = GenerateWhereStatement(args);
 			var results = await connection.QueryAsync<TempRankInfo>($@"
 			    SELECT SUM(Experience) as Xp, UserId
 				FROM User
-				{where}
+				{GenerateWhereStatement(args)}
 				GROUP BY UserId
 				ORDER BY Xp DESC
 				Limit @Limit OFFSET @Offset
@@ -148,11 +144,9 @@ namespace Advobot.Levels.Database
 			", args).CAF() ?? 0;
 		}
 
-		public async Task UpsertUser(IReadOnlyUser user)
+		public Task UpsertUserAsync(IReadOnlyUser user)
 		{
-			using var connection = await GetConnectionAsync().CAF();
-
-			await connection.ExecuteAsync(@"
+			return ModifyAsync(@"
 				INSERT OR IGNORE INTO User
 					( GuildId, ChannelId, UserId, Experience, MessageCount )
 					VALUES
@@ -162,7 +156,7 @@ namespace Advobot.Levels.Database
 					Experience = @Experience,
 					MessageCount = @MessageCount
 				WHERE UserId = @UserId AND GuildId = @GuildId AND ChannelId = @ChannelId
-			", user).CAF();
+			", user);
 		}
 
 		private void AppendWhereStatement(StringBuilder sb, object? value, string name)

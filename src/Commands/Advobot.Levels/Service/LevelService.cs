@@ -77,7 +77,7 @@ namespace Advobot.Levels.Service
 
 			var user = await _Db.GetUserAsync(context.CreateArgs()).CAF();
 			var added = user.AddXp(xp);
-			await _Db.UpsertUser(added).CAF();
+			await _Db.UpsertUserAsync(added).CAF();
 
 			ConsoleUtils.DebugWrite($"Successfully gave {xp} xp to {context.User.Format()}.");
 		}
@@ -122,7 +122,7 @@ namespace Advobot.Levels.Service
 			var user = await _Db.GetUserAsync(context.CreateArgs()).CAF();
 			var xp = hash.Experience;
 			var added = user.RemoveXp(xp);
-			await _Db.UpsertUser(added).CAF();
+			await _Db.UpsertUserAsync(added).CAF();
 
 			ConsoleUtils.DebugWrite($"Successfully removed {xp} xp from {context.User.Format()}.");
 		}

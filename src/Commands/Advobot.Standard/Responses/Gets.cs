@@ -399,7 +399,7 @@ namespace Advobot.Standard.Responses
 			var meta = info.CreateCollection();
 			meta.Add(GetsTitlePosition, role.Position);
 			meta.Add(GetsTitleUserCount, userCount);
-			meta.Add(GetsTitleColor, $"#{role.Color.RawValue.ToString("X6")}");
+			meta.Add(GetsTitleColor, $"#{role.Color.RawValue:X6}");
 			var other = info.CreateCollection();
 			other.Add(GetsTitleHoisted, role.IsHoisted);
 			other.Add(GetsTitleManaged, role.IsManaged);
@@ -487,7 +487,8 @@ namespace Advobot.Standard.Responses
 			}
 			if (guildUser.JoinedAt is DateTimeOffset dto)
 			{
-				var join = (await guildUser.Guild.GetUsersAsync().CAF())
+				//If cachemode is allow download this can take ages
+				var join = (await guildUser.Guild.GetUsersAsync(CacheMode.CacheOnly).CAF())
 					.Count(x => x.JoinedAt < guildUser.JoinedAt);
 				guildInfo.Add(GetsTitleJoined, GetsJoinedAt.Format(
 					dto.UtcDateTime.ToReadable().WithNoMarkdown(),

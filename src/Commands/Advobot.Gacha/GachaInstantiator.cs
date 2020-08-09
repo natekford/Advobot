@@ -22,10 +22,10 @@ namespace Advobot.Gacha
 		{
 			services
 				.AddSingleton<IGachaDatabase, GachaDatabase>()
+				.AddSQLiteFileDatabaseConnectionStringFor<GachaDatabase>("Gacha.db")
 				.AddSingleton<DisplayManager>()
 				.AddSingleton<ExchangeManager>()
 				.AddSingleton<IInteractionManager, InteractionManager>()
-				.AddSingleton<IGachaDatabaseStarter, GachaDatabaseStarter>()
 				.AddSingleton<ICounterService, CounterService>()
 				.AddSingleton<ITokenHolderService, TokenHolderService>();
 
@@ -34,7 +34,7 @@ namespace Advobot.Gacha
 
 		public async Task ConfigureServicesAsync(IServiceProvider services)
 		{
-			services.GetRequiredService<IGachaDatabaseStarter>().MigrateUp();
+			services.GetRequiredService<IConnectionFor<GachaDatabase>>().MigrateUp();
 
 			var db = services.GetRequiredService<IGachaDatabase>();
 			if (db is GachaDatabase gdb)

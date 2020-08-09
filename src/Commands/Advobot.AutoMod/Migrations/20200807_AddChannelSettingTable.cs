@@ -22,11 +22,6 @@ namespace Advobot.AutoMod.Migrations
 			(
 				GuildId
 			);
-			CREATE INDEX IF NOT EXISTS ChannelSetting_GuildId_ImageOnly_Index ON ChannelSetting
-			(
-				GuildId,
-				ImageOnly
-			);
 			");
 		}
 	}

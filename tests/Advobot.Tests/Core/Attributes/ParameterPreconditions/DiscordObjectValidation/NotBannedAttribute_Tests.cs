@@ -1,7 +1,7 @@
 ﻿using System.Threading.Tasks;
 
 using Advobot.Attributes.ParameterPreconditions.DiscordObjectValidation;
-using Advobot.Tests.PreconditionTestsBases;
+using Advobot.Tests.TestBases;
 
 using AdvorangesUtils;
 

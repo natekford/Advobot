@@ -8,13 +8,11 @@ using Advobot.SQLite;
 
 using AdvorangesUtils;
 
-using Dapper;
-
 namespace Advobot.Logging.Database
 {
 	public sealed class NotificationDatabase : DatabaseBase<SQLiteConnection>
 	{
-		public NotificationDatabase(INotificationDatabaseStarter starter) : base(starter)
+		public NotificationDatabase(IConnectionFor<NotificationDatabase> conn) : base(conn)
 		{
 		}
 
@@ -34,7 +32,7 @@ namespace Advobot.Logging.Database
 			", param).CAF();
 		}
 
-		public Task UpdateNotificationChannelAsync(
+		public Task<int> UpsertNotificationChannelAsync(
 			Notification notification,
 			ulong guildId,
 			ulong? channelId)
@@ -56,7 +54,7 @@ namespace Advobot.Logging.Database
 			", param);
 		}
 
-		public Task UpdateNotificationContentAsync(
+		public Task<int> UpsertNotificationContentAsync(
 			Notification notification,
 			ulong guildId,
 			string? content)
@@ -78,7 +76,7 @@ namespace Advobot.Logging.Database
 			", param);
 		}
 
-		public Task UpdateNotificationEmbedAsync(
+		public Task<int> UpsertNotificationEmbedAsync(
 			Notification notification,
 			ulong guildId,
 			IReadOnlyCustomEmbed? embed)

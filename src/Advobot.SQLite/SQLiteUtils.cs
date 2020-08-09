@@ -4,6 +4,9 @@ using System.Data.SQLite;
 using System.Linq;
 using System.Threading.Tasks;
 
+using Advobot.Settings;
+using Advobot.Utilities;
+
 using AdvorangesUtils;
 
 using Dapper;
@@ -23,66 +26,34 @@ namespace Advobot.SQLite
 		/// Runs all migrations which have not been run yet.
 		/// </summary>
 		/// <typeparam name="T"></typeparam>
-		/// <param name="starter"></param>
-		public static void MigrateUp<T>(this T starter) where T : IDatabaseStarter
-		{
-			new ServiceCollection()
-				.AddFluentMigratorCore()
-				.ConfigureRunner(x =>
-				{
-					x
-					.AddSQLite()
-					.WithGlobalConnectionString(starter.GetConnectionString())
-					.ScanIn(typeof(T).Assembly).For.Migrations();
-				})
-#if DEBUG
-				.AddLogging(x => x.AddFluentMigratorConsole())
-#endif
-				.BuildServiceProvider(false)
-				.GetRequiredService<IMigrationRunner>()
-				.MigrateUp();
-		}
+		/// <param name="connection"></param>
+		public static void MigrateUp<T>(this IConnectionFor<T> connection)
+			=> connection.CreateMigrationRunner().MigrateUp();
 
 		/// <summary>
 		/// Downgrades to the specified version.
 		/// </summary>
 		/// <typeparam name="T"></typeparam>
-		/// <param name="starter"></param>
+		/// <param name="connection"></param>
 		/// <param name="version"></param>
-		public static void MigrateDown<T>(this T starter, long version) where T : IDatabaseStarter
-		{
-			new ServiceCollection()
-				.AddFluentMigratorCore()
-				.ConfigureRunner(x =>
-				{
-					x
-					.AddSQLite()
-					.WithGlobalConnectionString(starter.GetConnectionString())
-					.ScanIn(typeof(T).Assembly).For.Migrations();
-				})
-#if DEBUG
-				.AddLogging(x => x.AddFluentMigratorConsole())
-#endif
-				.BuildServiceProvider(false)
-				.GetRequiredService<IMigrationRunner>()
-				.MigrateDown(version);
-		}
+		public static void MigrateDown<T>(this IConnectionFor<T> connection, long version)
+			=> connection.CreateMigrationRunner().MigrateDown(version);
 
 		/// <summary>
 		/// Creates a new <see cref="DbConnection"/>.
 		/// </summary>
 		/// <typeparam name="T"></typeparam>
-		/// <param name="starter"></param>
+		/// <param name="connection"></param>
 		/// <returns></returns>
-		public static async Task<T> GetConnectionAsync<T>(this IDatabaseStarter starter)
+		public static async Task<T> GetConnectionAsync<T>(this IConnectionString connection)
 			where T : DbConnection, new()
 		{
-			var connection = new T
+			var conn = new T
 			{
-				ConnectionString = starter.GetConnectionString()
+				ConnectionString = connection.ConnectionString
 			};
-			await connection.OpenAsync().CAF();
-			return connection;
+			await conn.OpenAsync().CAF();
+			return conn;
 		}
 
 		/// <summary>
@@ -100,6 +71,45 @@ namespace Advobot.SQLite
 				ORDER BY name;
 			").CAF();
 			return result.ToArray();
+		}
+
+		/// <summary>
+		/// Adds a SQLite connection string for the specified database.
+		/// </summary>
+		/// <typeparam name="T"></typeparam>
+		/// <param name="services"></param>
+		/// <param name="fileName"></param>
+		/// <returns></returns>
+		public static IServiceCollection AddSQLiteFileDatabaseConnectionStringFor<T>(
+			this IServiceCollection services,
+			string fileName)
+		{
+			return services.AddSingleton(x =>
+			{
+				var accessor = x.GetRequiredService<IBotDirectoryAccessor>();
+				var path = accessor.ValidateDbPath("SQLite", fileName).FullName;
+				var conn = new SQLiteSystemFileDatabaseConnectionString(path);
+				return (IConnectionFor<T>)(IConnectionFor<object>)conn;
+			});
+		}
+
+		private static IMigrationRunner CreateMigrationRunner<T>(
+			this IConnectionFor<T> connection)
+		{
+			return new ServiceCollection()
+				.AddFluentMigratorCore()
+				.ConfigureRunner(x =>
+				{
+					x
+					.AddSQLite()
+					.WithGlobalConnectionString(connection.ConnectionString)
+					.ScanIn(typeof(T).Assembly).For.Migrations();
+				})
+#if DEBUG
+				.AddLogging(x => x.AddFluentMigratorConsole())
+#endif
+				.BuildServiceProvider(false)
+				.GetRequiredService<IMigrationRunner>();
 		}
 	}
 }

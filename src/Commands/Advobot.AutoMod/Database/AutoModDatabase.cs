@@ -14,10 +14,45 @@ using Dapper;
 
 namespace Advobot.AutoMod.Database
 {
+	//Path.Combine("SQLite", "AutoMod.db")
 	public sealed class AutoModDatabase : DatabaseBase<SQLiteConnection>
 	{
-		public AutoModDatabase(IAutoModDatabaseStarter starter) : base(starter)
+		public AutoModDatabase(IConnectionFor<AutoModDatabase> conn) : base(conn)
 		{
+		}
+
+		public Task<int> AddPersistentRoleAsync(IReadOnlyPersistentRole role)
+		{
+			return ModifyAsync(@"
+				INSERT OR IGNORE INTO PersistentRole
+				( GuildId, UserId, RoleId )
+				VALUES
+				( @GuildId, @UserId, @RoleId )
+			", role);
+		}
+
+		public Task<int> DeleteBannedNameAsync(IReadOnlyBannedPhrase name)
+		{
+			return ModifyAsync(@"
+				DELETE FROM BannedName
+				WHERE GuildId = @GuildId AND Phrase = @Phrase
+			", name);
+		}
+
+		public Task<int> DeletedBannedPhraseAsync(IReadOnlyBannedPhrase phrase)
+		{
+			return ModifyAsync(@"
+				DELETE FROM BannedPhrase
+				WHERE GuildId = @GuildId AND Phrase = @Phrase
+			", phrase);
+		}
+
+		public Task<int> DeletePersistentRoleAsync(IReadOnlyPersistentRole role)
+		{
+			return ModifyAsync(@"
+				DELETE FROM PersistentRole
+				WHERE GuildId = @GuildId AND UserId = @UserId AND RoleId = @RoleId
+			", role);
 		}
 
 		public async Task<IReadOnlyAutoModSettings> GetAutoModSettingsAsync(ulong guildId)
@@ -60,7 +95,8 @@ namespace Advobot.AutoMod.Database
 			", param).CAF();
 		}
 
-		public async Task<IReadOnlyList<IReadOnlyChannelSettings>> GetChannelSettingsListAsync(ulong guildId)
+		public async Task<IReadOnlyList<IReadOnlyChannelSettings>> GetChannelSettingsListAsync(
+			ulong guildId)
 		{
 			var param = new { GuildId = guildId.ToString(), };
 			return await GetManyAsync<ChannelSettings>(@"
@@ -115,6 +151,68 @@ namespace Advobot.AutoMod.Database
 		public Task<IReadOnlyList<IReadOnlySpamPrevention>> GetSpamPreventionAsync(ulong guildId)
 		{
 			throw new NotImplementedException();
+		}
+
+		public Task<int> UpsertAutoModSettingsAsync(IReadOnlyAutoModSettings settings)
+		{
+			return ModifyAsync(@"
+				INSERT OR IGNORE INTO GuildSetting
+					( GuildId, Ticks, IgnoreAdmins, IgnoreHigherHierarchy )
+					VALUES
+					( @GuildId, @Ticks, @IgnoreAdmins, @IgnoreHigherHierarchy );
+				UPDATE GuildSetting
+				SET
+					Ticks = @Ticks,
+					IgnoreAdmins = @IgnoreAdmins,
+					IgnoreHigherHierarchy = @IgnoreHigherHierarchy
+				WHERE GuildId = @GuildId
+			", settings);
+		}
+
+		public Task<int> UpsertBannedNameAsync(IReadOnlyBannedPhrase name)
+		{
+			return ModifyAsync(@"
+				INSERT OR IGNORE INTO BannedName
+					( GuildId, Phrase, IsContains, IsRegex, PunishmentType )
+					VALUES
+					( @GuildId, @Phrase, @IsContains, @IsRegex, @PunishmentType );
+				UPDATE BannedName
+				SET
+					IsContains = @IsContains,
+					IsRegex = @IsRegex,
+					PunishmentType = @PunishmentType
+				WHERE GuildId = @GuildId AND Phrase = @Phrase
+			", name);
+		}
+
+		public Task<int> UpsertBannedPhraseAsync(IReadOnlyBannedPhrase phrase)
+		{
+			return ModifyAsync(@"
+				INSERT OR IGNORE INTO BannedPhrase
+					( GuildId, Phrase, IsContains, IsRegex, PunishmentType )
+					VALUES
+					( @GuildId, @Phrase, @IsContains, @IsRegex, @PunishmentType );
+				UPDATE BannedPhrase
+				SET
+					IsContains = @IsContains,
+					IsRegex = @IsRegex,
+					PunishmentType = @PunishmentType
+				WHERE GuildId = @GuildId AND Phrase = @Phrase
+			", phrase);
+		}
+
+		public Task<int> UpsertChannelSettings(IReadOnlyChannelSettings settings)
+		{
+			return ModifyAsync(@"
+				INSERT OR IGNORE INTO ChannelSetting
+					( GuildId, ChannelId, ImageOnly )
+					VALUES
+					( @GuildId, @ChannelId, @ImageOnly );
+				UPDATE ChannelSetting
+				SET
+					ImageOnly = @ImageOnly
+				WHERE ChannelId = @ChannelId
+			", settings);
 		}
 	}
 }

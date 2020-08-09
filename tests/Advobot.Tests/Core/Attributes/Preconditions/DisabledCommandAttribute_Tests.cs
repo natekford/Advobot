@@ -2,7 +2,7 @@
 using System.Threading.Tasks;
 
 using Advobot.Attributes.Preconditions;
-using Advobot.Tests.PreconditionTestsBases;
+using Advobot.Tests.TestBases;
 
 using AdvorangesUtils;
 

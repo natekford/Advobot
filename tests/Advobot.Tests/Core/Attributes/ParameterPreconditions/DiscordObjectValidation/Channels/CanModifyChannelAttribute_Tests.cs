@@ -3,7 +3,7 @@
 using Advobot.Attributes.ParameterPreconditions.DiscordObjectValidation.Channels;
 using Advobot.Tests.Fakes.Discord;
 using Advobot.Tests.Fakes.Discord.Channels;
-using Advobot.Tests.PreconditionTestsBases;
+using Advobot.Tests.TestBases;
 
 using AdvorangesUtils;
 

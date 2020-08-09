@@ -26,6 +26,11 @@ namespace Advobot.AutoMod.Models
 		}
 		ulong IGuildChild.GuildId => GuildId.ToId();
 
+		public AutoModSettings()
+		{
+			GuildId = "";
+		}
+
 		public AutoModSettings(ulong guildId)
 		{
 			GuildId = guildId.ToString();

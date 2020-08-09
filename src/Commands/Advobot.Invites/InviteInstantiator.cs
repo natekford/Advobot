@@ -16,15 +16,15 @@ namespace Advobot.Invites
 		{
 			services
 				.AddSingleton<InviteDatabase>()
-				.AddSingleton<IInviteListService, InviteListService>()
-				.AddSingleton<IInviteDatabaseStarter, InviteDatabaseStarter>();
+				.AddSQLiteFileDatabaseConnectionStringFor<InviteDatabase>("Invites.db")
+				.AddSingleton<IInviteListService, InviteListService>();
 
 			return Task.CompletedTask;
 		}
 
 		public Task ConfigureServicesAsync(IServiceProvider services)
 		{
-			services.GetRequiredService<IInviteDatabaseStarter>().MigrateUp();
+			services.GetRequiredService<IConnectionFor<InviteDatabase>>().MigrateUp();
 
 			return Task.CompletedTask;
 		}

@@ -17,7 +17,7 @@ namespace Advobot.Logging.Database
 {
 	public sealed class LoggingDatabase : DatabaseBase<SQLiteConnection>
 	{
-		public LoggingDatabase(ILoggingDatabaseStarter starter) : base(starter)
+		public LoggingDatabase(IConnectionFor<LoggingDatabase> conn) : base(conn)
 		{
 		}
 
@@ -29,7 +29,7 @@ namespace Advobot.Logging.Database
 				ChannelId = x.ToString()
 			});
 			return BulkModifyAsync(@"
-				INSERT OR REPLACE INTO IgnoredChannel
+				INSERT OR IGNORE INTO IgnoredChannel
 				( GuildId, ChannelId )
 				VALUES
 				( @GuildId, @ChannelId )
@@ -44,7 +44,7 @@ namespace Advobot.Logging.Database
 				Action = x.ToString()
 			});
 			return BulkModifyAsync(@"
-				INSERT OR REPLACE INTO LogAction
+				INSERT OR IGNORE INTO LogAction
 				( GuildId, Action )
 				VALUES
 				( @GuildId, @Action )
@@ -113,7 +113,7 @@ namespace Advobot.Logging.Database
 			", param).CAF() ?? new LogChannels();
 		}
 
-		public Task UpdateLogChannelAsync(Log log, ulong guildId, ulong? channelId)
+		public Task<int> UpsertLogChannelAsync(Log log, ulong guildId, ulong? channelId)
 		{
 			var name = GetLogName(log);
 			var param = new { GuildId = guildId.ToString(), ChannelId = channelId?.ToString() };
@@ -123,7 +123,8 @@ namespace Advobot.Logging.Database
 					VALUES
 					( @GuildId, @ChannelId );
 				UPDATE LogChannel
-				SET {name} = @ChannelId
+				SET
+					{name} = @ChannelId
 				WHERE GuildId = @GuildId
 			", param);
 		}

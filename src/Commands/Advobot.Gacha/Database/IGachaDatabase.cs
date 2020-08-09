@@ -12,25 +12,25 @@ namespace Advobot.Gacha.Database
 		CloseIds CharacterIds { get; }
 		CloseIds SourceIds { get; }
 
-		Task AddCharacterAsync(IReadOnlyCharacter character);
+		Task<int> AddCharacterAsync(IReadOnlyCharacter character);
 
 		Task<int> AddCharactersAsync(IEnumerable<IReadOnlyCharacter> characters);
 
-		Task AddClaimAsync(IReadOnlyClaim claim);
+		Task<int> AddClaimAsync(IReadOnlyClaim claim);
 
 		Task<int> AddClaimsAsync(IEnumerable<IReadOnlyClaim> claims);
 
-		Task AddImageAsync(IReadOnlyImage image);
+		Task<int> AddImageAsync(IReadOnlyImage image);
 
-		Task AddSourceAsync(IReadOnlySource source);
+		Task<int> AddSourceAsync(IReadOnlySource source);
 
 		Task<int> AddSourcesAsync(IEnumerable<IReadOnlySource> sources);
 
-		Task AddUserAsync(IReadOnlyUser user);
+		Task<int> AddUserAsync(IReadOnlyUser user);
 
 		Task<int> AddUsersAsync(IEnumerable<IReadOnlyUser> users);
 
-		Task AddWishAsync(IReadOnlyWish wish);
+		Task<int> AddWishAsync(IReadOnlyWish wish);
 
 		Task<IReadOnlyCharacter> GetCharacterAsync(long id);
 

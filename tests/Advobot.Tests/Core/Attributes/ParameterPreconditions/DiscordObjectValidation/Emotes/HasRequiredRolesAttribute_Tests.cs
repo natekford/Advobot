@@ -2,7 +2,7 @@
 using System.Threading.Tasks;
 
 using Advobot.Attributes.ParameterPreconditions.DiscordObjectValidation.Emotes;
-using Advobot.Tests.PreconditionTestsBases;
+using Advobot.Tests.TestBases;
 using Advobot.Tests.Utilities;
 
 using AdvorangesUtils;
