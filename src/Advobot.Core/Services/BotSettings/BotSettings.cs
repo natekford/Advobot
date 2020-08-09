@@ -197,11 +197,6 @@ namespace Advobot.Services.BotSettings
 		}
 
 		/// <inheritdoc />
-		[Setting(nameof(BotSettingNames.TrustedUsers), ResetValueClass = typeof(ClearList))]
-		[JsonProperty("TrustedUsers")]
-		public IList<ulong> TrustedUsers { get; set; } = new ObservableCollection<ulong>();
-
-		/// <inheritdoc />
 		[Setting(nameof(BotSettingNames.UsersIgnoredFromCommands), ResetValueClass = typeof(ClearList))]
 		[JsonProperty("UsersIgnoredFromCommands")]
 		public IList<ulong> UsersIgnoredFromCommands { get; set; } = new ObservableCollection<ulong>();

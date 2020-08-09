@@ -115,9 +115,6 @@ namespace Advobot.UI.ViewModels
 			set => RaiseAndSetIfChangedAndValid(v => _BotSettings.Stream = v, ref _Stream, value, new TwitchStreamValidationAttribute());
 		}
 
-		public IList<ulong> TrustedUsers
-			=> _BotSettings.TrustedUsers;
-
 		public IList<ulong> UsersIgnoredFromCommands
 			=> _BotSettings.UsersIgnoredFromCommands;
 

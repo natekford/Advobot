@@ -191,8 +191,6 @@
                  ToolTip.Tip="How many punishments can be added to a server." />
         <TextBox Classes="i1" Text="Log Level"
                  ToolTip.Tip="Prints out items with an equal to or higher log severity to the console. This requires a bot restart." />
-        <TextBox Classes="i1" Text="Trusted Users"
-                 ToolTip.Tip="Users in here can use some commands only the bot owner can use otherwise." />
         <TextBox Classes="i1" Text="Users Unable To Dm&#xD;Owner"
                  ToolTip.Tip="Users in here cannot send DMs to the owner through the bot." />
         <TextBox Classes="i1" Text="Users Ignored From&#xD;Commands"
@@ -218,7 +216,6 @@
         <controls:NumberBox StoredValue="{Binding MaxBannedNames}" HasError="{Binding Errors[MaxBannedNames]}" MaxValue="10000" />
         <controls:NumberBox StoredValue="{Binding MaxBannedPunishments}" HasError="{Binding Errors[MaxBannedPunishments]}" MaxValue="10000" />
         <ComboBox controls:SourceEnum.SourceEnum="{x:Type discord:LogSeverity}" SelectedItem="{Binding LogLevel}" />
-        <controls:UserListEditor UserList="{Binding TrustedUsers}" HasError="{Binding Errors[TrustedUsers]}" />
         <controls:UserListEditor UserList="{Binding UsersUnableToDmOwner}" HasError="{Binding Errors[UsersUnableToDmOwner]}" />
         <controls:UserListEditor UserList="{Binding UsersIgnoredFromCommands}" HasError="{Binding Errors[UsersIgnoredFromCommands]}" />
       </UniformGrid>

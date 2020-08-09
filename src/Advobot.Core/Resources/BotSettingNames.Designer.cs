@@ -205,15 +205,6 @@ namespace Advobot.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Trusted Users.
-        /// </summary>
-        internal static string TrustedUsers {
-            get {
-                return ResourceManager.GetString("TrustedUsers", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Users Ignored From Commands.
         /// </summary>
         internal static string UsersIgnoredFromCommands {

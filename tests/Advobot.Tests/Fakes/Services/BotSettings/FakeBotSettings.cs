@@ -30,7 +30,6 @@ namespace Advobot.Tests.Fakes.Services.BotSettings
 		public string Prefix { get; set; } = "&&";
 		public string RestartArguments => throw new NotImplementedException();
 		public string? Stream { get; set; }
-		public IList<ulong> TrustedUsers { get; set; } = new List<ulong>();
 		public IList<ulong> UsersIgnoredFromCommands { get; set; } = new List<ulong>();
 		public IList<ulong> UsersUnableToDmOwner { get; set; } = new List<ulong>();
 

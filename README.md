@@ -36,7 +36,7 @@ I've tried to make a lot of the bot as configurable as possible meaning there ar
 * **Servers:** Create, delete.
 * **Bot User:** Change icon, game, stream, name.
 * **Bot Client:** Disconnect, restart, list servers.
-* **Bot Settings:** Trusted users, ban users from commands, custom prefix, game, stream, log level.
+* **Bot Settings:** Ban users from commands, custom prefix, game, stream, log level.
 
 **UI Features**
 * **Stats:** Lists stats about various things. Latency, memory usage, thread usage, bot actions on users.

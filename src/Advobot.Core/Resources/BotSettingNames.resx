@@ -165,9 +165,6 @@
   <data name="Stream" xml:space="preserve">
     <value>Stream</value>
   </data>
-  <data name="TrustedUsers" xml:space="preserve">
-    <value>Trusted Users</value>
-  </data>
   <data name="UsersIgnoredFromCommands" xml:space="preserve">
     <value>Users Ignored From Commands</value>
   </data>

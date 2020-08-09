@@ -281,20 +281,6 @@ namespace Advobot.Settings.Commands
 			public Task Reset() { }
 		}
 
-		[LocalizedGroup(nameof(Groups.ModifyTrustedUsers))][LocalizedAlias(nameof(Aliases.ModifyTrustedUsers))]
-		[Summary("")]
-		[RequireBotOwner]
-		[EnabledByDefault(true)]
-		public sealed class ModifyTrustedUsers : AdvobotSettingsModuleBase<IBotSettings>, ISettingModule<null>
-		{
-			protected override IBotSettings Settings => BotSettings;
-
-			[ImplicitCommand, ImplicitAlias]
-			public Task Show() { }
-			[ImplicitCommand, ImplicitAlias]
-			public Task Reset() { }
-		}
-
 		[LocalizedGroup(nameof(Groups.ModifyUsersUnableToDmOwner))][LocalizedAlias(nameof(Aliases.ModifyUsersUnableToDmOwner))]
 		[Summary("")]
 		[RequireBotOwner]

@@ -43,7 +43,6 @@ namespace Advobot.Tests.Core.Attributes.ParameterPreconditions.Strings
 				BotSettingNames.MaxBannedRegex,
 				BotSettingNames.MaxBannedNames,
 				BotSettingNames.MaxBannedPunishments,
-				BotSettingNames.TrustedUsers,
 				BotSettingNames.UsersUnableToDmOwner,
 				BotSettingNames.UsersIgnoredFromCommands,
 			};
