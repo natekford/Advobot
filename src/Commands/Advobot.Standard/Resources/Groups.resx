@@ -475,4 +475,7 @@
   <data name="Many" xml:space="preserve">
     <value>Many</value>
   </data>
+  <data name="Me" xml:space="preserve">
+    <value>Me</value>
+  </data>
 </root>

@@ -130,8 +130,8 @@ namespace Advobot.Standard.Responses
 				//If the name of the command is not in its alias, then the name isnt set
 				var name = x.Aliases.Any(a => a.CaseInsContains(x.Name)) ? $" {x.Name}" : "";
 				var parameters = x.Parameters.Join(FormatParameter);
-				return $"\t{i + 1}.{name} ({parameters})";
-			}).Join("\n").WithBlock().Value;
+				return $"{i + 1}.{name} ({parameters})";
+			}).Join("\n").WithBigBlock().Value;
 			info.CreateCollection().Add(MiscTitleCommands, commands);
 
 			return Success(CreateHelpEmbed(module.Aliases[0], info.ToString()));

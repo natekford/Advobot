@@ -488,6 +488,10 @@ namespace Advobot.Standard.Responses
 			if (guildUser.JoinedAt is DateTimeOffset dto)
 			{
 				//If cachemode is allow download this can take ages
+#if DEBUG
+				var a = guildUser.Guild as SocketGuild;
+				var b = a?.Users;
+#endif
 				var join = (await guildUser.Guild.GetUsersAsync(CacheMode.CacheOnly).CAF())
 					.Count(x => x.JoinedAt < guildUser.JoinedAt);
 				guildInfo.Add(GetsTitleJoined, GetsJoinedAt.Format(
@@ -516,18 +520,18 @@ namespace Advobot.Standard.Responses
 
 			if (roles.Count > 0)
 			{
-				var fieldValue = roles.Join(x => x.Name).WithBlock().Value;
+				var fieldValue = roles.Join(x => x.Name).WithBigBlock().Value;
 				embed.TryAddField(GetsTitleRoles, fieldValue, false, out _);
 				embed.Color = roles.LastOrDefault(x => x.Color.RawValue != 0)?.Color;
 			}
 			if (textChannels.Count > 0)
 			{
-				var fieldValue = textChannels.Join(x => x.Name).WithBlock().Value;
+				var fieldValue = textChannels.Join(x => x.Name).WithBigBlock().Value;
 				embed.TryAddField(GetsTitleTextChannels, fieldValue, false, out _);
 			}
 			if (voiceChannels.Count > 0)
 			{
-				var fieldValue = voiceChannels.Join(x => x.Name).WithBlock().Value;
+				var fieldValue = voiceChannels.Join(x => x.Name).WithBigBlock().Value;
 				embed.TryAddField(GetsTitleVoiceChannels, fieldValue, false, out _);
 			}
 			if (guildUser.VoiceChannel is IVoiceChannel vc)

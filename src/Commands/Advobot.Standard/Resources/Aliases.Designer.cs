@@ -610,6 +610,15 @@ namespace Advobot.Standard.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to m.
+        /// </summary>
+        internal static string Me {
+            get {
+                return ResourceManager.GetString("Me", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to mb.
         /// </summary>
         internal static string MessageBoost {

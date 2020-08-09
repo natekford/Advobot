@@ -168,6 +168,7 @@ namespace Advobot.Utilities
 		/// <returns></returns>
 		public static string Format(this IActivity activity) => activity switch
 		{
+			CustomStatusGame csg => csg.State,
 			SpotifyGame sp => $"Listening to {sp.TrackTitle}",
 			StreamingGame sg => $"Streaming {sg.Name.EscapeBackTicks()} at {sg.Url}",
 			RichGame rg => $"Playing {rg.Name.EscapeBackTicks()} ({rg.State.EscapeBackTicks()})",
