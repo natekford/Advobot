@@ -71,7 +71,7 @@ namespace Advobot.Gacha.Database
 			MaxAllowedCloseness = 2,
 		};
 
-		public GachaDatabase(ITime time, IConnectionFor<GachaDatabase> conn) : base(conn)
+		public GachaDatabase(ITime time, IConnectionStringFor<GachaDatabase> conn) : base(conn)
 		{
 			_Time = time;
 		}

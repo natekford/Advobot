@@ -24,7 +24,7 @@ namespace Advobot.Invites
 
 		public Task ConfigureServicesAsync(IServiceProvider services)
 		{
-			services.GetRequiredService<IConnectionFor<InviteDatabase>>().MigrateUp();
+			services.GetRequiredService<IConnectionStringFor<InviteDatabase>>().MigrateUp();
 
 			return Task.CompletedTask;
 		}

@@ -33,14 +33,14 @@ namespace Advobot.Logging
 		public Task ConfigureServicesAsync(IServiceProvider services)
 		{
 			{
-				services.GetRequiredService<IConnectionFor<LoggingDatabase>>().MigrateUp();
+				services.GetRequiredService<IConnectionStringFor<LoggingDatabase>>().MigrateUp();
 
 				// Needed to instantiate the log service
 				services.GetRequiredService<ILoggingService>();
 			}
 
 			{
-				services.GetRequiredService<IConnectionFor<NotificationDatabase>>().MigrateUp();
+				services.GetRequiredService<IConnectionStringFor<NotificationDatabase>>().MigrateUp();
 
 				// Needed to instasntiate the notification service
 				services.GetRequiredService<INotificationService>();

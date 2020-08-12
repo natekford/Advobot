@@ -27,7 +27,7 @@ namespace Advobot.SQLite
 		/// </summary>
 		/// <typeparam name="T"></typeparam>
 		/// <param name="connection"></param>
-		public static void MigrateUp<T>(this IConnectionFor<T> connection)
+		public static void MigrateUp<T>(this IConnectionStringFor<T> connection)
 			=> connection.CreateMigrationRunner().MigrateUp();
 
 		/// <summary>
@@ -36,7 +36,7 @@ namespace Advobot.SQLite
 		/// <typeparam name="T"></typeparam>
 		/// <param name="connection"></param>
 		/// <param name="version"></param>
-		public static void MigrateDown<T>(this IConnectionFor<T> connection, long version)
+		public static void MigrateDown<T>(this IConnectionStringFor<T> connection, long version)
 			=> connection.CreateMigrationRunner().MigrateDown(version);
 
 		/// <summary>
@@ -89,12 +89,12 @@ namespace Advobot.SQLite
 				var accessor = x.GetRequiredService<IBotDirectoryAccessor>();
 				var path = accessor.ValidateDbPath("SQLite", fileName).FullName;
 				var conn = new SQLiteSystemFileDatabaseConnectionString(path);
-				return (IConnectionFor<T>)(IConnectionFor<object>)conn;
+				return (IConnectionStringFor<T>)(IConnectionStringFor<object>)conn;
 			});
 		}
 
 		private static IMigrationRunner CreateMigrationRunner<T>(
-			this IConnectionFor<T> connection)
+			this IConnectionStringFor<T> connection)
 		{
 			return new ServiceCollection()
 				.AddFluentMigratorCore()

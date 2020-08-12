@@ -22,7 +22,7 @@ namespace Advobot.Tests.TestBases
 		{
 			var services = new ServiceCollection()
 				.AddSingleton<TDatabase>()
-				.AddSingleton<IConnectionFor<TDatabase>, FakeSQLiteConnectionString>()
+				.AddSingleton<IConnectionStringFor<TDatabase>, FakeSQLiteConnectionString>()
 				.AddSingleton<ITime, DefaultTime>();
 			ModifyServices(services);
 			Services = services.BuildServiceProvider();
@@ -30,7 +30,7 @@ namespace Advobot.Tests.TestBases
 
 		protected async Task<TDatabase> GetDatabaseAsync()
 		{
-			var starter = Services.GetRequiredService<IConnectionFor<TDatabase>>();
+			var starter = Services.GetRequiredService<IConnectionStringFor<TDatabase>>();
 			await starter.EnsureCreatedAsync().CAF();
 			starter.MigrateUp();
 

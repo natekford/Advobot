@@ -25,7 +25,7 @@ namespace Advobot.Levels
 
 		public Task ConfigureServicesAsync(IServiceProvider services)
 		{
-			services.GetRequiredService<IConnectionFor<LevelDatabase>>().MigrateUp();
+			services.GetRequiredService<IConnectionStringFor<LevelDatabase>>().MigrateUp();
 
 			// Needed to instantiate the level service
 			services.GetRequiredService<ILevelService>();

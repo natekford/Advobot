@@ -17,7 +17,7 @@ namespace Advobot.Logging.Database
 {
 	public sealed class LoggingDatabase : DatabaseBase<SQLiteConnection>
 	{
-		public LoggingDatabase(IConnectionFor<LoggingDatabase> conn) : base(conn)
+		public LoggingDatabase(IConnectionStringFor<LoggingDatabase> conn) : base(conn)
 		{
 		}
 

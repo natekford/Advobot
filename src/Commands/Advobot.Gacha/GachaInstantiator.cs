@@ -34,7 +34,7 @@ namespace Advobot.Gacha
 
 		public async Task ConfigureServicesAsync(IServiceProvider services)
 		{
-			services.GetRequiredService<IConnectionFor<GachaDatabase>>().MigrateUp();
+			services.GetRequiredService<IConnectionStringFor<GachaDatabase>>().MigrateUp();
 
 			var db = services.GetRequiredService<IGachaDatabase>();
 			if (db is GachaDatabase gdb)

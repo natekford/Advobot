@@ -17,7 +17,7 @@ namespace Advobot.AutoMod.Database
 	//Path.Combine("SQLite", "AutoMod.db")
 	public sealed class AutoModDatabase : DatabaseBase<SQLiteConnection>
 	{
-		public AutoModDatabase(IConnectionFor<AutoModDatabase> conn) : base(conn)
+		public AutoModDatabase(IConnectionStringFor<AutoModDatabase> conn) : base(conn)
 		{
 		}
 

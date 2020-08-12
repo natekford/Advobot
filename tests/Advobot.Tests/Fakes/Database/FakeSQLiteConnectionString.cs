@@ -6,7 +6,7 @@ using Advobot.SQLite;
 
 namespace Advobot.Tests.Fakes.Database
 {
-	public sealed class FakeSQLiteConnectionString : IConnectionFor<object>
+	public sealed class FakeSQLiteConnectionString : IConnectionStringFor<object>
 	{
 		public string ConnectionString { get; }
 		public string Id { get; }
