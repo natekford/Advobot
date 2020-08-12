@@ -32,7 +32,7 @@ namespace Advobot.Tests.Commands.Logging.Preconditions
 		[TestMethod]
 		public async Task DoesNotHaveLog_Test()
 		{
-			_Channels.ServerLogId = 0.ToString();
+			_Channels.ServerLogId = 0;
 
 			var result = await CheckAsync().CAF();
 			Assert.IsFalse(result.IsSuccess);
@@ -41,7 +41,7 @@ namespace Advobot.Tests.Commands.Logging.Preconditions
 		[TestMethod]
 		public async Task HasLog_Test()
 		{
-			_Channels.ServerLogId = 73.ToString();
+			_Channels.ServerLogId = 73;
 
 			var result = await CheckAsync().CAF();
 			Assert.IsTrue(result.IsSuccess);

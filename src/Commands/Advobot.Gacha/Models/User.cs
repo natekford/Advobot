@@ -1,6 +1,4 @@
-﻿using Advobot.Databases.Relationships;
-using Advobot.Gacha.ReadOnlyModels;
-using Advobot.Utilities;
+﻿using Advobot.Gacha.ReadOnlyModels;
 
 using Discord;
 
@@ -8,22 +6,17 @@ namespace Advobot.Gacha.Models
 {
 	public class User : IReadOnlyUser
 	{
-		public string GuildId { get; set; }
-		public string UserId { get; set; }
-
-		ulong IGuildChild.GuildId => GuildId.ToId();
-		ulong IUserChild.UserId => UserId.ToId();
+		public ulong GuildId { get; set; }
+		public ulong UserId { get; set; }
 
 		public User()
 		{
-			GuildId = "";
-			UserId = "";
 		}
 
 		public User(IGuildUser user)
 		{
-			GuildId = user.GuildId.ToString();
-			UserId = user.Id.ToString();
+			GuildId = user.GuildId;
+			UserId = user.Id;
 		}
 	}
 }

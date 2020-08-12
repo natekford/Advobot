@@ -49,7 +49,7 @@ namespace Advobot.Tests.Commands.Invites.Database
 			var client = new FakeClient();
 			var guild = new FakeGuild(client);
 
-			var keyword = (IReadOnlyKeyword)new Keyword(guild, "bird");
+			IReadOnlyKeyword keyword = new Keyword(guild, "bird");
 			await db.AddKeywordAsync(keyword).CAF();
 
 			var retrievedList = await db.GetKeywords(guild.Id).CAF();

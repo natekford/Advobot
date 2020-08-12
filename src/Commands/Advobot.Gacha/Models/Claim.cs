@@ -1,9 +1,7 @@
 ﻿using System;
 
-using Advobot.Databases.Relationships;
 using Advobot.Gacha.ReadOnlyModels;
 using Advobot.Gacha.Utilities;
-using Advobot.Utilities;
 
 namespace Advobot.Gacha.Models
 {
@@ -11,24 +9,19 @@ namespace Advobot.Gacha.Models
 	{
 		public long CharacterId { get; set; }
 		public long ClaimId { get; set; } = TimeUtils.UtcNowTicks;
-		public string GuildId { get; set; }
+		public ulong GuildId { get; set; }
 		public string? ImageUrl { get; set; }
 		public bool IsPrimaryClaim { get; set; }
-		public string UserId { get; set; }
-
-		ulong IGuildChild.GuildId => GuildId.ToId();
-		ulong IUserChild.UserId => UserId.ToId();
+		public ulong UserId { get; set; }
 
 		public Claim()
 		{
-			GuildId = "";
-			UserId = "";
 		}
 
 		public Claim(IReadOnlyUser user, IReadOnlyCharacter character)
 		{
-			GuildId = user.GuildId.ToString();
-			UserId = user.UserId.ToString();
+			GuildId = user.GuildId;
+			UserId = user.UserId;
 			CharacterId = character.CharacterId;
 		}
 

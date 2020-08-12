@@ -1,9 +1,7 @@
 ﻿using System;
 
-using Advobot.Databases.Relationships;
 using Advobot.Levels.Database;
 using Advobot.Levels.ReadOnlyModels;
-using Advobot.Utilities;
 
 using Discord;
 
@@ -11,28 +9,21 @@ namespace Advobot.Levels.Models
 {
 	public sealed class User : IReadOnlyUser
 	{
-		public string ChannelId { get; set; }
+		public ulong ChannelId { get; set; }
 		public int Experience { get; set; }
-		public string GuildId { get; set; }
+		public ulong GuildId { get; set; }
 		public int MessageCount { get; set; }
-		public string UserId { get; set; }
-
-		ulong IChannelChild.ChannelId => ChannelId.ToId();
-		ulong IGuildChild.GuildId => GuildId.ToId();
-		ulong IUserChild.UserId => UserId.ToId();
+		public ulong UserId { get; set; }
 
 		public User()
 		{
-			GuildId = "";
-			ChannelId = "";
-			UserId = "";
 		}
 
 		public User(IGuildUser user, ITextChannel channel, int experience)
 		{
-			GuildId = channel.GuildId.ToString();
-			ChannelId = channel.Id.ToString();
-			UserId = user.Id.ToString();
+			GuildId = channel.GuildId;
+			ChannelId = channel.Id;
+			UserId = user.Id;
 			Experience = experience;
 		}
 
@@ -45,11 +36,11 @@ namespace Advobot.Levels.Models
 
 		private User(IReadOnlyUser user)
 		{
-			ChannelId = user.ChannelId.ToString();
+			ChannelId = user.ChannelId;
 			Experience = user.Experience;
-			GuildId = user.GuildId.ToString();
+			GuildId = user.GuildId;
 			MessageCount = user.MessageCount;
-			UserId = user.UserId.ToString();
+			UserId = user.UserId;
 		}
 
 		public IReadOnlyUser AddXp(int xp)

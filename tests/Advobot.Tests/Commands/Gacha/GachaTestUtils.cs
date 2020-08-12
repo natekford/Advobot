@@ -92,8 +92,8 @@ namespace Advobot.Tests.Commands.Gacha.Utilities
 		{
 			return new User
 			{
-				UserId = (userId ?? Rng.NextUlongAboveLongMax()).ToString(),
-				GuildId = (guildId ?? Rng.NextUlongAboveLongMax()).ToString(),
+				UserId = userId ?? Rng.NextUlongAboveLongMax(),
+				GuildId = guildId ?? Rng.NextUlongAboveLongMax(),
 			};
 		}
 

@@ -1,4 +1,4 @@
-﻿namespace Advobot.Databases.Relationships
+﻿namespace Advobot.SQLite.Relationships
 {
 	/// <summary>
 	/// Represents an object which belongs to a channel.

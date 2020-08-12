@@ -1,4 +1,4 @@
-﻿using Advobot.Databases.Relationships;
+﻿using Advobot.SQLite.Relationships;
 
 namespace Advobot.Invites.ReadOnlyModels
 {

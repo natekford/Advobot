@@ -1,5 +1,5 @@
-﻿using Advobot.Databases.Relationships;
-using Advobot.Services.GuildSettings.Settings;
+﻿using Advobot.Services.GuildSettings.Settings;
+using Advobot.SQLite.Relationships;
 
 namespace Advobot.AutoMod.ReadOnlyModels
 {

@@ -1,8 +1,11 @@
 ﻿using System.Collections.Generic;
+using System.Data;
 using System.Data.Common;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading.Tasks;
+
+using Advobot.SQLite.TypeHandlers;
 
 using AdvorangesUtils;
 
@@ -20,6 +23,22 @@ namespace Advobot.SQLite
 		/// Starts the database.
 		/// </summary>
 		protected IConnectionString Connection { get; }
+
+		static DatabaseBase()
+		{
+			// SQLite can't handle ulongs, it stores them as longs and allows overflow
+			// This causes issues when comparing values so we can either
+			// 1) Store them as longs and account for overflow
+			// 2) Store them as strings
+			// Storing them as strings uses more space in the db, but
+			// it does make it more readable if looking through the database manually
+			SqlMapper.AddTypeHandler(new UlongHandler());
+			// Simply removing the type map causes issues, we need to overwrite it with string
+			SqlMapper.AddTypeMap(typeof(ulong), DbType.String);
+			SqlMapper.AddTypeMap(typeof(ulong?), DbType.String);
+
+			ConsoleUtils.DebugWrite("Added in the ulong handler for SQLite.", nameof(DatabaseBase<T>));
+		}
 
 		/// <summary>
 		/// Creates an instance of <see cref="DatabaseBase{T}"/>.

@@ -154,20 +154,6 @@ namespace Advobot.Utilities
 		}
 
 		/// <summary>
-		/// Converts <paramref name="value"/> to a <see cref="ulong"/>.
-		/// </summary>
-		/// <param name="value"></param>
-		/// <returns></returns>
-		public static ulong ToId(this string? value)
-		{
-			if (string.IsNullOrWhiteSpace(value))
-			{
-				return 0;
-			}
-			return ulong.Parse(value);
-		}
-
-		/// <summary>
 		/// Converts <see cref="IGuildUser"/> to a tuple usable as a key in a dictionary.
 		/// </summary>
 		/// <param name="user"></param>

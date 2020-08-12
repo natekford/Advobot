@@ -1,5 +1,5 @@
-﻿using Advobot.Databases.Relationships;
-using Advobot.Gacha.Relationships;
+﻿using Advobot.Gacha.Relationships;
+using Advobot.SQLite.Relationships;
 
 namespace Advobot.Gacha.ReadOnlyModels
 {

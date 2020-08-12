@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Threading.Tasks;
 
-using Advobot.Databases.Relationships;
+using Advobot.SQLite.Relationships;
 
 using Discord;
 

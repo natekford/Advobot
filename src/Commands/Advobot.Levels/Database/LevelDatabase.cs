@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Data;
 using System.Data.SQLite;
 using System.Linq;
@@ -77,6 +78,11 @@ namespace Advobot.Levels.Database
 
 		public async Task<IRank> GetRankAsync(ISearchArgs args)
 		{
+			if (args.UserId == null)
+			{
+				throw new ArgumentNullException(nameof(args.UserId));
+			}
+
 			using var connection = await GetConnectionAsync().CAF();
 
 			var xp = await GetXpAsync(args).CAF();
@@ -99,7 +105,7 @@ namespace Advobot.Levels.Database
 					++rank;
 				}
 			}
-			return new Rank(args.GetUserId(), xp, rank, total);
+			return new Rank(args.UserId.Value, xp, rank, total);
 		}
 
 		public async Task<IReadOnlyList<IRank>> GetRanksAsync(ISearchArgs args, int offset, int limit)
@@ -123,7 +129,7 @@ namespace Advobot.Levels.Database
 				Limit @Limit OFFSET @Offset
 			", param).CAF();
 			var count = await GetDistinctUserCountAsync(args).CAF();
-			return results.Select((x, i) => new Rank(x.UserIdValue, x.Xp, offset + i, count)).ToArray();
+			return results.Select((x, i) => new Rank(x.UserId, x.Xp, offset + i, count)).ToArray();
 		}
 
 		public async Task<IReadOnlyUser> GetUserAsync(ISearchArgs args)
@@ -189,8 +195,7 @@ namespace Advobot.Levels.Database
 
 		private sealed class TempRankInfo
 		{
-			public string UserId { get; set; } = null!;
-			public ulong UserIdValue => ulong.Parse(UserId);
+			public ulong UserId { get; set; }
 			public int Xp { get; set; }
 		}
 	}

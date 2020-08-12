@@ -80,9 +80,9 @@ namespace Advobot.Tests.Commands.AutoMod.Database
 
 			IReadOnlyPersistentRole role = new PersistentRole
 			{
-				GuildId = GUILD_ID.ToString(),
-				RoleId = ROLE_ID.ToString(),
-				UserId = USER_ID.ToString(),
+				GuildId = GUILD_ID,
+				RoleId = ROLE_ID,
+				UserId = USER_ID,
 			};
 			await db.AddPersistentRoleAsync(role).CAF();
 

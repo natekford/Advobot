@@ -2,8 +2,8 @@
 {
 	public interface ISearchArgs
 	{
-		string? ChannelId { get; }
-		string? GuildId { get; }
-		string? UserId { get; }
+		ulong? ChannelId { get; }
+		ulong? GuildId { get; }
+		ulong? UserId { get; }
 	}
 }

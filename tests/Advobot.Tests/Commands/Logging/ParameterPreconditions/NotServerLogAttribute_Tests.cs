@@ -45,7 +45,7 @@ namespace Advobot.Tests.Commands.Logging.ParameterPreconditions
 		[TestMethod]
 		public async Task LogExisting_Test()
 		{
-			_Channels.ServerLogId = CHANNEL_ID.ToString();
+			_Channels.ServerLogId = CHANNEL_ID;
 
 			var result = await CheckAsync(_FakeChannel).CAF();
 			Assert.IsFalse(result.IsSuccess);
