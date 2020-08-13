@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
@@ -30,22 +31,18 @@ namespace Advobot.Services.Commands
 		private readonly IBotSettings _BotSettings;
 		private readonly DiscordShardedClient _Client;
 		private readonly CommandServiceConfig _CommandConfig;
-
 		private readonly AsyncEvent<Func<CommandInfo, ICommandContext, IResult, Task>> _CommandInvoked
 			= new AsyncEvent<Func<CommandInfo, ICommandContext, IResult, Task>>();
-
 		private readonly Localized<CommandService> _CommandService;
+		private readonly ConcurrentDictionary<ulong, byte> _GatheringUsers
+									= new ConcurrentDictionary<ulong, byte>();
 		private readonly IGuildSettingsFactory _GuildSettings;
 		private readonly IHelpEntryService _HelpEntries;
-
 		private readonly AsyncEvent<Func<LogMessage, Task>> _Log
 			= new AsyncEvent<Func<LogMessage, Task>>();
-
 		private readonly IServiceProvider _Provider;
-
 		private readonly AsyncEvent<Func<Task>> _Ready
 			= new AsyncEvent<Func<Task>>();
-
 		private int _ShardsReady;
 		private bool IsReady => _ShardsReady == _Client.Shards.Count;
 
@@ -101,8 +98,8 @@ namespace Advobot.Services.Commands
 				return commands;
 			});
 
-			_Client.ShardReady += OnReady;
-			_Client.MessageReceived += HandleCommand;
+			_Client.ShardReady += OnShardReady;
+			_Client.MessageReceived += OnMessageReceived;
 		}
 
 		public async Task AddCommandsAsync(IEnumerable<CommandAssembly> assemblies)
@@ -150,41 +147,19 @@ namespace Advobot.Services.Commands
 			CultureInfo.CurrentUICulture = currentCulture;
 		}
 
-		private static bool CanBeIgnored(IAdvobotCommandContext c, IResult r)
-		{
-			return r == null
-				|| r.Error == CommandError.UnknownCommand
-				|| (!r.IsSuccess && (r.ErrorReason == null || c.Settings.NonVerboseErrors))
-				|| (r is PreconditionGroupResult g && g.PreconditionResults.All(x => CanBeIgnored(c, x)));
-		}
-
-		private async Task HandleCommand(IMessage message)
-		{
-			var argPos = -1;
-			if (!IsReady || _BotSettings.Pause || message.Author.IsBot
-				|| string.IsNullOrWhiteSpace(message.Content)
-				|| _BotSettings.UsersIgnoredFromCommands.Contains(message.Author.Id)
-				|| !(message is IUserMessage msg)
-				|| !(msg.Author is IGuildUser user)
-				|| !(await _GuildSettings.GetOrCreateAsync(user.Guild).CAF() is IGuildSettings settings)
-				|| settings.IgnoredCommandChannels.Contains(msg.Channel.Id)
-				|| !(msg.HasStringPrefix(settings.GetPrefix(_BotSettings), ref argPos)
-					|| msg.HasMentionPrefix(_Client.CurrentUser, ref argPos)))
-			{
-				return;
-			}
-
-			CultureInfo.CurrentUICulture = CultureInfo.GetCultureInfo(settings.Culture);
-			var context = new AdvobotCommandContext(settings, _Client, (SocketUserMessage)msg);
-			var commands = _CommandService.Get();
-			await commands.ExecuteAsync(context, argPos, _Provider).CAF();
-		}
-
 		private async Task OnCommandExecuted(
 			Optional<CommandInfo> command,
 			ICommandContext context,
 			IResult result)
 		{
+			static bool CanBeIgnored(IAdvobotCommandContext c, IResult r)
+			{
+				return r == null
+					|| r.Error == CommandError.UnknownCommand
+					|| (!r.IsSuccess && (r.ErrorReason == null || c.Settings.NonVerboseErrors))
+					|| (r is PreconditionGroupResult g && g.PreconditionResults.All(x => CanBeIgnored(c, x)));
+			}
+
 			if (!(context is IAdvobotCommandContext ctx))
 			{
 				throw new ArgumentException(nameof(context));
@@ -206,14 +181,43 @@ namespace Advobot.Services.Commands
 		private Task OnLog(LogMessage arg)
 			=> _Log.InvokeAsync(arg);
 
-		private async Task OnReady(DiscordSocketClient _)
+		private async Task OnMessageReceived(IMessage message)
+		{
+			var argPos = -1;
+			if (!IsReady || _BotSettings.Pause || message.Author.IsBot
+				|| string.IsNullOrWhiteSpace(message.Content)
+				|| _BotSettings.UsersIgnoredFromCommands.Contains(message.Author.Id)
+				|| !(message is SocketUserMessage msg)
+				|| !(msg.Author is SocketGuildUser user)
+				|| !(await _GuildSettings.GetOrCreateAsync(user.Guild).CAF() is IGuildSettings settings)
+				|| settings.IgnoredCommandChannels.Contains(msg.Channel.Id)
+				|| !(msg.HasStringPrefix(settings.GetPrefix(_BotSettings), ref argPos)
+					|| msg.HasMentionPrefix(_Client.CurrentUser, ref argPos)))
+			{
+				return;
+			}
+
+			var guild = user.Guild;
+			if (!guild.HasAllMembers && !_GatheringUsers.TryGetValue(guild.Id, out _))
+			{
+				_GatheringUsers.TryAdd(guild.Id, 0);
+				_ = guild.DownloadUsersAsync();
+			}
+
+			CultureInfo.CurrentUICulture = CultureInfo.GetCultureInfo(settings.Culture);
+			var context = new AdvobotCommandContext(settings, _Client, msg);
+			var commands = _CommandService.Get();
+			await commands.ExecuteAsync(context, argPos, _Provider).CAF();
+		}
+
+		private async Task OnShardReady(DiscordSocketClient _)
 		{
 			if (++_ShardsReady < _Client.Shards.Count)
 			{
 				return;
 			}
 
-			_Client.ShardReady -= OnReady;
+			_Client.ShardReady -= OnShardReady;
 
 			await _Client.UpdateGameAsync(_BotSettings).CAF();
 			await _Ready.InvokeAsync().CAF();

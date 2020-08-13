@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 
 using Discord;
@@ -36,7 +37,11 @@ namespace Advobot.Logging.Caches
 		/// Removes all of the cached messages from the cache and returns them.
 		/// </summary>
 		public IReadOnlyCollection<IMessage> Empty()
-			=> Interlocked.Exchange(ref _Messages, new ConcurrentBag<IMessage>()).ToArray();
+		{
+			return Interlocked.Exchange(ref _Messages, new ConcurrentBag<IMessage>())
+				.OrderByDescending(x => x.Id)
+				.ToArray();
+		}
 
 		/// <summary>
 		/// Cancels the previous cancellation token and generates a new one from a new source.
