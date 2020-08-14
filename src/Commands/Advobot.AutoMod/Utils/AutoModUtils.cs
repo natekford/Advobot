@@ -1,9 +1,8 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
-using System.Threading.Tasks;
 
 using Advobot.AutoMod.ReadOnlyModels;
-using Advobot.Classes;
 using Advobot.Utilities;
 
 using Discord;
@@ -35,19 +34,20 @@ namespace Advobot.AutoMod.Utils
 				.Count();
 		}
 
-		public static Task GiveAsync(
-			this PunishmentManager punisher,
-			IReadOnlyPunishment punishment,
-			AmbiguousUser user,
-			RequestOptions? options = null)
+		public static bool IsSpam(this IReadOnlySpamPrevention prevention, IMessage message)
 		{
-			var args = new PunishmentArgs
+			return prevention.SpamType switch
 			{
-				Time = punishment.Length,
-				Options = options,
-				Role = punisher.Guild.GetRole(punishment.RoleId),
-			};
-			return punisher.GiveAsync(punishment.PunishmentType, user, args);
+				SpamType.Message => int.MaxValue,
+				SpamType.LongMessage => message.Content?.Length ?? 0,
+				SpamType.Link => message.GetLinkCount(),
+				SpamType.Image => message.GetImageCount(),
+				SpamType.Mention => message.MentionedUserIds.Distinct().Count(),
+				_ => throw new ArgumentOutOfRangeException(nameof(prevention.SpamType)),
+			} > prevention.Size;
 		}
+
+		public static bool ShouldPunish(this IReadOnlySpamPrevention prevention, IEnumerable<ulong> messages)
+			=> messages.CountItemsInTimeFrame(prevention.Interval) > prevention.Instances;
 	}
 }

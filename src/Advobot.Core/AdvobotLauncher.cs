@@ -10,15 +10,14 @@ using Advobot.Databases;
 using Advobot.Databases.Abstract;
 using Advobot.Databases.LiteDB;
 using Advobot.Databases.MongoDB;
+using Advobot.Punishments;
 using Advobot.Services.BotSettings;
 using Advobot.Services.Commands;
 using Advobot.Services.GuildSettings;
 using Advobot.Services.HelpEntries;
 using Advobot.Services.ImageResizing;
 using Advobot.Services.LogCounters;
-using Advobot.Services.Temp;
 using Advobot.Services.Time;
-using Advobot.Services.Timers;
 using Advobot.Settings;
 using Advobot.Utilities;
 
@@ -174,10 +173,8 @@ namespace Advobot
 				.AddSingleton<ICommandHandlerService, CommandHandlerService>()
 				.AddSingleton<IGuildSettingsFactory, GuildSettingsFactory>()
 				.AddSingleton<ILogCounterService, LogCounterService>()
-				.AddSingleton<ITimerService, TimerService>()
 				.AddSingleton<IImageResizer, ImageResizer>()
-				//TODO: remove eventually
-				.AddSingleton<TempService>();
+				.AddSingleton<IPunisher, Punisher>();
 
 			switch (config.DatabaseType)
 			{

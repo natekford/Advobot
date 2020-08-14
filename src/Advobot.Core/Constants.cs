@@ -46,11 +46,6 @@ namespace Advobot
 		public const string REPO = "https://github.com/advorange/Advobot";
 
 		/// <summary>
-		/// The schema
-		/// </summary>
-		public const int SCHEMA_VERSION = 3;
-
-		/// <summary>
 		/// The zero length character to put before every message.
 		/// </summary>
 		public const string ZERO_WIDTH_SPACE = "\u200b";

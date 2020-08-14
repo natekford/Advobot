@@ -1,4 +1,4 @@
-﻿using System.Collections.Concurrent;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -8,13 +8,9 @@ using Advobot.AutoMod.Database;
 using Advobot.AutoMod.Models;
 using Advobot.AutoMod.ReadOnlyModels;
 using Advobot.AutoMod.Utils;
-using Advobot.Classes;
-using Advobot.Services.GuildSettings.Settings;
+using Advobot.Punishments;
 using Advobot.Services.Time;
-using Advobot.Services.Timers;
 using Advobot.Utilities;
-
-using AdvorangesSettingParser.Implementation.Instance;
 
 using AdvorangesUtils;
 
@@ -42,28 +38,25 @@ namespace Advobot.AutoMod.Service
 		private static readonly RequestOptions _SpamPrev
 			= DiscordUtils.GenerateRequestOptions("Spam prevention.");
 
-		private readonly AutoModDatabase _Db;
+		private readonly IAutoModDatabase _Db;
 		private readonly GuildSpecific<ulong, EnumMapped<PunishmentType, int>> _Phrases
 			= new GuildSpecific<ulong, EnumMapped<PunishmentType, int>>();
-		private readonly ConcurrentDictionary<ulong, PunishmentManager> _Punishers
-			= new ConcurrentDictionary<ulong, PunishmentManager>();
+		private readonly IPunisher _Punisher;
 		private readonly GuildSpecific<RaidType, HashSet<ulong>> _Raid
 			= new GuildSpecific<RaidType, HashSet<ulong>>();
 		private readonly GuildSpecific<ulong, EnumMapped<SpamType, SortedSet<ulong>>> _Spam
 			= new GuildSpecific<ulong, EnumMapped<SpamType, SortedSet<ulong>>>();
-
 		private readonly ITime _Time;
-		private readonly ITimerService _Timers;
 
 		public AutoModService(
 			BaseSocketClient client,
-			AutoModDatabase db,
+			IAutoModDatabase db,
 			ITime time,
-			ITimerService timers)
+			IPunisher punisher)
 		{
 			_Db = db;
 			_Time = time;
-			_Timers = timers;
+			_Punisher = punisher;
 
 			client.MessageReceived += OnMessageReceived;
 			client.MessageUpdated += OnMessageUpdated;
@@ -134,6 +127,17 @@ namespace Advobot.AutoMod.Service
 
 		private async Task<bool> ProcessAntiRaidAsync(IAutoModContext context)
 		{
+#warning make this work eventually
+#pragma warning disable RCS1163 // Unused parameter.
+#pragma warning disable IDE0060 // Remove unused parameter
+			static bool IsRaid(IReadOnlyRaidPrevention prev, IGuildUser user)
+				=> false;
+
+			static bool ShouldPunish(IReadOnlyRaidPrevention prev, IEnumerable<ulong> users)
+				=> false;
+#pragma warning restore IDE0060 // Remove unused parameter
+#pragma warning restore RCS1163 // Unused parameter.
+
 			var prevs = await _Db.GetRaidPreventionAsync(context.Guild.Id).CAF();
 
 			var isRaid = false;
@@ -142,7 +146,7 @@ namespace Advobot.AutoMod.Service
 				var instances = _Raid.Get(context.Guild, raidPrev.RaidType);
 				instances.Add(context.User.Id);
 
-				if (raidPrev.IsRaid(context.User))
+				if (IsRaid(raidPrev, context.User))
 				{
 					isRaid = true;
 				}
@@ -155,14 +159,14 @@ namespace Advobot.AutoMod.Service
 			foreach (var raidPrev in prevs)
 			{
 				var instances = _Raid.Get(context.Guild, raidPrev.RaidType);
-				if (!raidPrev.ShouldPunish(instances))
+				if (!ShouldPunish(raidPrev, instances))
 				{
 					continue;
 				}
 
 				foreach (var instance in instances)
 				{
-					await PunishAsync(context.Guild, instance.AsAmbiguous(), raidPrev, _RaidPrev).CAF();
+					await PunishAsync(context.Guild, instance, raidPrev, _RaidPrev).CAF();
 				}
 			}
 			return true;
@@ -175,7 +179,7 @@ namespace Advobot.AutoMod.Service
 			{
 				if (name.IsMatch(context.User.Username))
 				{
-					await PunishAsync(context, _Ban, _BannedName).CAF();
+					await PunishAsync(context.Guild, context.User.Id, _Ban, _BannedName).CAF();
 					return true;
 				}
 			}
@@ -209,7 +213,7 @@ namespace Advobot.AutoMod.Service
 					if (punishment.PunishmentType == instance.Key &&
 						punishment.Instances == instance.Value)
 					{
-						await PunishAsync(context, punishment, _BannedPhrase).CAF();
+						await PunishAsync(context.Guild, context.User.Id, punishment, _BannedPhrase).CAF();
 					}
 				}
 			}
@@ -258,26 +262,17 @@ namespace Advobot.AutoMod.Service
 			{
 				if (spamPrev.ShouldPunish(instances[spamPrev.SpamType]))
 				{
-					await PunishAsync(context, spamPrev, _SpamPrev).CAF();
+					await PunishAsync(context.Guild, context.User.Id, spamPrev, _SpamPrev).CAF();
 				}
 			}
 			return true;
 		}
 
 		private Task PunishAsync(
-			IAutoModContext context,
-			IReadOnlyPunishment punishment,
-			RequestOptions options)
-			=> PunishAsync(context.Guild, context.User.AsAmbiguous(), punishment, options);
-
-		private Task PunishAsync(
 			IGuild guild,
-			AmbiguousUser user,
+			ulong userId,
 			IReadOnlyPunishment punishment,
 			RequestOptions options)
-		{
-			var punisher = _Punishers.GetOrAdd(guild.Id, _ => new PunishmentManager(guild, _Timers));
-			return punisher.GiveAsync(punishment, user, options);
-		}
+			=> _Punisher.DynamicHandleAsync(guild, userId, punishment.PunishmentType, true, punishment.RoleId, options);
 	}
 }

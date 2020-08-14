@@ -16,12 +16,10 @@ namespace Advobot.Classes
 		/// The property which had an error.
 		/// </summary>
 		public string PropertyPath { get; }
-
 		/// <summary>
 		/// The reason for this error.
 		/// </summary>
 		public string? Reason { get; }
-
 		/// <summary>
 		/// The value that gave an error.
 		/// </summary>
@@ -156,7 +154,7 @@ namespace Advobot.Classes
 		}
 
 		private static string GetFromUnary(this UnaryExpression unary)
-											=> unary.Operand.GetFromAny();
+			=> unary.Operand.GetFromAny();
 	}
 
 	/// <summary>
@@ -166,10 +164,8 @@ namespace Advobot.Classes
 	{
 		/// <inheritdoc />
 		public string PropertyPath { get; }
-
 		/// <inheritdoc />
 		public string? Reason { get; private set; }
-
 		/// <inheritdoc />
 		public TProperty Value { get; }
 
@@ -219,7 +215,7 @@ namespace Advobot.Classes
 		}
 
 		public IRemainingEmbedError WithRemaining(int r)
-																					=> new RemainingEmbedError(this, r, $"Remaining length is {r}.");
+			=> new RemainingEmbedError(this, r, $"Remaining length is {r}.");
 
 		public IRemainingEmbedError WithRemainingNewLines(int r)
 			=> new RemainingEmbedError(this, r, $"Remaining new lines is {r}.", newLines: true);
@@ -229,16 +225,12 @@ namespace Advobot.Classes
 	{
 		/// <inheritdoc />
 		public bool IsNewLines { get; }
-
 		/// <inheritdoc />
 		public string PropertyPath { get; }
-
 		/// <inheritdoc />
 		public string? Reason { get; }
-
 		/// <inheritdoc />
 		public int RemainingLength { get; }
-
 		/// <inheritdoc />
 		public object? Value { get; }
 

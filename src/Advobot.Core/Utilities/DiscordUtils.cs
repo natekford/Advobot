@@ -7,6 +7,7 @@ using AdvorangesUtils;
 
 using Discord;
 using Discord.Commands;
+using Discord.WebSocket;
 
 namespace Advobot.Utilities
 {
@@ -71,6 +72,15 @@ namespace Advobot.Utilities
 				.Where(x => x.Id != user.GuildId)
 				.ToArray();
 		}
+
+		/// <summary>
+		/// Gets a user from the cache if available.
+		/// </summary>
+		/// <param name="client"></param>
+		/// <param name="id"></param>
+		/// <returns></returns>
+		public static async Task<IUser?> GetUserAsync(this BaseSocketClient client, ulong id)
+			=> (IUser)client.GetUser(id) ?? await client.Rest.GetUserAsync(id).CAF();
 
 		/// <summary>
 		/// Changes the role's position and says the supplied reason in the audit log.

@@ -20,7 +20,6 @@ namespace Advobot.Modules
 		/// The result to use when this should be fully ignored.
 		/// </summary>
 		public static AdvobotResult IgnoreFailure { get; } = Failure(null, CommandError.Unsuccessful);
-
 		/// <summary>
 		/// The result to use when indicating a success that has no reason.
 		/// </summary>
@@ -30,22 +29,18 @@ namespace Advobot.Modules
 		/// The embed to post with the message.
 		/// </summary>
 		public EmbedWrapper? Embed { get; private set; }
-
 		/// <summary>
 		/// The file to post with the message.
 		/// </summary>
 		public TextFileInfo? File { get; private set; }
-
 		/// <summary>
 		/// Where to send this result to. If this is null, the default context channel will be used instead.
 		/// </summary>
 		public ulong? OverrideDestinationChannelId { get; private set; }
-
 		/// <summary>
 		/// When the message being sent is over 2,000 characters long. This breaks it up into sendable chunks.
 		/// </summary>
 		public IReadOnlyCollection<string>? ReasonSegments { get; private set; }
-
 		/// <summary>
 		/// How long to let this message stay up for.
 		/// </summary>

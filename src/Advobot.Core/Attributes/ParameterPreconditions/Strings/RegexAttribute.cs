@@ -10,7 +10,7 @@ using Discord.Commands;
 namespace Advobot.Attributes.ParameterPreconditions.Strings
 {
 	/// <summary>
-	/// Validates the regex by making sure it is between 1 and 100 characters.
+	/// Validates a regex with various test cases.
 	/// </summary>
 	[AttributeUsage(AttributeTargets.Parameter, AllowMultiple = false, Inherited = true)]
 	public sealed class RegexAttribute : StringParameterPreconditionAttribute

@@ -181,7 +181,7 @@ namespace Advobot.Standard.Responses
 			var logs = info.CreateCollection();
 			//logs.Add(GetsTitleIgnoredLog, settings.IgnoredLogChannels.Contains(channel.Id));
 			logs.Add(GetsTitleIgnoredCommands, settings.IgnoredCommandChannels.Contains(channel.Id));
-			logs.Add(GetsTitleImageOnly, settings.ImageOnlyChannels.Contains(channel.Id));
+			//logs.Add(GetsTitleImageOnly, settings.ImageOnlyChannels.Contains(channel.Id));
 			//logs.Add(GetsTitleServerLog, settings.ServerLogId == channel.Id);
 			//logs.Add(GetsTitleModLog, settings.ModLogId == channel.Id);
 			//logs.Add(GetsTitleImageLog, settings.ImageLogId == channel.Id);

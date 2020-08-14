@@ -17,8 +17,9 @@ namespace Advobot.AutoMod.Migrations
 				Phrase					TEXT NOT NULL,
 				IsContains				INTEGER NOT NULL,
 				IsRegex					INTEGER NOT NULL,
-				PunishmentType			TEXT NOT NULL,
-				PRIMARY KEY(GuildId, Phrase)
+				IsName					INTEGER NOT NULL,
+				PunishmentType			INTEGER NOT NULL,
+				PRIMARY KEY(GuildId, Phrase, IsName)
 			);
 			CREATE INDEX IF NOT EXISTS BannedPhrase_GuildId_Index ON BannedPhrase
 			(

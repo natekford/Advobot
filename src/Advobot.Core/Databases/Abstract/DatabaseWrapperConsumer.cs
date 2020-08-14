@@ -58,13 +58,6 @@ namespace Advobot.Databases.Abstract
 			var schema = metas.Any() ? metas.Max(x => x.SchemaVersion) : -1;
 
 			AfterStart(schema);
-
-			if (schema != Constants.SCHEMA_VERSION)
-			{
-				var insertQuery = DatabaseQuery<DatabaseMetadata>.Insert(new[] { new DatabaseMetadata() });
-				insertQuery.CollectionName = META_COLLECTION_NAME;
-				DatabaseWrapper.ExecuteQuery(insertQuery);
-			}
 		}
 
 		/// <summary>

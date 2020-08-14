@@ -1,7 +1,7 @@
 ﻿using System;
 
 using Advobot.AutoMod.ReadOnlyModels;
-using Advobot.Services.GuildSettings.Settings;
+using Advobot.Punishments;
 
 namespace Advobot.AutoMod.Models
 {
@@ -23,5 +23,18 @@ namespace Advobot.AutoMod.Models
 		public long? LengthTicks { get; set; }
 		public PunishmentType PunishmentType { get; set; }
 		public ulong RoleId { get; set; }
+
+		public Punishment()
+		{
+		}
+
+		public Punishment(IReadOnlyPunishment other)
+		{
+			GuildId = other.GuildId;
+			Instances = other.Instances;
+			LengthTicks = other.Length?.Ticks;
+			PunishmentType = other.PunishmentType;
+			RoleId = other.RoleId;
+		}
 	}
 }

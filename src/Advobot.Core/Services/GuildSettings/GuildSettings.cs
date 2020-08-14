@@ -23,34 +23,10 @@ namespace Advobot.Services.GuildSettings
 		private readonly List<BannedPhraseUserInfo> _BannedPhraseUsers = new List<BannedPhraseUserInfo>();
 
 		private string _Culture = "en-US";
-
 		private ulong _MuteRoleId;
-
 		private bool _NonVerboseErrors;
-
 		private GuildSettingsFactory? _Parent;
-
 		private string? _Prefix;
-
-		/// <inheritdoc />
-		[Setting(nameof(GuildSettingNames.BannedPhraseNames), ResetValueClass = typeof(ClearList))]
-		[JsonProperty("BannedPhraseNames")]
-		public IList<BannedPhrase> BannedPhraseNames { get; set; } = new ObservableCollection<BannedPhrase>();
-
-		/// <inheritdoc />
-		[Setting(nameof(GuildSettingNames.BannedPhrasePunishments), ResetValueClass = typeof(ClearList))]
-		[JsonProperty("BannedPhrasePunishments")]
-		public IList<BannedPhrasePunishment> BannedPhrasePunishments { get; set; } = new ObservableCollection<BannedPhrasePunishment>();
-
-		/// <inheritdoc />
-		[Setting(nameof(GuildSettingNames.BannedPhraseRegex), ResetValueClass = typeof(ClearList))]
-		[JsonProperty("BannedPhraseRegex")]
-		public IList<BannedPhrase> BannedPhraseRegex { get; set; } = new ObservableCollection<BannedPhrase>();
-
-		/// <inheritdoc />
-		[Setting(nameof(GuildSettingNames.BannedPhraseStrings), ResetValueClass = typeof(ClearList))]
-		[JsonProperty("BannedPhraseStrings")]
-		public IList<BannedPhrase> BannedPhraseStrings { get; set; } = new ObservableCollection<BannedPhrase>();
 
 		/// <inheritdoc />
 		[Setting(nameof(GuildSettingNames.BotUsers), ResetValueClass = typeof(ClearList))]
@@ -107,11 +83,6 @@ namespace Advobot.Services.GuildSettings
 		}
 
 		/// <inheritdoc />
-		[Setting(nameof(GuildSettingNames.PersistentRoles), ResetValueClass = typeof(ClearList))]
-		[JsonProperty("PersistentRoles")]
-		public IList<PersistentRole> PersistentRoles { get; set; } = new ObservableCollection<PersistentRole>();
-
-		/// <inheritdoc />
 		[Setting(nameof(GuildSettingNames.Prefix), ResetValueClass = typeof(Null))]
 		[JsonProperty("Prefix")]
 		public string? Prefix
@@ -126,11 +97,6 @@ namespace Advobot.Services.GuildSettings
 		public IList<Quote> Quotes { get; set; } = new ObservableCollection<Quote>();
 
 		/// <inheritdoc />
-		[Setting(nameof(GuildSettingNames.RaidPrevention), ResetValueClass = typeof(ClearList))]
-		[JsonProperty("RaidPrevention")]
-		public IList<RaidPrev> RaidPrevention { get; set; } = new ObservableCollection<RaidPrev>();
-
-		/// <inheritdoc />
 		[Setting(nameof(GuildSettingNames.Rules), ResetValueClass = typeof(NoParams<RuleHolder>))]
 		[JsonProperty("Rules")]
 		public RuleHolder Rules { get; set; } = new RuleHolder();
@@ -139,11 +105,6 @@ namespace Advobot.Services.GuildSettings
 		[Setting(nameof(GuildSettingNames.SelfAssignableGroups), ResetValueClass = typeof(ClearList))]
 		[JsonProperty("SelfAssignableGroups")]
 		public IList<SelfAssignableRoles> SelfAssignableGroups { get; set; } = new ObservableCollection<SelfAssignableRoles>();
-
-		/// <inheritdoc />
-		[Setting(nameof(GuildSettingNames.SpamPrevention), ResetValueClass = typeof(ClearList))]
-		[JsonProperty("SpamPrevention")]
-		public IList<SpamPrev> SpamPrevention { get; set; } = new ObservableCollection<SpamPrev>();
 
 		//IDatabaseEntry
 		object IDatabaseEntry.Id { get => GuildId; set => GuildId = (ulong)value; }

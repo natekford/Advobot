@@ -20,50 +20,41 @@ namespace Advobot.Classes
 		/// The maximum length in lines a description can be before it won't render on mobile.
 		/// </summary>
 		public const int MAX_DESCRIPTION_LINES = 20;
-
 		/// <summary>
 		/// The maximum length in lines a field can be before it won't render on mobile.
 		/// </summary>
 		public const int MAX_FIELD_LINES = 5;
-
 		private readonly EmbedBuilder _Builder = new EmbedBuilder
 		{
 			Color = Base,
 			Timestamp = DateTimeOffset.UtcNow
 		};
-
 		private readonly List<IEmbedError> _Errors = new List<IEmbedError>();
 
 		/// <summary>
 		/// The color to use for attachments on a message.
 		/// </summary>
 		public static Color Attachment { get; } = new Color(000, 204, 204);
-
 		/// <summary>
 		/// The base color to use for an embed.
 		/// </summary>
 		public static Color Base { get; } = new Color(255, 100, 000);
-
 		/// <summary>
 		/// The color to use for users joining.
 		/// </summary>
 		public static Color Join { get; } = new Color(000, 255, 000);
-
 		/// <summary>
 		/// The color to use for users leaving.
 		/// </summary>
 		public static Color Leave { get; } = new Color(255, 000, 000);
-
 		/// <summary>
 		/// The color to use for a message being deleted.
 		/// </summary>
 		public static Color MessageDelete { get; } = new Color(255, 051, 051);
-
 		/// <summary>
 		/// The color to use for a message being edited.
 		/// </summary>
 		public static Color MessageEdit { get; } = new Color(000, 000, 255);
-
 		/// <summary>
 		/// The color to use for users being modified.
 		/// </summary>
@@ -77,7 +68,6 @@ namespace Advobot.Classes
 			get => _Builder.Author;
 			set => _Builder.Author = value;
 		}
-
 		/// <summary>
 		/// The color of the embed.
 		/// </summary>
@@ -86,7 +76,6 @@ namespace Advobot.Classes
 			get => _Builder.Color;
 			set => _Builder.Color = value;
 		}
-
 		/// <summary>
 		/// The description of the embed.
 		/// </summary>
@@ -95,13 +84,11 @@ namespace Advobot.Classes
 			get => _Builder.Description;
 			set => _Builder.Description = value;
 		}
-
 		/// <summary>
 		/// Any errors which have happened when building the embed.
 		/// </summary>
 		public IReadOnlyList<IEmbedError> Errors
 			=> _Errors.ToImmutableList();
-
 		/// <summary>
 		/// The fields of the embed.
 		/// </summary>
@@ -130,7 +117,6 @@ namespace Advobot.Classes
 				}
 			}
 		}
-
 		/// <summary>
 		/// The footer of the embed.
 		/// </summary>
@@ -139,7 +125,6 @@ namespace Advobot.Classes
 			get => _Builder.Footer;
 			set => _Builder.Footer = value;
 		}
-
 		/// <summary>
 		/// The image url of the embed.
 		/// </summary>
@@ -148,7 +133,6 @@ namespace Advobot.Classes
 			get => _Builder.ImageUrl;
 			set => _Builder.ImageUrl = value;
 		}
-
 		/// <summary>
 		/// The thumnail url of the embed.
 		/// </summary>
@@ -157,7 +141,6 @@ namespace Advobot.Classes
 			get => _Builder.ThumbnailUrl;
 			set => _Builder.ThumbnailUrl = value;
 		}
-
 		/// <summary>
 		/// The timestamp of the embed.
 		/// </summary>
@@ -166,7 +149,6 @@ namespace Advobot.Classes
 			get => _Builder.Timestamp;
 			set => _Builder.Timestamp = value;
 		}
-
 		/// <summary>
 		/// The title of the embed.
 		/// </summary>
@@ -175,7 +157,6 @@ namespace Advobot.Classes
 			get => _Builder.Title;
 			set => _Builder.Title = value;
 		}
-
 		/// <summary>
 		/// The url of the embed.
 		/// </summary>

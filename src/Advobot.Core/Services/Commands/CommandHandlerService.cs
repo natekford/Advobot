@@ -35,7 +35,7 @@ namespace Advobot.Services.Commands
 			= new AsyncEvent<Func<CommandInfo, ICommandContext, IResult, Task>>();
 		private readonly Localized<CommandService> _CommandService;
 		private readonly ConcurrentDictionary<ulong, byte> _GatheringUsers
-									= new ConcurrentDictionary<ulong, byte>();
+			= new ConcurrentDictionary<ulong, byte>();
 		private readonly IGuildSettingsFactory _GuildSettings;
 		private readonly IHelpEntryService _HelpEntries;
 		private readonly AsyncEvent<Func<LogMessage, Task>> _Log
@@ -44,7 +44,6 @@ namespace Advobot.Services.Commands
 		private readonly AsyncEvent<Func<Task>> _Ready
 			= new AsyncEvent<Func<Task>>();
 		private int _ShardsReady;
-		private bool IsReady => _ShardsReady == _Client.Shards.Count;
 
 		/// <inheritdoc />
 		public event Func<CommandInfo, ICommandContext, IResult, Task> CommandInvoked
@@ -184,7 +183,9 @@ namespace Advobot.Services.Commands
 		private async Task OnMessageReceived(IMessage message)
 		{
 			var argPos = -1;
-			if (!IsReady || _BotSettings.Pause || message.Author.IsBot
+			if (_ShardsReady != _Client.Shards.Count
+				|| _BotSettings.Pause
+				|| message.Author.IsBot
 				|| string.IsNullOrWhiteSpace(message.Content)
 				|| _BotSettings.UsersIgnoredFromCommands.Contains(message.Author.Id)
 				|| !(message is SocketUserMessage msg)
@@ -197,11 +198,9 @@ namespace Advobot.Services.Commands
 				return;
 			}
 
-			var guild = user.Guild;
-			if (!guild.HasAllMembers && !_GatheringUsers.TryGetValue(guild.Id, out _))
+			if (!user.Guild.HasAllMembers && _GatheringUsers.TryAdd(user.Guild.Id, 0))
 			{
-				_GatheringUsers.TryAdd(guild.Id, 0);
-				_ = guild.DownloadUsersAsync();
+				_ = user.Guild.DownloadUsersAsync();
 			}
 
 			CultureInfo.CurrentUICulture = CultureInfo.GetCultureInfo(settings.Culture);
@@ -216,7 +215,6 @@ namespace Advobot.Services.Commands
 			{
 				return;
 			}
-
 			_Client.ShardReady -= OnShardReady;
 
 			await _Client.UpdateGameAsync(_BotSettings).CAF();

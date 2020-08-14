@@ -7,57 +7,6 @@ using Advobot.Settings;
 namespace Advobot.Services.GuildSettings
 {
 	/// <summary>
-	/// Auto mod guild settings.
-	/// </summary>
-	public interface IAutoModGuildSettings
-	{
-		/// <summary>
-		/// Banned names for joining users.
-		/// </summary>
-		IList<BannedPhrase> BannedPhraseNames { get; }
-
-		/// <summary>
-		/// Punishments to give when thresholds are reached with banned strings/regex.
-		/// </summary>
-		IList<BannedPhrasePunishment> BannedPhrasePunishments { get; }
-
-		/// <summary>
-		/// Deletes messages and punishes users if the patterns are found in their messages.
-		/// </summary>
-		IList<BannedPhrase> BannedPhraseRegex { get; }
-
-		/// <summary>
-		/// Deletes messages and punishes users if the strings are found in their messages.
-		/// </summary>
-		IList<BannedPhrase> BannedPhraseStrings { get; }
-
-		/// <summary>
-		/// Channels which have messages deleted in them unless they have an image attached.
-		/// </summary>
-		IList<ulong> ImageOnlyChannels { get; }
-
-		/// <summary>
-		/// Roles that persist across a user leaving and rejoining.
-		/// </summary>
-		IList<PersistentRole> PersistentRoles { get; }
-
-		/// <summary>
-		/// To limit raids.
-		/// </summary>
-		IList<RaidPrev> RaidPrevention { get; }
-
-		/// <summary>
-		/// To limit spam.
-		/// </summary>
-		IList<SpamPrev> SpamPrevention { get; }
-
-		/// <summary>
-		/// Users which have been affected by banned phrases.
-		/// </summary>
-		IList<BannedPhraseUserInfo> GetBannedPhraseUsers();
-	}
-
-	/// <summary>
 	/// Command guild settings.
 	/// </summary>
 	public interface ICommandGuildSettings
@@ -118,7 +67,6 @@ namespace Advobot.Services.GuildSettings
 	/// Holds guild settings.
 	/// </summary>
 	public interface IGuildSettings :
-		IAutoModGuildSettings,
 		ICommandGuildSettings,
 		ICoreGuildSettings,
 		IQuoteGuildSettings,

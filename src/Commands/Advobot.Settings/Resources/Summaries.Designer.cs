@@ -79,42 +79,6 @@ namespace Advobot.Settings.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Adds or removes banned names..
-        /// </summary>
-        internal static string ModifyBannedNames {
-            get {
-                return ResourceManager.GetString("ModifyBannedNames", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Adds or removes banned phrase punishments..
-        /// </summary>
-        internal static string ModifyBannedPhrasePunishments {
-            get {
-                return ResourceManager.GetString("ModifyBannedPhrasePunishments", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Adds or removes banned regex..
-        /// </summary>
-        internal static string ModifyBannedRegex {
-            get {
-                return ResourceManager.GetString("ModifyBannedRegex", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Adds or removes banned strings..
-        /// </summary>
-        internal static string ModifyBannedStrings {
-            get {
-                return ResourceManager.GetString("ModifyBannedStrings", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Turns commands on and off..
         /// </summary>
         internal static string ModifyCommands {
@@ -165,24 +129,6 @@ namespace Advobot.Settings.Resources {
         internal static string ModifySelfRoles {
             get {
                 return ResourceManager.GetString("ModifySelfRoles", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Sets up a system protecting the guild from raiding..
-        /// </summary>
-        internal static string PreventRaid {
-            get {
-                return ResourceManager.GetString("PreventRaid", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Sets up a system protecting the guild from spam..
-        /// </summary>
-        internal static string PreventSpam {
-            get {
-                return ResourceManager.GetString("PreventSpam", resourceCulture);
             }
         }
         

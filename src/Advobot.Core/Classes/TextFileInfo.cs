@@ -8,7 +8,6 @@ namespace Advobot.Classes
 	public sealed class TextFileInfo
 	{
 		private string _Name = "Temp";
-
 		private string _Text = "";
 
 		/// <summary>

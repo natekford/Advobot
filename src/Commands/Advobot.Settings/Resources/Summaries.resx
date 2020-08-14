@@ -120,18 +120,6 @@
   <data name="DisplaySelfRoles" xml:space="preserve">
     <value>Displays the groups and roles which can be self assigned.</value>
   </data>
-  <data name="ModifyBannedNames" xml:space="preserve">
-    <value>Adds or removes banned names.</value>
-  </data>
-  <data name="ModifyBannedPhrasePunishments" xml:space="preserve">
-    <value>Adds or removes banned phrase punishments.</value>
-  </data>
-  <data name="ModifyBannedRegex" xml:space="preserve">
-    <value>Adds or removes banned regex.</value>
-  </data>
-  <data name="ModifyBannedStrings" xml:space="preserve">
-    <value>Adds or removes banned strings.</value>
-  </data>
   <data name="ModifyCommands" xml:space="preserve">
     <value>Turns commands on and off.</value>
   </data>
@@ -149,12 +137,6 @@
   </data>
   <data name="ModifySelfRoles" xml:space="preserve">
     <value>Modifies self assignable roles.</value>
-  </data>
-  <data name="PreventRaid" xml:space="preserve">
-    <value>Sets up a system protecting the guild from raiding.</value>
-  </data>
-  <data name="PreventSpam" xml:space="preserve">
-    <value>Sets up a system protecting the guild from spam.</value>
   </data>
   <data name="PrintOutRules" xml:space="preserve">
     <value>Displays the rules with user specified formatting.</value>

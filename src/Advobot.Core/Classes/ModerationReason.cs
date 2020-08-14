@@ -16,7 +16,6 @@ namespace Advobot.Classes
 		/// The reason for a punishment.
 		/// </summary>
 		public string? Reason { get; }
-
 		/// <summary>
 		/// The time in minutes to give for a punishment.
 		/// </summary>
@@ -49,20 +48,6 @@ namespace Advobot.Classes
 				}
 			}
 			Reason = sb.ToString();
-		}
-
-		/// <summary>
-		/// Converts this to a <see cref="PunishmentArgs"/>.
-		/// </summary>
-		/// <param name="module"></param>
-		/// <returns></returns>
-		public PunishmentArgs ToPunishmentArgs(AdvobotModuleBase module)
-		{
-			return new PunishmentArgs
-			{
-				Time = Time,
-				Options = module.GenerateRequestOptions(Reason),
-			};
 		}
 	}
 }

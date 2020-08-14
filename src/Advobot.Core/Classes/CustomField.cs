@@ -12,12 +12,10 @@ namespace Advobot.Classes
 		/// Whether the field is inline.
 		/// </summary>
 		public bool Inline { get; set; }
-
 		/// <summary>
 		/// The name of the field.
 		/// </summary>
 		public string Name { get; set; } = Constants.ZERO_WIDTH_SPACE;
-
 		/// <summary>
 		/// The text of the field.
 		/// </summary>

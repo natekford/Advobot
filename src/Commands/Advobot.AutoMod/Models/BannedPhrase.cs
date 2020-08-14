@@ -1,5 +1,5 @@
 ﻿using Advobot.AutoMod.ReadOnlyModels;
-using Advobot.Services.GuildSettings.Settings;
+using Advobot.Punishments;
 
 using AdvorangesUtils;
 
@@ -9,6 +9,7 @@ namespace Advobot.AutoMod.Models
 	{
 		public ulong GuildId { get; set; }
 		public bool IsContains { get; set; }
+		public bool IsName { get; set; }
 		public bool IsRegex { get; set; }
 		public string Phrase { get; set; }
 		public PunishmentType PunishmentType { get; set; }
@@ -16,6 +17,16 @@ namespace Advobot.AutoMod.Models
 		public BannedPhrase()
 		{
 			Phrase = "";
+		}
+
+		public BannedPhrase(IReadOnlyBannedPhrase other)
+		{
+			GuildId = other.GuildId;
+			IsContains = other.IsContains;
+			IsRegex = other.IsRegex;
+			IsName = other.IsName;
+			Phrase = other.Phrase;
+			PunishmentType = other.PunishmentType;
 		}
 
 		public bool IsMatch(string content)

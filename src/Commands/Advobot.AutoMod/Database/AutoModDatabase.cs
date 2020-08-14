@@ -14,8 +14,7 @@ using Dapper;
 
 namespace Advobot.AutoMod.Database
 {
-	//Path.Combine("SQLite", "AutoMod.db")
-	public sealed class AutoModDatabase : DatabaseBase<SQLiteConnection>
+	public sealed class AutoModDatabase : DatabaseBase<SQLiteConnection>, IAutoModDatabase
 	{
 		public AutoModDatabase(IConnectionStringFor<AutoModDatabase> conn) : base(conn)
 		{
@@ -29,14 +28,6 @@ namespace Advobot.AutoMod.Database
 				VALUES
 				( @GuildId, @UserId, @RoleId )
 			", role);
-		}
-
-		public Task<int> DeleteBannedNameAsync(IReadOnlyBannedPhrase name)
-		{
-			return ModifyAsync(@"
-				DELETE FROM BannedName
-				WHERE GuildId = @GuildId AND Phrase = @Phrase
-			", name);
 		}
 
 		public Task<int> DeletedBannedPhraseAsync(IReadOnlyBannedPhrase phrase)
@@ -70,8 +61,8 @@ namespace Advobot.AutoMod.Database
 			var param = new { GuildId = guildId.ToString(), };
 			return await GetManyAsync<BannedPhrase>(@"
 				SELECT *
-				FROM BannedName
-				WHERE GuildId = @GuildId
+				FROM BannedPhrase
+				WHERE GuildId = @GuildId AND IsName = 1
 			", param).CAF();
 		}
 
@@ -143,14 +134,56 @@ namespace Advobot.AutoMod.Database
 			", param).CAF();
 		}
 
-		public Task<IReadOnlyList<IReadOnlyRaidPrevention>> GetRaidPreventionAsync(ulong guildId)
+		public async Task<IReadOnlyList<IReadOnlyRaidPrevention>> GetRaidPreventionAsync(ulong guildId)
 		{
-			throw new NotImplementedException();
+			var param = new { GuildId = guildId.ToString(), };
+			return await GetManyAsync<RaidPrevention>(@"
+				SELECT *
+				FROM RaidPrevention
+				WHERE GuildId = @GuildId
+			", param).CAF();
 		}
 
-		public Task<IReadOnlyList<IReadOnlySpamPrevention>> GetSpamPreventionAsync(ulong guildId)
+		public async Task<IReadOnlyRaidPrevention?> GetRaidPreventionAsync(
+			ulong guildId,
+			RaidType raidType)
 		{
-			throw new NotImplementedException();
+			var param = new
+			{
+				GuildId = guildId.ToString(),
+				RaidType = raidType,
+			};
+			return await GetOneAsync<RaidPrevention?>(@"
+				SELECT *
+				FROM RaidPrevention
+				WHERE GuildId = @GuildId AND RaidType = @RaidType
+			", param).CAF();
+		}
+
+		public async Task<IReadOnlyList<IReadOnlySpamPrevention>> GetSpamPreventionAsync(ulong guildId)
+		{
+			var param = new { GuildId = guildId.ToString(), };
+			return await GetManyAsync<SpamPrevention>(@"
+				SELECT *
+				FROM SpamPrevention
+				WHERE GuildId = @GuildId
+			", param).CAF();
+		}
+
+		public async Task<IReadOnlySpamPrevention?> GetSpamPreventionAsync(
+			ulong guildId,
+			SpamType spamType)
+		{
+			var param = new
+			{
+				GuildId = guildId.ToString(),
+				SpamType = spamType,
+			};
+			return await GetOneAsync<SpamPrevention?>(@"
+				SELECT *
+				FROM SpamPrevention
+				WHERE GuildId = @GuildId AND SpamType = @SpamType
+			", param).CAF();
 		}
 
 		public Task<int> UpsertAutoModSettingsAsync(IReadOnlyAutoModSettings settings)
@@ -169,32 +202,17 @@ namespace Advobot.AutoMod.Database
 			", settings);
 		}
 
-		public Task<int> UpsertBannedNameAsync(IReadOnlyBannedPhrase name)
-		{
-			return ModifyAsync(@"
-				INSERT OR IGNORE INTO BannedName
-					( GuildId, Phrase, IsContains, IsRegex, PunishmentType )
-					VALUES
-					( @GuildId, @Phrase, @IsContains, @IsRegex, @PunishmentType );
-				UPDATE BannedName
-				SET
-					IsContains = @IsContains,
-					IsRegex = @IsRegex,
-					PunishmentType = @PunishmentType
-				WHERE GuildId = @GuildId AND Phrase = @Phrase
-			", name);
-		}
-
 		public Task<int> UpsertBannedPhraseAsync(IReadOnlyBannedPhrase phrase)
 		{
 			return ModifyAsync(@"
 				INSERT OR IGNORE INTO BannedPhrase
-					( GuildId, Phrase, IsContains, IsRegex, PunishmentType )
+					( GuildId, Phrase, IsContains, IsName, IsRegex, PunishmentType )
 					VALUES
-					( @GuildId, @Phrase, @IsContains, @IsRegex, @PunishmentType );
+					( @GuildId, @Phrase, @IsContains, @IsName, @IsRegex, @PunishmentType );
 				UPDATE BannedPhrase
 				SET
 					IsContains = @IsContains,
+					IsName = @IsName,
 					IsRegex = @IsRegex,
 					PunishmentType = @PunishmentType
 				WHERE GuildId = @GuildId AND Phrase = @Phrase
@@ -205,14 +223,54 @@ namespace Advobot.AutoMod.Database
 		{
 			return ModifyAsync(@"
 				INSERT OR IGNORE INTO ChannelSetting
-					( GuildId, ChannelId, ImageOnly )
+					( GuildId, ChannelId, IsImageOnly )
 					VALUES
-					( @GuildId, @ChannelId, @ImageOnly );
+					( @GuildId, @ChannelId, @IsImageOnly );
 				UPDATE ChannelSetting
 				SET
-					ImageOnly = @ImageOnly
+					IsImageOnly = @IsImageOnly
 				WHERE ChannelId = @ChannelId
 			", settings);
+		}
+
+		public Task<int> UpsertRaidPreventionAsync(IReadOnlyRaidPrevention prevention)
+		{
+			return ModifyAsync(@"
+				INSERT OR IGNORE INTO RaidPrevention
+					( GuildId, PunishmentType, Instances, LengthTicks, RoleId, Enabled, IntervalTicks, Size, RaidType )
+					VALUES
+					( @GuildId, @PunishmentType, @Instances, @LengthTicks, @RoleId, @Enabled, @IntervalTicks, @Size, @RaidType );
+				UPDATE RaidPrevention
+				SET
+					PunishmentType = @PunishmentType,
+					Instances = @Instances,
+					LengthTicks = @LengthTicks,
+					RoleId = @RoleId,
+					Enabled = @Enabled,
+					IntervalTicks = @IntervalTicks,
+					Size = @Size
+				WHERE GuildId = @GuildId AND RaidType = @RaidType
+			", prevention);
+		}
+
+		public Task<int> UpsertSpamPreventionAsync(IReadOnlySpamPrevention prevention)
+		{
+			return ModifyAsync(@"
+				INSERT OR IGNORE INTO SpamPrevention
+					( GuildId, PunishmentType, Instances, LengthTicks, RoleId, Enabled, IntervalTicks, Size, SpamType )
+					VALUES
+					( @GuildId, @PunishmentType, @Instances, @LengthTicks, @RoleId, @Enabled, @IntervalTicks, @Size, @SpamType );
+				UPDATE SpamPrevention
+				SET
+					PunishmentType = @PunishmentType,
+					Instances = @Instances,
+					LengthTicks = @LengthTicks,
+					RoleId = @RoleId,
+					Enabled = @Enabled,
+					IntervalTicks = @IntervalTicks,
+					Size = @Size
+				WHERE GuildId = @GuildId AND SpamType = @SpamType
+			", prevention);
 		}
 	}
 }

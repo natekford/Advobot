@@ -18,17 +18,14 @@ namespace Advobot.Classes
 		/// The id of the channel from the passed in context.
 		/// </summary>
 		public ulong ChannelId { get; set; }
-
 		/// <summary>
 		/// The id of the guild from the passed in context.
 		/// </summary>
 		public ulong GuildId { get; set; }
-
 		/// <summary>
 		/// The ids of the passed in messages.
 		/// </summary>
 		public List<ulong> MessageIds { get; set; } = new List<ulong>();
-
 		/// <summary>
 		/// The id of the user from the passed in context.
 		/// </summary>

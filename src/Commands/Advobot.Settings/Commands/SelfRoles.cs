@@ -5,7 +5,6 @@ using Advobot.Attributes;
 using Advobot.Attributes.ParameterPreconditions.DiscordObjectValidation.Roles;
 using Advobot.Attributes.ParameterPreconditions.Numbers;
 using Advobot.Attributes.Preconditions.Permissions;
-using Advobot.Attributes.Preconditions.QuantityLimits;
 using Advobot.Classes;
 using Advobot.Modules;
 using Advobot.Services.GuildSettings;
@@ -86,7 +85,6 @@ namespace Advobot.Settings.Commands
 				return Responses.SelfRoles.ModifiedGroup(group, roles, true);
 			}
 
-			[SelfRoleGroupsLimit(QuantityLimitAction.Add)]
 			[LocalizedCommand(nameof(Groups.Create))]
 			[LocalizedAlias(nameof(Aliases.Create))]
 			public Task<RuntimeResult> Create(
@@ -96,7 +94,6 @@ namespace Advobot.Settings.Commands
 				return Responses.SelfRoles.CreatedGroup(group);
 			}
 
-			[SelfRoleGroupsLimit(QuantityLimitAction.Remove)]
 			[LocalizedCommand(nameof(Groups.Delete))]
 			[LocalizedAlias(nameof(Aliases.Delete))]
 			public Task<RuntimeResult> Delete(SelfAssignableRoles group)

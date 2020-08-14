@@ -1,6 +1,6 @@
 ﻿using System;
 
-using Advobot.Services.GuildSettings.Settings;
+using Advobot.Punishments;
 using Advobot.SQLite.Relationships;
 
 namespace Advobot.AutoMod.ReadOnlyModels

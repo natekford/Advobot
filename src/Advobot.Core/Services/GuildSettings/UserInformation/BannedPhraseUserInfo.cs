@@ -2,7 +2,7 @@
 using System.Reflection;
 using System.Threading;
 
-using Advobot.Services.GuildSettings.Settings;
+using Advobot.Punishments;
 using Advobot.Services.Time;
 
 using AdvorangesUtils;

@@ -56,14 +56,16 @@ namespace Advobot.Standard.Commands
 				ModerationReason reason = default
 			)
 			{
-				var punisher = new PunishmentManager(Context.Guild, Timers);
-				var args = reason.ToPunishmentArgs(this);
-
-				var user = new AmbiguousUser(userId);
-				await punisher.BanAsync(user, args).CAF();
-				return Responses.Users.Banned(true, await user.GetAsync(Context.Client).CAF(), args);
+				var user = await Context.Client.GetUserAsync(userId).CAF();
+				await Punisher.HandleAsync(new Punishments.Ban(Context.Guild, userId, true)
+				{
+					Time = reason.Time,
+					Options = GenerateRequestOptions(reason.Reason),
+				}).CAF();
+				return Responses.Users.Banned(true, user!, reason.Time);
 			}
 
+			/*
 			[LocalizedCommand(nameof(Groups.Many))]
 			[LocalizedAlias(nameof(Aliases.Many))]
 			[Priority(3)]
@@ -89,7 +91,7 @@ namespace Advobot.Standard.Commands
 					users.Add(await user.GetAsync(Context.Client).CAF());
 				}
 				return Responses.Users.BannedMany(users, args);
-			}
+			}*/
 		}
 
 		[LocalizedGroup(nameof(Groups.Deafen))]
@@ -106,19 +108,13 @@ namespace Advobot.Standard.Commands
 				ModerationReason reason = default
 			)
 			{
-				var punisher = new PunishmentManager(Context.Guild, Timers);
-				var args = reason.ToPunishmentArgs(this);
-
-				var shouldPunish = !user.IsDeafened;
-				if (shouldPunish)
+				var isGive = !user.IsDeafened;
+				await Punisher.HandleAsync(new Punishments.Deafen(user, isGive)
 				{
-					await punisher.DeafenAsync(user.AsAmbiguous(), args).CAF();
-				}
-				else
-				{
-					await punisher.RemoveDeafenAsync(user.AsAmbiguous(), args).CAF();
-				}
-				return Responses.Users.Deafened(shouldPunish, user, args);
+					Time = reason.Time,
+					Options = GenerateRequestOptions(reason.Reason),
+				}).CAF();
+				return Responses.Users.Deafened(isGive, user, reason.Time);
 			}
 		}
 
@@ -280,10 +276,11 @@ namespace Advobot.Standard.Commands
 				ModerationReason reason = default
 			)
 			{
-				var punisher = new PunishmentManager(Context.Guild, Timers);
-				var args = reason.ToPunishmentArgs(this);
-
-				await punisher.KickAsync(user.AsAmbiguous(), args).CAF();
+				await Punisher.HandleAsync(new Punishments.Kick(user)
+				{
+					Time = reason.Time,
+					Options = GenerateRequestOptions(reason.Reason),
+				}).CAF();
 				return Responses.Users.Kicked(user);
 			}
 		}
@@ -383,21 +380,13 @@ namespace Advobot.Standard.Commands
 			)
 			{
 				var role = await GetOrCreateMuteRoleAsync().CAF();
-
-				var punisher = new PunishmentManager(Context.Guild, Timers);
-				var args = reason.ToPunishmentArgs(this);
-				args.Role = role;
-
-				var shouldPunish = !user.RoleIds.Contains(role.Id);
-				if (shouldPunish)
+				var isGive = !user.RoleIds.Contains(role.Id);
+				await Punisher.HandleAsync(new Punishments.RoleMute(user, isGive, role)
 				{
-					await punisher.RoleMuteAsync(user.AsAmbiguous(), args).CAF();
-				}
-				else
-				{
-					await punisher.RemoveRoleMuteAsync(user.AsAmbiguous(), args).CAF();
-				}
-				return Responses.Users.Muted(shouldPunish, user, args);
+					Time = reason.Time,
+					Options = GenerateRequestOptions(reason.Reason),
+				}).CAF();
+				return Responses.Users.Muted(isGive, user, reason.Time);
 			}
 
 			private async Task<IRole> GetOrCreateMuteRoleAsync()
@@ -553,7 +542,8 @@ namespace Advobot.Standard.Commands
 		[RequireGuildPermissions(GuildPermission.BanMembers, GuildPermission.KickMembers)]
 		public sealed class SoftBan : AdvobotModuleBase
 		{
-			[Command, Priority(1)]
+			[Command]
+			[Priority(1)]
 			public Task<RuntimeResult> Command(
 				[CanModifyUser]
 				IGuildUser user,
@@ -569,12 +559,13 @@ namespace Advobot.Standard.Commands
 				ModerationReason reason = default
 			)
 			{
-				var punisher = new PunishmentManager(Context.Guild, Timers);
-				var args = reason.ToPunishmentArgs(this);
-
-				var user = new AmbiguousUser(userId);
-				await punisher.SoftbanAsync(user, args).CAF();
-				return Responses.Users.SoftBanned(await user.GetAsync(Context.Client).CAF());
+				var user = await Context.Client.GetUserAsync(userId).CAF();
+				await Punisher.HandleAsync(new Punishments.Ban(Context.Guild, userId, true)
+				{
+					Time = reason.Time,
+					Options = GenerateRequestOptions(reason.Reason),
+				}).CAF();
+				return Responses.Users.Banned(true, user!, reason.Time);
 			}
 		}
 
@@ -592,11 +583,12 @@ namespace Advobot.Standard.Commands
 				ModerationReason reason = default
 			)
 			{
-				var punisher = new PunishmentManager(Context.Guild, Timers);
-				var args = reason.ToPunishmentArgs(this);
-
-				await punisher.UnbanAsync(ban.User.AsAmbiguous(), args).CAF();
-				return Responses.Users.Banned(false, ban.User, args);
+				await Punisher.HandleAsync(new Punishments.Ban(Context.Guild, ban.User.Id, false)
+				{
+					Time = reason.Time,
+					Options = GenerateRequestOptions(reason.Reason),
+				}).CAF();
+				return Responses.Users.Banned(false, ban.User, reason.Time);
 			}
 		}
 
@@ -614,19 +606,13 @@ namespace Advobot.Standard.Commands
 				ModerationReason reason = default
 			)
 			{
-				var punisher = new PunishmentManager(Context.Guild, Timers);
-				var args = reason.ToPunishmentArgs(this);
-
-				var shouldPunish = !user.IsMuted;
-				if (shouldPunish)
+				var isGive = !user.IsMuted;
+				await Punisher.HandleAsync(new Punishments.Mute(user, isGive)
 				{
-					await punisher.VoiceMuteAsync(user.AsAmbiguous(), args).CAF();
-				}
-				else
-				{
-					await punisher.RemoveVoiceMuteAsync(user.AsAmbiguous(), args).CAF();
-				}
-				return Responses.Users.VoiceMuted(shouldPunish, user, args);
+					Time = reason.Time,
+					Options = GenerateRequestOptions(reason.Reason),
+				}).CAF();
+				return Responses.Users.Deafened(isGive, user, reason.Time);
 			}
 		}
 	}

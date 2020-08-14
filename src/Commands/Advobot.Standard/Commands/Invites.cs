@@ -11,7 +11,7 @@ using Advobot.Classes;
 using Advobot.Modules;
 using Advobot.Standard.Localization;
 using Advobot.Standard.Resources;
-using Advobot.Utilities;
+using Advobot.TypeReaders;
 
 using AdvorangesUtils;
 
@@ -61,50 +61,20 @@ namespace Advobot.Standard.Commands
 				/// Whether the user only receives temporary membership from the invite.
 				/// </summary>
 				public bool IsTemporary { get; set; }
-
 				/// <summary>
 				/// Whether the invite should be unique.
 				/// </summary>
 				public bool IsUnique { get; set; }
-
 				/// <summary>
 				/// How long to make the invite last for.
 				/// </summary>
 				[OverrideTypeReader(typeof(PositiveNullableIntTypeReader))]
 				public int? Time { get; set; } = 86400;
-
 				/// <summary>
 				/// How many uses to let the invite last for.
 				/// </summary>
 				[OverrideTypeReader(typeof(PositiveNullableIntTypeReader))]
 				public int? Uses { get; set; }
-
-				private sealed class PositiveNullableIntTypeReader : TypeReader
-				{
-					/// <inheritdoc />
-					public override Task<TypeReaderResult> ReadAsync(
-						ICommandContext context,
-						string input,
-						IServiceProvider services)
-					{
-						if (input == null)
-						{
-							return TypeReaderResult.FromSuccess(null).AsTask();
-						}
-						else if (!int.TryParse(input, out var value))
-						{
-							return TypeReaderUtils.ParseFailedResult<int?>().AsTask();
-						}
-						else if (value < 1)
-						{
-							return TypeReaderResult.FromError(CommandError.UnmetPrecondition, "Value must be positive.").AsTask();
-						}
-						else
-						{
-							return TypeReaderResult.FromSuccess(value).AsTask();
-						}
-					}
-				}
 			}
 		}
 

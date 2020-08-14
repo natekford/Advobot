@@ -1,7 +1,7 @@
 ﻿using System;
 
 using Advobot.Databases.Abstract;
-using Advobot.Services.GuildSettings.Settings;
+using Advobot.Punishments;
 
 namespace Advobot.Classes
 {
@@ -14,17 +14,14 @@ namespace Advobot.Classes
 		/// The id of the guild the punishment was given on.
 		/// </summary>
 		public ulong GuildId { get; set; }
-
 		/// <summary>
 		/// The type of punishment that was given.
 		/// </summary>
 		public PunishmentType PunishmentType { get; set; }
-
 		/// <summary>
 		/// The id of the role given (only applicable if <see cref="PunishmentType"/> is <see cref="PunishmentType.RoleMute"/>).
 		/// </summary>
 		public ulong RoleId { get; set; }
-
 		/// <summary>
 		/// The id of the user the punishment was given to.
 		/// </summary>

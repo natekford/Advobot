@@ -13,12 +13,10 @@ namespace Advobot.Classes
 		/// Valid results are results that are the same.
 		/// </summary>
 		Equal,
-
 		/// <summary>
 		/// Valid results are results that are below.
 		/// </summary>
 		Below,
-
 		/// <summary>
 		/// Valid results are results that are above.
 		/// </summary>

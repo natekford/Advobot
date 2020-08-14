@@ -5,7 +5,6 @@ using System.Threading.Tasks;
 using Advobot.Attributes;
 using Advobot.Attributes.ParameterPreconditions.Strings;
 using Advobot.Attributes.Preconditions.Permissions;
-using Advobot.Attributes.Preconditions.QuantityLimits;
 using Advobot.Modules;
 using Advobot.Services.GuildSettings;
 using Advobot.Services.GuildSettings.Settings;
@@ -33,7 +32,6 @@ namespace Advobot.Settings.Commands
 
 			[LocalizedCommand(nameof(Groups.Add))]
 			[LocalizedAlias(nameof(Aliases.Add))]
-			[QuoteLimit(QuantityLimitAction.Add)]
 			public Task<RuntimeResult> Add([QuoteName] string name, [Remainder] string text)
 			{
 				var quote = new Quote(name, text);
@@ -43,7 +41,6 @@ namespace Advobot.Settings.Commands
 
 			[LocalizedCommand(nameof(Groups.Remove))]
 			[LocalizedAlias(nameof(Aliases.Remove))]
-			[QuoteLimit(QuantityLimitAction.Remove)]
 			public Task<RuntimeResult> Remove([Remainder] Quote quote)
 			{
 				Settings.Quotes.Remove(quote);

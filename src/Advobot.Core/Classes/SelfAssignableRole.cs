@@ -13,7 +13,6 @@ namespace Advobot.Classes
 		/// The group which this role belongs to.
 		/// </summary>
 		public SelfAssignableRoles Group { get; }
-
 		/// <summary>
 		/// The role which can be assigned.
 		/// </summary>

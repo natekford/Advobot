@@ -12,7 +12,6 @@ namespace Advobot.Modules
 		/// The guild text channel.
 		/// </summary>
 		new ITextChannel Channel { get; }
-
 		/// <summary>
 		/// The guild user.
 		/// </summary>

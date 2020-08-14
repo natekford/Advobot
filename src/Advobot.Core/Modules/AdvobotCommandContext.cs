@@ -20,24 +20,21 @@ namespace Advobot.Modules
 		/// The channel this command is executing from.
 		/// </summary>
 		public new SocketTextChannel Channel { get; }
-
 		/// <summary>
 		/// The settings for the guild.
 		/// </summary>
 		public IGuildSettings Settings { get; }
-
 		/// <summary>
 		/// The user this command is executing from.
 		/// </summary>
 		public new SocketGuildUser User { get; }
-
+		/// <inheritdoc />
 		ITextChannel IGuildCommandContext.Channel => Channel;
-
 		/// <summary>
 		/// The time since starting the command.
 		/// </summary>
 		public TimeSpan Elapsed => _Stopwatch.Elapsed;
-
+		/// <inheritdoc />
 		IGuildUser IGuildCommandContext.User => User;
 
 		/// <summary>

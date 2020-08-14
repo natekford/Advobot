@@ -145,6 +145,8 @@ namespace Advobot.Standard.Commands
 			}
 		}
 
+#warning reimplement
+		/*
 		[LocalizedGroup(nameof(Groups.Remind))]
 		[LocalizedAlias(nameof(Aliases.Remind))]
 		[LocalizedSummary(nameof(Summaries.Remind))]
@@ -160,7 +162,7 @@ namespace Advobot.Standard.Commands
 				Timers.Add(new TimedMessage(time, Context.User, message));
 				return Responses.Misc.Remind(time);
 			}
-		}
+		}*/
 
 		[LocalizedGroup(nameof(Groups.Test))]
 		[LocalizedAlias(nameof(Aliases.Test))]

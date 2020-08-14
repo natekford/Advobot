@@ -88,15 +88,6 @@ namespace Advobot.Settings.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to ChangePunishment.
-        /// </summary>
-        internal static string ChangePunishment {
-            get {
-                return ResourceManager.GetString("ChangePunishment", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Create.
         /// </summary>
         internal static string Create {
@@ -169,42 +160,6 @@ namespace Advobot.Settings.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to ModifyBannedNames.
-        /// </summary>
-        internal static string ModifyBannedNames {
-            get {
-                return ResourceManager.GetString("ModifyBannedNames", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to ModifyBannedPhrasePunishments.
-        /// </summary>
-        internal static string ModifyBannedPhrasePunishments {
-            get {
-                return ResourceManager.GetString("ModifyBannedPhrasePunishments", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to ModifyBannedRegex.
-        /// </summary>
-        internal static string ModifyBannedRegex {
-            get {
-                return ResourceManager.GetString("ModifyBannedRegex", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to ModifyBannedStrings.
-        /// </summary>
-        internal static string ModifyBannedStrings {
-            get {
-                return ResourceManager.GetString("ModifyBannedStrings", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to ModifyCommands.
         /// </summary>
         internal static string ModifyCommands {
@@ -273,24 +228,6 @@ namespace Advobot.Settings.Resources {
         internal static string Names {
             get {
                 return ResourceManager.GetString("Names", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to PreventRaid.
-        /// </summary>
-        internal static string PreventRaid {
-            get {
-                return ResourceManager.GetString("PreventRaid", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to PreventSpam.
-        /// </summary>
-        internal static string PreventSpam {
-            get {
-                return ResourceManager.GetString("PreventSpam", resourceCulture);
             }
         }
         

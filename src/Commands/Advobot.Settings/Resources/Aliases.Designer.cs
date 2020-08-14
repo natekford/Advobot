@@ -88,15 +88,6 @@ namespace Advobot.Settings.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to cp.
-        /// </summary>
-        internal static string ChangePunishment {
-            get {
-                return ResourceManager.GetString("ChangePunishment", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to c.
         /// </summary>
         internal static string Create {
@@ -169,42 +160,6 @@ namespace Advobot.Settings.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to mbn.
-        /// </summary>
-        internal static string ModifyBannedNames {
-            get {
-                return ResourceManager.GetString("ModifyBannedNames", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to mbpp.
-        /// </summary>
-        internal static string ModifyBannedPhrasePunishments {
-            get {
-                return ResourceManager.GetString("ModifyBannedPhrasePunishments", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to mbr.
-        /// </summary>
-        internal static string ModifyBannedRegex {
-            get {
-                return ResourceManager.GetString("ModifyBannedRegex", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to mbs.
-        /// </summary>
-        internal static string ModifyBannedStrings {
-            get {
-                return ResourceManager.GetString("ModifyBannedStrings", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to mc.
         /// </summary>
         internal static string ModifyCommands {
@@ -273,24 +228,6 @@ namespace Advobot.Settings.Resources {
         internal static string Names {
             get {
                 return ResourceManager.GetString("Names", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to pr.
-        /// </summary>
-        internal static string PreventRaid {
-            get {
-                return ResourceManager.GetString("PreventRaid", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to ps.
-        /// </summary>
-        internal static string PreventSpam {
-            get {
-                return ResourceManager.GetString("PreventSpam", resourceCulture);
             }
         }
         

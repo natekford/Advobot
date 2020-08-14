@@ -21,57 +21,47 @@ namespace Advobot.Classes
 		/// </summary>
 		[OverrideTypeReader(typeof(UriTypeReader))]
 		public string? AuthorIconUrl { get; set; }
-
 		/// <summary>
 		/// The author of the embed.
 		/// </summary>
 		public string? AuthorName { get; set; }
-
 		/// <summary>
 		/// The url to use when clicking on the author's name.
 		/// </summary>
 		[OverrideTypeReader(typeof(UriTypeReader))]
 		public string? AuthorUrl { get; set; }
-
 		/// <summary>
 		/// The color of the embed.
 		/// </summary>
 		[OverrideTypeReader(typeof(ColorTypeReader))]
 		public uint Color { get; set; }
-
 		/// <summary>
 		/// The description of the embed.
 		/// </summary>
 		public string? Description { get; set; }
-
 		/// <summary>
 		/// The footer text.
 		/// </summary>
 		public string? Footer { get; set; }
-
 		/// <summary>
 		/// The footer's picture.
 		/// </summary>
 		[OverrideTypeReader(typeof(UriTypeReader))]
 		public string? FooterIconUrl { get; set; }
-
 		/// <summary>
 		/// The image url of the embed.
 		/// </summary>
 		[OverrideTypeReader(typeof(UriTypeReader))]
 		public string? ImageUrl { get; set; }
-
 		/// <summary>
 		/// The thumbnail url of the embed.
 		/// </summary>
 		[OverrideTypeReader(typeof(UriTypeReader))]
 		public string? ThumbUrl { get; set; }
-
 		/// <summary>
 		/// The title of the embed.
 		/// </summary>
 		public string? Title { get; set; }
-
 		/// <summary>
 		/// The url of the embed.
 		/// </summary>

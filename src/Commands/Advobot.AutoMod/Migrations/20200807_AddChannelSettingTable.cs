@@ -15,7 +15,7 @@ namespace Advobot.AutoMod.Migrations
 			(
 				GuildId					TEXT NOT NULL,
 				ChannelId				TEXT NOT NULL,
-				ImageOnly				INTEGER NOT NULL,
+				IsImageOnly				INTEGER NOT NULL,
 				PRIMARY KEY(ChannelId)
 			);
 			CREATE INDEX IF NOT EXISTS ChannelSetting_GuildId_Index ON ChannelSetting

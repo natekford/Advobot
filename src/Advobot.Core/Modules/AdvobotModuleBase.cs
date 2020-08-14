@@ -7,8 +7,8 @@ using Advobot.Attributes.Preconditions;
 using Advobot.Interactivity;
 using Advobot.Interactivity.Criterions;
 using Advobot.Interactivity.TryParsers;
+using Advobot.Punishments;
 using Advobot.Services.BotSettings;
-using Advobot.Services.Timers;
 using Advobot.Utilities;
 
 using AdvorangesUtils;
@@ -35,22 +35,19 @@ namespace Advobot.Modules
 		/// The settings for the bot.
 		/// </summary>
 		public IBotSettings BotSettings { get; set; } = null!;
-
 		/// <summary>
 		/// The default time to wait for a user's response.
 		/// </summary>
 		[DontInject]
 		public TimeSpan DefaultInteractivityTime { get; set; } = TimeSpan.FromSeconds(5);
-
 		/// <summary>
 		/// The prefix for this context.
 		/// </summary>
 		public string Prefix => Context.Settings.GetPrefix(BotSettings);
-
 		/// <summary>
-		/// The timers to use for deleting messages and other things.
+		/// The punisher to use for giving punishments.
 		/// </summary>
-		public ITimerService Timers { get; set; } = null!;
+		public IPunisher Punisher { get; set; } = null!;
 
 		/// <summary>
 		/// Gets a <see cref="RequestOptions"/> that mainly is used for the reason in the audit log.
@@ -154,7 +151,7 @@ namespace Advobot.Modules
 			return await @event.CAF();
 		}
 
-		/// <inheritdoc/>/>
+		/// <inheritdoc />
 		protected override Task<IUserMessage> ReplyAsync(string? message = null, bool isTTS = false, Embed? embed = null, RequestOptions? options = null, AllowedMentions? mentions = null)
 			=> base.ReplyAsync(message.Sanitize(), isTTS, embed, options, mentions);
 	}

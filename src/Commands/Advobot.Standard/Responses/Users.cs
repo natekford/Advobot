@@ -29,17 +29,17 @@ namespace Advobot.Standard.Responses
 			));
 		}
 
-		public static AdvobotResult Banned(bool punished, IUser user, PunishmentArgs args)
-			=> Punished(punished, UsersVariableBanned, UsersVariableUnbanned, F(user), args);
+		public static AdvobotResult Banned(bool punished, IUser user, TimeSpan? time)
+			=> Punished(punished, UsersVariableBanned, UsersVariableUnbanned, F(user), time);
 
-		public static AdvobotResult BannedMany(IEnumerable<IUser> users, PunishmentArgs args)
-			=> Punished(true, UsersVariableBanned, UsersVariableUnbanned, F(users), args);
+		public static AdvobotResult BannedMany(IEnumerable<IUser> users, TimeSpan? time)
+			=> Punished(true, UsersVariableBanned, UsersVariableUnbanned, F(users), time);
 
 		public static AdvobotResult CannotGiveGatheredRole()
 			=> Failure(UsersCannotGiveRoleBeingGathered);
 
-		public static AdvobotResult Deafened(bool punished, IUser user, PunishmentArgs args)
-			=> Punished(punished, UsersVariableDeafened, UsersVariableUndeafened, F(user), args);
+		public static AdvobotResult Deafened(bool punished, IUser user, TimeSpan? time)
+			=> Punished(punished, UsersVariableDeafened, UsersVariableUndeafened, F(user), time);
 
 		public static AdvobotResult DisplayBanReason(IBan ban)
 		{
@@ -102,8 +102,8 @@ namespace Advobot.Standard.Responses
 			));
 		}
 
-		public static AdvobotResult Muted(bool punished, IUser user, PunishmentArgs args)
-			=> Punished(punished, UsersVariableMuted, UsersVariableUnmuted, F(user), args);
+		public static AdvobotResult Muted(bool punished, IUser user, TimeSpan? time)
+			=> Punished(punished, UsersVariableMuted, UsersVariableUnmuted, F(user), time);
 
 		public static AdvobotResult Pruned(int days, int amount)
 		{
@@ -135,8 +135,8 @@ namespace Advobot.Standard.Responses
 		public static AdvobotResult SoftBanned(IUser user)
 			=> Punished(true, UsersVariableSoftBanned, string.Empty, F(user), null);
 
-		public static AdvobotResult VoiceMuted(bool punished, IUser user, PunishmentArgs args)
-			=> Punished(punished, UsersVariableVoiceMuted, UsersVariableUnvoiceMuted, F(user), args);
+		public static AdvobotResult VoiceMuted(bool punished, IUser user, TimeSpan? time)
+			=> Punished(punished, UsersVariableVoiceMuted, UsersVariableUnvoiceMuted, F(user), time);
 
 		private static MarkdownFormattedArg F(IUser user)
 			=> user.Format().WithBlock();
@@ -149,7 +149,7 @@ namespace Advobot.Standard.Responses
 			string punishment,
 			string unpunishment,
 			MarkdownFormattedArg users,
-			PunishmentArgs? args)
+			TimeSpan? time)
 		{
 			var action = punished ? punishment : unpunishment;
 			var str = UsersActionDone.Format(
@@ -157,7 +157,7 @@ namespace Advobot.Standard.Responses
 				users
 			);
 
-			if (punished && args?.Time is TimeSpan ts)
+			if (time is TimeSpan ts)
 			{
 				str += " " + UsersUnpunishedTime.Format(
 					unpunishment.WithNoMarkdown(),
