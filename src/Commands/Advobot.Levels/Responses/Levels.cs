@@ -66,8 +66,8 @@ namespace Advobot.Levels.Responses
 				return LevelsTopDescription.Format(
 					(x.Position + 1).ToString().WithBlock(),
 					FormatUser(x, user).WithBlock(),
-					x.Experience.ToString().WithBlock(),
-					level.ToString().WithBlock()
+					x.Experience.ToString().WithNoMarkdown(),
+					level.ToString().WithNoMarkdown()
 				);
 			}, Environment.NewLine);
 			return Success(new EmbedWrapper
