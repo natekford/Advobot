@@ -1,5 +1,7 @@
 ﻿using System;
 
+using AdvorangesUtils;
+
 using Discord;
 
 namespace Advobot.AutoMod.Context
@@ -11,9 +13,12 @@ namespace Advobot.AutoMod.Context
 
 		public static IAutoModMessageContext? CreateContext(this IMessage message)
 		{
-			var userMessage = message as IUserMessage;
-			var user = userMessage?.Author as IGuildUser;
-			var channel = message?.Channel as ITextChannel;
+			if (!(message is IUserMessage userMessage)
+				|| !(userMessage.Author is IGuildUser user)
+				|| !(userMessage.Channel is ITextChannel channel))
+			{
+				return null;
+			}
 			return new PrivateAutoModContext(user!, userMessage, channel);
 		}
 
