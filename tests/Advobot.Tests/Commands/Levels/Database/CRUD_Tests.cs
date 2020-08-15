@@ -13,11 +13,11 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 namespace Advobot.Tests.Commands.Levels.Database
 {
 	[TestClass]
-	public sealed class SimpleInsertionTests
+	public sealed class CRUD_Tests
 		: DatabaseTestsBase<LevelDatabase, FakeSQLiteConnectionString>
 	{
 		[TestMethod]
-		public async Task UserInsertionAndRetrieval_Test()
+		public async Task UserCRUD_Test()
 		{
 			var db = await GetDatabaseAsync().CAF();
 

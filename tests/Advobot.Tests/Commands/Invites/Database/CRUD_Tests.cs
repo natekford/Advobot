@@ -15,11 +15,11 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 namespace Advobot.Tests.Commands.Invites.Database
 {
 	[TestClass]
-	public sealed class SimpleInsertionTests
+	public sealed class CRUD_Tests
 		: DatabaseTestsBase<InviteDatabase, FakeSQLiteConnectionString>
 	{
 		[TestMethod]
-		public async Task InviteInsertionAndRetrieval_Test()
+		public async Task InviteCRUD_Test()
 		{
 			var db = await GetDatabaseAsync().CAF();
 
@@ -28,12 +28,8 @@ namespace Advobot.Tests.Commands.Invites.Database
 			await db.AddInviteAsync(Invite).CAF();
 
 			var retrieved = await db.GetInviteAsync(Guild.Id).CAF()!;
-			if (retrieved is null)
-			{
-				Assert.IsNotNull(retrieved);
-				return;
-			}
-			Assert.AreEqual(Invite.GuildId, retrieved.GuildId);
+			Assert.IsNotNull(retrieved);
+			Assert.AreEqual(Invite.GuildId, retrieved!.GuildId);
 			Assert.AreEqual(Invite.Code, retrieved.Code);
 			Assert.AreEqual(Invite.HasGlobalEmotes, retrieved.HasGlobalEmotes);
 			Assert.AreEqual(Invite.LastBumped, retrieved.LastBumped);
@@ -42,7 +38,7 @@ namespace Advobot.Tests.Commands.Invites.Database
 		}
 
 		[TestMethod]
-		public async Task KeywordInsertionAndRetrieval_Test()
+		public async Task KeywordCRUD_Test()
 		{
 			var db = await GetDatabaseAsync().CAF();
 

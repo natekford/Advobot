@@ -1,7 +1,7 @@
 ﻿using System.Linq;
 using System.Threading.Tasks;
 
-using Advobot.Logging.Database;
+using Advobot.Levels.Database;
 using Advobot.Tests.Fakes.Database;
 using Advobot.Tests.TestBases;
 
@@ -9,11 +9,11 @@ using AdvorangesUtils;
 
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
-namespace Advobot.Tests.Commands.Logging.Database
+namespace Advobot.Tests.Commands.Levels.Database
 {
 	[TestClass]
-	public sealed class IgnoredChannelsTests
-		: DatabaseTestsBase<LoggingDatabase, FakeSQLiteConnectionString>
+	public sealed class IgnoredChannels_Tests
+		: DatabaseTestsBase<LevelDatabase, FakeSQLiteConnectionString>
 	{
 		private const ulong GUILD_ID = ulong.MaxValue;
 

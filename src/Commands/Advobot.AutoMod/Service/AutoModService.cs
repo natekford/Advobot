@@ -273,6 +273,13 @@ namespace Advobot.AutoMod.Service
 			ulong userId,
 			IReadOnlyPunishment punishment,
 			RequestOptions options)
-			=> _Punisher.DynamicHandleAsync(guild, userId, punishment.PunishmentType, true, punishment.RoleId, options);
+		{
+			var context = new DynamicPunishmentContext(guild, userId, true, punishment.PunishmentType)
+			{
+				RoleId = punishment.RoleId,
+				Options = options,
+			};
+			return _Punisher.HandleAsync(context);
+		}
 	}
 }

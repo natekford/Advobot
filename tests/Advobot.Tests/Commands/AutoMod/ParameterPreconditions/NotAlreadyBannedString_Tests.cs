@@ -4,7 +4,7 @@ using Discord.Commands;
 
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
-namespace Advobot.Tests.Commands.AutoMod.Attributes
+namespace Advobot.Tests.Commands.AutoMod.ParameterPreconditions
 {
 	[TestClass]
 	public sealed class NotAlreadyBannedString_Tests : NotAlreadyBannedPhraseAttribute_Tests

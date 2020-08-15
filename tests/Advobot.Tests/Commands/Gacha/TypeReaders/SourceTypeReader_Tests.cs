@@ -5,7 +5,6 @@ using Advobot.Gacha.Models;
 using Advobot.Gacha.ReadOnlyModels;
 using Advobot.Gacha.TypeReaders;
 using Advobot.Gacha.Utilities;
-using Advobot.Tests.Commands.Gacha.Fakes;
 using Advobot.Tests.TestBases;
 
 using AdvorangesUtils;

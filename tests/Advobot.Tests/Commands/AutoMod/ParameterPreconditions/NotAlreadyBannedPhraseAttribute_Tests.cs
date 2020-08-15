@@ -3,7 +3,6 @@
 using Advobot.AutoMod.Database;
 using Advobot.AutoMod.Models;
 using Advobot.Punishments;
-using Advobot.Tests.Commands.AutoMod.Fakes;
 using Advobot.Tests.TestBases;
 
 using AdvorangesUtils;
@@ -11,7 +10,7 @@ using AdvorangesUtils;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
-namespace Advobot.Tests.Commands.AutoMod.Attributes
+namespace Advobot.Tests.Commands.AutoMod.ParameterPreconditions
 {
 	public abstract class NotAlreadyBannedPhraseAttribute_Tests : ParameterPreconditionTestsBase
 	{

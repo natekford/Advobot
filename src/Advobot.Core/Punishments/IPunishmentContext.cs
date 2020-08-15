@@ -11,6 +11,10 @@ namespace Advobot.Punishments
 	public interface IPunishmentContext
 	{
 		/// <summary>
+		/// The amount of days worth of messages to delete.
+		/// </summary>
+		public int Days { get; }
+		/// <summary>
 		/// The guild for the punishment.
 		/// </summary>
 		public IGuild Guild { get; }

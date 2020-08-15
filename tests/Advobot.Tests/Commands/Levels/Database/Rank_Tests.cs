@@ -16,7 +16,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 namespace Advobot.Tests.Commands.Levels.Database
 {
 	[TestClass]
-	public sealed class RankTests
+	public sealed class Rank_Tests
 		: DatabaseTestsBase<LevelDatabase, FakeSQLiteConnectionString>
 	{
 		private const ulong CHANNEL_ID = 2;

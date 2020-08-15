@@ -18,7 +18,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 namespace Advobot.Tests.Commands.AutoMod.Database
 {
 	[TestClass]
-	public sealed class SimpleInsertionTests
+	public sealed class CRUD_Tests
 		: DatabaseTestsBase<AutoModDatabase, FakeSQLiteConnectionString>
 	{
 		private const ulong GUILD_ID = 73;
@@ -158,12 +158,8 @@ namespace Advobot.Tests.Commands.AutoMod.Database
 				await db.UpsertChannelSettings(settings).CAF();
 
 				var retrieved = await db!.GetChannelSettingsAsync(settings.ChannelId).CAF();
-				if (retrieved is null)
-				{
-					Assert.IsNotNull(retrieved);
-					return;
-				}
-				Assert.AreEqual(settings.GuildId, retrieved.GuildId);
+				Assert.IsNotNull(retrieved);
+				Assert.AreEqual(settings.GuildId, retrieved!.GuildId);
 				Assert.AreEqual(settings.ChannelId, retrieved.ChannelId);
 				Assert.AreEqual(settings.IsImageOnly, retrieved.IsImageOnly);
 			}

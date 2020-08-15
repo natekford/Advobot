@@ -13,7 +13,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 namespace Advobot.Tests.Commands.Notifications.Database
 {
 	[TestClass]
-	public sealed class SimpleInsertionTests
+	public sealed class CRUD_Tests
 		: DatabaseTestsBase<NotificationDatabase, FakeSQLiteConnectionString>
 	{
 		private const ulong CHANNEL_ID = 73;
@@ -22,7 +22,7 @@ namespace Advobot.Tests.Commands.Notifications.Database
 		private const ulong GUILD_ID = ulong.MaxValue;
 
 		[TestMethod]
-		public async Task NotificationInsertionAndRetrieval_Test()
+		public async Task NotificationCRUD_Test()
 		{
 			var db = await GetDatabaseAsync().CAF();
 
@@ -33,24 +33,16 @@ namespace Advobot.Tests.Commands.Notifications.Database
 
 			await db.UpsertNotificationChannelAsync(EVENT, GUILD_ID, CHANNEL_ID).CAF();
 			{
-				var retrieved = await db.GetAsync(EVENT, GUILD_ID).CAF()!;
-				if (retrieved is null)
-				{
-					Assert.IsNotNull(retrieved);
-					return;
-				}
-				Assert.AreEqual(CHANNEL_ID, retrieved.ChannelId);
+				var retrieved = await db.GetAsync(EVENT, GUILD_ID).CAF();
+				Assert.IsNotNull(retrieved);
+				Assert.AreEqual(CHANNEL_ID, retrieved!.ChannelId);
 			}
 
 			await db.UpsertNotificationContentAsync(EVENT, GUILD_ID, CONTENT).CAF();
 			{
-				var retrieved = await db.GetAsync(EVENT, GUILD_ID).CAF()!;
-				if (retrieved is null)
-				{
-					Assert.IsNotNull(retrieved);
-					return;
-				}
-				Assert.AreEqual(CHANNEL_ID, retrieved.ChannelId);
+				var retrieved = await db.GetAsync(EVENT, GUILD_ID).CAF();
+				Assert.IsNotNull(retrieved);
+				Assert.AreEqual(CHANNEL_ID, retrieved!.ChannelId);
 				Assert.AreEqual(CONTENT, retrieved.Content);
 			}
 
@@ -71,12 +63,8 @@ namespace Advobot.Tests.Commands.Notifications.Database
 			await db.UpsertNotificationEmbedAsync(EVENT, GUILD_ID, embed).CAF();
 			{
 				var retrieved = await db.GetAsync(EVENT, GUILD_ID).CAF();
-				if (retrieved is null)
-				{
-					Assert.IsNotNull(retrieved);
-					return;
-				}
-				Assert.AreEqual(CHANNEL_ID, retrieved.ChannelId);
+				Assert.IsNotNull(retrieved);
+				Assert.AreEqual(CHANNEL_ID, retrieved!.ChannelId);
 				Assert.AreEqual(CONTENT, retrieved.Content);
 				Assert.AreEqual(embed.AuthorIconUrl, retrieved.AuthorIconUrl);
 				Assert.AreEqual(embed.AuthorName, retrieved.AuthorName);
@@ -94,12 +82,8 @@ namespace Advobot.Tests.Commands.Notifications.Database
 			await db.UpsertNotificationChannelAsync(EVENT, GUILD_ID, null).CAF();
 			{
 				var retrieved = await db.GetAsync(EVENT, GUILD_ID).CAF();
-				if (retrieved is null)
-				{
-					Assert.IsNotNull(retrieved);
-					return;
-				}
-				Assert.AreEqual(0UL, retrieved.ChannelId);
+				Assert.IsNotNull(retrieved);
+				Assert.AreEqual(0UL, retrieved!.ChannelId);
 				Assert.AreEqual(CONTENT, retrieved.Content);
 				Assert.AreEqual(embed.AuthorIconUrl, retrieved.AuthorIconUrl);
 				Assert.AreEqual(embed.AuthorName, retrieved.AuthorName);

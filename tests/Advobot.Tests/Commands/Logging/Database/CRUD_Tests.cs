@@ -13,7 +13,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 namespace Advobot.Tests.Commands.Logging.Database
 {
 	[TestClass]
-	public sealed class SimpleInsertionTests
+	public sealed class CRUD_Tests
 		: DatabaseTestsBase<LoggingDatabase, FakeSQLiteConnectionString>
 	{
 		private const ulong GUILD_ID = ulong.MaxValue;
@@ -22,7 +22,7 @@ namespace Advobot.Tests.Commands.Logging.Database
 		private const ulong SERVER_LOG_ID = ulong.MaxValue / 2;
 
 		[TestMethod]
-		public async Task IgnoredLogChannelsInsertionAndRetrieval_Test()
+		public async Task IgnoredLogChannelsCRUD_Test()
 		{
 			var db = await GetDatabaseAsync().CAF();
 
@@ -61,7 +61,7 @@ namespace Advobot.Tests.Commands.Logging.Database
 		}
 
 		[TestMethod]
-		public async Task LogActionInsertionAndRetrieval_Test()
+		public async Task LogActionCRUD_Test()
 		{
 			var db = await GetDatabaseAsync().CAF();
 
@@ -100,7 +100,7 @@ namespace Advobot.Tests.Commands.Logging.Database
 		}
 
 		[TestMethod]
-		public async Task LogChannelInsertionAndRetrieval_Test()
+		public async Task LogChannelCRUD_Test()
 		{
 			var db = await GetDatabaseAsync().CAF();
 

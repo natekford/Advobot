@@ -10,7 +10,7 @@ using Advobot.Gacha.Trading;
 
 using AdvorangesUtils;
 
-namespace Advobot.Tests.Commands.Gacha.Fakes
+namespace Advobot.Tests.Commands.Gacha
 {
 	public sealed class FakeGachaDatabase : IGachaDatabase
 	{

@@ -251,9 +251,14 @@ namespace Advobot.Tests.Fakes.Discord
 
 		public Task<int> PruneUsersAsync(int days = 30, bool simulate = false, RequestOptions options = null) => throw new NotImplementedException();
 
-		public Task RemoveBanAsync(IUser user, RequestOptions options = null) => throw new NotImplementedException();
+		public Task RemoveBanAsync(IUser user, RequestOptions options = null)
+			=> RemoveBanAsync(user.Id, options);
 
-		public Task RemoveBanAsync(ulong userId, RequestOptions options = null) => throw new NotImplementedException();
+		public Task RemoveBanAsync(ulong userId, RequestOptions options = null)
+		{
+			FakeBans.RemoveAll(x => x.User.Id == userId);
+			return Task.CompletedTask;
+		}
 
 		public Task ReorderChannelsAsync(IEnumerable<ReorderChannelProperties> args, RequestOptions options = null) => throw new NotImplementedException();
 

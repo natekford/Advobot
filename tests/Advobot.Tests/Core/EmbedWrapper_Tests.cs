@@ -10,7 +10,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 namespace Advobot.Tests.Core
 {
 	[TestClass]
-	public sealed class EmbedWrapperTests
+	public sealed class EmbedWrapper_Tests
 	{
 		private const string INVALID_URL = "not a url lol";
 		private const string VALID_STRING = "Valid length string";

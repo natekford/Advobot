@@ -25,7 +25,7 @@ namespace Advobot.Tests.Core
 	}
 
 	[TestClass]
-	public sealed class GetPropertyPathTests
+	public sealed class GetPropertyPath_Tests
 	{
 		[TestMethod]
 		public void ArrayAccess_Test()
@@ -99,7 +99,7 @@ namespace Advobot.Tests.Core
 			var path = expr.GetPropertyPath();
 			//There's no way to tell if the static class is 'this'
 			//So the static class has to always be included
-			Assert.AreEqual("Fields[GetPropertyPathTests.GetNum2()].Name", path);
+			Assert.AreEqual("Fields[GetPropertyPath_Tests.GetNum2()].Name", path);
 		}
 
 		[TestMethod]

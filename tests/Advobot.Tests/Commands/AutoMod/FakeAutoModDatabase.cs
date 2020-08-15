@@ -8,7 +8,7 @@ using Advobot.AutoMod;
 using Advobot.AutoMod.Database;
 using Advobot.AutoMod.ReadOnlyModels;
 
-namespace Advobot.Tests.Commands.AutoMod.Fakes
+namespace Advobot.Tests.Commands.AutoMod
 {
 	public sealed class FakeAutoModDatabase : IAutoModDatabase
 	{

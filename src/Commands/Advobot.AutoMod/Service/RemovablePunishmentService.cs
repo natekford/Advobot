@@ -1,6 +1,8 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Net;
+using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 
 using Advobot.AutoMod.Database;
@@ -22,6 +24,13 @@ namespace Advobot.AutoMod.Service
 		private readonly IRemovablePunishmentDatabase _Db;
 		private readonly IPunisher _Punisher;
 		private readonly ITime _Time;
+		// If the background task is processing removable punishments it adds them to a list
+		// to remove a big batch at once
+		// However, when actually removing the punishment on Discord via the punisher
+		// the event from it still fires back into this class
+		// To prevent removing the punishment by itself then again in the batch removal
+		// this hashset prevents that
+		private readonly HashSet<IPunishmentContext> _WillBeBatchRemoved = new HashSet<IPunishmentContext>();
 
 		public RemovablePunishmentService(
 			IRemovablePunishmentDatabase db,
@@ -62,6 +71,7 @@ namespace Advobot.AutoMod.Service
 					finally
 					{
 						await _Db.DeleteRemovablePunishmentsAsync(handled).CAF();
+						_WillBeBatchRemoved.Clear();
 					}
 
 					await Task.Delay(TimeSpan.FromMinutes(1)).CAF();
@@ -79,7 +89,13 @@ namespace Advobot.AutoMod.Service
 		}
 
 		private Task OnPunishmentRemoved(IPunishmentContext context)
-			=> _Db.DeleteRemovablePunishmentAsync(ToDbModel(context));
+		{
+			if (_WillBeBatchRemoved.Remove(context))
+			{
+				return Task.CompletedTask;
+			}
+			return _Db.DeleteRemovablePunishmentAsync(ToDbModel(context));
+		}
 
 		private async Task<bool> RemovePunishmentAsync(IReadOnlyRemovablePunishment punishment)
 		{
@@ -97,8 +113,12 @@ namespace Advobot.AutoMod.Service
 
 			try
 			{
-				await _Punisher.DynamicHandleAsync(guild, punishment.UserId,
-					punishment.PunishmentType, false, punishment.RoleId, null).CAF();
+				var context = new DynamicPunishmentContext(guild, punishment.UserId, false, punishment.PunishmentType)
+				{
+					RoleId = punishment.RoleId
+				};
+				_WillBeBatchRemoved.Add(context);
+				await _Punisher.HandleAsync(context).CAF();
 			}
 			// Lacking permissions, assume the punishment is being handled by someone else
 			catch (HttpException e) when (e.HttpCode == HttpStatusCode.Forbidden)
@@ -120,7 +140,7 @@ namespace Advobot.AutoMod.Service
 				UserId = context.UserId,
 				RoleId = context.Role?.Id ?? 0,
 				PunishmentType = context.Type,
-				EndTimeTicks = (_Time.UtcNow + context.Time!.Value).Ticks
+				EndTimeTicks = (_Time.UtcNow + context.Time)?.Ticks ?? -1
 			};
 		}
 	}

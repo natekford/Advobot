@@ -10,11 +10,6 @@ namespace Advobot.Punishments
 	public sealed class Ban : PunishmentBase
 	{
 		/// <summary>
-		/// The amount of days worth of messages to delete.
-		/// </summary>
-		public int? Days { get; }
-
-		/// <summary>
 		/// Creates an instance of <see cref="Deafen"/>.
 		/// </summary>
 		/// <param name="guild"></param>
@@ -29,7 +24,7 @@ namespace Advobot.Punishments
 		{
 			if (IsGive)
 			{
-				return Guild.AddBanAsync(UserId, Days ?? 1, Options?.AuditLogReason, Options);
+				return Guild.AddBanAsync(UserId, Days, Options?.AuditLogReason, Options);
 			}
 			return Guild.RemoveBanAsync(UserId, Options);
 		}

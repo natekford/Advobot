@@ -12,11 +12,6 @@ namespace Advobot.Punishments
 	public sealed class SoftBan : PunishmentBase
 	{
 		/// <summary>
-		/// The amount of days worth of messages to delete.
-		/// </summary>
-		public int? Days { get; }
-
-		/// <summary>
 		/// Creates an instance of <see cref="Kick"/>.
 		/// </summary>
 		/// <param name="guild"></param>
@@ -28,7 +23,7 @@ namespace Advobot.Punishments
 		/// <inheritdoc/>
 		protected internal override async Task ExecuteAsync()
 		{
-			await Guild.AddBanAsync(UserId, Days ?? 1, Options?.AuditLogReason, Options).CAF();
+			await Guild.AddBanAsync(UserId, Days, Options?.AuditLogReason, Options).CAF();
 			await Guild.RemoveBanAsync(UserId, Options).CAF();
 		}
 	}

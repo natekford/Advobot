@@ -13,11 +13,11 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 namespace Advobot.Tests.Commands.Gacha.Database
 {
 	[TestClass]
-	public sealed class SimpleInsertionTests
+	public sealed class CRUD_Tests
 		: DatabaseTestsBase<GachaDatabase, FakeSQLiteConnectionString>
 	{
 		[TestMethod]
-		public async Task CharacterInsertionAndRetrieval_Test()
+		public async Task CharacterCRUD_Test()
 		{
 			var db = await GetDatabaseAsync().CAF();
 
@@ -38,7 +38,7 @@ namespace Advobot.Tests.Commands.Gacha.Database
 		}
 
 		[TestMethod]
-		public async Task ClaimInsertionAndRetrieval_Test()
+		public async Task ClaimCRUD_Test()
 		{
 			var db = await GetDatabaseAsync().CAF();
 
@@ -59,7 +59,7 @@ namespace Advobot.Tests.Commands.Gacha.Database
 		}
 
 		[TestMethod]
-		public async Task ImageInsertionAndRetrieval_Test()
+		public async Task ImageCRUD_Test()
 		{
 			var db = await GetDatabaseAsync().CAF();
 
@@ -76,7 +76,7 @@ namespace Advobot.Tests.Commands.Gacha.Database
 		}
 
 		[TestMethod]
-		public async Task SourceInsertionAndRetrieval_Test()
+		public async Task SourceCRUD_Test()
 		{
 			var db = await GetDatabaseAsync().CAF();
 
@@ -91,7 +91,7 @@ namespace Advobot.Tests.Commands.Gacha.Database
 		}
 
 		[TestMethod]
-		public async Task UserInsertionAndRetrieval_Test()
+		public async Task UserCRUD_Test()
 		{
 			var db = await GetDatabaseAsync().CAF();
 
@@ -105,7 +105,7 @@ namespace Advobot.Tests.Commands.Gacha.Database
 		}
 
 		[TestMethod]
-		public async Task WishInsertionAndRetrieval_Test()
+		public async Task WishCRUD_Test()
 		{
 			var db = await GetDatabaseAsync().CAF();
 

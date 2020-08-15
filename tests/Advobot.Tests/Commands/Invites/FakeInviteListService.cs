@@ -12,7 +12,7 @@ using AdvorangesUtils;
 
 using Discord;
 
-namespace Advobot.Tests.Fakes.Services.InviteList
+namespace Advobot.Tests.Commands.Invites
 {
 	public sealed class FakeInviteListService : IInviteListService
 	{

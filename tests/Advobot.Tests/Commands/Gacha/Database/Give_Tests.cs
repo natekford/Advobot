@@ -17,7 +17,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 namespace Advobot.Tests.Commands.Gacha.Database
 {
 	[TestClass]
-	public sealed class GiveTests
+	public sealed class Give_Tests
 		: DatabaseTestsBase<GachaDatabase, FakeSQLiteConnectionString>
 	{
 		public const int CHARACTERS_PER_SOURCE = 7;

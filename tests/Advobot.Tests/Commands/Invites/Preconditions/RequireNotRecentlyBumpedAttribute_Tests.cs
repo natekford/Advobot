@@ -4,7 +4,6 @@ using System.Threading.Tasks;
 using Advobot.Invites.Preconditions;
 using Advobot.Invites.Service;
 using Advobot.Services.Time;
-using Advobot.Tests.Fakes.Services.InviteList;
 using Advobot.Tests.Fakes.Services.Time;
 using Advobot.Tests.TestBases;
 

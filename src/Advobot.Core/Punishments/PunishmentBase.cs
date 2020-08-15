@@ -10,6 +10,8 @@ namespace Advobot.Punishments
 	/// </summary>
 	public abstract class PunishmentBase : IPunishmentContext
 	{
+		/// <inheritdoc/>
+		public int Days { get; set; } = 1;
 		/// <inheritdoc />
 		public IGuild Guild { get; protected set; }
 		/// <inheritdoc />
