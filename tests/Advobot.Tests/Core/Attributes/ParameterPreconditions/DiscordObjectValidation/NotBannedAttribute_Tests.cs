@@ -5,34 +5,33 @@ using Advobot.Tests.TestBases;
 
 using AdvorangesUtils;
 
+using Discord.Commands;
+
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace Advobot.Tests.Core.Attributes.ParameterPreconditions.DiscordObjectValidation
 {
 	[TestClass]
-	public sealed class NotBannedAttribute_Tests
-		: ParameterlessParameterPreconditions_TestsBase<NotBannedAttribute>
+	public sealed class NotBannedAttribute_Tests : ParameterPreconditionTestsBase
 	{
-		private const ulong BAN_ID = 1;
+		private const ulong ID = 1;
+		protected override ParameterPreconditionAttribute Instance { get; }
+			= new NotBannedAttribute();
 
 		[TestMethod]
 		public async Task BanExisting_Test()
 		{
-			await Context.Guild.AddBanAsync(BAN_ID).CAF();
+			await Context.Guild.AddBanAsync(ID).CAF();
 
-			var result = await CheckAsync(BAN_ID).CAF();
+			var result = await CheckPermissionsAsync(ID).CAF();
 			Assert.IsFalse(result.IsSuccess);
 		}
 
 		[TestMethod]
 		public async Task BanNotExisting_Test()
 		{
-			var result = await CheckAsync(BAN_ID).CAF();
+			var result = await CheckPermissionsAsync(ID).CAF();
 			Assert.IsTrue(result.IsSuccess);
 		}
-
-		[TestMethod]
-		public async Task FailsOnNotUlong_Test()
-			=> await AssertPreconditionFailsOnInvalidType(CheckAsync("")).CAF();
 	}
 }

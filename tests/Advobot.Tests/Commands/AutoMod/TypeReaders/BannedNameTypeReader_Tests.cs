@@ -1,22 +1,15 @@
-﻿using System.Threading.Tasks;
+﻿using Advobot.AutoMod.TypeReaders;
 
-using Advobot.AutoMod.Database;
-using Advobot.AutoMod.Models;
-using Advobot.AutoMod.TypeReaders;
-using Advobot.Punishments;
-using Advobot.Tests.Commands.AutoMod.Fakes;
+using Discord.Commands;
 
-using AdvorangesUtils;
-
-using Microsoft.Extensions.DependencyInjection;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace Advobot.Tests.Core.TypeReaders.BannedPhraseTypeReaders
 {
 	[TestClass]
-	public sealed class BannedNameTypeReader_Tests
-		: BannedPhraseTypeReader_Tests<BannedNameTypeReader>
+	public sealed class BannedNameTypeReader_Tests : BannedPhraseTypeReader_Tests
 	{
+		protected override TypeReader Instance { get; } = new BannedNameTypeReader();
 		protected override bool IsName => true;
 		protected override bool IsRegex => false;
 		protected override bool IsString => false;

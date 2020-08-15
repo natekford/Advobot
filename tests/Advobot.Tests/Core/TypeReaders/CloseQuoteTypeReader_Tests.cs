@@ -4,9 +4,12 @@ using System.Threading.Tasks;
 using Advobot.Services.GuildSettings;
 using Advobot.Services.GuildSettings.Settings;
 using Advobot.Tests.Fakes.Services.GuildSettings;
+using Advobot.Tests.TestBases;
 using Advobot.TypeReaders;
 
 using AdvorangesUtils;
+
+using Discord.Commands;
 
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -14,36 +17,25 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 namespace Advobot.Tests.Core.TypeReaders
 {
 	[TestClass]
-	public sealed class CloseQuoteTypeReader_Tests
-		: TypeReader_TestsBase<CloseQuoteTypeReader>
+	public sealed class CloseQuoteTypeReader_Tests : TypeReaderTestsBase
 	{
-		private readonly IGuildSettings _Settings;
-
-		public CloseQuoteTypeReader_Tests()
-		{
-			_Settings = new GuildSettings();
-
-			Services = new ServiceCollection()
-				.AddSingleton<IGuildSettingsFactory>(new FakeGuildSettingsFactory(_Settings))
-				.BuildServiceProvider();
-		}
-
-		[TestMethod]
-		public async Task Invalid_Test()
-		{
-			var result = await ReadAsync("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa").CAF();
-			Assert.IsFalse(result.IsSuccess);
-		}
+		private readonly GuildSettings _Settings = new GuildSettings();
+		protected override TypeReader Instance { get; } = new CloseQuoteTypeReader();
 
 		[TestMethod]
 		public async Task Valid_Test()
 		{
-			var quote = new Quote("dog", "kapow");
-			_Settings.Quotes.Add(quote);
+			_Settings.Quotes.Add(new Quote("dog", "kapow"));
 
-			var result = await ReadAsync(quote.Name).CAF();
+			var result = await ReadAsync(_Settings.Quotes[0].Name).CAF();
 			Assert.IsTrue(result.IsSuccess);
 			Assert.IsInstanceOfType(result.BestMatch, typeof(IEnumerable<Quote>));
+		}
+
+		protected override void ModifyServices(IServiceCollection services)
+		{
+			services
+				.AddSingleton<IGuildSettingsFactory>(new FakeGuildSettingsFactory(_Settings));
 		}
 	}
 }

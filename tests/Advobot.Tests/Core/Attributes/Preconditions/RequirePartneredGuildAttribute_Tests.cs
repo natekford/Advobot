@@ -5,18 +5,21 @@ using Advobot.Tests.TestBases;
 
 using AdvorangesUtils;
 
+using Discord.Commands;
+
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace Advobot.Tests.Core.Attributes.Preconditions
 {
 	[TestClass]
-	public sealed class RequirePartneredGuildAttribute_Tests
-		: ParameterlessPreconditions_TestBase<RequirePartneredGuildAttribute>
+	public sealed class RequirePartneredGuildAttribute_Tests : PreconditionTestsBase
 	{
+		protected override PreconditionAttribute Instance { get; } = new RequirePartneredGuildAttribute();
+
 		[TestMethod]
 		public async Task IsNotPartnered_Test()
 		{
-			var result = await CheckAsync().CAF();
+			var result = await CheckPermissionsAsync().CAF();
 			Assert.IsFalse(result.IsSuccess);
 		}
 
@@ -25,7 +28,7 @@ namespace Advobot.Tests.Core.Attributes.Preconditions
 		{
 			Context.Guild.Features.Add("a feature");
 
-			var result = await CheckAsync().CAF();
+			var result = await CheckPermissionsAsync().CAF();
 			Assert.IsTrue(result.IsSuccess);
 		}
 	}

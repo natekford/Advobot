@@ -6,17 +6,17 @@ using Advobot.Tests.TestBases;
 
 using AdvorangesUtils;
 
+using Discord.Commands;
+
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace Advobot.Tests.Core.Attributes.ParameterPreconditions.Numbers
 {
 	[TestClass]
-	public sealed class ChannelBitrateAttribute_Tests
-		: ParameterlessParameterPreconditions_TestsBase<ChannelBitrateAttribute>
+	public sealed class ChannelBitrateAttribute_Tests : ParameterPreconditionTestsBase
 	{
-		[TestMethod]
-		public async Task FailsOnNotInt_Test()
-			=> await AssertPreconditionFailsOnInvalidType(CheckAsync("")).CAF();
+		protected override ParameterPreconditionAttribute Instance { get; }
+			= new ChannelBitrateAttribute();
 
 		[TestMethod]
 		public async Task Standard_Test()
@@ -32,7 +32,7 @@ namespace Advobot.Tests.Core.Attributes.ParameterPreconditions.Numbers
 			};
 			foreach (var kvp in expected)
 			{
-				var result = await CheckAsync(kvp.Key).CAF();
+				var result = await CheckPermissionsAsync(kvp.Key).CAF();
 				Assert.AreEqual(kvp.Value, result.IsSuccess);
 			}
 		}
@@ -51,7 +51,7 @@ namespace Advobot.Tests.Core.Attributes.ParameterPreconditions.Numbers
 			};
 			foreach (var kvp in expected)
 			{
-				var result = await CheckAsync(kvp.Key).CAF();
+				var result = await CheckPermissionsAsync(kvp.Key).CAF();
 				Assert.AreEqual(kvp.Value, result.IsSuccess);
 			}
 		}
@@ -70,7 +70,7 @@ namespace Advobot.Tests.Core.Attributes.ParameterPreconditions.Numbers
 			};
 			foreach (var kvp in expected)
 			{
-				var result = await CheckAsync(kvp.Key).CAF();
+				var result = await CheckPermissionsAsync(kvp.Key).CAF();
 				Assert.AreEqual(kvp.Value, result.IsSuccess);
 			}
 		}
@@ -89,7 +89,7 @@ namespace Advobot.Tests.Core.Attributes.ParameterPreconditions.Numbers
 			};
 			foreach (var kvp in expected)
 			{
-				var result = await CheckAsync(kvp.Key).CAF();
+				var result = await CheckPermissionsAsync(kvp.Key).CAF();
 				Assert.AreEqual(kvp.Value, result.IsSuccess);
 			}
 		}

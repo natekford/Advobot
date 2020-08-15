@@ -1,17 +1,22 @@
 ﻿using System.Threading.Tasks;
 
+using Advobot.Tests.TestBases;
 using Advobot.TypeReaders;
 
 using AdvorangesUtils;
+
+using Discord.Commands;
 
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace Advobot.Tests.Core.TypeReaders
 {
 	[TestClass]
-	public sealed class BypassUserLimitTypeReader_Tests
-		: TypeReader_TestsBase<BypassUserLimitTypeReader>
+	public sealed class BypassUserLimitTypeReader_Tests : TypeReaderTestsBase
 	{
+		protected override TypeReader Instance { get; } = new BypassUserLimitTypeReader();
+		protected override string? NotExisting => null;
+
 		[TestMethod]
 		public async Task Invalid_Test()
 		{

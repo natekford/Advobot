@@ -10,56 +10,58 @@ using Advobot.Tests.TestBases;
 
 using AdvorangesUtils;
 
+using Discord.Commands;
+
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace Advobot.Tests.Commands.Invites.Preconditions
 {
 	[TestClass]
-	public sealed class RequireNotRecentlyBumpedAttribute_Tests
-		: ParameterlessPreconditions_TestBase<RequireNotRecentlyBumpedAttribute>
+	public sealed class RequireNotRecentlyBumpedAttribute_Tests : PreconditionTestsBase
 	{
-		private readonly FakeInviteListService _Invites;
-		private readonly MutableTime _Time;
-
-		public RequireNotRecentlyBumpedAttribute_Tests()
-		{
-			_Time = new MutableTime();
-			_Invites = new FakeInviteListService(_Time);
-
-			Services = new ServiceCollection()
-				.AddSingleton<ITime>(_Time)
-				.AddSingleton<IInviteListService>(_Invites)
-				.BuildServiceProvider();
-		}
+		private readonly MutableTime _Time = new MutableTime();
+		protected override PreconditionAttribute Instance { get; }
+			= new RequireNotRecentlyBumpedAttribute();
 
 		[TestMethod]
 		public async Task NoInvite_Test()
 		{
-			var result = await CheckAsync().CAF();
+			var result = await CheckPermissionsAsync().CAF();
 			Assert.IsFalse(result.IsSuccess);
 		}
 
 		[TestMethod]
 		public async Task NotRecentlyBumped_Test()
 		{
-			var invite = await Context.Channel.CreateInviteAsync().CAF();
-			await _Invites.AddInviteAsync(invite).CAF();
-
+			await BumpAsync().CAF();
 			_Time.UtcNow += TimeSpan.FromHours(3);
 
-			var result = await CheckAsync().CAF();
+			var result = await CheckPermissionsAsync().CAF();
 			Assert.IsTrue(result.IsSuccess);
 		}
 
 		[TestMethod]
 		public async Task RecentlyBumped_Test()
 		{
-			var invite = await Context.Channel.CreateInviteAsync().CAF();
-			await _Invites.AddInviteAsync(invite).CAF();
+			await BumpAsync().CAF();
 
-			var result = await CheckAsync().CAF();
+			var result = await CheckPermissionsAsync().CAF();
 			Assert.IsFalse(result.IsSuccess);
+		}
+
+		protected override void ModifyServices(IServiceCollection services)
+		{
+			services
+				.AddSingleton<ITime>(_Time)
+				.AddSingleton<IInviteListService, FakeInviteListService>();
+		}
+
+		private async Task BumpAsync()
+		{
+			var invite = await Context.Channel.CreateInviteAsync().CAF();
+			var db = Services.GetRequiredService<IInviteListService>();
+			await db.AddInviteAsync(invite).CAF();
 		}
 	}
 }

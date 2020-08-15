@@ -173,8 +173,11 @@ namespace Advobot.Standard.Commands
 		public sealed class Test : AdvobotModuleBase
 		{
 			[Command]
-			public Task<RuntimeResult> CommandAsync([Remainder] string input)
-				=> AdvobotResult.Success(input);
+			public async Task<RuntimeResult> CommandAsync(string response = "joe")
+			{
+				await Context.Guild.GetInvitesAsync().CAF();
+				return AdvobotResult.Success(response);
+			}
 		}
 	}
 }

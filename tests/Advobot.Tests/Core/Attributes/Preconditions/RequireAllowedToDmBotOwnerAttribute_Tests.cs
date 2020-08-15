@@ -7,30 +7,25 @@ using Advobot.Tests.TestBases;
 
 using AdvorangesUtils;
 
+using Discord.Commands;
+
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace Advobot.Tests.Core.Attributes.Preconditions
 {
 	[TestClass]
-	public sealed class RequireAllowedToDmBotOwnerAttribute_Tests
-		: ParameterlessPreconditions_TestBase<RequireAllowedToDmBotOwnerAttribute>
+	public sealed class RequireAllowedToDmBotOwnerAttribute_Tests : PreconditionTestsBase
 	{
-		private readonly IBotSettings _BotSettings;
+		private readonly FakeBotSettings _BotSettings = new FakeBotSettings();
 
-		public RequireAllowedToDmBotOwnerAttribute_Tests()
-		{
-			_BotSettings = new FakeBotSettings();
-
-			Services = new ServiceCollection()
-				.AddSingleton(_BotSettings)
-				.BuildServiceProvider();
-		}
+		protected override PreconditionAttribute Instance { get; }
+			= new RequireAllowedToDmBotOwnerAttribute();
 
 		[TestMethod]
 		public async Task CanDmBotOwner_Test()
 		{
-			var result = await CheckAsync().CAF();
+			var result = await CheckPermissionsAsync().CAF();
 			Assert.IsTrue(result.IsSuccess);
 		}
 
@@ -39,8 +34,14 @@ namespace Advobot.Tests.Core.Attributes.Preconditions
 		{
 			_BotSettings.UsersUnableToDmOwner.Add(Context.User.Id);
 
-			var result = await CheckAsync().CAF();
+			var result = await CheckPermissionsAsync().CAF();
 			Assert.IsFalse(result.IsSuccess);
+		}
+
+		protected override void ModifyServices(IServiceCollection services)
+		{
+			services
+				.AddSingleton<IBotSettings>(_BotSettings);
 		}
 	}
 }

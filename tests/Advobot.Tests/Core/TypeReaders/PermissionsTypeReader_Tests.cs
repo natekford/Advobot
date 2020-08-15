@@ -1,25 +1,21 @@
 ﻿using System.Threading.Tasks;
 
+using Advobot.Tests.TestBases;
 using Advobot.TypeReaders;
 
 using AdvorangesUtils;
 
 using Discord;
+using Discord.Commands;
 
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace Advobot.Tests.Core.TypeReaders
 {
 	[TestClass]
-	public sealed class PermissionsTypeReader_Tests
-		: TypeReader_TestsBase<PermissionsTypeReader<ChannelPermission>>
+	public sealed class PermissionsTypeReader_Tests : TypeReaderTestsBase
 	{
-		[TestMethod]
-		public async Task InvalidName_Test()
-		{
-			var result = await ReadAsync($"{nameof(ChannelPermission.Connect)}, asdf").CAF();
-			Assert.IsFalse(result.IsSuccess);
-		}
+		protected override TypeReader Instance { get; } = new PermissionsTypeReader<ChannelPermission>();
 
 		[TestMethod]
 		public async Task InvalidNumber_Test()

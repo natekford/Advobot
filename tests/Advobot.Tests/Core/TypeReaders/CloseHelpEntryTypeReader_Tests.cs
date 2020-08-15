@@ -3,9 +3,12 @@ using System.Threading.Tasks;
 
 using Advobot.Services.HelpEntries;
 using Advobot.Tests.Fakes.Services.HelpEntries;
+using Advobot.Tests.TestBases;
 using Advobot.TypeReaders;
 
 using AdvorangesUtils;
+
+using Discord.Commands;
 
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -13,45 +16,36 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 namespace Advobot.Tests.Core.TypeReaders
 {
 	[TestClass]
-	public sealed class CloseHelpEntryTypeReader_Tests
-		: TypeReader_TestsBase<CloseHelpEntryTypeReader>
+	public sealed class CloseHelpEntryTypeReader_Tests : TypeReaderTestsBase
 	{
-		private static readonly string[] NAMES = new[]
-		{
-			"dog",
-			"bog",
-			"pneumonoultramicroscopicsilicovolcanoconiosis"
-		};
+		private readonly HelpEntryService _HelpEntries = new HelpEntryService();
+		protected override TypeReader Instance { get; } = new CloseHelpEntryTypeReader();
 
-		public CloseHelpEntryTypeReader_Tests()
+		[TestMethod]
+		public async Task Valid_Test()
 		{
-			var helpEntries = new HelpEntryService();
-			foreach (var name in NAMES)
+			foreach (var name in new[]
 			{
-				helpEntries.Add(new FakeHelpEntry
+				"dog",
+				"bog",
+				"pneumonoultramicroscopicsilicovolcanoconiosis"
+			})
+			{
+				_HelpEntries.Add(new FakeHelpEntry
 				{
 					Name = name,
 				});
 			}
 
-			Services = new ServiceCollection()
-				.AddSingleton<IHelpEntryService>(helpEntries)
-				.BuildServiceProvider();
-		}
-
-		[TestMethod]
-		public async Task Invalid_Test()
-		{
-			var result = await ReadAsync("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa").CAF();
-			Assert.IsFalse(result.IsSuccess);
-		}
-
-		[TestMethod]
-		public async Task Valid_Test()
-		{
-			var result = await ReadAsync(NAMES[0]).CAF();
+			var result = await ReadAsync(_HelpEntries.GetHelpEntries()[0].Name).CAF();
 			Assert.IsTrue(result.IsSuccess);
 			Assert.IsInstanceOfType(result.BestMatch, typeof(IEnumerable<IModuleHelpEntry>));
+		}
+
+		protected override void ModifyServices(IServiceCollection services)
+		{
+			services
+				.AddSingleton<IHelpEntryService>(_HelpEntries);
 		}
 	}
 }

@@ -1,7 +1,5 @@
 ﻿using System;
 
-using AdvorangesUtils;
-
 using Discord;
 
 namespace Advobot.AutoMod.Context

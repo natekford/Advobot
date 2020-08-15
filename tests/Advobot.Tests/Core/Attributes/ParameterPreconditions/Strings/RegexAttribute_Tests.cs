@@ -6,36 +6,36 @@ using Advobot.Tests.TestBases;
 
 using AdvorangesUtils;
 
+using Discord.Commands;
+
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace Advobot.Tests.Core.Attributes.ParameterPreconditions.Strings
 {
 	[TestClass]
-	public sealed class RegexAttribute_Tests
-		: ParameterlessParameterPreconditions_TestsBase<RegexAttribute>
+	public sealed class RegexAttribute_Tests : ParameterPreconditionTestsBase
 	{
-		[TestMethod]
-		public async Task FailsOnNotString_Test()
-			=> await AssertPreconditionFailsOnInvalidType(CheckAsync(1)).CAF();
+		protected override ParameterPreconditionAttribute Instance { get; }
+			= new RegexAttribute();
 
 		[TestMethod]
 		public async Task InvalidRegex_Test()
 		{
-			var result = await CheckAsync(".{10,}*").CAF();
+			var result = await CheckPermissionsAsync(".{10,}*").CAF();
 			Assert.IsFalse(result.IsSuccess);
 		}
 
 		[TestMethod]
 		public async Task MatchesEverything_Test()
 		{
-			var result = await CheckAsync(".*").CAF();
+			var result = await CheckPermissionsAsync(".*").CAF();
 			Assert.IsFalse(result.IsSuccess);
 		}
 
 		[TestMethod]
 		public async Task MatchesNewLine_Test()
 		{
-			var result = await CheckAsync("\n").CAF();
+			var result = await CheckPermissionsAsync("\n").CAF();
 			Assert.IsFalse(result.IsSuccess);
 		}
 
@@ -51,7 +51,7 @@ namespace Advobot.Tests.Core.Attributes.ParameterPreconditions.Strings
 			};
 			foreach (var kvp in expected)
 			{
-				var result = await CheckAsync(kvp.Key).CAF();
+				var result = await CheckPermissionsAsync(kvp.Key).CAF();
 				Assert.AreEqual(kvp.Value, result.IsSuccess);
 			}
 		}

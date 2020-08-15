@@ -8,32 +8,25 @@ using Advobot.Tests.TestBases;
 
 using AdvorangesUtils;
 
+using Discord.Commands;
+
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace Advobot.Tests.Core.Attributes.Preconditions
 {
 	[TestClass]
-	public sealed class RequireImageNotProcessingAttribute_Tests
-		: ParameterlessPreconditions_TestBase<RequireImageNotProcessingAttribute>
+	public sealed class RequireImageNotProcessingAttribute_Tests : PreconditionTestsBase
 	{
-		private readonly IImageResizer _Resizer;
+		private readonly ImageResizer _Resizer = new ImageResizer(new HttpClient(new FakeImageResizingHttpMessageHandler()));
 
-		public RequireImageNotProcessingAttribute_Tests()
-		{
-			var handler = new FakeImageResizingHttpMessageHandler();
-			var client = new HttpClient(handler);
-			_Resizer = new ImageResizer(client);
-
-			Services = new ServiceCollection()
-				.AddSingleton(_Resizer)
-				.BuildServiceProvider();
-		}
+		protected override PreconditionAttribute Instance { get; }
+			= new RequireImageNotProcessingAttribute();
 
 		[TestMethod]
 		public async Task IsNotProcessing_Test()
 		{
-			var result = await CheckAsync().CAF();
+			var result = await CheckPermissionsAsync().CAF();
 			Assert.IsTrue(result.IsSuccess);
 		}
 
@@ -42,8 +35,14 @@ namespace Advobot.Tests.Core.Attributes.Preconditions
 		{
 			_Resizer.Enqueue(new FakeImageContext(Context.Guild));
 
-			var result = await CheckAsync().CAF();
+			var result = await CheckPermissionsAsync().CAF();
 			Assert.IsFalse(result.IsSuccess);
+		}
+
+		protected override void ModifyServices(IServiceCollection services)
+		{
+			services
+				.AddSingleton<IImageResizer>(_Resizer);
 		}
 	}
 }

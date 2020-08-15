@@ -7,9 +7,11 @@ using Advobot.Gacha.TypeReaders;
 using Advobot.Gacha.Utilities;
 using Advobot.Tests.Commands.Gacha.Fakes;
 using Advobot.Tests.Commands.Gacha.Utilities;
-using Advobot.Tests.Core.TypeReaders;
+using Advobot.Tests.TestBases;
 
 using AdvorangesUtils;
+
+using Discord.Commands;
 
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -17,133 +19,59 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 namespace Advobot.Tests.Commands.Gacha.TypeReaders
 {
 	[TestClass]
-	public sealed class CharacterTypeReader_Tests
-		: TypeReader_TestsBase<CharacterTypeReader>
+	public sealed class CharacterTypeReader_Tests : TypeReaderTestsBase
 	{
-		public const string NAME = "bobby";
-
-		public CharacterTypeReader_Tests()
-		{
-			Services = new ServiceCollection()
-				.AddSingleton<IGachaDatabase, FakeGachaDatabase>()
-				.BuildServiceProvider();
-		}
-
-		[TestMethod]
-		public async Task InvalidCharacter_Test()
-		{
-			var result = await ReadAsync("139284ahsdfnq1g2oasdf-09jasdf[ asdf 1234hansdfasdf").CAF();
-			Assert.IsFalse(result.IsSuccess);
-		}
+		private readonly FakeGachaDatabase _Db = new FakeGachaDatabase();
+		protected override TypeReader Instance { get; } = new CharacterTypeReader();
 
 		[TestMethod]
 		public async Task InvalidMultipleMatches_Test()
 		{
-			var db = Services.GetRequiredService<IGachaDatabase>();
-
 			var source = GachaTestUtils.GenerateFakeSource();
 			var characters = new[]
 			{
-				GenerateStaticCharacter(source),
-				GenerateStaticCharacter(source),
+				GenerateStaticCharacter(source, "bobby"),
+				GenerateStaticCharacter(source, "bobby"),
 			};
-			await db.AddSourceAsync(source).CAF();
-			await db.AddCharactersAsync(characters).CAF();
+			await _Db.AddSourceAsync(source).CAF();
+			await _Db.AddCharactersAsync(characters).CAF();
 
-			var result = await ReadAsync(NAME).CAF();
+			var result = await ReadAsync(characters[0].Name).CAF();
 			Assert.IsFalse(result.IsSuccess);
 		}
 
 		[TestMethod]
 		public async Task Valid_Test()
 		{
-			var db = Services.GetRequiredService<IGachaDatabase>();
-
 			var source = GachaTestUtils.GenerateFakeSource();
 			var characters = new[]
 			{
-				GenerateStaticCharacter(source),
+				GenerateStaticCharacter(source, "bobby"),
 				GenerateStaticCharacter(source, "not bobby"),
 			};
-			await db.AddSourceAsync(source).CAF();
-			await db.AddCharactersAsync(characters).CAF();
+			await _Db.AddSourceAsync(source).CAF();
+			await _Db.AddCharactersAsync(characters).CAF();
 
-			var result = await ReadAsync(NAME).CAF();
+			var result = await ReadAsync(characters[0].Name).CAF();
 			Assert.IsTrue(result.IsSuccess);
 		}
 
-		private IReadOnlyCharacter GenerateStaticCharacter(IReadOnlySource fakeSource, string? name = null)
+		protected override void ModifyServices(IServiceCollection services)
+		{
+			services
+				.AddSingleton<IGachaDatabase>(_Db);
+		}
+
+		private IReadOnlyCharacter GenerateStaticCharacter(IReadOnlySource fakeSource, string name)
 		{
 			return new Character(fakeSource)
 			{
 				CharacterId = TimeUtils.UtcNowTicks,
-				Name = name ?? NAME,
+				Name = name,
 				GenderIcon = "\uD83D\uDE39",
 				Gender = Gender.Other,
 				RollType = RollType.All,
 				IsFakeCharacter = true,
-			};
-		}
-	}
-
-	[TestClass]
-	public sealed class SourceTypeReader_Tests
-		: TypeReader_TestsBase<SourceTypeReader>
-	{
-		public const string NAME = "Gamers!";
-
-		public SourceTypeReader_Tests()
-		{
-			Services = new ServiceCollection()
-				.AddSingleton<IGachaDatabase, FakeGachaDatabase>()
-				.BuildServiceProvider();
-		}
-
-		[TestMethod]
-		public async Task InvalidCharacter_Test()
-		{
-			var result = await ReadAsync("139284ahsdfnq1g2oasdf-09jasdf[ asdf 1234hansdfasdf").CAF();
-			Assert.IsFalse(result.IsSuccess);
-		}
-
-		[TestMethod]
-		public async Task InvalidMultipleMatches_Test()
-		{
-			var db = Services.GetRequiredService<IGachaDatabase>();
-
-			var sources = new[]
-			{
-				GenerateStaticSource(),
-				GenerateStaticSource(),
-			};
-			await db.AddSourcesAsync(sources).CAF();
-
-			var result = await ReadAsync(NAME).CAF();
-			Assert.IsFalse(result.IsSuccess);
-		}
-
-		[TestMethod]
-		public async Task Valid_Test()
-		{
-			var db = Services.GetRequiredService<IGachaDatabase>();
-
-			var sources = new[]
-			{
-				GenerateStaticSource(),
-				GenerateStaticSource("not Gamers!"),
-			};
-			await db.AddSourcesAsync(sources).CAF();
-
-			var result = await ReadAsync(NAME).CAF();
-			Assert.IsTrue(result.IsSuccess);
-		}
-
-		private IReadOnlySource GenerateStaticSource(string? name = null)
-		{
-			return new Source
-			{
-				SourceId = TimeUtils.UtcNowTicks,
-				Name = name ?? NAME,
 			};
 		}
 	}

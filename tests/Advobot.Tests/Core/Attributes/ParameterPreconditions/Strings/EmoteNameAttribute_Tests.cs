@@ -6,17 +6,17 @@ using Advobot.Tests.TestBases;
 
 using AdvorangesUtils;
 
+using Discord.Commands;
+
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace Advobot.Tests.Core.Attributes.ParameterPreconditions.Strings
 {
 	[TestClass]
-	public sealed class EmoteNameAttribute_Tests
-		: ParameterlessParameterPreconditions_TestsBase<EmoteNameAttribute>
+	public sealed class EmoteNameAttribute_Tests : ParameterPreconditionTestsBase
 	{
-		[TestMethod]
-		public async Task FailsOnNotString_Test()
-			=> await AssertPreconditionFailsOnInvalidType(CheckAsync(1)).CAF();
+		protected override ParameterPreconditionAttribute Instance { get; }
+			= new EmoteNameAttribute();
 
 		[TestMethod]
 		public async Task Standard_Test()
@@ -30,7 +30,7 @@ namespace Advobot.Tests.Core.Attributes.ParameterPreconditions.Strings
 			};
 			foreach (var kvp in expected)
 			{
-				var result = await CheckAsync(kvp.Key).CAF();
+				var result = await CheckPermissionsAsync(kvp.Key).CAF();
 				Assert.AreEqual(kvp.Value, result.IsSuccess);
 			}
 		}

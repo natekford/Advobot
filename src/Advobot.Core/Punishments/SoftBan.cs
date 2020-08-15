@@ -1,5 +1,4 @@
-﻿using System;
-using System.Threading.Tasks;
+﻿using System.Threading.Tasks;
 
 using AdvorangesUtils;
 
@@ -7,7 +6,6 @@ using Discord;
 
 namespace Advobot.Punishments
 {
-
 	/// <summary>
 	/// Softbans a user.
 	/// </summary>
@@ -27,7 +25,8 @@ namespace Advobot.Punishments
 		{
 		}
 
-		internal override async Task ExecuteAsync()
+		/// <inheritdoc/>
+		protected internal override async Task ExecuteAsync()
 		{
 			await Guild.AddBanAsync(UserId, Days ?? 1, Options?.AuditLogReason, Options).CAF();
 			await Guild.RemoveBanAsync(UserId, Options).CAF();

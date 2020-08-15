@@ -6,36 +6,32 @@ using Advobot.Tests.TestBases;
 
 using AdvorangesUtils;
 
+using Discord.Commands;
+
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace Advobot.Tests.Core.Attributes.ParameterPreconditions.DiscordObjectValidation.Roles
 {
 	[TestClass]
-	public sealed class NotEveryoneAttribute_Tests
-		: ParameterlessParameterPreconditions_TestsBase<NotEveryoneAttribute>
+	public sealed class NotEveryoneAttribute_Tests : ParameterPreconditionTestsBase
 	{
-		[TestMethod]
-		public async Task FailsOnNotIRole_Test()
-			=> await AssertPreconditionFailsOnInvalidType(CheckAsync(1)).CAF();
+		protected override ParameterPreconditionAttribute Instance { get; }
+			= new NotEveryoneAttribute();
 
 		[TestMethod]
 		public async Task RoleIsEveryone_Test()
 		{
-			var role = Context.Guild.FakeEveryoneRole;
-
-			var result = await CheckAsync(role).CAF();
+			var result = await CheckPermissionsAsync(Context.Guild.FakeEveryoneRole).CAF();
 			Assert.IsFalse(result.IsSuccess);
 		}
 
 		[TestMethod]
 		public async Task RoleIsNotEveryone_Test()
 		{
-			var role = new FakeRole(Context.Guild)
+			var result = await CheckPermissionsAsync(new FakeRole(Context.Guild)
 			{
 				Id = 73,
-			};
-
-			var result = await CheckAsync(role).CAF();
+			}).CAF();
 			Assert.IsTrue(result.IsSuccess);
 		}
 	}

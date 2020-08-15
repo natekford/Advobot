@@ -7,21 +7,18 @@ using Advobot.Tests.TestBases;
 
 using AdvorangesUtils;
 
+using Discord.Commands;
+
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace Advobot.Tests.Core.Attributes.ParameterPreconditions.Strings
 {
 	[TestClass]
-	public sealed class BotSettingNameAttribute_Tests
-		: ParameterlessParameterPreconditions_TestsBase<BotSettingNameAttribute>
+	public sealed class BotSettingNameAttribute_Tests : ParameterPreconditionTestsBase
 	{
-		public BotSettingNameAttribute_Tests()
-		{
-			Services = new ServiceCollection()
-				.AddSingleton<IBotSettings>(new BotSettings())
-				.BuildServiceProvider();
-		}
+		protected override ParameterPreconditionAttribute Instance { get; }
+			= new BotSettingNameAttribute();
 
 		[TestMethod]
 		public async Task AllSettingNames_Test()
@@ -48,20 +45,22 @@ namespace Advobot.Tests.Core.Attributes.ParameterPreconditions.Strings
 			};
 			foreach (var setting in settings)
 			{
-				var result = await CheckAsync(setting.ToLower()).CAF();
+				var result = await CheckPermissionsAsync(setting.ToLower()).CAF();
 				Assert.IsTrue(result.IsSuccess);
 			}
 		}
 
 		[TestMethod]
-		public async Task FailsOnNotString_Test()
-			=> await AssertPreconditionFailsOnInvalidType(CheckAsync(1)).CAF();
-
-		[TestMethod]
 		public async Task InvalidSetting_Test()
 		{
-			var result = await CheckAsync("not a setting").CAF();
+			var result = await CheckPermissionsAsync("not a setting").CAF();
 			Assert.IsFalse(result.IsSuccess);
+		}
+
+		protected override void ModifyServices(IServiceCollection services)
+		{
+			services
+				.AddSingleton<IBotSettings, BotSettings>();
 		}
 	}
 }

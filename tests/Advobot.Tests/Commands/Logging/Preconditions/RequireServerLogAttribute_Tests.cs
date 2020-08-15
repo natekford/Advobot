@@ -8,33 +8,27 @@ using Advobot.Tests.TestBases;
 
 using AdvorangesUtils;
 
+using Discord.Commands;
+
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace Advobot.Tests.Commands.Logging.Preconditions
 {
 	[TestClass]
-	public sealed class RequireServerLogAttribute_Tests
-		: ParameterlessPreconditions_TestBase<RequireServerLogAttribute>
+	public sealed class RequireServerLogAttribute_Tests : PreconditionTestsBase
 	{
-		private readonly LogChannels _Channels;
+		private readonly LogChannels _Channels = new LogChannels();
 
-		public RequireServerLogAttribute_Tests()
-		{
-			_Channels = new LogChannels();
-
-			Services = new ServiceCollection()
-				.AddSingleton(_Channels)
-				.AddSingleton<ILoggingService, FakeLoggingService>()
-				.BuildServiceProvider();
-		}
+		protected override PreconditionAttribute Instance { get; }
+			= new RequireServerLogAttribute();
 
 		[TestMethod]
 		public async Task DoesNotHaveLog_Test()
 		{
 			_Channels.ServerLogId = 0;
 
-			var result = await CheckAsync().CAF();
+			var result = await CheckPermissionsAsync().CAF();
 			Assert.IsFalse(result.IsSuccess);
 		}
 
@@ -43,8 +37,15 @@ namespace Advobot.Tests.Commands.Logging.Preconditions
 		{
 			_Channels.ServerLogId = 73;
 
-			var result = await CheckAsync().CAF();
+			var result = await CheckPermissionsAsync().CAF();
 			Assert.IsTrue(result.IsSuccess);
+		}
+
+		protected override void ModifyServices(IServiceCollection services)
+		{
+			services
+				.AddSingleton(_Channels)
+				.AddSingleton<ILoggingService, FakeLoggingService>();
 		}
 	}
 }

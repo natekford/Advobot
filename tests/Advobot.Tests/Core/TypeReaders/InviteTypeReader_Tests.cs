@@ -1,25 +1,21 @@
 ﻿using System.Threading.Tasks;
 
+using Advobot.Tests.TestBases;
 using Advobot.TypeReaders;
 
 using AdvorangesUtils;
 
 using Discord;
+using Discord.Commands;
 
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace Advobot.Tests.Core.TypeReaders
 {
 	[TestClass]
-	public sealed class InviteTypeReader_Tests
-		: TypeReader_TestsBase<InviteTypeReader>
+	public sealed class InviteTypeReader_Tests : TypeReaderTestsBase
 	{
-		[TestMethod]
-		public async Task Invalid_Test()
-		{
-			var result = await ReadAsync("asdf").CAF();
-			Assert.IsFalse(result.IsSuccess);
-		}
+		protected override TypeReader Instance { get; } = new InviteTypeReader();
 
 		[TestMethod]
 		public async Task Valid_Test()

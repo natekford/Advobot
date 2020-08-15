@@ -7,46 +7,40 @@ using Advobot.Tests.TestBases;
 
 using AdvorangesUtils;
 
+using Discord.Commands;
+
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace Advobot.Tests.Core.Attributes.ParameterPreconditions.Strings
 {
 	[TestClass]
-	public sealed class CommandCategoryAttribute_Tests
-		: ParameterlessParameterPreconditions_TestsBase<CommandCategoryAttribute>
+	public sealed class CommandCategoryAttribute_Tests : ParameterPreconditionTestsBase
 	{
-		private readonly HelpEntryService _Service;
-
-		public CommandCategoryAttribute_Tests()
-		{
-			_Service = new HelpEntryService();
-
-			Services = new ServiceCollection()
-				.AddSingleton<IHelpEntryService>(_Service)
-				.BuildServiceProvider();
-		}
+		private readonly HelpEntryService _Service = new HelpEntryService();
+		protected override ParameterPreconditionAttribute Instance { get; }
+			= new CommandCategoryAttribute();
 
 		[TestMethod]
 		public async Task CategoryExisting_Test()
 		{
-			const string CATEGORY = "i exist";
+			_Service.Add(new FakeHelpEntry { Category = "i exist" });
 
-			_Service.Add(new FakeHelpEntry { Category = CATEGORY });
-
-			var result = await CheckAsync(CATEGORY).CAF();
+			var result = await CheckPermissionsAsync(_Service.GetCategories()[0]).CAF();
 			Assert.IsTrue(result.IsSuccess);
 		}
 
 		[TestMethod]
 		public async Task CategoryNotExisting_Test()
 		{
-			var result = await CheckAsync("i dont exist").CAF();
+			var result = await CheckPermissionsAsync("i dont exist").CAF();
 			Assert.IsFalse(result.IsSuccess);
 		}
 
-		[TestMethod]
-		public async Task FailsOnNotString_Test()
-			=> await AssertPreconditionFailsOnInvalidType(CheckAsync(1)).CAF();
+		protected override void ModifyServices(IServiceCollection services)
+		{
+			services
+				.AddSingleton<IHelpEntryService>(_Service);
+		}
 	}
 }

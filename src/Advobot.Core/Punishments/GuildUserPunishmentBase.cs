@@ -1,11 +1,7 @@
-﻿using System;
-using System.Threading.Tasks;
-
-using Discord;
+﻿using Discord;
 
 namespace Advobot.Punishments
 {
-
 	/// <summary>
 	/// Context for a punishment being given or removed on a user.
 	/// </summary>

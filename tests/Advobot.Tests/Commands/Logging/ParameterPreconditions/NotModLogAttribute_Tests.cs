@@ -3,13 +3,12 @@
 using Advobot.Logging.Models;
 using Advobot.Logging.ParameterPreconditions;
 using Advobot.Logging.Service;
-using Advobot.Tests.Fakes.Discord.Channels;
 using Advobot.Tests.Fakes.Services.Logging;
 using Advobot.Tests.TestBases;
 
 using AdvorangesUtils;
 
-using Discord;
+using Discord.Commands;
 
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -17,45 +16,34 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 namespace Advobot.Tests.Commands.Logging.ParameterPreconditions
 {
 	[TestClass]
-	public sealed class NotModLogAttribute_Tests
-		: ParameterlessParameterPreconditions_TestsBase<NotModLogAttribute>
+	public sealed class NotModLogAttribute_Tests : ParameterPreconditionTestsBase
 	{
-		private const ulong CHANNEL_ID = 1;
-		private readonly LogChannels _Channels;
-		private readonly ITextChannel _FakeChannel;
+		private readonly LogChannels _Channels = new LogChannels();
 
-		public NotModLogAttribute_Tests()
-		{
-			_Channels = new LogChannels();
-			_FakeChannel = new FakeTextChannel(Context.Guild)
-			{
-				Id = CHANNEL_ID
-			};
-
-			Services = new ServiceCollection()
-				.AddSingleton(_Channels)
-				.AddSingleton<ILoggingService, FakeLoggingService>()
-				.BuildServiceProvider();
-		}
-
-		[TestMethod]
-		public async Task FailsOnNotUlong_Test()
-			=> await AssertPreconditionFailsOnInvalidType(CheckAsync("")).CAF();
+		protected override ParameterPreconditionAttribute Instance { get; }
+			= new NotModLogAttribute();
 
 		[TestMethod]
 		public async Task LogExisting_Test()
 		{
-			_Channels.ModLogId = CHANNEL_ID;
+			Context.Channel.Id = _Channels.ModLogId = 73;
 
-			var result = await CheckAsync(_FakeChannel).CAF();
+			var result = await CheckPermissionsAsync(Context.Channel).CAF();
 			Assert.IsFalse(result.IsSuccess);
 		}
 
 		[TestMethod]
 		public async Task LogNotExisting_Test()
 		{
-			var result = await CheckAsync(_FakeChannel).CAF();
+			var result = await CheckPermissionsAsync(Context.Channel).CAF();
 			Assert.IsTrue(result.IsSuccess);
+		}
+
+		protected override void ModifyServices(IServiceCollection services)
+		{
+			services
+				.AddSingleton(_Channels)
+				.AddSingleton<ILoggingService, FakeLoggingService>();
 		}
 	}
 }

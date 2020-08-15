@@ -2,18 +2,23 @@
 using System.Threading.Tasks;
 
 using Advobot.Classes;
+using Advobot.Tests.TestBases;
 using Advobot.TypeReaders;
 
 using AdvorangesUtils;
+
+using Discord.Commands;
 
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace Advobot.Tests.Core.TypeReaders
 {
 	[TestClass]
-	public sealed class ModerationReasonTypeReader_Tests
-		: TypeReader_TestsBase<ModerationReasonTypeReader>
+	public sealed class ModerationReasonTypeReader_Tests : TypeReaderTestsBase
 	{
+		protected override TypeReader Instance { get; } = new ModerationReasonTypeReader();
+		protected override string? NotExisting => null;
+
 		[TestMethod]
 		public async Task Valid_Test()
 		{

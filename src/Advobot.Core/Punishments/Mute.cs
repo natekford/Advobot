@@ -1,7 +1,4 @@
-﻿using System;
-using System.Threading.Tasks;
-
-using AdvorangesUtils;
+﻿using System.Threading.Tasks;
 
 using Discord;
 
@@ -22,7 +19,7 @@ namespace Advobot.Punishments
 		}
 
 		/// <inheritdoc/>
-		internal override Task ExecuteAsync()
+		protected internal override Task ExecuteAsync()
 			=> User.ModifyAsync(x => x.Mute = IsGive, Options);
 	}
 }

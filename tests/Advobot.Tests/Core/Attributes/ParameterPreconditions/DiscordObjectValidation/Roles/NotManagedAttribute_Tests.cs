@@ -6,39 +6,35 @@ using Advobot.Tests.TestBases;
 
 using AdvorangesUtils;
 
+using Discord.Commands;
+
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace Advobot.Tests.Core.Attributes.ParameterPreconditions.DiscordObjectValidation.Roles
 {
 	[TestClass]
-	public sealed class NotManagedAttribute_Tests
-		: ParameterlessParameterPreconditions_TestsBase<NotManagedAttribute>
+	public sealed class NotManagedAttribute_Tests : ParameterPreconditionTestsBase
 	{
-		[TestMethod]
-		public async Task FailsOnNotIRole_Test()
-			=> await AssertPreconditionFailsOnInvalidType(CheckAsync(1)).CAF();
+		protected override ParameterPreconditionAttribute Instance { get; }
+			= new NotManagedAttribute();
 
 		[TestMethod]
 		public async Task RoleIsManaged_Test()
 		{
-			var role = new FakeRole(Context.Guild)
+			var result = await CheckPermissionsAsync(new FakeRole(Context.Guild)
 			{
 				IsManaged = true
-			};
-
-			var result = await CheckAsync(role).CAF();
+			}).CAF();
 			Assert.IsFalse(result.IsSuccess);
 		}
 
 		[TestMethod]
 		public async Task RoleIsNotManaged_Test()
 		{
-			var role = new FakeRole(Context.Guild)
+			var result = await CheckPermissionsAsync(new FakeRole(Context.Guild)
 			{
 				IsManaged = false
-			};
-
-			var result = await CheckAsync(role).CAF();
+			}).CAF();
 			Assert.IsTrue(result.IsSuccess);
 		}
 	}

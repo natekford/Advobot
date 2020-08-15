@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 
 using Advobot.Attributes.ParameterPreconditions;
@@ -9,42 +10,33 @@ using Advobot.Tests.TestBases;
 
 using AdvorangesUtils;
 
+using Discord.Commands;
+
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace Advobot.Tests.Core.Attributes.ParameterPreconditions.Strings
 {
 	[TestClass]
-	public sealed class RuleCategoryAttribute_Tests
-		: ParameterlessParameterPreconditions_TestsBase<RuleCategoryAttribute>
+	public sealed class RuleCategoryAttribute_Tests : ParameterPreconditionTestsBase
 	{
-		private const string _ExistingCategory = "i exist";
-		private const string _NonExistentCategory = "i dont exist";
-
-		private readonly IGuildSettings _Settings;
-
-		public RuleCategoryAttribute_Tests()
-		{
-			_Settings = new GuildSettings();
-
-			Services = new ServiceCollection()
-				.AddSingleton<IGuildSettingsFactory>(new FakeGuildSettingsFactory(_Settings))
-				.BuildServiceProvider();
-		}
+		private readonly RuleCategoryAttribute _Instance = new RuleCategoryAttribute();
+		private readonly GuildSettings _Settings = new GuildSettings();
+		protected override ParameterPreconditionAttribute Instance => _Instance;
 
 		[TestMethod]
 		public async Task ErrorOnCategoryExistingFalse_Tests()
 		{
-			Instance.Status = ExistenceStatus.MustExist;
-			_Settings.Rules.Categories.Add(_ExistingCategory, new List<string>());
+			_Instance.Status = ExistenceStatus.MustExist;
+			_Settings.Rules.Categories.Add("i exist", new List<string>());
 
 			{
-				var result = await CheckAsync(_ExistingCategory).CAF();
+				var result = await CheckPermissionsAsync(_Settings.Rules.Categories.Keys.First()).CAF();
 				Assert.IsTrue(result.IsSuccess);
 			}
 
 			{
-				var result = await CheckAsync(_NonExistentCategory).CAF();
+				var result = await CheckPermissionsAsync("i dont exist").CAF();
 				Assert.IsFalse(result.IsSuccess);
 			}
 		}
@@ -52,28 +44,24 @@ namespace Advobot.Tests.Core.Attributes.ParameterPreconditions.Strings
 		[TestMethod]
 		public async Task ErrorOnCategoryExistingTrue_Tests()
 		{
-			Instance.Status = ExistenceStatus.MustNotExist;
-			_Settings.Rules.Categories.Add(_ExistingCategory, new List<string>());
+			_Instance.Status = ExistenceStatus.MustNotExist;
+			_Settings.Rules.Categories.Add("i exist", new List<string>());
 
 			{
-				var result = await CheckAsync(_ExistingCategory).CAF();
+				var result = await CheckPermissionsAsync(_Settings.Rules.Categories.Keys.First()).CAF();
 				Assert.IsFalse(result.IsSuccess);
 			}
 
 			{
-				var result = await CheckAsync(_NonExistentCategory).CAF();
+				var result = await CheckPermissionsAsync("i dont exist").CAF();
 				Assert.IsTrue(result.IsSuccess);
 			}
 		}
 
 		[TestMethod]
-		public async Task FailsOnNotString_Test()
-			=> await AssertPreconditionFailsOnInvalidType(CheckAsync(1)).CAF();
-
-		[TestMethod]
 		public async Task Standard_Test()
 		{
-			Instance.Status = ExistenceStatus.None;
+			_Instance.Status = ExistenceStatus.None;
 
 			var expected = new Dictionary<string, bool>
 			{
@@ -84,9 +72,15 @@ namespace Advobot.Tests.Core.Attributes.ParameterPreconditions.Strings
 			};
 			foreach (var kvp in expected)
 			{
-				var result = await CheckAsync(kvp.Key).CAF();
+				var result = await CheckPermissionsAsync(kvp.Key).CAF();
 				Assert.AreEqual(kvp.Value, result.IsSuccess);
 			}
+		}
+
+		protected override void ModifyServices(IServiceCollection services)
+		{
+			services
+				.AddSingleton<IGuildSettingsFactory>(new FakeGuildSettingsFactory(_Settings));
 		}
 	}
 }

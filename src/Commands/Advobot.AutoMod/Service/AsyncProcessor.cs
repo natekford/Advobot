@@ -7,19 +7,19 @@ using AdvorangesUtils;
 namespace Advobot.AutoMod
 {
 	/// <summary>
-	/// Uses however many supplied threads to run a separate supplied task on all of them.
+	/// Does stuff in the background.
 	/// </summary>
-	public sealed class AsyncProcessingQueue
+	public sealed class AsyncProcessor
 	{
 		private readonly SemaphoreSlim _Semaphore;
 		private readonly Func<Task> _T;
 
 		/// <summary>
-		/// Creates an instance of <see cref="AsyncProcessingQueue{T}"/>.
+		/// Creates an instance of <see cref="AsyncProcessor"/>.
 		/// </summary>
 		/// <param name="count"></param>
 		/// <param name="t"></param>
-		public AsyncProcessingQueue(int count, Func<Task> t)
+		public AsyncProcessor(int count, Func<Task> t)
 		{
 			_Semaphore = new SemaphoreSlim(count);
 			_T = t;
@@ -33,8 +33,15 @@ namespace Advobot.AutoMod
 			_ = Task.Run(async () =>
 			{
 				await _Semaphore.WaitAsync().CAF();
-				await _T().CAF();
-				_Semaphore.Release();
+
+				try
+				{
+					await _T().CAF();
+				}
+				finally
+				{
+					_Semaphore.Release();
+				}
 			});
 		}
 	}

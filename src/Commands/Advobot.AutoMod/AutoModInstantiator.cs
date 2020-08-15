@@ -17,7 +17,7 @@ namespace Advobot.AutoMod
 			services
 				.AddSingleton<IAutoModDatabase, AutoModDatabase>()
 				.AddSQLiteFileDatabaseConnectionStringFor<AutoModDatabase>("AutoMod.db")
-				.AddSingleton<RemovablePunishmentDatabase>()
+				.AddSingleton<IRemovablePunishmentDatabase, RemovablePunishmentDatabase>()
 				.AddSQLiteFileDatabaseConnectionStringFor<RemovablePunishmentDatabase>("RemovablePunishments.db")
 				.AddSingleton<AutoModService>()
 				.AddSingleton<RemovablePunishmentService>();

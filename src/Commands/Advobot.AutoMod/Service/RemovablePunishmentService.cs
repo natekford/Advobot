@@ -1,4 +1,7 @@
-﻿using System.Threading.Tasks;
+﻿using System;
+using System.Collections.Generic;
+using System.Net;
+using System.Threading.Tasks;
 
 using Advobot.AutoMod.Database;
 using Advobot.AutoMod.Models;
@@ -9,20 +12,20 @@ using Advobot.Services.Time;
 using AdvorangesUtils;
 
 using Discord;
-using Discord.WebSocket;
+using Discord.Net;
 
 namespace Advobot.AutoMod.Service
 {
 	public sealed class RemovablePunishmentService
 	{
-		private readonly BaseSocketClient _Client;
-		private readonly RemovablePunishmentDatabase _Db;
+		private readonly IDiscordClient _Client;
+		private readonly IRemovablePunishmentDatabase _Db;
 		private readonly IPunisher _Punisher;
 		private readonly ITime _Time;
 
 		public RemovablePunishmentService(
-			RemovablePunishmentDatabase db,
-			BaseSocketClient client,
+			IRemovablePunishmentDatabase db,
+			IDiscordClient client,
 			ITime time,
 			IPunisher punisher)
 		{
@@ -37,19 +40,31 @@ namespace Advobot.AutoMod.Service
 
 		public void Start()
 		{
-			new AsyncProcessingQueue(1, async () =>
+			new AsyncProcessor(1, async () =>
 			{
-				var now = _Time.UtcNow.Ticks;
-				var values = await _Db.GetOldPunishmentsAsync(now).CAF();
-
-				foreach (var p in values)
+				while (true)
 				{
-					if (!(_Client.GetGuild(p.GuildId) is IGuild guild))
+					var now = _Time.UtcNow.Ticks;
+					var values = await _Db.GetOldPunishmentsAsync(now).CAF();
+
+					var handled = new List<IReadOnlyRemovablePunishment>();
+					try
 					{
-						continue;
+						foreach (var p in values)
+						{
+							var isHandled = await RemovePunishmentAsync(p).CAF();
+							if (isHandled)
+							{
+								handled.Add(p);
+							}
+						}
+					}
+					finally
+					{
+						await _Db.DeleteRemovablePunishmentsAsync(handled).CAF();
 					}
 
-					await _Punisher.DynamicHandleAsync(guild, p.UserId, p.PunishmentType, false, p.RoleId, null).CAF();
+					await Task.Delay(TimeSpan.FromMinutes(1)).CAF();
 				}
 			}).Start();
 		}
@@ -60,11 +75,42 @@ namespace Advobot.AutoMod.Service
 			{
 				return Task.CompletedTask;
 			}
-			return _Db.AddRemovablePunishment(ToDbModel(context));
+			return _Db.AddRemovablePunishmentAsync(ToDbModel(context));
 		}
 
 		private Task OnPunishmentRemoved(IPunishmentContext context)
-			=> _Db.DeleteRemovablePunishment(ToDbModel(context));
+			=> _Db.DeleteRemovablePunishmentAsync(ToDbModel(context));
+
+		private async Task<bool> RemovePunishmentAsync(IReadOnlyRemovablePunishment punishment)
+		{
+			// Older than a week should be ignored and removed
+			if (_Time.UtcNow - punishment.EndTime > TimeSpan.FromDays(7))
+			{
+				return true;
+			}
+
+			var guild = await _Client.GetGuildAsync(punishment.GuildId).CAF();
+			if (guild is null)
+			{
+				return false;
+			}
+
+			try
+			{
+				await _Punisher.DynamicHandleAsync(guild, punishment.UserId,
+					punishment.PunishmentType, false, punishment.RoleId, null).CAF();
+			}
+			// Lacking permissions, assume the punishment is being handled by someone else
+			catch (HttpException e) when (e.HttpCode == HttpStatusCode.Forbidden)
+			{
+			}
+			catch (Exception e)
+			{
+				return false;
+			}
+
+			return true;
+		}
 
 		private IReadOnlyRemovablePunishment ToDbModel(IPunishmentContext context)
 		{

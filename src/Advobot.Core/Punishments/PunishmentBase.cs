@@ -44,6 +44,6 @@ namespace Advobot.Punishments
 		Task IPunishmentContext.ExecuteAsync() => ExecuteAsync();
 
 		/// <inheritdoc />
-		internal abstract Task ExecuteAsync();
+		protected internal abstract Task ExecuteAsync();
 	}
 }

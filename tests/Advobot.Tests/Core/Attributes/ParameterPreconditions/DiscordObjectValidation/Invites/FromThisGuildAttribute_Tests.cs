@@ -8,24 +8,24 @@ using Advobot.Tests.TestBases;
 
 using AdvorangesUtils;
 
+using Discord.Commands;
+
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace Advobot.Tests.Core.Attributes.ParameterPreconditions.DiscordObjectValidation.Invites
 {
 	[TestClass]
-	public sealed class FromThisGuildAttribute_Tests
-		: ParameterlessParameterPreconditions_TestsBase<FromThisGuildAttribute>
+	public sealed class FromThisGuildAttribute_Tests : ParameterPreconditionTestsBase
 	{
-		[TestMethod]
-		public async Task FailsOnNotIInviteMetadata_Test()
-			=> await AssertPreconditionFailsOnInvalidType(CheckAsync(1)).CAF();
+		protected override ParameterPreconditionAttribute Instance { get; }
+			= new FromThisGuildAttribute();
 
 		[TestMethod]
 		public async Task FromThisGuild_Test()
 		{
 			var invite = new FakeInviteMetadata(Context.Channel, Context.User);
 
-			var result = await CheckAsync(invite).CAF();
+			var result = await CheckPermissionsAsync(invite).CAF();
 			Assert.IsTrue(result.IsSuccess);
 		}
 
@@ -37,7 +37,7 @@ namespace Advobot.Tests.Core.Attributes.ParameterPreconditions.DiscordObjectVali
 			var user = new FakeGuildUser(guild);
 			var invite = new FakeInviteMetadata(channel, user);
 
-			var result = await CheckAsync(invite).CAF();
+			var result = await CheckPermissionsAsync(invite).CAF();
 			Assert.IsFalse(result.IsSuccess);
 		}
 	}

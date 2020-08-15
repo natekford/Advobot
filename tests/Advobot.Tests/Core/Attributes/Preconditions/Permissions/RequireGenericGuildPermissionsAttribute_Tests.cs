@@ -10,6 +10,7 @@ using Advobot.Tests.TestBases;
 using AdvorangesUtils;
 
 using Discord;
+using Discord.Commands;
 
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -17,19 +18,12 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 namespace Advobot.Tests.Core.Attributes.Preconditions.Permissions
 {
 	[TestClass]
-	public sealed class RequireGenericGuildPermissionsAttribute_Tests
-		: ParameterlessPreconditions_TestBase<RequireGenericGuildPermissionsAttribute>
+	public sealed class RequireGenericGuildPermissionsAttribute_Tests : PreconditionTestsBase
 	{
-		private readonly IGuildSettings _Settings;
+		private readonly GuildSettings _Settings = new GuildSettings();
 
-		public RequireGenericGuildPermissionsAttribute_Tests()
-		{
-			_Settings = new GuildSettings();
-
-			Services = new ServiceCollection()
-				.AddSingleton<IGuildSettingsFactory>(new FakeGuildSettingsFactory(_Settings))
-				.BuildServiceProvider();
-		}
+		protected override PreconditionAttribute Instance { get; }
+			= new RequireGenericGuildPermissionsAttribute();
 
 		[DataRow(GuildPermission.CreateInstantInvite)]
 		[DataRow(GuildPermission.AddReactions)]
@@ -58,13 +52,13 @@ namespace Advobot.Tests.Core.Attributes.Preconditions.Permissions
 			await Context.User.AddRoleAsync(role).CAF();
 			await Context.Guild.FakeCurrentUser.AddRoleAsync(role).CAF();
 
-			var result = await CheckAsync().CAF();
+			var result = await CheckPermissionsAsync().CAF();
 			Assert.IsFalse(result.IsSuccess);
 
 			await Context.User.RemoveRoleAsync(role).CAF();
 			_Settings.BotUsers.Add(new BotUser(Context.User.Id, val));
 
-			var result2 = await CheckAsync().CAF();
+			var result2 = await CheckPermissionsAsync().CAF();
 			Assert.IsFalse(result2.IsSuccess);
 		}
 
@@ -92,14 +86,20 @@ namespace Advobot.Tests.Core.Attributes.Preconditions.Permissions
 			await Context.User.AddRoleAsync(role).CAF();
 			await Context.Guild.FakeCurrentUser.AddRoleAsync(role).CAF();
 
-			var result = await CheckAsync().CAF();
+			var result = await CheckPermissionsAsync().CAF();
 			Assert.IsTrue(result.IsSuccess);
 
 			await Context.User.RemoveRoleAsync(role).CAF();
 			_Settings.BotUsers.Add(new BotUser(Context.User.Id, val));
 
-			var result2 = await CheckAsync().CAF();
+			var result2 = await CheckPermissionsAsync().CAF();
 			Assert.IsTrue(result2.IsSuccess);
+		}
+
+		protected override void ModifyServices(IServiceCollection services)
+		{
+			services
+				.AddSingleton<IGuildSettingsFactory>(new FakeGuildSettingsFactory(_Settings));
 		}
 	}
 }

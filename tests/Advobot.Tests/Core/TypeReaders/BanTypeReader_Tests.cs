@@ -1,26 +1,22 @@
 ﻿using System.Threading.Tasks;
 
 using Advobot.Tests.Fakes.Discord.Users;
+using Advobot.Tests.TestBases;
 using Advobot.TypeReaders;
 
 using AdvorangesUtils;
 
 using Discord;
+using Discord.Commands;
 
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace Advobot.Tests.Core.TypeReaders
 {
 	[TestClass]
-	public sealed class BanTypeReader_Tests
-		: TypeReader_TestsBase<BanTypeReader>
+	public sealed class BanTypeReader_Tests : TypeReaderTestsBase
 	{
-		[TestMethod]
-		public async Task InvalidBan_Test()
-		{
-			var result = await ReadAsync("asdf").CAF();
-			Assert.IsFalse(result.IsSuccess);
-		}
+		protected override TypeReader Instance { get; } = new BanTypeReader();
 
 		[TestMethod]
 		public async Task InvalidMultipleMatches_Test()

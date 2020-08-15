@@ -6,17 +6,17 @@ using Advobot.Tests.TestBases;
 
 using AdvorangesUtils;
 
+using Discord.Commands;
+
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace Advobot.Tests.Core.Attributes.ParameterPreconditions.DiscordObjectValidation.Invites
 {
 	[TestClass]
-	public sealed class NeverExpiresAttribute_Tests
-		: ParameterlessParameterPreconditions_TestsBase<NeverExpiresAttribute>
+	public sealed class NeverExpiresAttribute_Tests : ParameterPreconditionTestsBase
 	{
-		[TestMethod]
-		public async Task FailsOnNotIInviteMetadata_Test()
-			=> await AssertPreconditionFailsOnInvalidType(CheckAsync(1)).CAF();
+		protected override ParameterPreconditionAttribute Instance { get; }
+			= new NeverExpiresAttribute();
 
 		[TestMethod]
 		public async Task InviteExpires_Test()
@@ -26,7 +26,7 @@ namespace Advobot.Tests.Core.Attributes.ParameterPreconditions.DiscordObjectVali
 				MaxAge = 3600,
 			};
 
-			var result = await CheckAsync(invite).CAF();
+			var result = await CheckPermissionsAsync(invite).CAF();
 			Assert.IsFalse(result.IsSuccess);
 		}
 
@@ -38,7 +38,7 @@ namespace Advobot.Tests.Core.Attributes.ParameterPreconditions.DiscordObjectVali
 				MaxAge = null,
 			};
 
-			var result = await CheckAsync(invite).CAF();
+			var result = await CheckPermissionsAsync(invite).CAF();
 			Assert.IsTrue(result.IsSuccess);
 		}
 	}

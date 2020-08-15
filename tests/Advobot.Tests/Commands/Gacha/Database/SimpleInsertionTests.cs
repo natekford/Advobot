@@ -14,7 +14,7 @@ namespace Advobot.Tests.Commands.Gacha.Database
 {
 	[TestClass]
 	public sealed class SimpleInsertionTests
-		: Database_TestsBase<GachaDatabase, FakeSQLiteConnectionString>
+		: DatabaseTestsBase<GachaDatabase, FakeSQLiteConnectionString>
 	{
 		[TestMethod]
 		public async Task CharacterInsertionAndRetrieval_Test()

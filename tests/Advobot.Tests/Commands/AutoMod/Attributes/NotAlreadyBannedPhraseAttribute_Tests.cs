@@ -1,6 +1,5 @@
 ﻿using System.Threading.Tasks;
 
-using Advobot.AutoMod.Attributes.ParameterPreconditions;
 using Advobot.AutoMod.Database;
 using Advobot.AutoMod.Models;
 using Advobot.Punishments;
@@ -14,22 +13,13 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace Advobot.Tests.Commands.AutoMod.Attributes
 {
-	public abstract class NotAlreadyBannedPhraseAttribute_Tests<T>
-		: ParameterlessParameterPreconditions_TestsBase<T>
-		where T : NotAlreadyBannedPhraseParameterPreconditionAttribute, new()
+	public abstract class NotAlreadyBannedPhraseAttribute_Tests : ParameterPreconditionTestsBase
 	{
 		private readonly FakeAutoModDatabase _Db = new FakeAutoModDatabase();
 
 		protected abstract bool IsName { get; }
 		protected abstract bool IsRegex { get; }
 		protected abstract bool IsString { get; }
-
-		protected NotAlreadyBannedPhraseAttribute_Tests()
-		{
-			Services = new ServiceCollection()
-				.AddSingleton<IAutoModDatabase>(_Db)
-				.BuildServiceProvider();
-		}
 
 		[TestMethod]
 		public async Task Existing_Test()
@@ -46,18 +36,14 @@ namespace Advobot.Tests.Commands.AutoMod.Attributes
 				IsContains = IsName || IsString,
 			}).CAF();
 
-			var result = await CheckAsync(PHRASE).CAF();
+			var result = await CheckPermissionsAsync(PHRASE).CAF();
 			Assert.IsFalse(result.IsSuccess);
 		}
 
 		[TestMethod]
-		public async Task FailsOnNotString_Test()
-			=> await AssertPreconditionFailsOnInvalidType(CheckAsync(1)).CAF();
-
-		[TestMethod]
 		public async Task NotExisting_Test()
 		{
-			var result = await CheckAsync("not existing").CAF();
+			var result = await CheckPermissionsAsync("not existing").CAF();
 			Assert.IsTrue(result.IsSuccess);
 		}
 
@@ -76,8 +62,14 @@ namespace Advobot.Tests.Commands.AutoMod.Attributes
 				IsContains = !(IsName || IsString),
 			}).CAF();
 
-			var result = await CheckAsync(PHRASE).CAF();
+			var result = await CheckPermissionsAsync(PHRASE).CAF();
 			Assert.IsTrue(result.IsSuccess);
+		}
+
+		protected override void ModifyServices(IServiceCollection services)
+		{
+			services
+				.AddSingleton<IAutoModDatabase>(_Db);
 		}
 	}
 }

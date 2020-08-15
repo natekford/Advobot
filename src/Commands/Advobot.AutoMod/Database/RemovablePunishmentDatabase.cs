@@ -10,13 +10,18 @@ using AdvorangesUtils;
 
 namespace Advobot.AutoMod.Database
 {
-	public sealed class RemovablePunishmentDatabase : DatabaseBase<SQLiteConnection>
+	public sealed class RemovablePunishmentDatabase : DatabaseBase<SQLiteConnection>, IRemovablePunishmentDatabase
 	{
+		private const string DELETE_REMOVABLE_PUNISHMENT_SQL = @"
+			DELETE FROM RemovablePunishment
+			WHERE GuildId = @GuildId AND UserId = @UserId AND PunishmentType = @PunishmentType
+		";
+
 		public RemovablePunishmentDatabase(IConnectionStringFor<RemovablePunishmentDatabase> conn) : base(conn)
 		{
 		}
 
-		public Task<int> AddRemovablePunishment(IReadOnlyRemovablePunishment punishment)
+		public Task<int> AddRemovablePunishmentAsync(IReadOnlyRemovablePunishment punishment)
 		{
 			return ModifyAsync(@"
 				INSERT OR IGNORE INTO RemovablePunishment
@@ -26,13 +31,11 @@ namespace Advobot.AutoMod.Database
 			", punishment);
 		}
 
-		public Task<int> DeleteRemovablePunishment(IReadOnlyRemovablePunishment punishment)
-		{
-			return ModifyAsync(@"
-				DELETE FROM RemovablePunishment
-				WHERE GuildId = @GuildId AND UserId = @UserId AND PunishmentType = @PunishmentType
-			", punishment);
-		}
+		public Task<int> DeleteRemovablePunishmentAsync(IReadOnlyRemovablePunishment punishment)
+			=> ModifyAsync(DELETE_REMOVABLE_PUNISHMENT_SQL, punishment);
+
+		public Task<int> DeleteRemovablePunishmentsAsync(IEnumerable<IReadOnlyRemovablePunishment> punishments)
+			=> BulkModifyAsync(DELETE_REMOVABLE_PUNISHMENT_SQL, punishments);
 
 		public async Task<IReadOnlyList<IReadOnlyRemovablePunishment>> GetOldPunishmentsAsync(long ticks)
 		{

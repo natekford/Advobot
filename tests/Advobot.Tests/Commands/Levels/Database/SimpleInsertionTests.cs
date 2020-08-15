@@ -14,7 +14,7 @@ namespace Advobot.Tests.Commands.Levels.Database
 {
 	[TestClass]
 	public sealed class SimpleInsertionTests
-		: Database_TestsBase<LevelDatabase, FakeSQLiteConnectionString>
+		: DatabaseTestsBase<LevelDatabase, FakeSQLiteConnectionString>
 	{
 		[TestMethod]
 		public async Task UserInsertionAndRetrieval_Test()

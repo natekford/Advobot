@@ -7,22 +7,22 @@ using Advobot.Tests.TestBases;
 using AdvorangesUtils;
 
 using Discord;
+using Discord.Commands;
 
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace Advobot.Tests.Core.Attributes.Preconditions.Permissions
 {
 	[TestClass]
-	public sealed class RequireChannelPermissionsAttribute_Tests
-		: Preconditions_TestBase<RequireChannelPermissionsAttribute>
+	public sealed class RequireChannelPermissionsAttribute_Tests : PreconditionTestsBase
 	{
 		private const ChannelPermission FLAGS0 = ChannelPermission.ViewChannel | ChannelPermission.SendMessages;
 		private const ChannelPermission FLAGS1 = ChannelPermission.AttachFiles | ChannelPermission.EmbedLinks;
 		private const ChannelPermission FLAGS2 = ChannelPermission.ManageChannels | ChannelPermission.ManageRoles;
 		private const ChannelPermission FLAGS3 = ChannelPermission.ManageMessages;
 
-		protected override RequireChannelPermissionsAttribute Instance
-			=> new RequireChannelPermissionsAttribute(FLAGS1, FLAGS2, FLAGS3);
+		protected override PreconditionAttribute Instance { get; }
+			= new RequireChannelPermissionsAttribute(FLAGS1, FLAGS2, FLAGS3);
 
 		[DataRow(ChannelPermission.CreateInstantInvite)]
 		[DataRow(ChannelPermission.AddReactions)]
@@ -49,7 +49,7 @@ namespace Advobot.Tests.Core.Attributes.Preconditions.Permissions
 			await Context.Channel.AddPermissionOverwriteAsync(Context.User, permissions).CAF();
 			await Context.Channel.AddPermissionOverwriteAsync(Context.Guild.FakeCurrentUser, permissions).CAF();
 
-			var result = await CheckAsync().CAF();
+			var result = await CheckPermissionsAsync().CAF();
 			Assert.IsFalse(result.IsSuccess);
 		}
 
@@ -73,7 +73,7 @@ namespace Advobot.Tests.Core.Attributes.Preconditions.Permissions
 			await Context.User.AddRoleAsync(role).CAF();
 			await Context.Guild.FakeCurrentUser.AddRoleAsync(role).CAF();
 
-			var result = await CheckAsync().CAF();
+			var result = await CheckPermissionsAsync().CAF();
 			Assert.IsFalse(result.IsSuccess);
 		}
 
@@ -90,7 +90,7 @@ namespace Advobot.Tests.Core.Attributes.Preconditions.Permissions
 			await Context.Channel.AddPermissionOverwriteAsync(Context.User, permissions).CAF();
 			await Context.Channel.AddPermissionOverwriteAsync(Context.Guild.FakeCurrentUser, permissions).CAF();
 
-			var result = await CheckAsync().CAF();
+			var result = await CheckPermissionsAsync().CAF();
 			Assert.IsTrue(result.IsSuccess);
 		}
 
@@ -110,7 +110,7 @@ namespace Advobot.Tests.Core.Attributes.Preconditions.Permissions
 			await Context.User.AddRoleAsync(role).CAF();
 			await Context.Guild.FakeCurrentUser.AddRoleAsync(role).CAF();
 
-			var result = await CheckAsync().CAF();
+			var result = await CheckPermissionsAsync().CAF();
 			Assert.IsTrue(result.IsSuccess);
 		}
 	}

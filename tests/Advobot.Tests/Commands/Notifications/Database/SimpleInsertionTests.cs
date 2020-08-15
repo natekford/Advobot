@@ -14,7 +14,7 @@ namespace Advobot.Tests.Commands.Notifications.Database
 {
 	[TestClass]
 	public sealed class SimpleInsertionTests
-		: Database_TestsBase<NotificationDatabase, FakeSQLiteConnectionString>
+		: DatabaseTestsBase<NotificationDatabase, FakeSQLiteConnectionString>
 	{
 		private const ulong CHANNEL_ID = 73;
 		private const string? CONTENT = "uh oh stinky";

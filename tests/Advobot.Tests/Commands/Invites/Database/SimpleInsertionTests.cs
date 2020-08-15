@@ -16,7 +16,7 @@ namespace Advobot.Tests.Commands.Invites.Database
 {
 	[TestClass]
 	public sealed class SimpleInsertionTests
-		: Database_TestsBase<InviteDatabase, FakeSQLiteConnectionString>
+		: DatabaseTestsBase<InviteDatabase, FakeSQLiteConnectionString>
 	{
 		[TestMethod]
 		public async Task InviteInsertionAndRetrieval_Test()

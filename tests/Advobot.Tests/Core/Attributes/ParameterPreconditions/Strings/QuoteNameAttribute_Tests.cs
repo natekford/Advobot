@@ -2,10 +2,13 @@
 
 using Advobot.Attributes.ParameterPreconditions.Strings;
 using Advobot.Services.GuildSettings;
+using Advobot.Services.GuildSettings.Settings;
 using Advobot.Tests.Fakes.Services.GuildSettings;
 using Advobot.Tests.TestBases;
 
 using AdvorangesUtils;
+
+using Discord.Commands;
 
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -13,29 +16,33 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 namespace Advobot.Tests.Core.Attributes.ParameterPreconditions.Strings
 {
 	[TestClass]
-	public sealed class QuoteNameAttribute_Tests
-		: ParameterlessParameterPreconditions_TestsBase<QuoteNameAttribute>
+	public sealed class QuoteNameAttribute_Tests : ParameterPreconditionTestsBase
 	{
-		private readonly IGuildSettings _Settings;
+		private readonly GuildSettings _Settings = new GuildSettings();
 
-		public QuoteNameAttribute_Tests()
-		{
-			_Settings = new GuildSettings();
-
-			Services = new ServiceCollection()
-				.AddSingleton<IGuildSettingsFactory>(new FakeGuildSettingsFactory(_Settings))
-				.BuildServiceProvider();
-		}
+		protected override ParameterPreconditionAttribute Instance { get; }
+			= new QuoteNameAttribute();
 
 		[TestMethod]
-		public async Task FailsOnNotString_Test()
-			=> await AssertPreconditionFailsOnInvalidType(CheckAsync(1)).CAF();
+		public async Task QuoteExisting_Test()
+		{
+			_Settings.Quotes.Add(new Quote { Name = "joe", Description = "bob" });
+
+			var result = await CheckPermissionsAsync(_Settings.Quotes[0].Name).CAF();
+			Assert.IsFalse(result.IsSuccess);
+		}
 
 		[TestMethod]
 		public async Task QuoteNotExisting_Test()
 		{
-			var result = await CheckAsync("i dont exist").CAF();
+			var result = await CheckPermissionsAsync("i dont exist").CAF();
 			Assert.IsTrue(result.IsSuccess);
+		}
+
+		protected override void ModifyServices(IServiceCollection services)
+		{
+			services
+				.AddSingleton<IGuildSettingsFactory>(new FakeGuildSettingsFactory(_Settings));
 		}
 	}
 }
