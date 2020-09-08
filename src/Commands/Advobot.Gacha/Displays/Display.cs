@@ -52,7 +52,7 @@ namespace Advobot.Gacha.Displays
 			{
 				var text = await GenerateTextAsync().CAF();
 				var embed = await GenerateEmbedAsync().CAF();
-				Message = await channel.SendMessageAsync(text, embed: embed).CAF();
+				Message = await channel.SendMessageAsync(text, embed: embed, allowedMentions: new AllowedMentions()).CAF();
 
 				await InteractionHandler.StartAsync().CAF();
 				await KeepDisplayAliveAsync().CAF();

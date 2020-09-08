@@ -21,6 +21,7 @@ namespace Advobot.Utilities
 		/// The oldest messages are allowed to be when bulk deleting.
 		/// </summary>
 		public static readonly TimeSpan OldestAllowed = TimeSpan.FromDays(14);
+		private static readonly AllowedMentions None = new AllowedMentions();
 
 		/// <summary>
 		/// Removes the given count of messages from a channel.
@@ -151,6 +152,7 @@ namespace Advobot.Utilities
 		/// <param name="content"></param>
 		/// <param name="embed"></param>
 		/// <param name="file"></param>
+		/// <param name="mentions"></param>
 		/// <param name="allowZeroWidthLengthMessages">
 		/// <param name="nullChannelIsException"/>
 		/// If there is no content passed in the content will become only a single zero width space.
@@ -162,6 +164,7 @@ namespace Advobot.Utilities
 			string? content = null,
 			EmbedWrapper? embed = null,
 			TextFileInfo? file = null,
+			AllowedMentions? mentions = null,
 			bool allowZeroWidthLengthMessages = false,
 			bool nullChannelIsException = true)
 		{
@@ -179,6 +182,7 @@ namespace Advobot.Utilities
 			}
 
 			file ??= new TextFileInfo();
+			mentions ??= None;
 
 			//Make sure all the information from the embed that didn't fit goes in.
 			if (embed?.Errors.Count > 0)
@@ -217,12 +221,12 @@ namespace Advobot.Utilities
 					stream.Seek(0, SeekOrigin.Begin);
 					return channel.SendFileAsync(stream, file.Name, content, embed: built);
 				}
-				return channel.SendMessageAsync(content, embed: built);
+				return channel.SendMessageAsync(content, embed: built, allowedMentions: mentions);
 			}
 			//If the message fails to send, then return the error
 			catch (Exception e)
 			{
-				return channel.SendMessageAsync(e.Message.Sanitize());
+				return channel.SendMessageAsync(e.Message.Sanitize(), allowedMentions: mentions);
 			}
 		}
 

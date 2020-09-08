@@ -46,6 +46,7 @@ namespace Advobot.Logging.Service
 
 			_MessageLogger = new MessageLogger(this);
 			client.MessageDeleted += _MessageLogger.OnMessageDeleted;
+			client.MessagesBulkDeleted += _MessageLogger.OnMessagesBulkDeleted;
 			client.MessageReceived += _MessageLogger.OnMessageReceived;
 			client.MessageUpdated += _MessageLogger.OnMessageUpdated;
 

@@ -1,9 +1,9 @@
 ﻿using System;
+using System.Linq;
 using System.Threading.Tasks;
 
 using Advobot.Classes;
 using Advobot.Formatting;
-using Advobot.Logging.Context;
 using Advobot.Modules;
 using Advobot.Services.BotSettings;
 using Advobot.Utilities;
@@ -46,13 +46,20 @@ namespace Advobot.Logging.Service
 				await MessageUtils.SendMessageAsync(context.Channel, result.ErrorReason).CAF();
 			}
 
-			var loggingContext = await _Logging.CreateAsync(context.Message).CAF();
-			if (loggingContext?.ModLog == null || !loggingContext.ChannelCanBeLogged())
+			var ignoredChannels = await _Logging.GetIgnoredChannelsAsync(context.Guild.Id).CAF();
+			if (ignoredChannels.Contains(context.Channel.Id))
 			{
 				return;
 			}
 
-			await MessageUtils.SendMessageAsync(loggingContext.ModLog, embed: new EmbedWrapper
+			var channels = await _Logging.GetLogChannelsAsync(context.Guild.Id).CAF();
+			var modLog = await context.Guild.GetTextChannelAsync(channels.ModLogId).CAF();
+			if (modLog is null)
+			{
+				return;
+			}
+
+			await MessageUtils.SendMessageAsync(modLog, embed: new EmbedWrapper
 			{
 				Description = context.Message.Content,
 				Author = context.User.CreateAuthor(),

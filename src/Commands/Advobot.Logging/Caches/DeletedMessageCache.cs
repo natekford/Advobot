@@ -39,7 +39,7 @@ namespace Advobot.Logging.Caches
 		public IReadOnlyCollection<IMessage> Empty()
 		{
 			return Interlocked.Exchange(ref _Messages, new ConcurrentBag<IMessage>())
-				.OrderByDescending(x => x.Id)
+				.OrderBy(x => x.Id)
 				.ToArray();
 		}
 

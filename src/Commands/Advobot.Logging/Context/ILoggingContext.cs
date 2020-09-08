@@ -1,4 +1,6 @@
-﻿using Discord;
+﻿using System.Collections.Generic;
+
+using Discord;
 
 namespace Advobot.Logging.Context
 {
@@ -7,6 +9,11 @@ namespace Advobot.Logging.Context
 	/// </summary>
 	public interface ILoggingContext
 	{
+		/// <summary>
+		/// The log actions which are currently enabled for this guild.
+		/// </summary>
+		IReadOnlyList<LogAction> Actions { get; }
+
 		/// <summary>
 		/// The bot.
 		/// </summary>
@@ -31,16 +38,5 @@ namespace Advobot.Logging.Context
 		/// Where message/user actions get logged.
 		/// </summary>
 		ITextChannel? ServerLog { get; }
-
-		/// <summary>
-		/// Whether the current context can be logged.
-		/// </summary>
-		bool CanLog(LogAction action);
-
-		/// <summary>
-		/// Whether the current channel can be logged.
-		/// </summary>
-		/// <returns></returns>
-		bool ChannelCanBeLogged();
 	}
 }

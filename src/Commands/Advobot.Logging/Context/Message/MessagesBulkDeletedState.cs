@@ -1,0 +1,18 @@
+﻿using System.Collections.Generic;
+using System.Linq;
+
+using Discord;
+
+namespace Advobot.Logging.Context.Messages
+{
+	public class MessagesBulkDeletedState : MessageDeletedState
+	{
+		public IReadOnlyList<IMessage> Messages { get; }
+
+		public MessagesBulkDeletedState(IEnumerable<Cacheable<IMessage, ulong>> messages)
+			: base(messages.First())
+		{
+			Messages = messages.Select(x => x.Value).OrderBy(x => x.Id).ToArray();
+		}
+	}
+}

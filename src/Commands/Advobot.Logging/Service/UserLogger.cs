@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using Advobot.Classes;
 using Advobot.Logging.Caches;
 using Advobot.Logging.Context;
+using Advobot.Logging.Context.Users;
 using Advobot.Services.Time;
 using Advobot.Utilities;
 
@@ -19,46 +20,60 @@ namespace Advobot.Logging.Service
 	public sealed class UserLogger
 	{
 		private readonly BaseSocketClient _Client;
-
-		private readonly ConcurrentDictionary<ulong, InviteCache> _Invites
-			= new ConcurrentDictionary<ulong, InviteCache>();
-
-		private readonly ILoggingService _Service;
+		private readonly ConcurrentDictionary<ulong, InviteCache> _Invites =
+			new ConcurrentDictionary<ulong, InviteCache>();
 		private readonly ITime _Time;
 
-		public UserLogger(ILoggingService service, BaseSocketClient client, ITime time)
+		#region Handlers
+		private readonly LoggingHandler<UserState> _UserJoined;
+		private readonly LoggingHandler<UserState> _UserLeft;
+		private readonly LoggingHandler<UserUpdatedState> _UserUpdated;
+		#endregion Handlers
+
+		public UserLogger(ILoggingService logging, BaseSocketClient client, ITime time)
 		{
 			_Client = client;
-			_Service = service;
 			_Time = time;
-		}
 
-		public Task OnUserJoined(SocketGuildUser user)
-		{
-			return _Service.HandleAsync(user, new LoggingArgs<IUserLoggingContext>
+			_UserJoined = new LoggingHandler<UserState>(
+				LogAction.UserJoined, logging)
 			{
-				Action = LogAction.UserJoined,
-				Actions = new Func<IUserLoggingContext, Task>[]
+				Actions = new Func<ILoggingContext<UserState>, Task>[]
 				{
 					HandleJoinLogging,
 				},
-			});
-		}
-
-		public Task OnUserLeft(SocketGuildUser user)
-		{
-			return _Service.HandleAsync(user, new LoggingArgs<IUserLoggingContext>
+			};
+			_UserLeft = new LoggingHandler<UserState>(
+				LogAction.UserLeft, logging)
 			{
-				Action = LogAction.UserLeft,
-				Actions = new Func<IUserLoggingContext, Task>[]
+				Actions = new Func<ILoggingContext<UserState>, Task>[]
 				{
 					HandleLeftLogging,
 				},
-			});
+			};
+			_UserUpdated = new LoggingHandler<UserUpdatedState>(
+				LogAction.UserUpdated, logging)
+			{
+				Actions = new Func<ILoggingContext<UserUpdatedState>, Task>[]
+				{
+					HandleUsernameUpdated,
+				},
+			};
 		}
 
-		public async Task OnUserUpdated(SocketUser before, SocketUser _)
+		public Task OnUserJoined(SocketGuildUser user)
+			=> _UserJoined.HandleAsync(new UserState(user));
+
+		public Task OnUserLeft(SocketGuildUser user)
+			=> _UserLeft.HandleAsync(new UserState(user));
+
+		public async Task OnUserUpdated(SocketUser before, SocketUser after)
 		{
+			if (before.Username == after.Username)
+			{
+				return;
+			}
+
 			foreach (var guild in _Client.Guilds)
 			{
 				if (!(guild.GetUser(before.Id) is IGuildUser user))
@@ -66,18 +81,11 @@ namespace Advobot.Logging.Service
 					continue;
 				}
 
-				await _Service.HandleAsync(user, new LoggingArgs<IUserLoggingContext>
-				{
-					Action = LogAction.UserUpdated,
-					Actions = new Func<IUserLoggingContext, Task>[]
-					{
-						x => HandleUsernameUpdated(x, before),
-					},
-				}).CAF();
+				await _UserUpdated.HandleAsync(new UserUpdatedState(before, user)).CAF();
 			}
 		}
 
-		private async Task HandleJoinLogging(IUserLoggingContext context)
+		private async Task HandleJoinLogging(ILoggingContext<UserState> context)
 		{
 			if (context.ServerLog == null)
 			{
@@ -85,23 +93,26 @@ namespace Advobot.Logging.Service
 			}
 
 			var cache = _Invites.GetOrAdd(context.Guild.Id, _ => new InviteCache());
-			var inv = await cache.GetInviteUserJoinedOnAsync(context.User).CAF();
+			var inv = await cache.GetInviteUserJoinedOnAsync(context.State.User).CAF();
 			var invite = inv != null ? $"**Invite:** {inv}" : "";
-			var time = _Time.UtcNow - context.User.CreatedAt.ToUniversalTime();
+			var time = _Time.UtcNow - context.State.User.CreatedAt.ToUniversalTime();
 			var age = time.TotalHours < 24
 				? $"**New Account:** {(int)time.TotalHours} hours, {time.Minutes} minutes old."
 				: "";
 
 			await MessageUtils.SendMessageAsync(context.ServerLog, embed: new EmbedWrapper
 			{
-				Description = $"**ID:** {context.User.Id}\n{invite}\n{age}",
+				Description = $"**ID:** {context.State.User.Id}\n{invite}\n{age}",
 				Color = EmbedWrapper.Join,
-				Author = context.User.CreateAuthor(),
-				Footer = new EmbedFooterBuilder { Text = context.User.IsBot ? "Bot Joined" : "User Joined" },
+				Author = context.State.User.CreateAuthor(),
+				Footer = new EmbedFooterBuilder
+				{
+					Text = context.State.User.IsBot ? "Bot Joined" : "User Joined"
+				},
 			}).CAF();
 		}
 
-		private Task HandleLeftLogging(IUserLoggingContext context)
+		private Task HandleLeftLogging(ILoggingContext<UserState> context)
 		{
 			if (context.ServerLog == null)
 			{
@@ -109,24 +120,27 @@ namespace Advobot.Logging.Service
 			}
 
 			var stay = "";
-			if (context.User.JoinedAt.HasValue)
+			if (context.State.User.JoinedAt.HasValue)
 			{
-				var time = _Time.UtcNow - context.User.JoinedAt.Value.ToUniversalTime();
+				var time = _Time.UtcNow - context.State.User.JoinedAt.Value.ToUniversalTime();
 				stay = $"**Stayed for:** {time.Days}:{time.Hours:00}:{time.Minutes:00}:{time.Seconds:00}";
 			}
 
 			return MessageUtils.SendMessageAsync(context.ServerLog, embed: new EmbedWrapper
 			{
-				Description = $"**ID:** {context.User.Id}\n{stay}",
+				Description = $"**ID:** {context.State.User.Id}\n{stay}",
 				Color = EmbedWrapper.Leave,
-				Author = context.User.CreateAuthor(),
-				Footer = new EmbedFooterBuilder { Text = context.User.IsBot ? "Bot Left" : "User Left", },
+				Author = context.State.User.CreateAuthor(),
+				Footer = new EmbedFooterBuilder
+				{
+					Text = context.State.User.IsBot ? "Bot Left" : "User Left",
+				},
 			});
 		}
 
-		private Task HandleUsernameUpdated(IUserLoggingContext context, IUser before)
+		private Task HandleUsernameUpdated(ILoggingContext<UserUpdatedState> context)
 		{
-			if (context.ServerLog == null || before.Username == context.User.Username)
+			if (context.ServerLog == null)
 			{
 				return Task.CompletedTask;
 			}
@@ -134,12 +148,22 @@ namespace Advobot.Logging.Service
 			return MessageUtils.SendMessageAsync(context.ServerLog, embed: new EmbedWrapper
 			{
 				Color = EmbedWrapper.UserEdit,
-				Author = before.CreateAuthor(),
+				Author = context.State.User.CreateAuthor(),
 				Footer = new EmbedFooterBuilder { Text = "Name Changed" },
 				Fields = new List<EmbedFieldBuilder>
 				{
-					new EmbedFieldBuilder { Name = "Before", Value = $"`{before.Username}`", IsInline = true },
-					new EmbedFieldBuilder { Name = "After", Value = $"`{context.User.Username}`", IsInline = true },
+					new EmbedFieldBuilder
+					{
+						Name = "Before",
+						Value = $"`{context.State.Before.Username}`",
+						IsInline = true
+					},
+					new EmbedFieldBuilder
+					{
+						Name = "After",
+						Value = $"`{context.State.User.Username}`",
+						IsInline = true
+					},
 				},
 			});
 		}

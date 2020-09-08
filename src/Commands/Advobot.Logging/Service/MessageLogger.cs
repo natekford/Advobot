@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 using Advobot.Classes;
 using Advobot.Logging.Caches;
 using Advobot.Logging.Context;
+using Advobot.Logging.Context.Messages;
 using Advobot.Utilities;
 
 using AdvorangesUtils;
@@ -24,79 +25,92 @@ namespace Advobot.Logging.Service
 		private const int MAX_FIELD_LENGTH = EmbedFieldBuilder.MaxFieldValueLength - 50;
 		private const int MAX_FIELD_LINES = MAX_DESCRIPTION_LENGTH / 2;
 
-		private static readonly TimeSpan _MessageDeleteDelay = TimeSpan.FromSeconds(3);
+		private readonly ConcurrentDictionary<ulong, DeletedMessageCache> _Caches =
+			new ConcurrentDictionary<ulong, DeletedMessageCache>();
+		private readonly TimeSpan _MessageDeleteDelay = TimeSpan.FromSeconds(3);
 
-		private readonly ConcurrentDictionary<ulong, DeletedMessageCache> _DeletedMessages
-			= new ConcurrentDictionary<ulong, DeletedMessageCache>();
-
-		private readonly ILoggingService _Logging;
+		#region Handlers
+		private readonly LoggingHandler<MessageDeletedState> _MessageDeleted;
+		private readonly LoggingHandler<MessageState> _MessageReceived;
+		private readonly LoggingHandler<MessagesBulkDeletedState> _MessagesBulkDeleted;
+		private readonly LoggingHandler<MessageEditState> _MessageUpdated;
+		#endregion Handlers
 
 		public MessageLogger(ILoggingService logging)
 		{
-			_Logging = logging;
+			_MessageDeleted = new LoggingHandler<MessageDeletedState>(
+				LogAction.MessageDeleted, logging)
+			{
+				Actions = new Func<ILoggingContext<MessageDeletedState>, Task>[]
+				{
+					HandleMessageDeletedLogging,
+				},
+			};
+			_MessagesBulkDeleted = new LoggingHandler<MessagesBulkDeletedState>(
+				LogAction.MessageDeleted, logging)
+			{
+				Actions = new Func<ILoggingContext<MessagesBulkDeletedState>, Task>[]
+				{
+					HandleMessagesBulkDeletedLogging,
+				},
+			};
+			_MessageReceived = new LoggingHandler<MessageState>(
+				LogAction.MessageReceived, logging)
+			{
+				Actions = new Func<ILoggingContext<MessageState>, Task>[]
+				{
+					HandleImageLoggingAsync
+				},
+			};
+			_MessageUpdated = new LoggingHandler<MessageEditState>(
+				LogAction.MessageUpdated, logging)
+			{
+				Actions = new Func<ILoggingContext<MessageEditState>, Task>[]
+				{
+					HandleMessageEditedLoggingAsync,
+					HandleMessageEditedImageLoggingAsync,
+				},
+			};
 		}
 
 		public Task OnMessageDeleted(
 			Cacheable<IMessage, ulong> cached,
 			ISocketMessageChannel _)
-		{
-			//Ignore uncached messages since not much can be done with them
-			return _Logging.HandleAsync(cached.Value, new LoggingArgs<IMessageLoggingContext>
-			{
-				Action = LogAction.MessageDeleted,
-				Actions = new Func<IMessageLoggingContext, Task>[]
-				{
-					HandleMessageDeletedLogging,
-				},
-			});
-		}
+			=> _MessageDeleted.HandleAsync(new MessageDeletedState(cached));
 
 		public Task OnMessageReceived(SocketMessage message)
-		{
-			return _Logging.HandleAsync(message, new LoggingArgs<IMessageLoggingContext>
-			{
-				Action = LogAction.MessageReceived,
-				Actions = new Func<IMessageLoggingContext, Task>[]
-				{
-					HandleImageLoggingAsync,
-				},
-			});
-		}
+			=> _MessageReceived.HandleAsync(new MessageState(message));
+
+		public Task OnMessagesBulkDeleted(
+			IReadOnlyCollection<Cacheable<IMessage, ulong>> cached,
+			ISocketMessageChannel _)
+			=> _MessagesBulkDeleted.HandleAsync(new MessagesBulkDeletedState(cached));
 
 		public Task OnMessageUpdated(
 			Cacheable<IMessage, ulong> cached,
 			SocketMessage message,
 			ISocketMessageChannel _)
-		{
-			return _Logging.HandleAsync(message, new LoggingArgs<IMessageLoggingContext>
-			{
-				Action = LogAction.MessageUpdated,
-				Actions = new Func<IMessageLoggingContext, Task>[]
-				{
-					x => HandleMessageEditedLoggingAsync(x, cached.Value),
-					x => HandleMessageEditedImageLoggingAsync(x, cached.Value),
-				},
-			});
-		}
+			=> _MessageUpdated.HandleAsync(new MessageEditState(cached, message));
 
-		private async Task HandleImageLoggingAsync(IMessageLoggingContext context)
+		private async Task HandleImageLoggingAsync(ILoggingContext<MessageState> context)
 		{
 			if (context.ImageLog == null)
 			{
 				return;
 			}
 
-			var attachments = context.Message.Attachments
+			var state = context.State;
+			var attachments = state.Message.Attachments
 				.GroupBy(x => x.Url)
 				.Select(x => ImageLoggingContext.FromAttachment(x.First()));
-			var embeds = context.Message.Embeds
+			var embeds = state.Message.Embeds
 				.GroupBy(x => x.Url)
 				.Select(x => ImageLoggingContext.FromEmbed(x.First()))
 				.OfType<ImageLoggingContext>();
 
 			foreach (var loggable in attachments.Concat(embeds))
 			{
-				var jump = context.Message.GetJumpUrl();
+				var jump = state.Message.GetJumpUrl();
 				var description = $"[Message]({jump}), [Embed Source]({loggable.Url})";
 				if (loggable.ImageUrl != null)
 				{
@@ -108,25 +122,25 @@ namespace Advobot.Logging.Service
 					Description = description,
 					Color = EmbedWrapper.Attachment,
 					ImageUrl = loggable.ImageUrl,
-					Author = context.User.CreateAuthor(),
+					Author = state.User.CreateAuthor(),
 					Footer = new EmbedFooterBuilder
 					{
 						Text = loggable.Footer,
-						IconUrl = context.User.GetAvatarUrl()
+						IconUrl = state.User.GetAvatarUrl()
 					},
 				}).CAF();
 			}
 		}
 
-		private Task HandleMessageDeletedLogging(IMessageLoggingContext context)
+		private Task HandleMessageDeletedLogging(ILoggingContext<MessageDeletedState> context)
 		{
 			if (context.ServerLog == null)
 			{
 				return Task.CompletedTask;
 			}
 
-			var cache = _DeletedMessages.GetOrAdd(context.Guild.Id, _ => new DeletedMessageCache());
-			cache.Add(context.Message);
+			var cache = _Caches.GetOrAdd(context.Guild.Id, _ => new DeletedMessageCache());
+			cache.Add(context.State.Message);
 			var cancelToken = cache.GetNewCancellationToken();
 
 			//Has to run on completely separate thread, else prints early
@@ -134,7 +148,6 @@ namespace Advobot.Logging.Service
 			{
 				//Wait three seconds. If a new message comes in then the token will be canceled and this won't continue.
 				//If more than 25 messages just start printing them out so people can't stall the messages forever.
-				var inEmbed = cache.Count < 10; //Needs very few messages to fit in an embed
 				if (cache.Count < 25)
 				{
 					try
@@ -149,67 +162,26 @@ namespace Advobot.Logging.Service
 
 				//Give the messages to a new list so they can be removed from the old one
 				var messages = cache.Empty();
-				var sb = new StringBuilder();
-
-				var lineCount = 0;
-				foreach (var m in messages)
-				{
-					var text = m.Format(withMentions: true).RemoveDuplicateNewLines();
-					lineCount += text.CountLineBreaks();
-					sb.AppendLineFeed(text);
-
-					//Can only stay in an embed if the description is less than 2048
-					//and if the line numbers are less than 20
-					if (sb.Length > MAX_DESCRIPTION_LENGTH || lineCount > MAX_DESCRIPTION_LINES)
-					{
-						inEmbed = false;
-						break;
-					}
-				}
-
-				if (inEmbed)
-				{
-					await MessageUtils.SendMessageAsync(context.ServerLog, embed: new EmbedWrapper
-					{
-						Title = "Deleted Messages",
-						Description = sb.ToString(),
-						Color = EmbedWrapper.MessageDelete,
-						Footer = new EmbedFooterBuilder { Text = "Deleted Messages", },
-					}).CAF();
-				}
-				else
-				{
-					sb.Clear();
-					foreach (var m in messages)
-					{
-						sb.AppendLineFeed(m.Format(withMentions: false).RemoveDuplicateNewLines().RemoveAllMarkdown());
-					}
-
-					var content = $"**{messages.Count} Deleted Messages:**";
-					await MessageUtils.SendMessageAsync(context.ServerLog, content, file: new TextFileInfo
-					{
-						Name = "Deleted_Messages",
-						Text = sb.ToString(),
-					}).CAF();
-				}
+				await PrintDeletedMessagesAsync(context.ServerLog, messages).CAF();
 			});
 			return Task.CompletedTask;
 		}
 
-		private Task HandleMessageEditedImageLoggingAsync(IMessageLoggingContext context, IMessage? before)
+		private Task HandleMessageEditedImageLoggingAsync(ILoggingContext<MessageEditState> context)
 		{
 			//If the before message is not specified always take that as it should be logged.
 			//If the embed counts are greater take that as logging too.
-			if (before?.Embeds.Count < context.Message.Embeds.Count)
+			if (context.State.Before?.Embeds.Count < context.State.Message.Embeds.Count)
 			{
 				return HandleImageLoggingAsync(context);
 			}
 			return Task.CompletedTask;
 		}
 
-		private Task HandleMessageEditedLoggingAsync(IMessageLoggingContext context, IMessage? before)
+		private Task HandleMessageEditedLoggingAsync(ILoggingContext<MessageEditState> context)
 		{
-			if (context.ServerLog == null || before?.Content == context.Message?.Content)
+			var state = context.State;
+			if (context.ServerLog == null || state.Before?.Content == state.Message?.Content)
 			{
 				return Task.CompletedTask;
 			}
@@ -226,14 +198,14 @@ namespace Advobot.Logging.Service
 				return (valid, text);
 			}
 
-			var (beforeValid, beforeContent) = FormatContent(before);
-			var (afterValid, afterContent) = FormatContent(context.Message);
+			var (beforeValid, beforeContent) = FormatContent(state.Before);
+			var (afterValid, afterContent) = FormatContent(state.Message);
 			if (beforeValid && afterValid) //Send file instead if text too long
 			{
 				return MessageUtils.SendMessageAsync(context.ServerLog, embed: new EmbedWrapper
 				{
 					Color = EmbedWrapper.MessageEdit,
-					Author = context.User.CreateAuthor(),
+					Author = state.User.CreateAuthor(),
 					Footer = new EmbedFooterBuilder { Text = "Message Updated", },
 					Fields = new List<EmbedFieldBuilder>
 					{
@@ -248,6 +220,65 @@ namespace Advobot.Logging.Service
 				Name = "Edited_Message",
 				Text = $"Before:\n{beforeContent}\n\nAfter:\n{afterContent}",
 			});
+		}
+
+		private Task HandleMessagesBulkDeletedLogging(ILoggingContext<MessagesBulkDeletedState> context)
+		{
+			if (context.ServerLog == null)
+			{
+				return Task.CompletedTask;
+			}
+
+			return PrintDeletedMessagesAsync(context.ServerLog, context.State.Messages);
+		}
+
+		private Task PrintDeletedMessagesAsync(ITextChannel log, IReadOnlyCollection<IMessage> messages)
+		{
+			//Needs to be not a lot of messages to fit in an embed
+			var inEmbed = messages.Count < 10;
+			var sb = new StringBuilder();
+
+			var lineCount = 0;
+			foreach (var m in messages)
+			{
+				var text = m.Format(withMentions: true).RemoveDuplicateNewLines();
+				lineCount += text.CountLineBreaks();
+				sb.AppendLineFeed(text);
+
+				//Can only stay in an embed if the description is less than 2048
+				//and if the line numbers are less than 20
+				if (sb.Length > MAX_DESCRIPTION_LENGTH || lineCount > MAX_DESCRIPTION_LINES)
+				{
+					inEmbed = false;
+					break;
+				}
+			}
+
+			if (inEmbed)
+			{
+				return MessageUtils.SendMessageAsync(log, embed: new EmbedWrapper
+				{
+					Title = "Deleted Messages",
+					Description = sb.ToString(),
+					Color = EmbedWrapper.MessageDelete,
+					Footer = new EmbedFooterBuilder { Text = "Deleted Messages", },
+				});
+			}
+			else
+			{
+				sb.Clear();
+				foreach (var m in messages)
+				{
+					sb.AppendLineFeed(m.Format(withMentions: false).RemoveDuplicateNewLines().RemoveAllMarkdown());
+				}
+
+				var content = $"**{messages.Count} Deleted Messages:**";
+				return MessageUtils.SendMessageAsync(log, content, file: new TextFileInfo
+				{
+					Name = "Deleted_Messages",
+					Text = sb.ToString(),
+				});
+			}
 		}
 	}
 }
