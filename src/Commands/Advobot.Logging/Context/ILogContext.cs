@@ -7,13 +7,8 @@ namespace Advobot.Logging.Context
 	/// <summary>
 	/// Helps with logging.
 	/// </summary>
-	public interface ILoggingContext
+	public interface ILogContext
 	{
-		/// <summary>
-		/// The log actions which are currently enabled for this guild.
-		/// </summary>
-		IReadOnlyList<LogAction> Actions { get; }
-
 		/// <summary>
 		/// The bot.
 		/// </summary>

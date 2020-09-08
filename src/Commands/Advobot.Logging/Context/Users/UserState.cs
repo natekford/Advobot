@@ -6,7 +6,7 @@ using Discord;
 
 namespace Advobot.Logging.Context.Users
 {
-	public class UserState : ILoggingState
+	public class UserState : ILogState
 	{
 		public bool IsValid => !(User is null);
 		public IGuildUser User { get; }
@@ -18,7 +18,7 @@ namespace Advobot.Logging.Context.Users
 		}
 
 		// Only log if it wasn't this bot that was affected
-		public virtual Task<bool> CanLog(ILoggingService service, ILoggingContext context)
+		public virtual Task<bool> CanLog(ILoggingService service, ILogContext context)
 			=> Task.FromResult(User.Id != context.Bot.Id);
 	}
 }

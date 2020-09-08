@@ -6,11 +6,11 @@ using Discord;
 
 namespace Advobot.Logging.Context
 {
-	public interface ILoggingState
+	public interface ILogState
 	{
 		IGuild? Guild { get; }
 		bool IsValid { get; }
 
-		Task<bool> CanLog(ILoggingService service, ILoggingContext context);
+		Task<bool> CanLog(ILoggingService service, ILogContext context);
 	}
 }

@@ -25,9 +25,9 @@ namespace Advobot.Logging.Service
 		private readonly ITime _Time;
 
 		#region Handlers
-		private readonly LoggingHandler<UserState> _UserJoined;
-		private readonly LoggingHandler<UserState> _UserLeft;
-		private readonly LoggingHandler<UserUpdatedState> _UserUpdated;
+		private readonly LogHandler<UserState> _UserJoined;
+		private readonly LogHandler<UserState> _UserLeft;
+		private readonly LogHandler<UserUpdatedState> _UserUpdated;
 		#endregion Handlers
 
 		public UserLogger(ILoggingService logging, BaseSocketClient client, ITime time)
@@ -35,29 +35,17 @@ namespace Advobot.Logging.Service
 			_Client = client;
 			_Time = time;
 
-			_UserJoined = new LoggingHandler<UserState>(
-				LogAction.UserJoined, logging)
+			_UserJoined = new LogHandler<UserState>(LogAction.UserJoined, logging)
 			{
-				Actions = new Func<ILoggingContext<UserState>, Task>[]
-				{
-					HandleJoinLogging,
-				},
+				HandleJoinLogging,
 			};
-			_UserLeft = new LoggingHandler<UserState>(
-				LogAction.UserLeft, logging)
+			_UserLeft = new LogHandler<UserState>(LogAction.UserLeft, logging)
 			{
-				Actions = new Func<ILoggingContext<UserState>, Task>[]
-				{
-					HandleLeftLogging,
-				},
+				HandleLeftLogging,
 			};
-			_UserUpdated = new LoggingHandler<UserUpdatedState>(
-				LogAction.UserUpdated, logging)
+			_UserUpdated = new LogHandler<UserUpdatedState>(LogAction.UserUpdated, logging)
 			{
-				Actions = new Func<ILoggingContext<UserUpdatedState>, Task>[]
-				{
-					HandleUsernameUpdated,
-				},
+				HandleUsernameUpdated,
 			};
 		}
 
@@ -85,7 +73,7 @@ namespace Advobot.Logging.Service
 			}
 		}
 
-		private async Task HandleJoinLogging(ILoggingContext<UserState> context)
+		private async Task HandleJoinLogging(ILogContext<UserState> context)
 		{
 			if (context.ServerLog == null)
 			{
@@ -112,7 +100,7 @@ namespace Advobot.Logging.Service
 			}).CAF();
 		}
 
-		private Task HandleLeftLogging(ILoggingContext<UserState> context)
+		private Task HandleLeftLogging(ILogContext<UserState> context)
 		{
 			if (context.ServerLog == null)
 			{
@@ -138,7 +126,7 @@ namespace Advobot.Logging.Service
 			});
 		}
 
-		private Task HandleUsernameUpdated(ILoggingContext<UserUpdatedState> context)
+		private Task HandleUsernameUpdated(ILogContext<UserUpdatedState> context)
 		{
 			if (context.ServerLog == null)
 			{

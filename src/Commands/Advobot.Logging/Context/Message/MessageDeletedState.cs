@@ -17,7 +17,7 @@ namespace Advobot.Logging.Context.Messages
 		{
 		}
 
-		public override async Task<bool> CanLog(ILoggingService service, ILoggingContext context)
+		public override async Task<bool> CanLog(ILoggingService service, ILogContext context)
 		{
 			// Log all deleted messages, no matter the source user, unless they're on an unlogged channel
 			var ignoredChannels = await service.GetIgnoredChannelsAsync(Channel.GuildId).CAF();

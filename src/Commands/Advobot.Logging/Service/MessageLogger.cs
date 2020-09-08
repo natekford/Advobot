@@ -30,46 +30,30 @@ namespace Advobot.Logging.Service
 		private readonly TimeSpan _MessageDeleteDelay = TimeSpan.FromSeconds(3);
 
 		#region Handlers
-		private readonly LoggingHandler<MessageDeletedState> _MessageDeleted;
-		private readonly LoggingHandler<MessageState> _MessageReceived;
-		private readonly LoggingHandler<MessagesBulkDeletedState> _MessagesBulkDeleted;
-		private readonly LoggingHandler<MessageEditState> _MessageUpdated;
+		private readonly LogHandler<MessageDeletedState> _MessageDeleted;
+		private readonly LogHandler<MessageState> _MessageReceived;
+		private readonly LogHandler<MessagesBulkDeletedState> _MessagesBulkDeleted;
+		private readonly LogHandler<MessageEditState> _MessageUpdated;
 		#endregion Handlers
 
 		public MessageLogger(ILoggingService logging)
 		{
-			_MessageDeleted = new LoggingHandler<MessageDeletedState>(
-				LogAction.MessageDeleted, logging)
+			_MessageDeleted = new LogHandler<MessageDeletedState>(LogAction.MessageDeleted, logging)
 			{
-				Actions = new Func<ILoggingContext<MessageDeletedState>, Task>[]
-				{
-					HandleMessageDeletedLogging,
-				},
+				HandleMessageDeletedLogging,
 			};
-			_MessagesBulkDeleted = new LoggingHandler<MessagesBulkDeletedState>(
-				LogAction.MessageDeleted, logging)
+			_MessagesBulkDeleted = new LogHandler<MessagesBulkDeletedState>(LogAction.MessageDeleted, logging)
 			{
-				Actions = new Func<ILoggingContext<MessagesBulkDeletedState>, Task>[]
-				{
-					HandleMessagesBulkDeletedLogging,
-				},
+				HandleMessagesBulkDeletedLogging,
 			};
-			_MessageReceived = new LoggingHandler<MessageState>(
-				LogAction.MessageReceived, logging)
+			_MessageReceived = new LogHandler<MessageState>(LogAction.MessageReceived, logging)
 			{
-				Actions = new Func<ILoggingContext<MessageState>, Task>[]
-				{
-					HandleImageLoggingAsync
-				},
+				HandleImageLoggingAsync,
 			};
-			_MessageUpdated = new LoggingHandler<MessageEditState>(
-				LogAction.MessageUpdated, logging)
+			_MessageUpdated = new LogHandler<MessageEditState>(LogAction.MessageUpdated, logging)
 			{
-				Actions = new Func<ILoggingContext<MessageEditState>, Task>[]
-				{
-					HandleMessageEditedLoggingAsync,
-					HandleMessageEditedImageLoggingAsync,
-				},
+				HandleMessageEditedLoggingAsync,
+				HandleMessageEditedImageLoggingAsync,
 			};
 		}
 
@@ -92,7 +76,7 @@ namespace Advobot.Logging.Service
 			ISocketMessageChannel _)
 			=> _MessageUpdated.HandleAsync(new MessageEditState(cached, message));
 
-		private async Task HandleImageLoggingAsync(ILoggingContext<MessageState> context)
+		private async Task HandleImageLoggingAsync(ILogContext<MessageState> context)
 		{
 			if (context.ImageLog == null)
 			{
@@ -100,15 +84,7 @@ namespace Advobot.Logging.Service
 			}
 
 			var state = context.State;
-			var attachments = state.Message.Attachments
-				.GroupBy(x => x.Url)
-				.Select(x => ImageLoggingContext.FromAttachment(x.First()));
-			var embeds = state.Message.Embeds
-				.GroupBy(x => x.Url)
-				.Select(x => ImageLoggingContext.FromEmbed(x.First()))
-				.OfType<ImageLoggingContext>();
-
-			foreach (var loggable in attachments.Concat(embeds))
+			foreach (var loggable in ImageLogItem.GetAllImages(state.Message))
 			{
 				var jump = state.Message.GetJumpUrl();
 				var description = $"[Message]({jump}), [Embed Source]({loggable.Url})";
@@ -132,7 +108,7 @@ namespace Advobot.Logging.Service
 			}
 		}
 
-		private Task HandleMessageDeletedLogging(ILoggingContext<MessageDeletedState> context)
+		private Task HandleMessageDeletedLogging(ILogContext<MessageDeletedState> context)
 		{
 			if (context.ServerLog == null)
 			{
@@ -167,7 +143,7 @@ namespace Advobot.Logging.Service
 			return Task.CompletedTask;
 		}
 
-		private Task HandleMessageEditedImageLoggingAsync(ILoggingContext<MessageEditState> context)
+		private Task HandleMessageEditedImageLoggingAsync(ILogContext<MessageEditState> context)
 		{
 			//If the before message is not specified always take that as it should be logged.
 			//If the embed counts are greater take that as logging too.
@@ -178,7 +154,7 @@ namespace Advobot.Logging.Service
 			return Task.CompletedTask;
 		}
 
-		private Task HandleMessageEditedLoggingAsync(ILoggingContext<MessageEditState> context)
+		private Task HandleMessageEditedLoggingAsync(ILogContext<MessageEditState> context)
 		{
 			var state = context.State;
 			if (context.ServerLog == null || state.Before?.Content == state.Message?.Content)
@@ -222,7 +198,7 @@ namespace Advobot.Logging.Service
 			});
 		}
 
-		private Task HandleMessagesBulkDeletedLogging(ILoggingContext<MessagesBulkDeletedState> context)
+		private Task HandleMessagesBulkDeletedLogging(ILogContext<MessagesBulkDeletedState> context)
 		{
 			if (context.ServerLog == null)
 			{

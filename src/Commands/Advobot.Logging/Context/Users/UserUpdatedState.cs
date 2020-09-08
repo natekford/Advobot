@@ -16,7 +16,7 @@ namespace Advobot.Logging.Context.Users
 			Before = before;
 		}
 
-		public override Task<bool> CanLog(ILoggingService service, ILoggingContext context)
+		public override Task<bool> CanLog(ILoggingService service, ILogContext context)
 			=> Task.FromResult(!(User.IsBot || User.IsWebhook));
 	}
 }

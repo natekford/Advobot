@@ -10,7 +10,7 @@ using Discord;
 
 namespace Advobot.Logging.Context.Messages
 {
-	public class MessageState : ILoggingState
+	public class MessageState : ILogState
 	{
 		public ITextChannel Channel { get; }
 		public bool IsValid => !(Channel is null || Message is null || User is null);
@@ -25,7 +25,7 @@ namespace Advobot.Logging.Context.Messages
 			Channel = (message?.Channel as ITextChannel)!;
 		}
 
-		public virtual async Task<bool> CanLog(ILoggingService service, ILoggingContext context)
+		public virtual async Task<bool> CanLog(ILoggingService service, ILogContext context)
 		{
 			// Only log message updates and do actions on received messages if they're not a bot and not on an unlogged channel
 			if (User.IsBot || User.IsWebhook)

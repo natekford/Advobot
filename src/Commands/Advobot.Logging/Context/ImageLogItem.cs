@@ -1,4 +1,6 @@
-﻿using System.IO;
+﻿using System.Collections.Generic;
+using System.IO;
+using System.Linq;
 
 using AdvorangesUtils;
 
@@ -6,20 +8,20 @@ using Discord;
 
 namespace Advobot.Logging.Context
 {
-	public sealed class ImageLoggingContext
+	public readonly struct ImageLogItem
 	{
 		public string Footer { get; }
 		public string? ImageUrl { get; }
 		public string Url { get; }
 
-		private ImageLoggingContext(string footer, string url, string? imageUrl)
+		private ImageLogItem(string footer, string url, string? imageUrl)
 		{
 			Footer = footer;
 			Url = url;
 			ImageUrl = imageUrl;
 		}
 
-		public static ImageLoggingContext FromAttachment(IAttachment attachment)
+		public static ImageLogItem FromAttachment(IAttachment attachment)
 		{
 			var url = attachment.Url;
 			var ext = MimeTypes.MimeTypeMap.GetMimeType(Path.GetExtension(url));
@@ -30,15 +32,15 @@ namespace Advobot.Logging.Context
 				string s when s.CaseInsContains("image/") => ("Image", url),
 				_ => ("File", null),
 			};
-			return new ImageLoggingContext(footer, url, imageUrl);
+			return new ImageLogItem(footer, url, imageUrl);
 		}
 
-		public static ImageLoggingContext? FromEmbed(IEmbed embed)
+		public static ImageLogItem? FromEmbed(IEmbed embed)
 		{
 			if (embed.Video is EmbedVideo video)
 			{
 				var thumb = embed.Thumbnail?.Url ?? GetVideoThumbnail(video.Url);
-				return new ImageLoggingContext("Video", embed.Url, thumb);
+				return new ImageLogItem("Video", embed.Url, thumb);
 			}
 
 			var img = embed.Image?.Url ?? embed.Thumbnail?.Url;
@@ -46,7 +48,23 @@ namespace Advobot.Logging.Context
 			{
 				return null;
 			}
-			return new ImageLoggingContext("Image", embed.Url, img);
+			return new ImageLogItem("Image", embed.Url, img);
+		}
+
+		public static IEnumerable<ImageLogItem> GetAllImages(IMessage message)
+		{
+			foreach (var group in message.Attachments.GroupBy(x => x.Url))
+			{
+				yield return FromAttachment(group.First());
+			}
+			foreach (var group in message.Embeds.GroupBy(x => x.Url))
+			{
+				var item = FromEmbed(group.First());
+				if (item.HasValue)
+				{
+					yield return item.Value;
+				}
+			}
 		}
 
 		private static string GetVideoThumbnail(string url)
