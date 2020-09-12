@@ -13,6 +13,7 @@ using AdvorangesUtils;
 using Discord;
 using Discord.Commands;
 
+using static Advobot.Logging.Responses.Notifications;
 using static Discord.ChannelPermission;
 
 namespace Advobot.Logging.Commands
@@ -39,7 +40,7 @@ namespace Advobot.Logging.Commands
 				ITextChannel channel)
 			{
 				await Notifications.SetChannelAsync(Event, Context.Guild.Id, channel.Id).CAF();
-				return Responses.Notifications.ModifiedChannel(Event, channel);
+				return ModifiedChannel(Event, channel);
 			}
 
 			[LocalizedCommand(nameof(Groups.Content))]
@@ -47,7 +48,7 @@ namespace Advobot.Logging.Commands
 			public async Task<RuntimeResult> Content([Remainder] string? content = null)
 			{
 				await Notifications.SetContentAsync(Event, Context.Guild.Id, content).CAF();
-				return Responses.Notifications.ModifiedContent(Event, content);
+				return ModifiedContent(Event, content);
 			}
 
 			[LocalizedCommand(nameof(Groups.Default))]
@@ -63,7 +64,7 @@ namespace Advobot.Logging.Commands
 			public async Task<RuntimeResult> Disable()
 			{
 				await Notifications.DisableAsync(Event, Context.Guild.Id).CAF();
-				return Responses.Notifications.Disabled(Event);
+				return Disabled(Event);
 			}
 
 			[LocalizedCommand(nameof(Groups.Embed))]
@@ -71,7 +72,7 @@ namespace Advobot.Logging.Commands
 			public async Task<RuntimeResult> Embed(CustomEmbed? embed = null)
 			{
 				await Notifications.SetEmbedAsync(Event, Context.Guild.Id, embed).CAF();
-				return Responses.Notifications.ModifiedEmbed(Event, embed);
+				return ModifiedEmbed(Event, embed);
 			}
 
 			[LocalizedCommand(nameof(Groups.Send))]
@@ -79,7 +80,7 @@ namespace Advobot.Logging.Commands
 			public async Task<RuntimeResult> Send()
 			{
 				var notification = await Notifications.GetAsync(Event, Context.Guild.Id).CAF();
-				return Responses.Notifications.SendNotification(Event, notification);
+				return SendNotification(Event, notification);
 			}
 		}
 
@@ -100,7 +101,7 @@ namespace Advobot.Logging.Commands
 				ITextChannel channel)
 			{
 				await Notifications.SetChannelAsync(Event, Context.Guild.Id, channel.Id).CAF();
-				return Responses.Notifications.ModifiedChannel(Event, channel);
+				return ModifiedChannel(Event, channel);
 			}
 
 			[LocalizedCommand(nameof(Groups.Content))]
@@ -108,7 +109,7 @@ namespace Advobot.Logging.Commands
 			public async Task<RuntimeResult> Content([Remainder] string? content = null)
 			{
 				await Notifications.SetContentAsync(Event, Context.Guild.Id, content).CAF();
-				return Responses.Notifications.ModifiedContent(Event, content);
+				return ModifiedContent(Event, content);
 			}
 
 			[LocalizedCommand(nameof(Groups.Default))]
@@ -124,7 +125,7 @@ namespace Advobot.Logging.Commands
 			public async Task<RuntimeResult> Disable()
 			{
 				await Notifications.DisableAsync(Event, Context.Guild.Id).CAF();
-				return Responses.Notifications.Disabled(Event);
+				return Disabled(Event);
 			}
 
 			[LocalizedCommand(nameof(Groups.Embed))]
@@ -132,7 +133,7 @@ namespace Advobot.Logging.Commands
 			public async Task<RuntimeResult> Embed(CustomEmbed? embed = null)
 			{
 				await Notifications.SetEmbedAsync(Event, Context.Guild.Id, embed).CAF();
-				return Responses.Notifications.ModifiedEmbed(Event, embed);
+				return ModifiedEmbed(Event, embed);
 			}
 
 			[LocalizedCommand(nameof(Groups.Send))]
@@ -140,7 +141,7 @@ namespace Advobot.Logging.Commands
 			public async Task<RuntimeResult> Send()
 			{
 				var notification = await Notifications.GetAsync(Event, Context.Guild.Id).CAF();
-				return Responses.Notifications.SendNotification(Event, notification);
+				return SendNotification(Event, notification);
 			}
 		}
 	}

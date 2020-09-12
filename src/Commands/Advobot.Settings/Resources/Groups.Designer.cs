@@ -187,33 +187,6 @@ namespace Advobot.Settings.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to ModifyQuotes.
-        /// </summary>
-        internal static string ModifyQuotes {
-            get {
-                return ResourceManager.GetString("ModifyQuotes", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to ModifyRuleCategories.
-        /// </summary>
-        internal static string ModifyRuleCategories {
-            get {
-                return ResourceManager.GetString("ModifyRuleCategories", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to ModifyRules.
-        /// </summary>
-        internal static string ModifyRules {
-            get {
-                return ResourceManager.GetString("ModifyRules", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to ModifySelfRoles.
         /// </summary>
         internal static string ModifySelfRoles {
@@ -232,15 +205,6 @@ namespace Advobot.Settings.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to PrintOutRules.
-        /// </summary>
-        internal static string PrintOutRules {
-            get {
-                return ResourceManager.GetString("PrintOutRules", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Remove.
         /// </summary>
         internal static string Remove {
@@ -255,15 +219,6 @@ namespace Advobot.Settings.Resources {
         internal static string ResetGuildSettings {
             get {
                 return ResourceManager.GetString("ResetGuildSettings", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to SayQuote.
-        /// </summary>
-        internal static string SayQuote {
-            get {
-                return ResourceManager.GetString("SayQuote", resourceCulture);
             }
         }
         

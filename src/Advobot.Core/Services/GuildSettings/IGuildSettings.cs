@@ -69,33 +69,9 @@ namespace Advobot.Services.GuildSettings
 	public interface IGuildSettings :
 		ICommandGuildSettings,
 		ICoreGuildSettings,
-		IQuoteGuildSettings,
-		IRuleGuildSettings,
 		ISelfAssignableRoleGuildSettings,
 		ISettingsBase
 	{
-	}
-
-	/// <summary>
-	/// Holds quote guild settings.
-	/// </summary>
-	public interface IQuoteGuildSettings
-	{
-		/// <summary>
-		/// Quotes which can be called up through their name.
-		/// </summary>
-		IList<Quote> Quotes { get; }
-	}
-
-	/// <summary>
-	/// Rule guild settings.
-	/// </summary>
-	public interface IRuleGuildSettings
-	{
-		/// <summary>
-		/// List of rules for easy formatting.
-		/// </summary>
-		RuleHolder Rules { get; }
 	}
 
 	/// <summary>

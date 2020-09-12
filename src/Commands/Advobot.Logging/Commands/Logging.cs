@@ -16,6 +16,7 @@ using Discord;
 using Discord.Commands;
 
 using static Advobot.Logging.Resources.Responses;
+using static Advobot.Logging.Responses.Logging;
 using static Discord.ChannelPermission;
 
 namespace Advobot.Logging.Commands
@@ -46,7 +47,7 @@ namespace Advobot.Logging.Commands
 				{
 					await Logging.RemoveLogActionsAsync(Context.Guild.Id, LogActionsResetter.All).CAF();
 				}
-				return Responses.Logging.ModifiedAllLogActions(enable);
+				return ModifiedAllLogActions(enable);
 			}
 
 			[Command]
@@ -60,7 +61,7 @@ namespace Advobot.Logging.Commands
 				{
 					await Logging.RemoveLogActionsAsync(Context.Guild.Id, logActions).CAF();
 				}
-				return Responses.Logging.ModifiedLogActions(logActions, enable);
+				return ModifiedLogActions(logActions, enable);
 			}
 
 			[LocalizedCommand(nameof(Groups.Default))]
@@ -68,7 +69,7 @@ namespace Advobot.Logging.Commands
 			public async Task<RuntimeResult> Default()
 			{
 				await DefaultSetter.ResetAsync(Context).CAF();
-				return Responses.Logging.DefaultLogActions();
+				return DefaultLogActions();
 			}
 		}
 
@@ -88,7 +89,7 @@ namespace Advobot.Logging.Commands
 			{
 				var ids = channels.Select(x => x.Id);
 				await Logging.AddIgnoredChannelsAsync(Context.Guild.Id, ids).CAF();
-				return Responses.Logging.ModifiedIgnoredLogChannels(channels, true);
+				return ModifiedIgnoredLogChannels(channels, true);
 			}
 
 			[LocalizedCommand(nameof(Groups.Remove))]
@@ -100,7 +101,7 @@ namespace Advobot.Logging.Commands
 			{
 				var ids = channels.Select(x => x.Id);
 				await Logging.RemoveIgnoredChannelsAsync(Context.Guild.Id, ids).CAF();
-				return Responses.Logging.ModifiedIgnoredLogChannels(channels, false);
+				return ModifiedIgnoredLogChannels(channels, false);
 			}
 		}
 
@@ -119,7 +120,7 @@ namespace Advobot.Logging.Commands
 				ITextChannel channel)
 			{
 				await Logging.SetLogChannelAsync(LogType, Context.Guild.Id, channel.Id).CAF();
-				return Responses.Logging.SetLog(VariableImageLog, channel);
+				return SetLog(VariableImageLog, channel);
 			}
 
 			[LocalizedCommand(nameof(Groups.Remove))]
@@ -128,7 +129,7 @@ namespace Advobot.Logging.Commands
 			public async Task<RuntimeResult> Remove()
 			{
 				await Logging.RemoveLogChannelAsync(LogType, Context.Guild.Id).CAF();
-				return Responses.Logging.Removed(VariableImageLog);
+				return Removed(VariableImageLog);
 			}
 		}
 
@@ -147,7 +148,7 @@ namespace Advobot.Logging.Commands
 				ITextChannel channel)
 			{
 				await Logging.SetLogChannelAsync(LogType, Context.Guild.Id, channel.Id).CAF();
-				return Responses.Logging.SetLog(VariableModLog, channel);
+				return SetLog(VariableModLog, channel);
 			}
 
 			[LocalizedCommand(nameof(Groups.Remove))]
@@ -156,7 +157,7 @@ namespace Advobot.Logging.Commands
 			public async Task<RuntimeResult> Remove()
 			{
 				await Logging.RemoveLogChannelAsync(LogType, Context.Guild.Id).CAF();
-				return Responses.Logging.Removed(VariableModLog);
+				return Removed(VariableModLog);
 			}
 		}
 
@@ -175,7 +176,7 @@ namespace Advobot.Logging.Commands
 				ITextChannel channel)
 			{
 				await Logging.SetLogChannelAsync(LogType, Context.Guild.Id, channel.Id).CAF();
-				return Responses.Logging.SetLog(VariableServerLog, channel);
+				return SetLog(VariableServerLog, channel);
 			}
 
 			[LocalizedCommand(nameof(Groups.Remove))]
@@ -184,7 +185,7 @@ namespace Advobot.Logging.Commands
 			public async Task<RuntimeResult> Remove()
 			{
 				await Logging.RemoveLogChannelAsync(LogType, Context.Guild.Id).CAF();
-				return Responses.Logging.Removed(VariableServerLog);
+				return Removed(VariableServerLog);
 			}
 		}
 	}

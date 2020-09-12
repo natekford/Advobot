@@ -53,9 +53,9 @@ namespace Advobot.Utilities
 		/// </summary>
 		/// <param name="user"></param>
 		/// <returns></returns>
-		public static string Format(this IUser user)
+		public static string Format(this IUser? user)
 		{
-			if (user == null)
+			if (user is null)
 			{
 				return "Irretrievable User";
 			}
@@ -67,9 +67,9 @@ namespace Advobot.Utilities
 		/// </summary>
 		/// <param name="role"></param>
 		/// <returns></returns>
-		public static string Format(this IRole role)
+		public static string Format(this IRole? role)
 		{
-			if (role == null)
+			if (role is null)
 			{
 				return "Irretrievable Role";
 			}
@@ -81,12 +81,13 @@ namespace Advobot.Utilities
 		/// </summary>
 		/// <param name="channel"></param>
 		/// <returns></returns>
-		public static string Format(this IChannel channel)
+		public static string Format(this IChannel? channel)
 		{
-			if (channel == null)
+			if (channel is null)
 			{
 				return "Irretrievable Channel";
 			}
+
 			var channelType = channel switch
 			{
 				IMessageChannel _ => "text",
@@ -102,9 +103,9 @@ namespace Advobot.Utilities
 		/// </summary>
 		/// <param name="guild"></param>
 		/// <returns></returns>
-		public static string Format(this IGuild guild)
+		public static string Format(this IGuild? guild)
 		{
-			if (guild == null)
+			if (guild is null)
 			{
 				return "Irretrievable Guild";
 			}
@@ -117,8 +118,13 @@ namespace Advobot.Utilities
 		/// <param name="msg"></param>
 		/// <param name="withMentions"></param>
 		/// <returns></returns>
-		public static string Format(this IMessage msg, bool withMentions)
+		public static string Format(this IMessage? msg, bool withMentions)
 		{
+			if (msg is null)
+			{
+				return "Irretrievable Message";
+			}
+
 			var time = msg.CreatedAt.ToString("HH:mm:ss");
 			var text = string.IsNullOrWhiteSpace(msg.Content)
 				? "Empty"
@@ -166,7 +172,7 @@ namespace Advobot.Utilities
 		/// </summary>
 		/// <param name="activity"></param>
 		/// <returns></returns>
-		public static string Format(this IActivity activity) => activity switch
+		public static string Format(this IActivity? activity) => activity switch
 		{
 			CustomStatusGame csg => csg.State,
 			SpotifyGame sp => $"Listening to {sp.TrackTitle}",
@@ -181,22 +187,28 @@ namespace Advobot.Utilities
 		/// </summary>
 		/// <param name="webhook"></param>
 		/// <returns></returns>
-		public static string Format(this IWebhook webhook)
-			=> webhook != null ? $"'{webhook.Name.EscapeBackTicks()}' ({webhook.Id})" : "Irretrievable Webhook";
+		public static string Format(this IWebhook? webhook)
+		{
+			if (webhook is null)
+			{
+				return "Irretrievable Webhook";
+			}
+			return $"'{webhook.Name.EscapeBackTicks()}' ({webhook.Id})";
+		}
 
 		/// <summary>
 		/// Formats information about an invite.
 		/// </summary>
 		/// <param name="invite"></param>
 		/// <returns></returns>
-		public static string Format(this IInviteMetadata invite)
+		public static string Format(this IInviteMetadata? invite)
 		{
-			const string INF = "\u221E"; //∞
-			if (invite == null)
+			if (invite is null)
 			{
 				return "Irretrievable Invite";
 			}
 
+			const string INF = "\u221E"; //∞
 			var uses = invite.MaxUses.HasValue ? invite.MaxUses.Value.ToString() : INF;
 			var time = invite.MaxAge.HasValue ? (invite.MaxAge.Value / 60).ToString() : INF;
 			var temp = invite.IsTemporary ? ", temp" : "";
@@ -222,7 +234,14 @@ namespace Advobot.Utilities
 		/// <param name="args"></param>
 		/// <returns></returns>
 		public static string Format(this string format, params MarkdownFormattedArg[] args)
-			=> string.Format(format, args);
+		{
+			var casted = new object[args.Length];
+			for (var i = 0; i < args.Length; ++i)
+			{
+				casted[i] = args[i].Value;
+			}
+			return string.Format(format, casted);
+		}
 
 		/// <summary>
 		/// Formats the interpolated string with the specified format provider.
@@ -346,13 +365,12 @@ namespace Advobot.Utilities
 		/// <summary>
 		/// Contains the original value and a newly formatted value.
 		/// </summary>
-		public sealed class MarkdownFormattedArg
+		public readonly struct MarkdownFormattedArg
 		{
 			/// <summary>
 			/// The original value.
 			/// </summary>
 			public string Original { get; }
-
 			/// <summary>
 			/// The newly created value.
 			/// </summary>

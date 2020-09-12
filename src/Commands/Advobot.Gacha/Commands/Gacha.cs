@@ -12,6 +12,8 @@ using AdvorangesUtils;
 
 using Discord.Commands;
 
+using static Advobot.Gacha.Responses.Gacha;
+
 namespace Advobot.Gacha.Commands
 {
 	[Category(nameof(Gacha))]
@@ -116,7 +118,7 @@ namespace Advobot.Gacha.Commands
 				var valid = AddExchange(user, characters);
 				if (!valid)
 				{
-					return Responses.Gacha.OtherSideTrade(user);
+					return OtherSideTrade(user);
 				}
 				return HandleExchange(user);
 			}

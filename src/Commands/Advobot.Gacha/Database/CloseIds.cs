@@ -7,7 +7,7 @@ namespace Advobot.Gacha.Database
 {
 	public sealed class CloseIds : CloseWords<CloseIds.NameAndId>
 	{
-		public CloseIds() : base(new List<NameAndId>())
+		public CloseIds() : base(new List<NameAndId>(), x => x.Name)
 		{
 		}
 

@@ -17,6 +17,8 @@ using AdvorangesUtils;
 using Discord;
 using Discord.Commands;
 
+using static Advobot.Invites.Responses.Invites;
+
 namespace Advobot.Invites.Commands
 {
 	[Category(nameof(Invites))]
@@ -36,7 +38,7 @@ namespace Advobot.Invites.Commands
 			public async Task<RuntimeResult> Command()
 			{
 				await Invites.BumpAsync(Context.Guild).CAF();
-				return Responses.ListedInvites.Bumped();
+				return Bumped();
 			}
 		}
 
@@ -55,13 +57,13 @@ namespace Advobot.Invites.Commands
 				var matches = filterer.Filter(invites);
 				if (matches.Count == 0)
 				{
-					return Responses.ListedInvites.NoInviteMatch();
+					return NoInviteMatch();
 				}
 				else if (matches.Count <= 50)
 				{
-					return Responses.ListedInvites.InviteMatches(matches);
+					return InviteMatches(matches);
 				}
-				return Responses.ListedInvites.TooManyMatches();
+				return TooManyMatches();
 			}
 
 			[NamedArgumentType]
@@ -111,7 +113,7 @@ namespace Advobot.Invites.Commands
 				[NeverExpires, FromThisGuild] IInviteMetadata invite)
 			{
 				await Invites.AddInviteAsync(invite).CAF();
-				return Responses.ListedInvites.CreatedListing(invite);
+				return CreatedListing(invite);
 			}
 
 			[LocalizedCommand(nameof(Groups.Remove))]
@@ -119,7 +121,7 @@ namespace Advobot.Invites.Commands
 			public async Task<RuntimeResult> Remove()
 			{
 				await Invites.RemoveInviteAsync(Context.Guild.Id).CAF();
-				return Responses.ListedInvites.DeletedListing();
+				return DeletedListing();
 			}
 		}
 	}

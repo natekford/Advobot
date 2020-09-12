@@ -92,16 +92,6 @@ namespace Advobot.Services.GuildSettings
 		}
 
 		/// <inheritdoc />
-		[Setting(nameof(GuildSettingNames.Quotes), ResetValueClass = typeof(ClearList))]
-		[JsonProperty("Quotes")]
-		public IList<Quote> Quotes { get; set; } = new ObservableCollection<Quote>();
-
-		/// <inheritdoc />
-		[Setting(nameof(GuildSettingNames.Rules), ResetValueClass = typeof(NoParams<RuleHolder>))]
-		[JsonProperty("Rules")]
-		public RuleHolder Rules { get; set; } = new RuleHolder();
-
-		/// <inheritdoc />
 		[Setting(nameof(GuildSettingNames.SelfAssignableGroups), ResetValueClass = typeof(ClearList))]
 		[JsonProperty("SelfAssignableGroups")]
 		public IList<SelfAssignableRoles> SelfAssignableGroups { get; set; } = new ObservableCollection<SelfAssignableRoles>();

@@ -126,26 +126,11 @@
   <data name="ModifyIgnoredCommandChannels" xml:space="preserve">
     <value>The bot will ignore commands said on these channels. If a command is input then the bot will instead ignore only that command on the given channel.</value>
   </data>
-  <data name="ModifyQuotes" xml:space="preserve">
-    <value>Adds the given text to a list that can be called through the SayQuote command</value>
-  </data>
-  <data name="ModifyRuleCategories" xml:space="preserve">
-    <value>Modifies the categories which contain rules.</value>
-  </data>
-  <data name="ModifyRules" xml:space="preserve">
-    <value>Modifies the rules which are saved in guild settings.</value>
-  </data>
   <data name="ModifySelfRoles" xml:space="preserve">
     <value>Modifies self assignable roles.</value>
   </data>
-  <data name="PrintOutRules" xml:space="preserve">
-    <value>Displays the rules with user specified formatting.</value>
-  </data>
   <data name="ResetGuildSettings" xml:space="preserve">
     <value>Sets settings back to their default values.</value>
-  </data>
-  <data name="SayQuote" xml:space="preserve">
-    <value>Shows the content for the given quote.</value>
   </data>
   <data name="ShowBotSettings" xml:space="preserve">
     <value>Shows information about the bot settings.</value>

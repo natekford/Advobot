@@ -168,12 +168,6 @@ namespace Advobot.Services.Commands
 				return;
 			}
 
-			/* TODO: make this a toggle
-			if (result.IsSuccess)
-			{
-				await context.Message.DeleteAsync(_Options).CAF();
-			}*/
-
 			await _CommandInvoked.InvokeAsync(command.Value, ctx, result).CAF();
 		}
 

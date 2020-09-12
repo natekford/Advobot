@@ -105,7 +105,17 @@ namespace Advobot.Modules
 		/// <param name="reason"></param>
 		/// <returns></returns>
 		public static AdvobotResult Success(string reason)
-			=> new AdvobotResult(null, reason);
+		{
+			if (reason.Length < 2000)
+			{
+				return new AdvobotResult(null, reason);
+			}
+			return Success(new TextFileInfo
+			{
+				Name = "Message_Too_Long",
+				Text = reason,
+			});
+		}
 
 		/// <summary>
 		/// Creates a successful result.

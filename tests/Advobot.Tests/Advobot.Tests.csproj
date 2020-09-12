@@ -25,6 +25,10 @@
     <ProjectReference Include="..\..\src\Commands\Advobot.AllCommands\Advobot.AllCommands.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="Commands\Quotes\Database\" />
+  </ItemGroup>
+
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
     <DebugType>full</DebugType>
     <DebugSymbols>true</DebugSymbols>

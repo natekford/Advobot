@@ -1,7 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Data.SQLite;
-using System.Linq;
 using System.Threading.Tasks;
 
 using Advobot.AutoMod.Models;
@@ -9,8 +7,6 @@ using Advobot.AutoMod.ReadOnlyModels;
 using Advobot.SQLite;
 
 using AdvorangesUtils;
-
-using Dapper;
 
 namespace Advobot.AutoMod.Database
 {

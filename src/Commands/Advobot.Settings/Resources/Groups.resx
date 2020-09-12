@@ -136,23 +136,8 @@
   <data name="Goodbye" xml:space="preserve">
     <value>Goodbye</value>
   </data>
-  <data name="ModifyQuotes" xml:space="preserve">
-    <value>ModifyQuotes</value>
-  </data>
-  <data name="SayQuote" xml:space="preserve">
-    <value>SayQuote</value>
-  </data>
-  <data name="ModifyRuleCategories" xml:space="preserve">
-    <value>ModifyRuleCategories</value>
-  </data>
-  <data name="ModifyRules" xml:space="preserve">
-    <value>ModifyRules</value>
-  </data>
   <data name="Insert" xml:space="preserve">
     <value>Insert</value>
-  </data>
-  <data name="PrintOutRules" xml:space="preserve">
-    <value>PrintOutRules</value>
   </data>
   <data name="AssignSelfRole" xml:space="preserve">
     <value>AssignSelfRole</value>

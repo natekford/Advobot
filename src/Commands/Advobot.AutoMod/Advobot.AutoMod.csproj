@@ -10,11 +10,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Dapper" Version="2.0.35" />
-    <PackageReference Include="System.Data.SQLite.Core" Version="1.0.113.1" />
-  </ItemGroup>
-
-  <ItemGroup>
     <Compile Update="Resources\Aliases.Designer.cs">
       <DesignTime>True</DesignTime>
       <AutoGen>True</AutoGen>

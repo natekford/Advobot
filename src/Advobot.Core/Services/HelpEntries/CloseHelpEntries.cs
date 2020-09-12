@@ -15,7 +15,7 @@ namespace Advobot.Services.HelpEntries
 		/// </summary>
 		/// <param name="source"></param>
 		public CloseHelpEntries(IEnumerable<IModuleHelpEntry> source)
-			: base(source) { }
+			: base(source, x => x.Name) { }
 
 		/// <inheritdoc />
 		protected override int FindCloseness(string search, IModuleHelpEntry obj)

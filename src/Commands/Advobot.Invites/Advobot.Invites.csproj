@@ -5,11 +5,6 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Dapper" Version="2.0.35" />
-    <PackageReference Include="System.Data.SQLite.Core" Version="1.0.113.1" />
-  </ItemGroup>
-
-  <ItemGroup>
     <ProjectReference Include="..\..\Advobot.Core\Advobot.Core.csproj" />
     <ProjectReference Include="..\..\Advobot.SQLite\Advobot.SQLite.csproj" />
   </ItemGroup>

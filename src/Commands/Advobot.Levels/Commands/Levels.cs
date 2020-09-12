@@ -12,6 +12,8 @@ using AdvorangesUtils;
 using Discord;
 using Discord.Commands;
 
+using static Advobot.Levels.Responses.Levels;
+
 namespace Advobot.Levels.Commands
 {
 	[Category(nameof(Levels))]
@@ -44,11 +46,11 @@ namespace Advobot.Levels.Commands
 				var user = await Context.Client.GetUserAsync(rank.UserId).CAF();
 				if (rank.Experience == 0)
 				{
-					return Responses.Levels.NoXp(args, rank, user);
+					return NoXp(args, rank, user);
 				}
 
 				var level = Levels.CalculateLevel(rank.Experience);
-				return Responses.Levels.Level(args, rank, level, user);
+				return Level(args, rank, level, user);
 			}
 		}
 

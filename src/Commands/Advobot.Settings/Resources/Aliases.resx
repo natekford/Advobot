@@ -136,23 +136,8 @@
   <data name="Goodbye" xml:space="preserve">
     <value>g</value>
   </data>
-  <data name="ModifyQuotes" xml:space="preserve">
-    <value>mq</value>
-  </data>
-  <data name="SayQuote" xml:space="preserve">
-    <value>sq</value>
-  </data>
-  <data name="ModifyRuleCategories" xml:space="preserve">
-    <value>mrc</value>
-  </data>
-  <data name="ModifyRules" xml:space="preserve">
-    <value>mr</value>
-  </data>
   <data name="Insert" xml:space="preserve">
     <value>i</value>
-  </data>
-  <data name="PrintOutRules" xml:space="preserve">
-    <value>por</value>
   </data>
   <data name="AssignSelfRole" xml:space="preserve">
     <value>asr</value>

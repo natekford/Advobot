@@ -97,33 +97,6 @@ namespace Advobot.Settings.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Adds the given text to a list that can be called through the SayQuote command.
-        /// </summary>
-        internal static string ModifyQuotes {
-            get {
-                return ResourceManager.GetString("ModifyQuotes", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Modifies the categories which contain rules..
-        /// </summary>
-        internal static string ModifyRuleCategories {
-            get {
-                return ResourceManager.GetString("ModifyRuleCategories", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Modifies the rules which are saved in guild settings..
-        /// </summary>
-        internal static string ModifyRules {
-            get {
-                return ResourceManager.GetString("ModifyRules", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Modifies self assignable roles..
         /// </summary>
         internal static string ModifySelfRoles {
@@ -133,29 +106,11 @@ namespace Advobot.Settings.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Displays the rules with user specified formatting..
-        /// </summary>
-        internal static string PrintOutRules {
-            get {
-                return ResourceManager.GetString("PrintOutRules", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Sets settings back to their default values..
         /// </summary>
         internal static string ResetGuildSettings {
             get {
                 return ResourceManager.GetString("ResetGuildSettings", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Shows the content for the given quote..
-        /// </summary>
-        internal static string SayQuote {
-            get {
-                return ResourceManager.GetString("SayQuote", resourceCulture);
             }
         }
         

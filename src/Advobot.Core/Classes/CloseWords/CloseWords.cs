@@ -12,23 +12,24 @@ namespace Advobot.Classes.CloseWords
 	/// Gathers objects with similar names to the passed in input.
 	/// </summary>
 	/// <typeparam name="T"></typeparam>
-	public class CloseWords<T> where T : INameable
+	public class CloseWords<T>
 	{
 		/// <summary>
 		/// Mark as close if the supplied text is within searched text.
 		/// </summary>
 		public bool IncludeWhenContains { get; set; } = true;
-
 		/// <summary>
 		/// How similar a string has to be to match.
 		/// </summary>
 		public int MaxAllowedCloseness { get; set; } = 4;
-
 		/// <summary>
 		/// How many closewords can be found.
 		/// </summary>
 		public int MaxOutput { get; set; } = 5;
-
+		/// <summary>
+		/// Gets the name of the object.
+		/// </summary>
+		protected Func<T, string> GetName { get; }
 		/// <summary>
 		/// What to search through.
 		/// </summary>
@@ -38,9 +39,11 @@ namespace Advobot.Classes.CloseWords
 		/// Creates an instance of <see cref="CloseWords{T}"/>.
 		/// </summary>
 		/// <param name="source"></param>
-		public CloseWords(IEnumerable<T> source)
+		/// <param name="getName"></param>
+		public CloseWords(IEnumerable<T> source, Func<T, string> getName)
 		{
 			Source = source.ToList();
+			GetName = getName;
 		}
 
 		/// <summary>
@@ -59,7 +62,11 @@ namespace Advobot.Classes.CloseWords
 					temp.Add(closeWord);
 				}
 			}
-			return temp.OrderBy(x => x.Closeness).ThenBy(x => x.Name.Length).Take(MaxOutput).ToArray();
+			return temp
+				.OrderBy(x => x.Closeness)
+				.ThenBy(x => GetName(x.Value).Length)
+				.Take(MaxOutput)
+				.ToArray();
 		}
 
 		/// <summary>
@@ -156,7 +163,7 @@ namespace Advobot.Classes.CloseWords
 		/// <param name="obj"></param>
 		/// <returns></returns>
 		protected virtual int FindCloseness(string search, T obj)
-			=> FindCloseness(obj.Name, search);
+			=> FindCloseness(GetName(obj), search);
 
 		/// <summary>
 		/// Determines whether this is a close word.
@@ -169,7 +176,7 @@ namespace Advobot.Classes.CloseWords
 		{
 			var closeness = FindCloseness(search, obj);
 			var success = closeness < MaxAllowedCloseness
-				|| (IncludeWhenContains && obj.Name.CaseInsContains(search));
+				|| (IncludeWhenContains && GetName(obj).CaseInsContains(search));
 			closeWord = success ? new CloseWord<T>(closeness, obj) : null;
 			return success;
 		}

@@ -40,7 +40,7 @@ namespace Advobot.Tests.Core.Attributes.ParameterPreconditions.Strings
 				//GuildSettingNames.PersistentRoles,
 				GuildSettingNames.BotUsers,
 				GuildSettingNames.SelfAssignableGroups,
-				GuildSettingNames.Quotes,
+				//GuildSettingNames.Quotes,
 				//GuildSettingNames.LogActions,
 				GuildSettingNames.IgnoredCommandChannels,
 				//GuildSettingNames.IgnoredLogChannels,
@@ -50,7 +50,7 @@ namespace Advobot.Tests.Core.Attributes.ParameterPreconditions.Strings
 				//GuildSettingNames.BannedPhraseRegex,
 				//GuildSettingNames.BannedPhraseNames,
 				//GuildSettingNames.BannedPhrasePunishments,
-				GuildSettingNames.Rules,
+				//GuildSettingNames.Rules,
 				GuildSettingNames.CommandSettings,
 			};
 			foreach (var setting in settings)
