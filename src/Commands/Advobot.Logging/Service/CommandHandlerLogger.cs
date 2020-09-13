@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 
 using Advobot.Classes;
 using Advobot.Formatting;
+using Advobot.Logging.Utilities;
 using Advobot.Modules;
 using Advobot.Services.BotSettings;
 using Advobot.Utilities;
@@ -43,7 +44,10 @@ namespace Advobot.Logging.Service
 			}
 			else if (!result.IsSuccess)
 			{
-				await MessageUtils.SendMessageAsync(context.Channel, result.ErrorReason).CAF();
+				await context.Channel.SendMessageAsync(new MessageArgs
+				{
+					Content = result.ErrorReason
+				}).CAF();
 			}
 
 			var ignoredChannels = await _Logging.GetIgnoredChannelsAsync(context.Guild.Id).CAF();
@@ -59,12 +63,12 @@ namespace Advobot.Logging.Service
 				return;
 			}
 
-			await MessageUtils.SendMessageAsync(modLog, embed: new EmbedWrapper
+			await modLog.SendMessageAsync(new EmbedWrapper
 			{
 				Description = context.Message.Content,
 				Author = context.User.CreateAuthor(),
 				Footer = new EmbedFooterBuilder { Text = "Mod Log", },
-			}).CAF();
+			}.ToMessageArgs()).CAF();
 		}
 
 		public Task OnReady()

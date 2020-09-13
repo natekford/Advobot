@@ -57,15 +57,18 @@ namespace Advobot.Services.ImageResizing
 		public abstract IResult CanUseFormat(MagickFormat format);
 
 		/// <inheritdoc />
-		public async Task ReportAsync(string value)
+		public async Task ReportAsync(string content)
 		{
 			if (_Message != null)
 			{
-				await _Message.ModifyAsync(x => x.Content = value).CAF();
+				await _Message.ModifyAsync(x => x.Content = content).CAF();
 			}
 			else
 			{
-				_Message = await MessageUtils.SendMessageAsync(Context.Channel, value).CAF();
+				_Message = await Context.Channel.SendMessageAsync(new MessageArgs
+				{
+					Content = content,
+				}).CAF();
 			}
 		}
 
@@ -78,10 +81,13 @@ namespace Advobot.Services.ImageResizing
 			}
 
 			var t = Type.ToLower();
-			var text = result.IsSuccess
+			var content = result.IsSuccess
 				? $"Successfully created the {t}."
 				: $"Failed to create the {t}. Reason: {result.ErrorReason}.";
-			await MessageUtils.SendMessageAsync(Context.Channel, text).CAF();
+			await Context.Channel.SendMessageAsync(new MessageArgs
+			{
+				Content = content,
+			}).CAF();
 		}
 
 		/// <inheritdoc />

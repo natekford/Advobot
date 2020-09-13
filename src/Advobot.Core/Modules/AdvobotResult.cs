@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Threading.Tasks;
 
 using Advobot.Classes;
@@ -7,6 +6,7 @@ using Advobot.Utilities;
 
 using AdvorangesUtils;
 
+using Discord;
 using Discord.Commands;
 
 namespace Advobot.Modules
@@ -38,10 +38,6 @@ namespace Advobot.Modules
 		/// </summary>
 		public ulong? OverrideDestinationChannelId { get; private set; }
 		/// <summary>
-		/// When the message being sent is over 2,000 characters long. This breaks it up into sendable chunks.
-		/// </summary>
-		public IReadOnlyCollection<string>? ReasonSegments { get; private set; }
-		/// <summary>
 		/// How long to let this message stay up for.
 		/// </summary>
 		public TimeSpan? Time { get; private set; }
@@ -71,21 +67,6 @@ namespace Advobot.Modules
 			=> new AdvobotResult(error, reason);
 
 		/// <summary>
-		/// Creates a successful result.
-		/// </summary>
-		/// <param name="reasonSegments"></param>
-		/// <param name="joiner"></param>
-		/// <param name="error"></param>
-		/// <returns></returns>
-		public static AdvobotResult FromReasonSegments(IReadOnlyCollection<string> reasonSegments, string joiner = "\n", CommandError? error = null)
-		{
-			return new AdvobotResult(error, reasonSegments.Join(joiner))
-			{
-				ReasonSegments = reasonSegments
-			};
-		}
-
-		/// <summary>
 		/// Converts the result into a task returning the result.
 		/// </summary>
 		/// <param name="result"></param>
@@ -110,6 +91,7 @@ namespace Advobot.Modules
 			{
 				return new AdvobotResult(null, reason);
 			}
+
 			return Success(new TextFileInfo
 			{
 				Name = "Message_Too_Long",
@@ -138,30 +120,27 @@ namespace Advobot.Modules
 		/// </summary>
 		/// <param name="context"></param>
 		/// <returns></returns>
-		public async Task SendAsync(ICommandContext context)
+		public async Task<IUserMessage> SendAsync(ICommandContext context)
 		{
-			var destinationChannel = context.Channel;
+			var destination = context.Channel;
 			if (OverrideDestinationChannelId is ulong id)
 			{
-				destinationChannel = await context.Guild.GetTextChannelAsync(id).CAF();
-				if (destinationChannel == null)
+				destination = await context.Guild.GetTextChannelAsync(id).CAF();
+				if (destination == null)
 				{
-					await MessageUtils.SendMessageAsync(context.Channel, $"{id} is not a valid channel.").CAF();
-					return;
+					return await context.Channel.SendMessageAsync(new MessageArgs
+					{
+						Content = $"{id} is not a valid destination channel.",
+					}).CAF();
 				}
 			}
 
-			if (ReasonSegments != null)
+			return await destination.SendMessageAsync(new MessageArgs
 			{
-				foreach (var segment in ReasonSegments)
-				{
-					await MessageUtils.SendMessageAsync(destinationChannel, segment).CAF();
-				}
-			}
-			else
-			{
-				await MessageUtils.SendMessageAsync(destinationChannel, Reason, Embed, File).CAF();
-			}
+				Content = Reason,
+				Embed = Embed,
+				File = File,
+			}).CAF();
 		}
 
 		/// <summary>

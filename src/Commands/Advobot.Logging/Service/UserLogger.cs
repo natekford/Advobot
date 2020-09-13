@@ -6,6 +6,7 @@ using Advobot.Classes;
 using Advobot.Logging.Caches;
 using Advobot.Logging.Context;
 using Advobot.Logging.Context.Users;
+using Advobot.Logging.Utilities;
 using Advobot.Services.Time;
 using Advobot.Utilities;
 
@@ -87,7 +88,7 @@ namespace Advobot.Logging.Service
 				? $"**New Account:** {(int)time.TotalHours} hours, {time.Minutes} minutes old."
 				: "";
 
-			await MessageUtils.SendMessageAsync(context.ServerLog, embed: new EmbedWrapper
+			await context.ServerLog.SendMessageAsync(new EmbedWrapper
 			{
 				Description = $"**ID:** {context.State.User.Id}\n{invite}\n{age}",
 				Color = EmbedWrapper.Join,
@@ -96,7 +97,7 @@ namespace Advobot.Logging.Service
 				{
 					Text = context.State.User.IsBot ? "Bot Joined" : "User Joined"
 				},
-			}).CAF();
+			}.ToMessageArgs()).CAF();
 		}
 
 		private Task HandleLeftLogging(ILogContext<UserState> context)
@@ -113,7 +114,7 @@ namespace Advobot.Logging.Service
 				stay = $"**Stayed for:** {time.Days}:{time.Hours:00}:{time.Minutes:00}:{time.Seconds:00}";
 			}
 
-			return MessageUtils.SendMessageAsync(context.ServerLog, embed: new EmbedWrapper
+			return context.ServerLog.SendMessageAsync(new EmbedWrapper
 			{
 				Description = $"**ID:** {context.State.User.Id}\n{stay}",
 				Color = EmbedWrapper.Leave,
@@ -122,7 +123,7 @@ namespace Advobot.Logging.Service
 				{
 					Text = context.State.User.IsBot ? "Bot Left" : "User Left",
 				},
-			});
+			}.ToMessageArgs());
 		}
 
 		private Task HandleUsernameUpdated(ILogContext<UserUpdatedState> context)
@@ -132,7 +133,7 @@ namespace Advobot.Logging.Service
 				return Task.CompletedTask;
 			}
 
-			return MessageUtils.SendMessageAsync(context.ServerLog, embed: new EmbedWrapper
+			return context.ServerLog.SendMessageAsync(new EmbedWrapper
 			{
 				Color = EmbedWrapper.UserEdit,
 				Author = context.State.User.CreateAuthor(),
@@ -152,7 +153,7 @@ namespace Advobot.Logging.Service
 						IsInline = true
 					},
 				},
-			});
+			}.ToMessageArgs());
 		}
 	}
 }

@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Threading.Tasks;
 
-using Advobot.Attributes.ParameterPreconditions.Numbers;
+using Advobot.Quotes.ParameterPreconditions;
 using Advobot.Tests.TestBases;
 
 using AdvorangesUtils;
@@ -10,7 +10,7 @@ using Discord.Commands;
 
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
-namespace Advobot.Tests.Core.Attributes.ParameterPreconditions.Numbers
+namespace Advobot.Tests.Commands.Quotes.ParameterPreconditions
 {
 	[TestClass]
 	public sealed class RemindTimeAttribute_Tests : ParameterPreconditionTestsBase

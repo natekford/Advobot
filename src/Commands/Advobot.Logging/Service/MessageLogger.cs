@@ -8,6 +8,7 @@ using Advobot.Classes;
 using Advobot.Logging.Caches;
 using Advobot.Logging.Context;
 using Advobot.Logging.Context.Messages;
+using Advobot.Logging.Utilities;
 using Advobot.Utilities;
 
 using AdvorangesUtils;
@@ -92,7 +93,7 @@ namespace Advobot.Logging.Service
 					description += $", [Image]({loggable.ImageUrl})";
 				}
 
-				await MessageUtils.SendMessageAsync(context.ImageLog, embed: new EmbedWrapper
+				await context.ImageLog.SendMessageAsync(new EmbedWrapper
 				{
 					Description = description,
 					Color = EmbedWrapper.Attachment,
@@ -103,7 +104,7 @@ namespace Advobot.Logging.Service
 						Text = loggable.Footer,
 						IconUrl = state.User.GetAvatarUrl()
 					},
-				}).CAF();
+				}.ToMessageArgs()).CAF();
 			}
 		}
 
@@ -177,7 +178,7 @@ namespace Advobot.Logging.Service
 			var (afterValid, afterContent) = FormatContent(state.Message);
 			if (beforeValid && afterValid) //Send file instead if text too long
 			{
-				return MessageUtils.SendMessageAsync(context.ServerLog, embed: new EmbedWrapper
+				return context.ServerLog.SendMessageAsync(new EmbedWrapper
 				{
 					Color = EmbedWrapper.MessageEdit,
 					Author = state.User.CreateAuthor(),
@@ -187,13 +188,16 @@ namespace Advobot.Logging.Service
 						new EmbedFieldBuilder { Name = "Before", Value = beforeContent, },
 						new EmbedFieldBuilder { Name = "After", Value = afterContent, },
 					},
-				});
+				}.ToMessageArgs());
 			}
 
-			return MessageUtils.SendMessageAsync(context.ServerLog, file: new TextFileInfo
+			return context.ServerLog.SendMessageAsync(new MessageArgs
 			{
-				Name = "Edited_Message",
-				Text = $"Before:\n{beforeContent}\n\nAfter:\n{afterContent}",
+				File = new TextFileInfo
+				{
+					Name = "Edited_Message",
+					Text = $"Before:\n{beforeContent}\n\nAfter:\n{afterContent}",
+				}
 			});
 		}
 
@@ -231,13 +235,13 @@ namespace Advobot.Logging.Service
 
 			if (inEmbed)
 			{
-				return MessageUtils.SendMessageAsync(log, embed: new EmbedWrapper
+				return log.SendMessageAsync(new EmbedWrapper
 				{
 					Title = "Deleted Messages",
 					Description = sb.ToString(),
 					Color = EmbedWrapper.MessageDelete,
 					Footer = new EmbedFooterBuilder { Text = "Deleted Messages", },
-				});
+				}.ToMessageArgs());
 			}
 			else
 			{
@@ -247,11 +251,13 @@ namespace Advobot.Logging.Service
 					sb.AppendLineFeed(m.Format(withMentions: false).RemoveDuplicateNewLines().RemoveAllMarkdown());
 				}
 
-				var content = $"**{messages.Count} Deleted Messages:**";
-				return MessageUtils.SendMessageAsync(log, content, file: new TextFileInfo
+				return log.SendMessageAsync(new MessageArgs
 				{
-					Name = "Deleted_Messages",
-					Text = sb.ToString(),
+					File = new TextFileInfo
+					{
+						Name = $"{messages.Count}_Deleted_Messages",
+						Text = sb.ToString(),
+					}
 				});
 			}
 		}

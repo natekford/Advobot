@@ -21,7 +21,6 @@ namespace Advobot.Utilities
 		/// The oldest messages are allowed to be when bulk deleting.
 		/// </summary>
 		public static readonly TimeSpan OldestAllowed = TimeSpan.FromDays(14);
-		private static readonly AllowedMentions None = new AllowedMentions();
 
 		/// <summary>
 		/// Removes the given count of messages from a channel.
@@ -128,6 +127,8 @@ namespace Advobot.Utilities
 			const string SANITIZED_INVITE = INVITE + SPACE;
 			const string INVITE_2 = "discordapp.com/invite";
 			const string SANITIZED_INVITE_2 = INVITE_2 + SPACE;
+			const string INVITE_3 = "discord.com";
+			const string SANITIZED_INVITE_3 = INVITE_3 + SPACE;
 
 			if (content == null)
 			{
@@ -142,91 +143,108 @@ namespace Advobot.Utilities
 				.Replace(EVERYONE, SANITIZED_EVERYONE)
 				.Replace(HERE, SANITIZED_HERE)
 				.CaseInsReplace(INVITE, SANITIZED_INVITE)
-				.CaseInsReplace(INVITE_2, SANITIZED_INVITE_2);
+				.CaseInsReplace(INVITE_2, SANITIZED_INVITE_2)
+				.CaseInsReplace(INVITE_3, SANITIZED_INVITE_3);
 		}
 
 		/// <summary>
 		/// Sends a message to the given channel with the given content.
 		/// </summary>
 		/// <param name="channel"></param>
-		/// <param name="content"></param>
-		/// <param name="embed"></param>
-		/// <param name="file"></param>
-		/// <param name="mentions"></param>
-		/// <param name="allowZeroWidthLengthMessages">
-		/// <param name="nullChannelIsException"/>
-		/// If there is no content passed in the content will become only a single zero width space.
-		/// This ends up taking up extra space if used with embeds or files.
-		/// </param>
+		/// <param name="args"></param>
 		/// <returns></returns>
 		public static Task<IUserMessage> SendMessageAsync(
-			IMessageChannel channel,
-			string? content = null,
-			EmbedWrapper? embed = null,
-			TextFileInfo? file = null,
-			AllowedMentions? mentions = null,
-			bool allowZeroWidthLengthMessages = false,
-			bool nullChannelIsException = true)
+			this IMessageChannel channel,
+			MessageArgs? args)
 		{
-			if (channel == null)
+			args ??= new MessageArgs();
+
+			if (args.Content is null && args.Embed is null && args.File is null)
 			{
-				if (nullChannelIsException)
+				throw new ArgumentNullException("A sendable value must exist (content, embed, or file).");
+			}
+			if (channel is null)
+			{
+				if (args.AllowNullChannel)
 				{
-					throw new ArgumentNullException(nameof(channel));
+					return Task.FromResult<IUserMessage>(null!);
 				}
-				return Task.FromResult<IUserMessage>(null!);
-			}
-			if (content == null && embed == null && file == null)
-			{
-				throw new ArgumentNullException($"{nameof(content)}, {nameof(embed)}, or {nameof(file)} must have a value.");
+				throw new ArgumentNullException(nameof(channel));
 			}
 
-			file ??= new TextFileInfo();
-			mentions ??= None;
-
-			//Make sure all the information from the embed that didn't fit goes in.
-			if (embed?.Errors.Count > 0)
+			// Make sure all the information from the embed that didn't fit goes in the text file
+			if (args.Embed?.Errors?.Count > 0)
 			{
-				file.Name ??= "Embed_Errors";
-				file.Text += $"Embed Errors:\n{embed}\n\n{file.Text}";
+				args.File ??= new TextFileInfo();
+				args.File.Name ??= "Embed_Errors";
+				args.File.Text += $"Embed Errors:\n{args.Embed}\n\n{args.File.Text}";
 			}
 
-			//Make sure none of the content mentions everyone or doesn't have the zero width character
-			content = content.Sanitize();
-			if (content.Length > 2000)
+			// Make sure the content removes annoying parts
+			args.Content = args.Content.Sanitize();
+			if (args.Content.Length > 2000)
 			{
-				file.Name ??= "Long_Message";
-				file.Text += $"Message Content:\n{content}\n\n{file.Text}";
-				content = $"{Constants.ZERO_WIDTH_SPACE}Response is too long; sent as text file instead.";
+				args.File ??= new TextFileInfo();
+				args.File.Name ??= "Long_Message";
+				args.File.Text += $"Message Content:\n{args.Content}\n\n{args.File.Text}";
+				args.Content = $"{Constants.ZERO_WIDTH_SPACE}Response is too long; sent as text file instead.";
 			}
 
-			//Can clear the content if it's going to only be a zero length space and there's an embed
-			//Otherwise there will be unecessary empty space
-			if (!allowZeroWidthLengthMessages && content == Constants.ZERO_WIDTH_SPACE && embed != null)
+			// Can clear the content if it's going to only be a zero length space
+			// and there's an embed or a file
+			// Otherwise there will be unecessary empty space
+			if (!args.AllowZeroWidthLengthMessages
+				&& args.Content == Constants.ZERO_WIDTH_SPACE
+				&& (args.Embed != null || args.File != null))
 			{
-				content = "";
+				args.Content = "";
 			}
 
 			try
 			{
-				var built = embed?.Build();
-				//If the file name and text exists, then attempt to send as a file instead of message
-				if (!string.IsNullOrWhiteSpace(file.Name) && !string.IsNullOrWhiteSpace(file.Text))
+				var built = args.Embed?.Build();
+				// If the file name and text exists, then attempt to send as a file
+				if (args.File != null
+					&& !string.IsNullOrWhiteSpace(args.File.Name)
+					&& !string.IsNullOrWhiteSpace(args.File.Text))
 				{
 					using var stream = new MemoryStream();
 					using var writer = new StreamWriter(stream);
 
-					writer.Write(file.Text.Trim());
+					writer.Write(args.File.Text);
 					writer.Flush();
 					stream.Seek(0, SeekOrigin.Begin);
-					return channel.SendFileAsync(stream, file.Name, content, embed: built);
+
+					return channel.SendFileAsync(
+						stream,
+						args.File.Name,
+						args.Content,
+						args.IsTTS,
+						built,
+						args.Options,
+						args.IsSpoiler,
+						args.AllowedMentions
+					);
 				}
-				return channel.SendMessageAsync(content, embed: built, allowedMentions: mentions);
+
+				return channel.SendMessageAsync(
+					args.Content,
+					args.IsTTS,
+					built,
+					args.Options,
+					args.AllowedMentions
+				);
 			}
-			//If the message fails to send, then return the error
+			// If the message fails to send, then return the error
 			catch (Exception e)
 			{
-				return channel.SendMessageAsync(e.Message.Sanitize(), allowedMentions: mentions);
+				return channel.SendMessageAsync(
+					e.Message.Sanitize(),
+					false,
+					null,
+					args.Options,
+					args.AllowedMentions
+				);
 			}
 		}
 
@@ -246,5 +264,48 @@ namespace Advobot.Utilities
 			}
 			return filtered;
 		}
+	}
+
+	/// <summary>
+	/// Arguments used for sending a message.
+	/// </summary>
+	public sealed class MessageArgs
+	{
+		/// <summary>
+		/// The allowed mentions of the message. By default this is None.
+		/// </summary>
+		public AllowedMentions AllowedMentions { get; set; } = new AllowedMentions();
+		/// <summary>
+		/// Whether or not to allow null channels. If true, a null message will be returned. If false, an exception will occur.
+		/// </summary>
+		public bool AllowNullChannel { get; set; }
+		/// <summary>
+		/// Whether or not to allow zero width space messages.
+		/// </summary>
+		public bool AllowZeroWidthLengthMessages { get; set; }
+		/// <summary>
+		/// The content of the message. If this is null, no message will be sent.
+		/// </summary>
+		public string? Content { get; set; }
+		/// <summary>
+		/// The embed of the message. If this is null, no embed will be sent.
+		/// </summary>
+		public EmbedWrapper? Embed { get; set; }
+		/// <summary>
+		/// The file of the message. If this is null, a file will only be sent if there are errors.
+		/// </summary>
+		public TextFileInfo? File { get; set; }
+		/// <summary>
+		/// Whether or not this message should be spoilered.
+		/// </summary>
+		public bool IsSpoiler { get; set; }
+		/// <summary>
+		/// Whether or not this message should use text to speech.
+		/// </summary>
+		public bool IsTTS { get; set; }
+		/// <summary>
+		/// Request options to use when sending the message.
+		/// </summary>
+		public RequestOptions? Options { get; set; }
 	}
 }
