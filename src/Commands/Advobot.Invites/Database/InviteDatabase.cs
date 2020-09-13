@@ -1,6 +1,5 @@
 ﻿using System.Collections.Generic;
 using System.Data.SQLite;
-using System.Linq;
 using System.Threading.Tasks;
 
 using Advobot.Invites.Models;
@@ -8,8 +7,6 @@ using Advobot.Invites.ReadOnlyModels;
 using Advobot.SQLite;
 
 using AdvorangesUtils;
-
-using Dapper;
 
 namespace Advobot.Invites.Database
 {

@@ -9,7 +9,6 @@ using System.Threading.Tasks;
 using Advobot.Levels.Metadata;
 using Advobot.Levels.Models;
 using Advobot.Levels.ReadOnlyModels;
-using Advobot.Levels.Utilities;
 using Advobot.SQLite;
 
 using AdvorangesUtils;

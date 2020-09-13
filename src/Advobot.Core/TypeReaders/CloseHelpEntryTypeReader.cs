@@ -1,6 +1,8 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 
+using Advobot.Attributes;
 using Advobot.Services.HelpEntries;
 using Advobot.Utilities;
 
@@ -13,6 +15,7 @@ namespace Advobot.TypeReaders
 	/// <summary>
 	/// Finds help entries with names or aliases similar to the passed in input.
 	/// </summary>
+	[TypeReaderTargetType(typeof(IReadOnlyList<IModuleHelpEntry>))]
 	public sealed class CloseHelpEntryTypeReader : TypeReader
 	{
 		/// <inheritdoc />

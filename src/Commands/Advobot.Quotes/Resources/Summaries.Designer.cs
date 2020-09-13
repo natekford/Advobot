@@ -97,6 +97,15 @@ namespace Advobot.Quotes.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Sends you a reminder after the specified time..
+        /// </summary>
+        internal static string RemindMe {
+            get {
+                return ResourceManager.GetString("RemindMe", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Shows the content for the given quote..
         /// </summary>
         internal static string SayQuote {

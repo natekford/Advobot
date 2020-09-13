@@ -26,12 +26,16 @@ namespace Advobot.Quotes.Commands
 		[LocalizedAlias(nameof(Aliases.ModifyQuotes))]
 		[LocalizedSummary(nameof(Summaries.ModifyQuotes))]
 		[Meta("6a6c952a-ea22-4478-9433-99304ae440b7")]
-		[RequireGuildPermissions]
+		[RequireGenericGuildPermissions]
 		public sealed class ModifyQuotes : QuoteModuleBase
 		{
 			[LocalizedCommand(nameof(Groups.Add))]
 			[LocalizedAlias(nameof(Aliases.Add))]
-			public async Task<RuntimeResult> Add([QuoteName] string name, [Remainder] string text)
+			public async Task<RuntimeResult> Add(
+				[QuoteName]
+				string name,
+				[Remainder]
+				string text)
 			{
 				var quote = new Quote
 				{
@@ -70,6 +74,7 @@ namespace Advobot.Quotes.Commands
 				=> Quote(quote);
 
 			[Command(RunMode = RunMode.Async), Priority(0)]
+			[Hidden]
 			public async Task<RuntimeResult> Command(
 				[Remainder]
 				IReadOnlyList<IReadOnlyQuote> quote)

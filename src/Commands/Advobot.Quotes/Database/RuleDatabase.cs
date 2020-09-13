@@ -10,6 +10,33 @@ using AdvorangesUtils;
 
 namespace Advobot.Quotes.Database
 {
+	public static class RuleDatabaseUtils
+	{
+		public static async Task<IReadOnlyDictionary<IReadOnlyRuleCategory, IReadOnlyList<IReadOnlyRule>>> GetRuleDictionaryAsync(
+			this RuleDatabase db,
+			ulong guildId)
+		{
+			var categories = await db.GetCategoriesAsync(guildId).CAF();
+			var rules = await db.GetRulesAsync(guildId).CAF();
+
+			var dict = new Dictionary<IReadOnlyRuleCategory, IReadOnlyList<IReadOnlyRule>>();
+			foreach (var category in categories)
+			{
+				var list = new List<IReadOnlyRule>();
+				dict.Add(category, list);
+
+				foreach (var rule in rules)
+				{
+					if (rule.Category == category.Category)
+					{
+						list.Add(rule);
+					}
+				}
+			}
+			return dict;
+		}
+	}
+
 	public sealed class RuleDatabase : DatabaseBase<SQLiteConnection>
 	{
 		private const string DELETE_RULE = @"
@@ -40,6 +67,8 @@ namespace Advobot.Quotes.Database
 		{
 			return ModifyAsync(@"
 				DELETE FROM RuleCategory
+				WHERE GuildId = @GuildId AND Category = @Category;
+				DELETE FROM Rule
 				WHERE GuildId = @GuildId AND Category = @Category
 			", category);
 		}
@@ -54,7 +83,21 @@ namespace Advobot.Quotes.Database
 				SELECT *
 				FROM RuleCategory
 				WHERE GuildId = @GuildId
-				ORDER BY Position ASC
+				ORDER BY Category ASC
+			", param).CAF();
+		}
+
+		public async Task<IReadOnlyRuleCategory> GetCategoryAsync(ulong guildId, int category)
+		{
+			var param = new
+			{
+				GuildId = guildId.ToString(),
+				Category = category,
+			};
+			return await GetOneAsync<RuleCategory>(@"
+				SELECT *
+				FROM RuleCategory
+				WHERE GuildId = @GuildId AND Category = @Category
 			", param).CAF();
 		}
 
@@ -101,14 +144,12 @@ namespace Advobot.Quotes.Database
 		{
 			return ModifyAsync(@"
 				INSERT OR IGNORE INTO RuleCategory
-				( GuildId, Name, Category, Position )
+				( GuildId, Value, Category )
 				VALUES
-				( @GuildId, @Name, @Category, @Position )
+				( @GuildId, @Value, @Category )
 				UPDATE RuleCategory
 				SET
-					Category = @Category,
-					Position = @Position,
-					Name = @Name
+					Value = @Value
 				WHERE GuildId = @GuildId AND Category = @Category
 			", category);
 		}

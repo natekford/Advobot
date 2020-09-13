@@ -104,46 +104,66 @@ namespace Advobot.Services.Commands
 		public async Task AddCommandsAsync(IEnumerable<CommandAssembly> assemblies)
 		{
 			var currentCulture = CultureInfo.CurrentUICulture;
-			var defaultTr = TypeReaderInfo.Create(Assembly.GetExecutingAssembly());
+			var defaultTypeReaders = Assembly.GetExecutingAssembly().CreateTypeReaders();
 			foreach (var assembly in assemblies)
 			{
-				var typeReaders = TypeReaderInfo.Create(assembly.Assembly).Concat(defaultTr);
+				var typeReaders = assembly.Assembly.CreateTypeReaders().Concat(defaultTypeReaders);
 				foreach (var culture in assembly.SupportedCultures)
 				{
-					CultureInfo.CurrentUICulture = culture;
-
-					var commandService = _CommandService.Get();
-					foreach (var tr in typeReaders)
-					{
-						foreach (var type in tr.Attribute.TargetTypes)
-						{
-							commandService.AddTypeReader(type, tr.Instance, true);
-						}
-					}
-
-					var modules = await commandService.AddModulesAsync(assembly.Assembly, _Provider).CAF();
-					int moduleCount = 0, commandCount = 0, helpEntryCount = 0;
-					foreach (var module in modules)
-					{
-						++moduleCount;
-						foreach (var command in module.Submodules)
-						{
-							++commandCount;
-							if (!command.Attributes.Any(a => a is HiddenAttribute))
-							{
-								++helpEntryCount;
-								_HelpEntries.Add(new ModuleHelpEntry(command));
-							}
-						}
-					}
-
-					ConsoleUtils.WriteLine($"Successfully loaded {moduleCount} modules " +
-						$"containing {commandCount} commands " +
-						$"({helpEntryCount} were given help entries) " +
-						$"from {assembly.Assembly.GetName().Name} in the {culture} culture.");
+					await AddCommandsAsync(culture, assembly.Assembly, typeReaders).CAF();
 				}
 			}
 			CultureInfo.CurrentUICulture = currentCulture;
+		}
+
+		private async Task AddCommandsAsync(
+			CultureInfo culture,
+			Assembly assembly,
+			IEnumerable<TypeReaderInfo> typeReaders)
+		{
+			CultureInfo.CurrentUICulture = culture;
+
+			var commandService = _CommandService.Get();
+			foreach (var typeReader in typeReaders)
+			{
+				foreach (var type in typeReader.TargetTypes)
+				{
+					commandService.AddTypeReader(type, typeReader.Instance, true);
+				}
+			}
+
+			var modules = await commandService.AddModulesAsync(assembly, _Provider).CAF();
+			int moduleCount = 0, commandCount = 0, helpEntryCount = 0;
+			var ids = new Dictionary<Guid, ModuleInfo>();
+			foreach (var module in modules)
+			{
+				++moduleCount;
+				foreach (var command in module.Submodules)
+				{
+					++commandCount;
+					var attributes = command.Attributes;
+
+					var meta = attributes.GetAttribute<MetaAttribute>();
+					if (ids.TryGetValue(meta.Guid, out var original))
+					{
+						throw new InvalidOperationException($"Duplicate id between {original.Name} and {command.Name}.");
+					}
+					ids.Add(meta.Guid, command);
+
+					if (!attributes.Any(a => a is HiddenAttribute))
+					{
+						++helpEntryCount;
+
+						var category = attributes.GetAttribute<CategoryAttribute>();
+						_HelpEntries.Add(new ModuleHelpEntry(command, meta, category));
+					}
+				}
+			}
+
+			ConsoleUtils.WriteLine($"Successfully loaded {moduleCount} modules " +
+				$"containing {commandCount} commands " +
+				$"({helpEntryCount} were given help entries) " +
+				$"from {assembly.GetName().Name} in the {culture} culture.");
 		}
 
 		private async Task OnCommandExecuted(

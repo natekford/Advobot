@@ -235,11 +235,7 @@ namespace Advobot.Utilities
 		/// <returns></returns>
 		public static string Format(this string format, params MarkdownFormattedArg[] args)
 		{
-			var casted = new object[args.Length];
-			for (var i = 0; i < args.Length; ++i)
-			{
-				casted[i] = args[i].Value;
-			}
+			var casted = Array.ConvertAll(args, x => x.Value);
 			return string.Format(format, casted);
 		}
 
@@ -265,7 +261,7 @@ namespace Advobot.Utilities
 		{
 			return permissions.Select(x =>
 			{
-				var perms = new List<string>();
+				var perms = default(List<string>);
 				foreach (Enum e in Enum.GetValues(x.GetType()))
 				{
 					if (x.Equals(e))
@@ -274,6 +270,7 @@ namespace Advobot.Utilities
 					}
 					else if (x.HasFlag(e))
 					{
+						perms ??= new List<string>();
 						perms.Add(e.ToString());
 					}
 				}

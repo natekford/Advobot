@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
+﻿using System.Linq;
 using System.Threading.Tasks;
 
 using Advobot.Attributes;
@@ -44,11 +41,34 @@ namespace Advobot.Quotes.Commands
 				var category = new RuleCategory
 				{
 					GuildId = Context.Guild.Id,
-					Name = value,
+					Value = value,
 					Category = categories.Count + 1,
 				};
 				await Db.UpsertRuleCategoryAsync(category).CAF();
 				return CreatedCategory(category);
+			}
+
+			[LocalizedCommand(nameof(Groups.Delete))]
+			[LocalizedAlias(nameof(Aliases.Delete))]
+			public async Task<RuntimeResult> Delete(IReadOnlyRuleCategory category)
+			{
+				await Db.DeleteRuleCategoryAsync(category).CAF();
+				return DeletedCategory(category);
+			}
+
+			[LocalizedCommand(nameof(Groups.ModifyValue))]
+			[LocalizedAlias(nameof(Aliases.ModifyValue))]
+			public async Task<RuntimeResult> ModifyValue(
+				IReadOnlyRuleCategory category,
+				[Remainder, Rule]
+				string value)
+			{
+				var copy = new RuleCategory(category)
+				{
+					Value = value,
+				};
+				await Db.UpsertRuleCategoryAsync(copy).CAF();
+				return ModifiedCategoryValue(copy);
 			}
 
 			[LocalizedCommand(nameof(Groups.Swap))]
@@ -97,29 +117,6 @@ namespace Advobot.Quotes.Commands
 
 				return SwappedRuleCategories(categoryA, rulesA, categoryB, rulesB);
 			}
-
-			[LocalizedCommand(nameof(Groups.Delete))]
-			[LocalizedAlias(nameof(Aliases.Delete))]
-			public async Task<RuntimeResult> Delete(IReadOnlyRuleCategory category)
-			{
-				await Db.DeleteRuleCategoryAsync(category).CAF();
-				return DeletedCategory(category);
-			}
-
-			[LocalizedCommand(nameof(Groups.ModifyValue))]
-			[LocalizedAlias(nameof(Aliases.ModifyValue))]
-			public async Task<RuntimeResult> ModifyValue(
-				IReadOnlyRuleCategory category,
-				[Remainder, Rule]
-				string name)
-			{
-				var copy = new RuleCategory(category)
-				{
-					Name = name,
-				};
-				await Db.UpsertRuleCategoryAsync(copy).CAF();
-				return ModifiedCategoryValue(copy);
-			}
 		}
 
 		[LocalizedGroup(nameof(Groups.ModifyRules))]
@@ -134,7 +131,7 @@ namespace Advobot.Quotes.Commands
 			public async Task<RuntimeResult> Create(
 				IReadOnlyRuleCategory category,
 				[Remainder, Rule]
-				string text)
+				string value)
 			{
 				var rules = await Db.GetRulesAsync(category).CAF();
 
@@ -142,28 +139,11 @@ namespace Advobot.Quotes.Commands
 				{
 					GuildId = Context.Guild.Id,
 					Category = category.Category,
-					Value = text,
+					Value = value,
 					Position = rules.Count + 1,
 				};
 				await Db.UpsertRuleAsync(rule).CAF();
 				return AddedRule(category);
-			}
-
-			[LocalizedCommand(nameof(Groups.Swap))]
-			[LocalizedAlias(nameof(Aliases.Swap))]
-			public async Task<RuntimeResult> Swap(IReadOnlyRule ruleA, IReadOnlyRule ruleB)
-			{
-				var copyA = new Rule(ruleA)
-				{
-					Position = ruleB.Position,
-				};
-				var copyB = new Rule(ruleB)
-				{
-					Position = ruleA.Position,
-				};
-
-				await Db.UpsertRulesAsync(new[] { copyA, copyB }).CAF();
-				return SwappedRules(ruleA, ruleB);
 			}
 
 			[LocalizedCommand(nameof(Groups.Delete))]
@@ -188,26 +168,39 @@ namespace Advobot.Quotes.Commands
 				await Db.UpsertRuleAsync(copy).CAF();
 				return ModifiedRuleValue(copy);
 			}
+
+			[LocalizedCommand(nameof(Groups.Swap))]
+			[LocalizedAlias(nameof(Aliases.Swap))]
+			public async Task<RuntimeResult> Swap(IReadOnlyRule ruleA, IReadOnlyRule ruleB)
+			{
+				var copyA = new Rule(ruleA)
+				{
+					Position = ruleB.Position,
+				};
+				var copyB = new Rule(ruleB)
+				{
+					Position = ruleA.Position,
+				};
+
+				await Db.UpsertRulesAsync(new[] { copyA, copyB }).CAF();
+				return SwappedRules(ruleA, ruleB);
+			}
 		}
 
 		[LocalizedGroup(nameof(Groups.PrintOutRules))]
 		[LocalizedAlias(nameof(Aliases.PrintOutRules))]
 		[LocalizedSummary(nameof(Summaries.PrintOutRules))]
 		[Meta("9ae48ca4-68a3-468f-8a6c-2cffd4483deb")]
-		[RequireGenericGuildPermissions]
+		[RequireGuildPermissions]
 		public sealed class PrintOutRules : RuleModuleBase
 		{
 			[Command]
 			public async Task<RuntimeResult> Command(RuleFormatter? args = null)
 			{
 				args ??= new RuleFormatter();
-				var sb = new StringBuilder();
 
-				foreach (var category in await Db.GetCategoriesAsync(Context.Guild.Id).CAF())
-				{
-					await AddAsync(sb, category, args).CAF();
-				}
-				return AdvobotResult.Success(sb.ToString());
+				var dict = await Db.GetRuleDictionaryAsync(Context.Guild.Id).CAF();
+				return AdvobotResult.Success(args.Format(dict));
 			}
 
 			[Command]
@@ -216,27 +209,10 @@ namespace Advobot.Quotes.Commands
 				RuleFormatter? args = null)
 			{
 				args ??= new RuleFormatter();
-				var sb = new StringBuilder();
 
-				await AddAsync(sb, category, args).CAF();
-				return AdvobotResult.Success(sb.ToString());
-			}
-
-			private async Task AddAsync(
-				StringBuilder sb,
-				IReadOnlyRuleCategory category,
-				RuleFormatter formatter)
-			{
 				var rules = await Db.GetRulesAsync(category).CAF();
-				formatter.AppendCategory(sb, category, rules);
+				return AdvobotResult.Success(args.Format(category, rules));
 			}
 		}
-	}
-
-	public abstract class RuleModuleBase : AdvobotModuleBase
-	{
-#pragma warning disable CS8618 // Non-nullable field is uninitialized.
-		public RuleDatabase Db { get; set; }
-#pragma warning restore CS8618 // Non-nullable field is uninitialized.
 	}
 }

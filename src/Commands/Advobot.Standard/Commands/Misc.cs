@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Threading.Tasks;
 
 using Advobot.Attributes;
@@ -14,7 +13,6 @@ using Advobot.Modules;
 using Advobot.Services.HelpEntries;
 using Advobot.Standard.Localization;
 using Advobot.Standard.Resources;
-using Advobot.TypeReaders;
 using Advobot.Utilities;
 
 using AdvorangesUtils;
@@ -35,12 +33,12 @@ namespace Advobot.Standard.Commands
 		{
 			[Command]
 			[LocalizedSummary(nameof(Summaries.HelpGeneralHelp))]
-			public Task<RuntimeResult> CommandAsync()
+			public Task<RuntimeResult> Command()
 				=> Responses.Misc.GeneralHelp(Context.Settings.GetPrefix(BotSettings));
 
 			[Command, Priority(1)]
 			[LocalizedSummary(nameof(Summaries.HelpModuleHelp))]
-			public Task<RuntimeResult> CommandAsync(
+			public Task<RuntimeResult> Command(
 				[LocalizedSummary(nameof(Summaries.HelpVariableCommand))]
 				[LocalizedName(nameof(Names.Command))]
 				[Remainder]
@@ -49,7 +47,7 @@ namespace Advobot.Standard.Commands
 
 			[Command, Priority(2)]
 			[LocalizedSummary(nameof(Summaries.HelpCommandHelp))]
-			public Task<RuntimeResult> CommandAsync(
+			public Task<RuntimeResult> Command(
 				[LocalizedSummary(nameof(Summaries.HelpVariableExactCommand))]
 				[LocalizedName(nameof(Names.Command))]
 				IModuleHelpEntry helpEntry,
@@ -61,13 +59,12 @@ namespace Advobot.Standard.Commands
 
 			[Command(RunMode = RunMode.Async), Priority(0)]
 			[Hidden]
-			public async Task<RuntimeResult> CommandAsync(
-				[OverrideTypeReader(typeof(CloseHelpEntryTypeReader))]
+			public async Task<RuntimeResult> Command(
 				[Remainder]
-				IEnumerable<IModuleHelpEntry> helpEntries
+				IReadOnlyList<IModuleHelpEntry> helpEntries
 			)
 			{
-				var entry = await NextItemAtIndexAsync(helpEntries.ToArray(), x => x.Name).CAF();
+				var entry = await NextItemAtIndexAsync(helpEntries, x => x.Name).CAF();
 				if (entry.HasValue)
 				{
 					return Responses.Misc.Help(entry.Value, Context.Settings);
@@ -87,11 +84,11 @@ namespace Advobot.Standard.Commands
 #pragma warning restore CS8618 // Non-nullable field is uninitialized.
 
 			[Command]
-			public Task<RuntimeResult> CommandAsync()
+			public Task<RuntimeResult> Command()
 				=> Responses.Misc.GeneralCommandInfo(HelpEntries.GetCategories(), Prefix);
 
 			[Command]
-			public Task<RuntimeResult> CommandAsync([CommandCategory] string category)
+			public Task<RuntimeResult> Command([CommandCategory] string category)
 				=> Responses.Misc.CategoryCommands(HelpEntries.GetHelpEntries(category), category);
 		}
 
@@ -103,7 +100,7 @@ namespace Advobot.Standard.Commands
 		public sealed class MakeAnEmbed : AdvobotModuleBase
 		{
 			[Command]
-			public Task<RuntimeResult> CommandAsync([Remainder] CustomEmbed args)
+			public Task<RuntimeResult> Command([Remainder] CustomEmbed args)
 				=> Responses.Misc.MakeAnEmbed(args);
 		}
 
@@ -115,7 +112,7 @@ namespace Advobot.Standard.Commands
 		public sealed class MessageRole : AdvobotModuleBase
 		{
 			[Command]
-			public async Task CommandAsync(
+			public async Task Command(
 				[CanModifyRole, NotEveryone, NotMentionable] IRole role,
 				[Remainder] string message)
 			{
@@ -136,7 +133,7 @@ namespace Advobot.Standard.Commands
 		public sealed class MessageBotOwner : AdvobotModuleBase
 		{
 			[Command]
-			public async Task CommandAsync([Remainder] string message)
+			public async Task Command([Remainder] string message)
 			{
 				var owner = (await Context.Client.GetApplicationInfoAsync().CAF()).Owner;
 				var cut = message.Substring(0, Math.Min(message.Length, 250));
@@ -144,25 +141,6 @@ namespace Advobot.Standard.Commands
 				await owner.SendMessageAsync(text).CAF();
 			}
 		}
-
-#warning reimplement
-		/*
-		[LocalizedGroup(nameof(Groups.Remind))]
-		[LocalizedAlias(nameof(Aliases.Remind))]
-		[LocalizedSummary(nameof(Summaries.Remind))]
-		[Meta("3cedf19e-7a4d-47c0-ac2f-1c39a92026ec", IsEnabled = true)]
-		public sealed class Remind : AdvobotModuleBase
-		{
-			[Command]
-			public Task<RuntimeResult> CommandAsync(
-				[RemindTime] int minutes,
-				[Remainder] string message)
-			{
-				var time = TimeSpan.FromMinutes(minutes);
-				Timers.Add(new TimedMessage(time, Context.User, message));
-				return Responses.Misc.Remind(time);
-			}
-		}*/
 
 		[LocalizedGroup(nameof(Groups.Test))]
 		[LocalizedAlias(nameof(Aliases.Test))]
@@ -173,7 +151,7 @@ namespace Advobot.Standard.Commands
 		public sealed class Test : AdvobotModuleBase
 		{
 			[Command]
-			public async Task<RuntimeResult> CommandAsync(string response = "joe")
+			public async Task<RuntimeResult> Command(string response = "joe")
 			{
 				await Context.Guild.GetInvitesAsync().CAF();
 				return AdvobotResult.Success(response);

@@ -53,7 +53,7 @@ namespace Advobot.Quotes.Responses
 		{
 			return Success(RulesModifiedCategoryValue.Format(
 				category.Category.ToString().WithBlock(),
-				category.Name.WithBlock()
+				category.Value.WithBlock()
 			));
 		}
 

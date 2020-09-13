@@ -112,4 +112,7 @@
   <data name="ModifyRuleCategories" xml:space="preserve">
     <value>Modifies the categories which contain rules.</value>
   </data>
+  <data name="RemindMe" xml:space="preserve">
+    <value>Sends you a reminder after the specified time.</value>
+  </data>
 </root>

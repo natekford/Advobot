@@ -5,8 +5,6 @@ using System.Linq;
 
 using Advobot.Attributes;
 
-using AdvorangesUtils;
-
 using Discord.Commands;
 
 namespace Advobot.Services.HelpEntries
@@ -23,11 +21,8 @@ namespace Advobot.Services.HelpEntries
 		public IReadOnlyList<IPrecondition> Preconditions { get; }
 		public string Summary { get; }
 
-		public ModuleHelpEntry(ModuleInfo module)
+		public ModuleHelpEntry(ModuleInfo module, MetaAttribute meta, CategoryAttribute category)
 		{
-			var meta = module.Attributes.GetAttribute<MetaAttribute>();
-			var category = module.Attributes.GetAttribute<CategoryAttribute>();
-
 			AbleToBeToggled = meta.CanToggle;
 			EnabledByDefault = meta.IsEnabled;
 			Id = meta.Guid.ToString();

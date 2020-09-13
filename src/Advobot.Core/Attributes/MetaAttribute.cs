@@ -12,12 +12,10 @@ namespace Advobot.Attributes
 		/// Whether or not the command can be toggled.
 		/// </summary>
 		public bool CanToggle { get; set; } = true;
-
 		/// <summary>
 		/// The id of the command.
 		/// </summary>
 		public Guid Guid { get; }
-
 		/// <summary>
 		/// Whether or not the command is enabled by default.
 		/// </summary>

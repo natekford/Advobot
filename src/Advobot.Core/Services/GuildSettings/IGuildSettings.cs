@@ -1,7 +1,6 @@
 ﻿using System.Collections.Generic;
 
 using Advobot.Services.GuildSettings.Settings;
-using Advobot.Services.GuildSettings.UserInformation;
 using Advobot.Settings;
 
 namespace Advobot.Services.GuildSettings

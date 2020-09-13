@@ -1,8 +1,6 @@
 ﻿using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Net;
-using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 
 using Advobot.AutoMod.Database;
@@ -120,12 +118,14 @@ namespace Advobot.AutoMod.Service
 				_WillBeBatchRemoved.Add(context);
 				await _Punisher.HandleAsync(context).CAF();
 			}
-			// Lacking permissions, assume the punishment is being handled by someone else
+			// Lacking permissions, assume the punishment will be handled by someone else
 			catch (HttpException e) when (e.HttpCode == HttpStatusCode.Forbidden)
 			{
 			}
-			catch (Exception e)
+			catch
 			{
+				// TODO: differentiate between each error type?
+				// E.G. on 500 retry eventually, but on a 404 or something don't?
 				return false;
 			}
 

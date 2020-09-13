@@ -6,18 +6,18 @@ namespace Advobot.Quotes.Models
 	{
 		public int Category { get; set; }
 		public ulong GuildId { get; set; }
-		public string Name { get; set; }
+		public string Value { get; set; }
 
 		public RuleCategory()
 		{
-			Name = "";
+			Value = "";
 		}
 
 		public RuleCategory(IReadOnlyRuleCategory other)
 		{
 			Category = other.Category;
 			GuildId = other.GuildId;
-			Name = other.Name;
+			Value = other.Value;
 		}
 	}
 }

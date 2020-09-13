@@ -88,6 +88,15 @@ namespace Advobot.Quotes.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Successfully created a reminder for {0} minutes..
+        /// </summary>
+        internal static string RemindersAddedRemind {
+            get {
+                return ResourceManager.GetString("RemindersAddedRemind", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Successfully added a rule to the category {0}..
         /// </summary>
         internal static string RulesAddedRule {

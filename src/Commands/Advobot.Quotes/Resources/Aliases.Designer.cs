@@ -133,6 +133,15 @@ namespace Advobot.Quotes.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to rme.
+        /// </summary>
+        internal static string RemindMe {
+            get {
+                return ResourceManager.GetString("RemindMe", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to r.
         /// </summary>
         internal static string Remove {

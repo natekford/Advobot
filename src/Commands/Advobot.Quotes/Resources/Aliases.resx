@@ -130,4 +130,7 @@
   <data name="ModifyValue" xml:space="preserve">
     <value>mv</value>
   </data>
+  <data name="RemindMe" xml:space="preserve">
+    <value>rme</value>
+  </data>
 </root>

@@ -4,9 +4,6 @@ using System.Threading.Tasks;
 using Advobot.Quotes.Database;
 using Advobot.Quotes.Models;
 using Advobot.Quotes.ReadOnlyModels;
-using Advobot.Services.GuildSettings;
-using Advobot.Services.GuildSettings.Settings;
-using Advobot.Tests.Fakes.Services.GuildSettings;
 using Advobot.Tests.TestBases;
 using Advobot.TypeReaders;
 

@@ -142,4 +142,7 @@
   <data name="RulesSwappedRuleCategories" xml:space="preserve">
     <value>Successfully swapped the rule categories #{0} ({1} rules) and #{2} ({3} rules).</value>
   </data>
+  <data name="RemindersAddedRemind" xml:space="preserve">
+    <value>Successfully created a reminder for {0} minutes.</value>
+  </data>
 </root>

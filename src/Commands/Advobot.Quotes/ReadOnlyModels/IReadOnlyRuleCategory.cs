@@ -5,6 +5,6 @@ namespace Advobot.Quotes.ReadOnlyModels
 	public interface IReadOnlyRuleCategory : IGuildChild
 	{
 		int Category { get; }
-		string Name { get; }
+		string Value { get; }
 	}
 }

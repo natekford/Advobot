@@ -2,8 +2,6 @@
 using System.Collections.Generic;
 using System.Linq;
 
-using Advobot.Interfaces;
-
 using AdvorangesUtils;
 
 namespace Advobot.Classes.CloseWords

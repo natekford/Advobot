@@ -1,11 +1,9 @@
 ﻿using System;
-using System.Linq;
 using System.Threading.Tasks;
 
 using Advobot.Attributes.ParameterPreconditions;
 using Advobot.Attributes.ParameterPreconditions.Strings;
 using Advobot.Quotes.Database;
-using Advobot.Services.GuildSettings;
 using Advobot.Utilities;
 
 using AdvorangesUtils;

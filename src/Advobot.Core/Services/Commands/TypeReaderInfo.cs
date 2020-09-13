@@ -8,19 +8,21 @@ using Discord.Commands;
 
 namespace Advobot.Services.Commands
 {
-	internal sealed class TypeReaderInfo
+	internal readonly struct TypeReaderInfo
 	{
-		public TypeReaderTargetTypeAttribute Attribute { get; }
-
 		public TypeReader Instance { get; }
+		public IReadOnlyList<Type> TargetTypes { get; }
 
 		public TypeReaderInfo(TypeReader instance, TypeReaderTargetTypeAttribute attribute)
 		{
 			Instance = instance;
-			Attribute = attribute;
+			TargetTypes = attribute.TargetTypes;
 		}
+	}
 
-		public static IReadOnlyList<TypeReaderInfo> Create(Assembly assembly)
+	internal static class TypeReaderInfoUtils
+	{
+		public static IReadOnlyList<TypeReaderInfo> CreateTypeReaders(this Assembly assembly)
 		{
 			var list = new List<TypeReaderInfo>();
 			foreach (var type in assembly.GetTypes())

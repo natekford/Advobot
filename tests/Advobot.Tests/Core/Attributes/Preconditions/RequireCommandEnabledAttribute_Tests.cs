@@ -5,7 +5,6 @@ using System.Threading.Tasks;
 using Advobot.Attributes;
 using Advobot.Attributes.Preconditions;
 using Advobot.Services.GuildSettings;
-using Advobot.Services.HelpEntries;
 using Advobot.Tests.Fakes.Services.GuildSettings;
 using Advobot.Tests.Fakes.Services.HelpEntries;
 using Advobot.Tests.TestBases;
@@ -71,7 +70,7 @@ namespace Advobot.Tests.Core.Attributes.Preconditions
 		public sealed class FakeModule : ModuleBase
 		{
 			[Command]
-			public Task EmptyCommandAsync() => throw new NotImplementedException();
+			public Task Command() => throw new NotImplementedException();
 		}
 	}
 }

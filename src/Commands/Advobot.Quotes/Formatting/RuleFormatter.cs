@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Text;
 
@@ -138,6 +137,8 @@ namespace Advobot.Quotes.Formatting
 				{ RuleFormat.Bold, new HashSet<MarkDownFormat>() { MarkDownFormat.Bold | MarkDownFormat.Italics } }
 			}.ToImmutableDictionary();
 
+		private ISet<RuleFormatOption>? _Options;
+
 		/// <summary>
 		/// The character to put after numbers in the lists.
 		/// </summary>
@@ -145,7 +146,11 @@ namespace Advobot.Quotes.Formatting
 		/// <summary>
 		/// Additional formatting options.
 		/// </summary>
-		public ISet<RuleFormatOption> Options { get; set; } = new HashSet<RuleFormatOption>();
+		public IEnumerable<RuleFormatOption>? Options
+		{
+			get => _Options;
+			set => _Options = value is null ? null : new HashSet<RuleFormatOption>(value);
+		}
 		/// <summary>
 		/// The main format to use for rules.
 		/// </summary>
@@ -153,15 +158,32 @@ namespace Advobot.Quotes.Formatting
 		/// <summary>
 		/// Markdown supplied for rules.
 		/// </summary>
-		public ISet<MarkDownFormat> RuleMarkDownFormat { get; set; } = new HashSet<MarkDownFormat>();
+		public IEnumerable<MarkDownFormat>? RuleMarkDownFormat { get; set; }
 		/// <summary>
 		/// Markdown supplied for titles.
 		/// </summary>
-		public ISet<MarkDownFormat> TitleMarkDownFormat { get; set; } = new HashSet<MarkDownFormat>();
+		public IEnumerable<MarkDownFormat>? TitleMarkDownFormat { get; set; }
 
-		public void AppendCategory(StringBuilder sb, IReadOnlyRuleCategory category, IReadOnlyList<IReadOnlyRule> rules)
+		public string Format(IReadOnlyRuleCategory category, IReadOnlyList<IReadOnlyRule> rules)
 		{
-			FormatName(sb, category.Name);
+			var sb = new StringBuilder();
+			AppendCategory(sb, category, rules);
+			return sb.ToString();
+		}
+
+		public string Format(IReadOnlyDictionary<IReadOnlyRuleCategory, IReadOnlyList<IReadOnlyRule>> rules)
+		{
+			var sb = new StringBuilder();
+			foreach (var kvp in rules)
+			{
+				AppendCategory(sb, kvp.Key, kvp.Value);
+			}
+			return sb.ToString();
+		}
+
+		private void AppendCategory(StringBuilder sb, IReadOnlyRuleCategory category, IReadOnlyList<IReadOnlyRule> rules)
+		{
+			FormatName(sb, category.Value);
 			for (var i = 0; i < rules.Count; ++i)
 			{
 				FormatRule(sb, rules[i].Value, i, rules.Count).AppendLineFeed();
@@ -172,25 +194,29 @@ namespace Advobot.Quotes.Formatting
 		private StringBuilder FormatName(StringBuilder sb, string name)
 		{
 			sb.Append(name.FormatTitle()).TrimEnd();
-			if (Options.Contains(RuleFormatOption.ExtraLines))
+			if (_Options?.Contains(RuleFormatOption.ExtraLines) == true)
 			{
 				sb.AppendLineFeed();
 			}
-			sb.AddMarkDown(TitleMarkDownFormat.Count > 0 ? TitleMarkDownFormat : _DefaultTitleFormats[RuleFormat]);
+			sb.AddMarkDown(TitleMarkDownFormat ?? _DefaultTitleFormats[RuleFormat]);
 			return sb;
 		}
 
-		private StringBuilder FormatRule(StringBuilder sb, string rule, int index, int rulesInCategory)
+		private StringBuilder FormatRule(
+			StringBuilder sb,
+			string rule,
+			int index,
+			int count)
 		{
-			static StringBuilder PotentiallyPad(StringBuilder sb, ISet<RuleFormatOption> options, int index, int rulesInCategory)
+			static StringBuilder PotentiallyPad(StringBuilder sb, int index, int count, bool sameLength)
 			{
 				sb.Append('`');
 
 				var position = index + 1;
-				if (options.Contains(RuleFormatOption.NumbersSameLength))
+				if (sameLength)
 				{
 					var curLength = position.DigitCount();
-					var padLength = rulesInCategory.DigitCount();
+					var padLength = count.DigitCount();
 					if (curLength != padLength)
 					{
 						sb.Append('0', padLength - curLength);
@@ -205,7 +231,8 @@ namespace Advobot.Quotes.Formatting
 			{
 				case RuleFormat.Numbers:
 				case RuleFormat.Bold:
-					PotentiallyPad(sb, Options, index, rulesInCategory);
+					var sameLength = _Options?.Contains(RuleFormatOption.NumbersSameLength) == true;
+					PotentiallyPad(sb, index, count, sameLength);
 					break;
 
 				case RuleFormat.Dashes:
@@ -223,11 +250,11 @@ namespace Advobot.Quotes.Formatting
 				sb.AddCharAfterNumbers(CharAfterNumbers);
 			}
 			sb.TrimEnd();
-			if (Options.Contains(RuleFormatOption.ExtraLines))
+			if (_Options?.Contains(RuleFormatOption.ExtraLines) == true)
 			{
 				sb.AppendLineFeed();
 			}
-			return sb.AddMarkDown(RuleMarkDownFormat.Count > 0 ? RuleMarkDownFormat : _DefaultRuleFormats[RuleFormat]);
+			return sb.AddMarkDown(RuleMarkDownFormat ?? _DefaultRuleFormats[RuleFormat]);
 		}
 	}
 }

@@ -13,12 +13,10 @@ namespace Advobot.CommandAssemblies
 		/// The assembly marked as a command assembly.
 		/// </summary>
 		public Assembly Assembly { get; }
-
 		/// <summary>
 		/// The instantiator to use for this command assembly.
 		/// </summary>
 		public ICommandAssemblyInstantiator? Instantiator { get; }
-
 		/// <summary>
 		/// The cultures this command assembly supports.
 		/// </summary>
