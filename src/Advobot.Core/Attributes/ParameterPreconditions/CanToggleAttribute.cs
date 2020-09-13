@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Threading.Tasks;
 
 using Advobot.Services.HelpEntries;
@@ -17,6 +19,11 @@ namespace Advobot.Attributes.ParameterPreconditions
 	{
 		/// <inheritdoc />
 		public override string Summary => "Can be toggled";
+		/// <inheritdoc />
+		public override IEnumerable<Type> SupportedTypes { get; } = new[]
+		{
+			typeof(IModuleHelpEntry),
+		}.ToImmutableArray();
 
 		/// <inheritdoc />
 		protected override Task<PreconditionResult> SingularCheckPermissionsAsync(
@@ -27,11 +34,11 @@ namespace Advobot.Attributes.ParameterPreconditions
 		{
 			if (!(value is IModuleHelpEntry entry))
 			{
-				return this.FromOnlySupports(typeof(IModuleHelpEntry)).AsTask();
+				return this.FromOnlySupports(value).AsTask();
 			}
-			else if (entry.AbleToBeToggled)
+			if (entry.AbleToBeToggled)
 			{
-				return PreconditionResult.FromSuccess().AsTask();
+				return this.FromSuccess().AsTask();
 			}
 			return PreconditionResult.FromError($"`{entry.Name}` cannot be toggled.").AsTask();
 		}

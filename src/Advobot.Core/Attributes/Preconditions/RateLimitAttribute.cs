@@ -78,7 +78,7 @@ namespace Advobot.Attributes.Preconditions
 			}
 
 			dict[context.User.Id] = time.UtcNow.Add(Time);
-			return PreconditionResult.FromSuccess().AsTask();
+			return this.FromSuccess().AsTask();
 		}
 
 		/// <summary>

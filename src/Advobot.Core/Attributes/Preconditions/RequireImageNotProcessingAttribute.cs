@@ -31,7 +31,7 @@ namespace Advobot.Attributes.Preconditions
 			var resizer = services.GetRequiredService<IImageResizer>();
 			if (!resizer.IsGuildAlreadyProcessing(context.Guild.Id))
 			{
-				return PreconditionResult.FromSuccess().AsTask();
+				return this.FromSuccess().AsTask();
 			}
 			return PreconditionResult.FromError("Guild already has an image processing.").AsTask();
 		}

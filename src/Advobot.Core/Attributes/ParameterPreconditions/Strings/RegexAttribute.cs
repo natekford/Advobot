@@ -3,6 +3,8 @@ using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
+using Advobot.Utilities;
+
 using AdvorangesUtils;
 
 using Discord.Commands;
@@ -78,7 +80,7 @@ namespace Advobot.Attributes.ParameterPreconditions.Strings
 					return PreconditionResult.FromError($"Invalid regex; matched {Name} when it should not have.");
 				}
 			}
-			return PreconditionResult.FromSuccess();
+			return this.FromSuccess();
 		}
 	}
 }

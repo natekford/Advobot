@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Threading.Tasks;
 
 using Advobot.Attributes.ParameterPreconditions;
@@ -27,7 +29,11 @@ namespace Advobot.Logging.ParameterPreconditions
 		/// <inheritdoc />
 		public override string Summary
 			=> LogParameterPreconditionSummary.Format(LogName.WithNoMarkdown());
-
+		/// <inheritdoc/>
+		public override IEnumerable<Type> SupportedTypes { get; } = new[]
+		{
+			typeof(ITextChannel),
+		}.ToImmutableArray();
 		/// <summary>
 		/// Gets the name of the log.
 		/// </summary>
@@ -49,14 +55,14 @@ namespace Advobot.Logging.ParameterPreconditions
 		{
 			if (!(value is ITextChannel channel))
 			{
-				return this.FromOnlySupports(typeof(ITextChannel));
+				return this.FromOnlySupports(value);
 			}
 
 			var service = services.GetRequiredService<ILoggingService>();
 			var channels = await service.GetLogChannelsAsync(context.Guild.Id).CAF();
 			if (GetId(channels) != channel.Id)
 			{
-				return PreconditionResult.FromSuccess();
+				return this.FromSuccess();
 			}
 			return PreconditionResult.FromError(LogParameterPreconditionSummary.Format(
 				channel.Format().WithBlock(),

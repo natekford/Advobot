@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Threading.Tasks;
 
 using Advobot.Utilities;
@@ -18,6 +20,11 @@ namespace Advobot.Attributes.ParameterPreconditions.Numbers
 	{
 		/// <inheritdoc />
 		public override string Summary => "Not the bot owner";
+		/// <inheritdoc />
+		public override IEnumerable<Type> SupportedTypes { get; } = new[]
+		{
+			typeof(ulong),
+		}.ToImmutableArray();
 
 		/// <inheritdoc />
 		protected override async Task<PreconditionResult> SingularCheckPermissionsAsync(
@@ -28,13 +35,13 @@ namespace Advobot.Attributes.ParameterPreconditions.Numbers
 		{
 			if (!(value is ulong num))
 			{
-				return this.FromOnlySupports(typeof(ulong));
+				return this.FromOnlySupports(value);
 			}
 
 			var application = await context.Client.GetApplicationInfoAsync().CAF();
 			if (application.Owner.Id != num)
 			{
-				return PreconditionResult.FromSuccess();
+				return this.FromSuccess();
 			}
 			return PreconditionResult.FromError("You can't use the bot owner as an argument.");
 		}

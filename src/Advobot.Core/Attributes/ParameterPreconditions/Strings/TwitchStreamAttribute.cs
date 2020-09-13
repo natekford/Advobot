@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Threading.Tasks;
 
+using Advobot.Utilities;
+
 using AdvorangesUtils;
 
 using Discord.Commands;
@@ -36,7 +38,7 @@ namespace Advobot.Attributes.ParameterPreconditions.Strings
 
 			if (RegexUtils.IsValidTwitchName(value))
 			{
-				return PreconditionResult.FromSuccess();
+				return this.FromSuccess();
 			}
 			return PreconditionResult.FromError("Invalid Twitch username supplied.");
 		}

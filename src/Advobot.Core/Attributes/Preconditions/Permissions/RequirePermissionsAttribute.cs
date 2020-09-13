@@ -26,17 +26,14 @@ namespace Advobot.Attributes.Preconditions.Permissions
 		/// Whether this precondition has to validate the bot's permissions.
 		/// </summary>
 		public bool AppliesToBot { get; set; }
-
 		/// <summary>
 		/// Whether this precondition has to validate the invoker's permissions.
 		/// </summary>
 		public bool AppliesToInvoker { get; set; } = true;
-
 		/// <summary>
 		/// The flags required (each is a separate valid combination of flags).
 		/// </summary>
 		public ImmutableHashSet<Enum> Permissions { get; }
-
 		/// <inheritdoc />
 		public virtual string Summary { get; }
 
@@ -56,35 +53,47 @@ namespace Advobot.Attributes.Preconditions.Permissions
 			CommandInfo command,
 			IServiceProvider services)
 		{
-			var users = new List<IGuildUser>();
-			var bot = await context.Guild.GetCurrentUserAsync().CAF();
-			if (AppliesToInvoker)
-			{
-				if (!(context.User is IGuildUser temp))
-				{
-					return PreconditionUtils.FromInvalidInvoker();
-				}
-				users.Add(temp);
-			}
-			if (AppliesToBot)
-			{
-				users.Add(bot);
-			}
-
-			foreach (var user in users)
+			async Task<PreconditionResult> CheckPermissionsAsync(
+				ICommandContext context,
+				IGuildUser user,
+				IServiceProvider services)
 			{
 				var perms = await GetUserPermissionsAsync(context, user, services).CAF();
-				var subject = user.GetSubject(bot.Id);
 				if (perms == null)
 				{
-					return PreconditionResult.FromError($"{subject} have no permissions.");
+					return PreconditionResult.FromError($"{user.Format()} has no permissions.");
 				}
 				else if (!Permissions.Any(x => perms.HasFlag(x)))
 				{
-					return PreconditionResult.FromError($"{subject} do not have any suitable permissions.");
+					return PreconditionResult.FromError($"{user.Format()} does not have any suitable permissions.");
+				}
+				return this.FromSuccess();
+			}
+
+			if (AppliesToInvoker)
+			{
+				if (!(context.User is IGuildUser user))
+				{
+					return this.FromInvalidInvoker();
+				}
+
+				var result = await CheckPermissionsAsync(context, user, services).CAF();
+				if (!result.IsSuccess)
+				{
+					return result;
 				}
 			}
-			return PreconditionResult.FromSuccess();
+			if (AppliesToBot)
+			{
+				var bot = await context.Guild.GetCurrentUserAsync().CAF();
+
+				var result = await CheckPermissionsAsync(context, bot, services).CAF();
+				if (!result.IsSuccess)
+				{
+					return result;
+				}
+			}
+			return this.FromSuccess();
 		}
 
 		/// <summary>

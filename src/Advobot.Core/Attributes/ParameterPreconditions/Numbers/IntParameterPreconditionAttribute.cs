@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Threading.Tasks;
 
 using Advobot.Utilities;
@@ -18,15 +20,18 @@ namespace Advobot.Attributes.ParameterPreconditions.Numbers
 		/// Allowed numbers. If the range method is used this will be contain all of the values between the 2.
 		/// </summary>
 		public NumberCollection<int> Numbers { get; }
-
 		/// <summary>
 		/// The type of number this is targetting.
 		/// </summary>
 		public abstract string NumberType { get; }
-
 		/// <inheritdoc />
 		public override string Summary
 			=> $"Valid {NumberType} ({Numbers})";
+		/// <inheritdoc />
+		public override IEnumerable<Type> SupportedTypes { get; } = new[]
+		{
+			typeof(int),
+		}.ToImmutableArray();
 
 		/// <summary>
 		/// Valid numbers which are the randomly supplied values.
@@ -64,7 +69,7 @@ namespace Advobot.Attributes.ParameterPreconditions.Numbers
 			var numbers = GetNumbers(context, parameter, services);
 			if (numbers.Contains(value))
 			{
-				return PreconditionResult.FromSuccess().AsTask();
+				return this.FromSuccess().AsTask();
 			}
 			return PreconditionResult.FromError($"Invalid {parameter?.Name} supplied, must be in `{Numbers}`").AsTask();
 		}
@@ -91,7 +96,7 @@ namespace Advobot.Attributes.ParameterPreconditions.Numbers
 		{
 			if (!(value is int num))
 			{
-				return this.FromOnlySupports(typeof(int)).AsTask();
+				return this.FromOnlySupports(value).AsTask();
 			}
 			return SingularCheckPermissionsAsync(context, parameter, num, services);
 		}

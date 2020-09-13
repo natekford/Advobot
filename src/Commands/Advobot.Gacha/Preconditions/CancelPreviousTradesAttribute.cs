@@ -26,7 +26,7 @@ namespace Advobot.Gacha.Preconditions
 		{
 			if (!(context.User is IGuildUser user))
 			{
-				return this.FromOnlySupports(typeof(IGuildUser)).AsTask();
+				return this.FromInvalidInvoker().AsTask();
 			}
 
 			var trades = services.GetRequiredService<ExchangeManager>();
@@ -35,7 +35,7 @@ namespace Advobot.Gacha.Preconditions
 			var tokens = services.GetRequiredService<ITokenHolderService>();
 			_ = tokens.Get(user);
 
-			return PreconditionResult.FromSuccess().AsTask();
+			return this.FromSuccess().AsTask();
 		}
 	}
 }

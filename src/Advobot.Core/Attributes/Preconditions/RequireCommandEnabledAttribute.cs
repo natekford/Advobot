@@ -34,7 +34,7 @@ namespace Advobot.Attributes.Preconditions
 		{
 			if (!(context.User is IGuildUser user))
 			{
-				return PreconditionUtils.FromInvalidInvoker();
+				return this.FromInvalidInvoker();
 			}
 
 			var settingsFactory = services.GetRequiredService<IGuildSettingsFactory>();
@@ -42,7 +42,7 @@ namespace Advobot.Attributes.Preconditions
 			var meta = command.Module.Attributes.GetAttribute<MetaAttribute>();
 			if (settings.CommandSettings.CanUserInvokeCommand(user, context.Channel, meta))
 			{
-				return PreconditionResult.FromSuccess();
+				return this.FromSuccess();
 			}
 			return PreconditionResult.FromError("This command is disabled.");
 

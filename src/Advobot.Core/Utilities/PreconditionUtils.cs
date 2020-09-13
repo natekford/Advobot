@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 
 using Advobot.Attributes.ParameterPreconditions;
+using Advobot.Preconditions;
 
 using AdvorangesUtils;
 
@@ -17,6 +18,11 @@ namespace Advobot.Utilities
 	/// </summary>
 	public static class PreconditionUtils
 	{
+		/// <summary>
+		/// A successful result.
+		/// </summary>
+		public static PreconditionResult SuccessInstance { get; } = PreconditionResult.FromSuccess();
+
 		/// <summary>
 		/// Creates a <see cref="Task{T}"/> returning <paramref name="result"/>.
 		/// </summary>
@@ -67,39 +73,37 @@ namespace Advobot.Utilities
 				var error = $"`{value}` does not exist as a {type}.";
 				return PreconditionResult.FromError(error);
 			}
-			return PreconditionResult.FromSuccess();
+			return SuccessInstance;
 		}
 
 		/// <summary>
-		/// Creates <see cref="PreconditionResult.FromError(string)"/> but with a message saying the invoker was invalid.
+		/// Creates a <see cref="InvalidInvokingUserPreconditionResult"/>.
 		/// </summary>
+		/// <param name="_"></param>
 		/// <returns></returns>
-		public static PreconditionResult FromInvalidInvoker()
-			=> PreconditionResult.FromError("Invalid invoking user.");
+		public static PreconditionResult FromInvalidInvoker(
+			this Attribute _)
+			=> InvalidInvokingUserPreconditionResult.Instance;
 
 		/// <summary>
-		/// Creates an <see cref="PreconditionResult.FromError(string)"/> saying <paramref name="attr"/> only supports specific types.
+		/// Creates a <see cref="NotSupportedPreconditionResult"/>.
 		/// </summary>
-		/// <param name="attr"></param>
-		/// <param name="supported"></param>
+		/// <param name="attribute"></param>
+		/// <param name="value"></param>
 		/// <returns></returns>
 		public static PreconditionResult FromOnlySupports(
-			this Attribute attr,
-			params Type[] supported)
-		{
-			var t = attr.GetType().Name;
-			var s = supported.Select(x => x.Name).Join(", ");
-			return PreconditionResult.FromError($"{t} only supports {s}.");
-		}
+			this IHasSupportedTypes attribute,
+			object value)
+			=> new NotSupportedPreconditionResult(value, attribute.SupportedTypes);
 
 		/// <summary>
-		/// Gets the subject of a sentence
+		/// Returns <see cref="SuccessInstance"/>.
 		/// </summary>
-		/// <param name="invoker"></param>
-		/// <param name="botId"></param>
+		/// <param name="_"></param>
 		/// <returns></returns>
-		public static string GetSubject(this IGuildUser invoker, ulong botId)
-			=> invoker.Id == botId ? "I" : "You";
+		public static PreconditionResult FromSuccess(
+			this Attribute _)
+			=> SuccessInstance;
 
 		/// <summary>
 		/// Verifies that the channel can be edited in specific ways.
@@ -115,17 +119,22 @@ namespace Advobot.Utilities
 		{
 			return invoker.ValidateAsync(target, (i, t) =>
 			{
+				// Can do everything if admin
 				if (i.GuildPermissions.Administrator)
 				{
 					return true;
 				}
 
 				var channelPerms = i.GetPermissions(t);
+				// Can't do anything if the channel can't be seen
+				if (!channelPerms.Has(ChannelPermission.ViewChannel))
+				{
+					return false;
+				}
+
 				foreach (var permission in permissions)
 				{
-					//Can't do anything if the channel can't be seen
-					var temp = permission | ChannelPermission.ViewChannel;
-					if (!channelPerms.Has(temp))
+					if (!channelPerms.Has(permission))
 					{
 						return false;
 					}
@@ -156,19 +165,13 @@ namespace Advobot.Utilities
 			IGuildUser target)
 			=> invoker.ValidateAsync(target, CanModify);
 
-		private static int GetHierarchy(this IGuildUser u)
+		private static int GetHierarchy(this IGuildUser user)
 		{
-			if (u.Guild.OwnerId == u.Id)
+			if (user.Guild.OwnerId == user.Id)
 			{
 				return int.MaxValue;
 			}
-
-			var position = 0;
-			foreach (var roleId in u.RoleIds)
-			{
-				position = Math.Max(position, u.Guild.GetRole(roleId).Position);
-			}
-			return position;
+			return user.RoleIds.Max(x => user.Guild.GetRole(x).Position);
 		}
 
 		private static async Task<PreconditionResult> ValidateAsync<T>(
@@ -179,7 +182,7 @@ namespace Advobot.Utilities
 		{
 			if (target == null)
 			{
-				return PreconditionResult.FromError($"Unable to find a matching `{typeof(T).Name}`.");
+				return new UnableToFindPreconditionResult(typeof(T));
 			}
 
 			var bot = await invoker.Guild.GetCurrentUserAsync().CAF();
@@ -192,12 +195,10 @@ namespace Advobot.Utilities
 			{
 				if (!permissionsCallback(user, target))
 				{
-					var subject = user.GetSubject(bot.Id);
-					var error = $"{subject} do not have the ability to modify `{target.Format()}`.";
-					return PreconditionResult.FromError(error);
+					return new LackingPermissionsPreconditionResult(user, target);
 				}
 			}
-			return PreconditionResult.FromSuccess();
+			return SuccessInstance;
 		}
 	}
 }

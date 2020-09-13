@@ -5,6 +5,7 @@ using Advobot.Invites.Service;
 using Advobot.Invites.Utilities;
 using Advobot.Services.HelpEntries;
 using Advobot.Services.Time;
+using Advobot.Utilities;
 
 using AdvorangesUtils;
 
@@ -41,7 +42,7 @@ namespace Advobot.Invites.Preconditions
 			var time = services.GetRequiredService<ITime>();
 			if ((time.UtcNow - invite.GetLastBumped()).TotalHours > 1)
 			{
-				return PreconditionResult.FromSuccess();
+				return this.FromSuccess();
 			}
 			return PreconditionResult.FromError("The last invite bump was too recent.");
 		}

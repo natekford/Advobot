@@ -27,7 +27,7 @@ namespace Advobot.Attributes.ParameterPreconditions.DiscordObjectValidation.Emot
 		{
 			if (emote.RoleIds.Count > 0)
 			{
-				return PreconditionResult.FromSuccess().AsTask();
+				return this.FromSuccess().AsTask();
 			}
 			return PreconditionResult.FromError("The emote must have required roles.").AsTask();
 		}

@@ -42,7 +42,7 @@ namespace Advobot.Logging.Preconditions
 			var channels = await service.GetLogChannelsAsync(context.Guild.Id).CAF();
 			if (GetId(channels) != 0)
 			{
-				return PreconditionResult.FromSuccess();
+				return this.FromSuccess();
 			}
 			return PreconditionResult.FromError(LogPreconditionError.Format(LogName.WithNoMarkdown()));
 		}
@@ -50,7 +50,7 @@ namespace Advobot.Logging.Preconditions
 		/// <summary>
 		/// Gets the current id of the log channel.
 		/// </summary>
-		/// <param name="settings"></param>
+		/// <param name="channels"></param>
 		/// <returns></returns>
 		protected abstract ulong GetId(IReadOnlyLogChannels channels);
 	}

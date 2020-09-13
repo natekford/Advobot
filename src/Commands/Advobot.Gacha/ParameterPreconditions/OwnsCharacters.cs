@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Threading.Tasks;
 
 using Advobot.Attributes.ParameterPreconditions;
@@ -18,6 +20,10 @@ namespace Advobot.Gacha.ParameterPreconditions
 	public sealed class OwnsCharacters : AdvobotParameterPreconditionAttribute
 	{
 		public override string Summary => "Character is owned by the invoker";
+		public override IEnumerable<Type> SupportedTypes { get; } = new[]
+		{
+			typeof(IReadOnlyCharacter),
+		}.ToImmutableArray();
 
 		protected override async Task<PreconditionResult> SingularCheckPermissionsAsync(
 			ICommandContext context,
@@ -27,14 +33,14 @@ namespace Advobot.Gacha.ParameterPreconditions
 		{
 			if (!(value is IReadOnlyCharacter character))
 			{
-				return this.FromOnlySupports(typeof(IReadOnlyCharacter));
+				return this.FromOnlySupports(value);
 			}
 
 			var db = services.GetRequiredService<IGachaDatabase>();
 			var claim = await db.GetClaimAsync(context.Guild.Id, character).CAF();
 			if (claim?.UserId == context.User.Id)
 			{
-				return PreconditionResult.FromSuccess();
+				return this.FromSuccess();
 			}
 			return PreconditionResult.FromError("You do not currently own this character.");
 		}

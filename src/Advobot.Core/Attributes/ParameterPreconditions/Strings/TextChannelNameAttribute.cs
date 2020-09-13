@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Threading.Tasks;
 
+using Advobot.Utilities;
+
 using AdvorangesUtils;
 
 using Discord.Commands;
@@ -31,7 +33,7 @@ namespace Advobot.Attributes.ParameterPreconditions.Strings
 
 			if (!value.Contains(" "))
 			{
-				return PreconditionResult.FromSuccess();
+				return this.FromSuccess();
 			}
 			return PreconditionResult.FromError("Spaces are not allowed in text channel names.");
 		}

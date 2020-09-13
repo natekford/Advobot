@@ -2,6 +2,7 @@
 using System.Threading.Tasks;
 
 using Advobot.Services.HelpEntries;
+using Advobot.Utilities;
 
 using AdvorangesUtils;
 
@@ -29,7 +30,7 @@ namespace Advobot.Attributes.Preconditions
 			var application = await context.Client.GetApplicationInfoAsync().CAF();
 			if (application.Owner.Id == context.User.Id)
 			{
-				return PreconditionResult.FromSuccess();
+				return this.FromSuccess();
 			}
 			return PreconditionResult.FromError("You are not the bot owner.");
 		}

@@ -1,8 +1,11 @@
 ﻿using System;
 using System.Collections;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 
+using Advobot.Preconditions;
 using Advobot.Services.HelpEntries;
+using Advobot.Utilities;
 
 using AdvorangesUtils;
 
@@ -14,16 +17,16 @@ namespace Advobot.Attributes.ParameterPreconditions
 	/// Requires the parameter meet a precondition unless it's optional.
 	/// </summary>
 	public abstract class AdvobotParameterPreconditionAttribute
-		: ParameterPreconditionAttribute, IParameterPrecondition
+		: ParameterPreconditionAttribute, IParameterPrecondition, IHasSupportedTypes
 	{
 		/// <inheritdoc />
 		public abstract string Summary { get; }
-
+		/// <inheritdoc />
+		public abstract IEnumerable<Type> SupportedTypes { get; }
 		/// <summary>
 		/// Whether or not the passed in value can have all its inner values checked if it's an <see cref="IEnumerable"/>.
 		/// </summary>
 		protected virtual bool AllowEnumerating { get; }
-
 		/// <summary>
 		/// Whether or not default value passed in to this parameter precondition should be instant success.
 		/// </summary>
@@ -39,7 +42,7 @@ namespace Advobot.Attributes.ParameterPreconditions
 			//If optional, return success when nothing is supplied
 			if (IsOptionalSuccess && parameter.IsOptional && parameter.DefaultValue == value)
 			{
-				return PreconditionResult.FromSuccess();
+				return this.FromSuccess();
 			}
 
 			if (AllowEnumerating && value is IEnumerable enumerable)
@@ -54,7 +57,7 @@ namespace Advobot.Attributes.ParameterPreconditions
 					}
 				}
 				//If nothing failed then it gets to this point, so return success
-				return PreconditionResult.FromSuccess();
+				return this.FromSuccess();
 			}
 			return await SingularCheckPermissionsAsync(context, parameter, value, services).CAF();
 		}

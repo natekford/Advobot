@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -19,9 +21,13 @@ namespace Advobot.Attributes.ParameterPreconditions.DiscordObjectValidation
 	{
 		/// <inheritdoc />
 		public ExistenceStatus Status => ExistenceStatus.MustNotExist;
-
 		/// <inheritdoc />
 		public override string Summary => "not already banned";
+		/// <inheritdoc />
+		public override IEnumerable<Type> SupportedTypes { get; } = new[]
+		{
+			typeof(ulong),
+		}.ToImmutableArray();
 
 		/// <inheritdoc />
 		protected override async Task<PreconditionResult> SingularCheckPermissionsAsync(
@@ -32,7 +38,7 @@ namespace Advobot.Attributes.ParameterPreconditions.DiscordObjectValidation
 		{
 			if (!(value is ulong id))
 			{
-				return this.FromOnlySupports(typeof(ulong));
+				return this.FromOnlySupports(value);
 			}
 
 			var bans = await context.Guild.GetBansAsync().CAF();

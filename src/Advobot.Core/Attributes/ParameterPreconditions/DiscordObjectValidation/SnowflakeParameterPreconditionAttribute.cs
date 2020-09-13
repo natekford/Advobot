@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Threading.Tasks;
 
 using Advobot.Utilities;
@@ -16,6 +18,11 @@ namespace Advobot.Attributes.ParameterPreconditions.DiscordObjectValidation
 		: AdvobotParameterPreconditionAttribute
 	{
 		/// <inheritdoc />
+		public override IEnumerable<Type> SupportedTypes { get; } = new[]
+		{
+			typeof(ISnowflakeEntity),
+		}.ToImmutableArray();
+		/// <inheritdoc />
 		protected override bool IsOptionalSuccess => false;
 
 		/// <inheritdoc />
@@ -25,16 +32,11 @@ namespace Advobot.Attributes.ParameterPreconditions.DiscordObjectValidation
 			object value,
 			IServiceProvider services)
 		{
-			if (value is ISnowflakeEntity snowflake)
+			if (!(value is ISnowflakeEntity snowflake))
 			{
-				return SingularCheckPermissionsAsync(context, parameter, snowflake, services);
+				return this.FromOnlySupports(value).AsTask();
 			}
-			else if (value is null)
-			{
-				var error = $"No value was passed in for {parameter.Name}.";
-				return PreconditionResult.FromError(error).AsTask();
-			}
-			return this.FromOnlySupports(typeof(ISnowflakeEntity)).AsTask();
+			return SingularCheckPermissionsAsync(context, parameter, snowflake, services);
 		}
 
 		/// <summary>

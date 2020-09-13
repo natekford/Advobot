@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Threading.Tasks;
 
 using Advobot.Utilities;
@@ -16,6 +18,12 @@ namespace Advobot.Attributes.ParameterPreconditions.DiscordObjectValidation.Chan
 	public abstract class ChannelParameterPreconditionAttribute
 		: SnowflakeParameterPreconditionAttribute
 	{
+		/// <inheritdoc />
+		public override IEnumerable<Type> SupportedTypes { get; } = new[]
+		{
+			typeof(IGuildChannel),
+		}.ToImmutableArray();
+
 		/// <summary>
 		/// Checks whether the condition for the <see cref="IGuildUser"/> is met before execution of the command.
 		/// </summary>
@@ -41,11 +49,11 @@ namespace Advobot.Attributes.ParameterPreconditions.DiscordObjectValidation.Chan
 		{
 			if (!(context.User is IGuildUser invoker))
 			{
-				return PreconditionUtils.FromInvalidInvoker().AsTask();
+				return this.FromInvalidInvoker().AsTask();
 			}
 			if (!(value is IGuildChannel channel))
 			{
-				return this.FromOnlySupports(typeof(IGuildChannel)).AsTask();
+				return this.FromOnlySupports(value).AsTask();
 			}
 			return SingularCheckChannelAsync(context, parameter, invoker, channel, services);
 		}

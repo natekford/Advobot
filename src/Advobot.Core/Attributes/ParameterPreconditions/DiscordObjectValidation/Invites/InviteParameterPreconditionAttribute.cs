@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Threading.Tasks;
 
 using Advobot.Utilities;
@@ -15,6 +17,12 @@ namespace Advobot.Attributes.ParameterPreconditions.DiscordObjectValidation.Invi
 	public abstract class InviteParameterPreconditionAttribute
 		: AdvobotParameterPreconditionAttribute
 	{
+		/// <inheritdoc />
+		public override IEnumerable<Type> SupportedTypes { get; } = new[]
+		{
+			typeof(IInviteMetadata),
+		}.ToImmutableArray();
+
 		/// <summary>
 		/// Checks whether the condition for the <see cref="IInviteMetadata"/> is met before execution of the command.
 		/// </summary>
@@ -40,18 +48,13 @@ namespace Advobot.Attributes.ParameterPreconditions.DiscordObjectValidation.Invi
 		{
 			if (!(context.User is IGuildUser user))
 			{
-				return PreconditionUtils.FromInvalidInvoker().AsTask();
+				return this.FromInvalidInvoker().AsTask();
 			}
-			if (value is IInviteMetadata invite)
+			if (!(value is IInviteMetadata invite))
 			{
-				return SingularCheckInviteAsync(context, parameter, user, invite, services);
+				return this.FromOnlySupports(value).AsTask();
 			}
-			else if (value is null)
-			{
-				var error = $"No value was passed in for {parameter.Name}.";
-				return PreconditionResult.FromError(error).AsTask();
-			}
-			return this.FromOnlySupports(typeof(IInviteMetadata)).AsTask();
+			return SingularCheckInviteAsync(context, parameter, user, invite, services);
 		}
 	}
 }

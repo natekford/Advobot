@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Threading.Tasks;
 
 using Advobot.Utilities;
@@ -16,6 +18,12 @@ namespace Advobot.Attributes.ParameterPreconditions.DiscordObjectValidation.User
 		: SnowflakeParameterPreconditionAttribute
 	{
 		/// <inheritdoc />
+		public override IEnumerable<Type> SupportedTypes { get; } = new[]
+		{
+			typeof(IGuildUser),
+		}.ToImmutableArray();
+
+		/// <inheritdoc />
 		protected override Task<PreconditionResult> SingularCheckPermissionsAsync(
 			ICommandContext context,
 			ParameterInfo parameter,
@@ -24,11 +32,11 @@ namespace Advobot.Attributes.ParameterPreconditions.DiscordObjectValidation.User
 		{
 			if (!(context.User is IGuildUser invoker))
 			{
-				return PreconditionUtils.FromInvalidInvoker().AsTask();
+				return this.FromInvalidInvoker().AsTask();
 			}
 			if (!(value is IGuildUser user))
 			{
-				return this.FromOnlySupports(typeof(IGuildUser)).AsTask();
+				return this.FromOnlySupports(value).AsTask();
 			}
 			return SingularCheckUserAsync(context, parameter, invoker, user, services);
 		}

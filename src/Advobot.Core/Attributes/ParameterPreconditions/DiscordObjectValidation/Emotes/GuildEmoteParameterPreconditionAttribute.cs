@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Threading.Tasks;
 
 using Advobot.Utilities;
@@ -15,6 +17,12 @@ namespace Advobot.Attributes.ParameterPreconditions.DiscordObjectValidation.Emot
 	public abstract class GuildEmoteParameterPreconditionAttribute
 		: SnowflakeParameterPreconditionAttribute
 	{
+		/// <inheritdoc />
+		public override IEnumerable<Type> SupportedTypes { get; } = new[]
+		{
+			typeof(GuildEmote),
+		}.ToImmutableArray();
+
 		/// <summary>
 		/// Checks whether the condition for the <see cref="GuildEmote"/> is met before execution of the command.
 		/// </summary>
@@ -40,11 +48,11 @@ namespace Advobot.Attributes.ParameterPreconditions.DiscordObjectValidation.Emot
 		{
 			if (!(context.User is IGuildUser user))
 			{
-				return PreconditionUtils.FromInvalidInvoker().AsTask();
+				return this.FromInvalidInvoker().AsTask();
 			}
 			if (!(value is GuildEmote invite))
 			{
-				return this.FromOnlySupports(typeof(GuildEmote)).AsTask();
+				return this.FromOnlySupports(value).AsTask();
 			}
 			return SingularCheckGuildEmoteAsync(context, parameter, user, invite, services);
 		}

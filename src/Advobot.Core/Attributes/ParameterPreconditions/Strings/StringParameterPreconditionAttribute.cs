@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Threading.Tasks;
 
 using Advobot.Utilities;
@@ -18,16 +20,18 @@ namespace Advobot.Attributes.ParameterPreconditions.Strings
 		/// The type of string this is targetting.
 		/// </summary>
 		public abstract string StringType { get; }
-
 		/// <inheritdoc />
 		public override string Summary
 			=> $"Valid {StringType} ({ValidLength} long)";
-
+		/// <inheritdoc />
+		public override IEnumerable<Type> SupportedTypes { get; } = new[]
+		{
+			typeof(string),
+		}.ToImmutableArray();
 		/// <summary>
 		/// Allowed length for strings passed in.
 		/// </summary>
 		public NumberCollection<int> ValidLength { get; }
-
 		/// <inheritdoc />
 		protected override bool AllowEnumerating => false;
 
@@ -48,11 +52,11 @@ namespace Advobot.Attributes.ParameterPreconditions.Strings
 			object value,
 			IServiceProvider services)
 		{
-			if (!(value is string s))
+			if (!(value is string @string))
 			{
-				return this.FromOnlySupports(typeof(string)).AsTask();
+				return this.FromOnlySupports(value).AsTask();
 			}
-			return SingularCheckPermissionsAsync(context, parameter, s, services);
+			return SingularCheckPermissionsAsync(context, parameter, @string, services);
 		}
 
 		/// <summary>
@@ -71,7 +75,7 @@ namespace Advobot.Attributes.ParameterPreconditions.Strings
 		{
 			if (ValidLength.Contains(value.Length))
 			{
-				return PreconditionResult.FromSuccess().AsTask();
+				return this.FromSuccess().AsTask();
 			}
 			return PreconditionResult.FromError($"Invalid {parameter?.Name} supplied, must have a length in `{ValidLength}`").AsTask();
 		}

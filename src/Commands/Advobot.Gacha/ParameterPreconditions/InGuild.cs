@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Threading.Tasks;
 
 using Advobot.Attributes.ParameterPreconditions;
@@ -15,6 +17,10 @@ namespace Advobot.Gacha.ParameterPreconditions
 	public sealed class InGuild : AdvobotParameterPreconditionAttribute
 	{
 		public override string Summary => "In the guild";
+		public override IEnumerable<Type> SupportedTypes { get; } = new[]
+		{
+			typeof(IReadOnlyUser),
+		}.ToImmutableArray();
 
 		protected override async Task<PreconditionResult> SingularCheckPermissionsAsync(
 			ICommandContext context,
@@ -24,11 +30,11 @@ namespace Advobot.Gacha.ParameterPreconditions
 		{
 			if (!(value is IReadOnlyUser user))
 			{
-				return this.FromOnlySupports(typeof(IReadOnlyUser));
+				return this.FromOnlySupports(value);
 			}
-			else if (await context.Guild.GetUserAsync(user.UserId).CAF() == null)
+			else if (await context.Guild.GetUserAsync(user.UserId).CAF() != null)
 			{
-				return PreconditionResult.FromSuccess();
+				return this.FromSuccess();
 			}
 			return PreconditionResult.FromError("The user must be in the guild.");
 		}
