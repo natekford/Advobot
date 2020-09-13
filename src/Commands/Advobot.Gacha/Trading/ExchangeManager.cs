@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 using Advobot.Gacha.Database;
 using Advobot.Gacha.ReadOnlyModels;
-using Advobot.Utilities;
+using Advobot.Gacha.Utilities;
 
 using AdvorangesUtils;
 

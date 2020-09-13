@@ -231,7 +231,16 @@ namespace Advobot.Services.Commands
 			}
 			_Client.ShardReady -= OnShardReady;
 
-			await _Client.UpdateGameAsync(_BotSettings).CAF();
+			var game = _BotSettings.Game;
+			var stream = _BotSettings.Stream;
+			var activityType = ActivityType.Playing;
+			if (!string.IsNullOrWhiteSpace(stream))
+			{
+				stream = $"https://www.twitch.tv/{stream.Substring(stream.LastIndexOf('/') + 1)}";
+				activityType = ActivityType.Streaming;
+			}
+			await _Client.SetGameAsync(game, stream, activityType).CAF();
+
 			await _Ready.InvokeAsync().CAF();
 		}
 	}

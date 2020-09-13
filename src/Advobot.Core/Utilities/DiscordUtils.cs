@@ -130,7 +130,11 @@ namespace Advobot.Utilities
 		/// <param name="enable"></param>
 		/// <param name="options"></param>
 		/// <returns></returns>
-		public static Task ModifySystemChannelFlags(this IGuild guild, SystemChannelMessageDeny flags, bool enable, RequestOptions options)
+		public static Task ModifySystemChannelFlags(
+			this IGuild guild,
+			SystemChannelMessageDeny flags,
+			bool enable,
+			RequestOptions options)
 		{
 			var current = guild.SystemChannelFlags;
 

@@ -1,7 +1,7 @@
 ﻿using System.Collections.Concurrent;
 using System.Threading;
 
-using Advobot.Utilities;
+using Advobot.Gacha.Utilities;
 
 using Discord;
 

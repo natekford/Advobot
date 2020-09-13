@@ -154,14 +154,6 @@ namespace Advobot.Utilities
 		}
 
 		/// <summary>
-		/// Converts <see cref="IGuildUser"/> to a tuple usable as a key in a dictionary.
-		/// </summary>
-		/// <param name="user"></param>
-		/// <returns></returns>
-		public static (ulong GuildId, ulong UserId) ToKey(this IGuildUser user)
-			=> (user.GuildId, user.Id);
-
-		/// <summary>
 		/// Ensures the extension of the file is '.db' and that the directory exists.
 		/// </summary>
 		/// <param name="accessor"></param>

@@ -13,6 +13,8 @@ using AdvorangesUtils;
 
 using Dapper;
 
+using Discord;
+
 namespace Advobot.Gacha.Utilities
 {
 	public static class RankUtils
@@ -79,5 +81,8 @@ namespace Advobot.Gacha.Utilities
 
 		public static double Normalize(DateTimeOffset now, DateTimeOffset timeCreated, int amount)
 			=> amount / (now - timeCreated).TotalDays;
+
+		public static (ulong GuildId, ulong UserId) ToKey(this IGuildUser user)
+			=> (user.GuildId, user.Id);
 	}
 }

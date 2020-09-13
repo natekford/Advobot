@@ -16,10 +16,8 @@ namespace Advobot.Utilities
 	{
 		private static readonly IReadOnlyList<ChannelPermission> _Category
 			= ChannelPermissions.Category.ToList();
-
 		private static readonly IReadOnlyList<ChannelPermission> _Text
-					= ChannelPermissions.Text.ToList();
-
+			= ChannelPermissions.Text.ToList();
 		private static readonly IReadOnlyList<ChannelPermission> _Voice
 			= ChannelPermissions.Voice.ToList();
 

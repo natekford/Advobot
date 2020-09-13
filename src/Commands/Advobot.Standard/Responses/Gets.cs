@@ -551,7 +551,7 @@ namespace Advobot.Standard.Responses
 
 		public static AdvobotResult UserJoin(IReadOnlyCollection<IGuildUser> users)
 		{
-			var text = users.OrderBy(x => x.JoinedAt).FormatNumberedList(x =>
+			var text = users.FormatNumberedList(x =>
 			{
 				var joined = x.JoinedAt ?? DateTimeOffset.UtcNow;
 				return GetsUserJoins.Format(
