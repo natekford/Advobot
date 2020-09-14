@@ -39,7 +39,7 @@ namespace Advobot.Tests.Core.Attributes.ParameterPreconditions.Strings
 				//GuildSettingNames.RaidPrevention,
 				//GuildSettingNames.PersistentRoles,
 				GuildSettingNames.BotUsers,
-				GuildSettingNames.SelfAssignableGroups,
+				//GuildSettingNames.SelfAssignableGroups,
 				//GuildSettingNames.Quotes,
 				//GuildSettingNames.LogActions,
 				GuildSettingNames.IgnoredCommandChannels,

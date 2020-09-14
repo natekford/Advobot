@@ -926,4 +926,25 @@ Type {1} for help with a command.</value>
   <data name="BannedPhraseRemoved" xml:space="preserve">
     <value>Successfully removed the banned {0} {1}.</value>
   </data>
+  <data name="SelfRolesAddedToGroup" xml:space="preserve">
+    <value>Successfully added {0} self roles to group {1}.</value>
+  </data>
+  <data name="SelfRolesRemovedFromGroup" xml:space="preserve">
+    <value>Successfully removed {0} self roles.</value>
+  </data>
+  <data name="SelfRolesClearedGroup" xml:space="preserve">
+    <value>Successfully cleared {0} self roles from group {1}.</value>
+  </data>
+  <data name="SelfRolesTitleDisplay" xml:space="preserve">
+    <value>Self Assignable Roles</value>
+  </data>
+  <data name="SelfRolesRemoved" xml:space="preserve">
+    <value>Successfully removed {0}.</value>
+  </data>
+  <data name="SelfRolesAdded" xml:space="preserve">
+    <value>Successfully added {0}.</value>
+  </data>
+  <data name="SelfRolesAddedAndRemovedOthers" xml:space="preserve">
+    <value>Successfully added {0} and removed all conflicting self roles.</value>
+  </data>
 </root>

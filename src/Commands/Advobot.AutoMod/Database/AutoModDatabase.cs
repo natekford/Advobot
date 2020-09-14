@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Data.SQLite;
+using System.Linq;
 using System.Threading.Tasks;
 
 using Advobot.AutoMod.Models;
@@ -40,6 +41,27 @@ namespace Advobot.AutoMod.Database
 				DELETE FROM PersistentRole
 				WHERE GuildId = @GuildId AND UserId = @UserId AND RoleId = @RoleId
 			", role);
+		}
+
+		public Task<int> DeleteSelfRolesAsync(IEnumerable<ulong> roles)
+		{
+			return BulkModifyAsync(@"
+				DELETE FROM SelfRole
+				WHERE RoleId = @RoleId
+			", roles.Select(x => new { RoleId = x.ToString() }));
+		}
+
+		public Task<int> DeleteSelfRolesGroupAsync(ulong guildId, int groupId)
+		{
+			var param = new
+			{
+				GuildId = guildId.ToString(),
+				GroupId = groupId,
+			};
+			return ModifyAsync(@"
+				DELETE FROM SelfRole
+				WHERE GuildId = @GuildId AND GroupId = @GroupId
+			", param);
 		}
 
 		public async Task<IReadOnlyAutoModSettings> GetAutoModSettingsAsync(ulong guildId)
@@ -156,6 +178,40 @@ namespace Advobot.AutoMod.Database
 			", param).CAF();
 		}
 
+		public async Task<IReadOnlySelfRole?> GetSelfRoleAsync(ulong roleId)
+		{
+			var param = new { RoleId = roleId.ToString() };
+			return await GetOneAsync<SelfRole>(@"
+				SELECT *
+				FROM SelfRole
+				WHERE RoleId = @RoleId
+			", param).CAF();
+		}
+
+		public async Task<IReadOnlyList<IReadOnlySelfRole>> GetSelfRolesAsync(ulong guildId)
+		{
+			var param = new { GuildId = guildId.ToString() };
+			return await GetManyAsync<SelfRole>(@"
+				SELECT *
+				FROM SelfRole
+				WHERE GuildId = @GuildId
+			", param).CAF();
+		}
+
+		public async Task<IReadOnlyList<IReadOnlySelfRole>> GetSelfRolesAsync(ulong guildId, int groupId)
+		{
+			var param = new
+			{
+				GuildId = guildId.ToString(),
+				GroupId = groupId
+			};
+			return await GetManyAsync<SelfRole>(@"
+				SELECT *
+				FROM SelfRole
+				WHERE GuildId = @GuildId AND GroupId = @GroupId
+			", param).CAF();
+		}
+
 		public async Task<IReadOnlyList<IReadOnlySpamPrevention>> GetSpamPreventionAsync(ulong guildId)
 		{
 			var param = new { GuildId = guildId.ToString(), };
@@ -247,6 +303,20 @@ namespace Advobot.AutoMod.Database
 					Size = @Size
 				WHERE GuildId = @GuildId AND RaidType = @RaidType
 			", prevention);
+		}
+
+		public Task<int> UpsertSelfRolesAsync(IEnumerable<IReadOnlySelfRole> roles)
+		{
+			return BulkModifyAsync(@"
+				INSERT OR IGNORE INTO SelfRole
+					( GuildId, RoleId, GroupId )
+					VALUES
+					( @GuildId, @RoleId, @GroupId );
+				UPDATE SelfRole
+				SET
+					GroupId = @GroupId
+				WHERE RoleId = @RoleId
+			", roles);
 		}
 
 		public Task<int> UpsertSpamPreventionAsync(IReadOnlySpamPrevention prevention)

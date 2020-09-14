@@ -171,6 +171,10 @@ namespace Advobot.Utilities
 			{
 				return int.MaxValue;
 			}
+			if (user.RoleIds.Count == 0)
+			{
+				return user.Guild.EveryoneRole.Position;
+			}
 			return user.RoleIds.Max(x => user.Guild.GetRole(x).Position);
 		}
 

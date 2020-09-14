@@ -40,6 +40,18 @@ namespace Advobot.Utilities
 		}
 
 		/// <summary>
+		/// Returns failure indicating an object was not found.
+		/// </summary>
+		/// <param name="type"></param>
+		/// <param name="value"></param>
+		/// <returns></returns>
+		public static TypeReaderResult NotFoundResult(string type, string value)
+		{
+			var noneError = $"Unable to find any {type} matching `{value}`.";
+			return TypeReaderResult.FromError(CommandError.ObjectNotFound, noneError);
+		}
+
+		/// <summary>
 		/// Returns a string saying 'Failed to parse <typeparamref name="T"/>'.
 		/// </summary>
 		/// <typeparam name="T"></typeparam>
@@ -69,8 +81,7 @@ namespace Advobot.Utilities
 				var tooManyError = $"{matches.Count} {type} match `{value}`.";
 				return TypeReaderResult.FromError(CommandError.MultipleMatches, tooManyError);
 			}
-			var noneError = $"Unable to find any {type} matching `{value}`.";
-			return TypeReaderResult.FromError(CommandError.ObjectNotFound, noneError);
+			return NotFoundResult(type, value);
 		}
 	}
 }

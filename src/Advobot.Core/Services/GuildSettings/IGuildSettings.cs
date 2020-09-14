@@ -68,19 +68,7 @@ namespace Advobot.Services.GuildSettings
 	public interface IGuildSettings :
 		ICommandGuildSettings,
 		ICoreGuildSettings,
-		ISelfAssignableRoleGuildSettings,
 		ISettingsBase
 	{
-	}
-
-	/// <summary>
-	/// Self assingable role guild settings.
-	/// </summary>
-	public interface ISelfAssignableRoleGuildSettings
-	{
-		/// <summary>
-		/// Roles users can assign themselves.
-		/// </summary>
-		IList<SelfAssignableRoles> SelfAssignableGroups { get; }
 	}
 }

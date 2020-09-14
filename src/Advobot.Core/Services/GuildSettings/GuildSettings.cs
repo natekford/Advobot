@@ -91,11 +91,6 @@ namespace Advobot.Services.GuildSettings
 			set => SetValue(ref _Prefix, value);
 		}
 
-		/// <inheritdoc />
-		[Setting(nameof(GuildSettingNames.SelfAssignableGroups), ResetValueClass = typeof(ClearList))]
-		[JsonProperty("SelfAssignableGroups")]
-		public IList<SelfAssignableRoles> SelfAssignableGroups { get; set; } = new ObservableCollection<SelfAssignableRoles>();
-
 		//IDatabaseEntry
 		object IDatabaseEntry.Id { get => GuildId; set => GuildId = (ulong)value; }
 

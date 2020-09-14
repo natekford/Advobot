@@ -263,6 +263,60 @@ namespace Advobot.Tests.Commands.AutoMod.Database
 		}
 
 		[TestMethod]
+		public async Task SelfRoleCRUD_Test()
+		{
+			var db = await GetDatabaseAsync().CAF();
+
+			var editable = new SelfRole
+			{
+				GuildId = Context.Guild.Id,
+				RoleId = 73,
+				GroupId = 4,
+			};
+			IReadOnlySelfRole selfRole = editable;
+
+			async Task AssertEqualAsync()
+			{
+				await db.UpsertSelfRolesAsync(new[] { selfRole }).CAF();
+
+				var retrieved = await db!.GetSelfRoleAsync(selfRole.RoleId).CAF();
+				if (retrieved is null)
+				{
+					Assert.IsNotNull(retrieved);
+					return;
+				}
+				Assert.AreEqual(selfRole.GuildId, retrieved.GuildId);
+				Assert.AreEqual(selfRole.RoleId, retrieved.RoleId);
+				Assert.AreEqual(selfRole.GroupId, retrieved.GroupId);
+			}
+
+			await AssertEqualAsync().CAF();
+
+			editable.GroupId = 2;
+
+			await AssertEqualAsync().CAF();
+
+			await db.UpsertSelfRolesAsync(new[]
+			{
+				new SelfRole(selfRole)
+				{
+					RoleId = 4,
+				},
+				new SelfRole(selfRole)
+				{
+					RoleId = 5,
+				},
+			}).CAF();
+
+			var ret = await db.GetSelfRolesAsync(Context.Guild.Id).CAF();
+			Assert.AreEqual(3, ret.Count);
+
+			await db.DeleteSelfRolesGroupAsync(Context.Guild.Id, selfRole.GroupId).CAF();
+			var ret2 = await db.GetSelfRolesAsync(Context.Guild.Id).CAF();
+			Assert.AreEqual(0, ret2.Count);
+		}
+
+		[TestMethod]
 		public async Task SpamPreventionCRUD_Test()
 		{
 			var db = await GetDatabaseAsync().CAF();

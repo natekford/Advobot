@@ -19,18 +19,18 @@ namespace Advobot.Attributes.ParameterPreconditions
 	public abstract class AdvobotParameterPreconditionAttribute
 		: ParameterPreconditionAttribute, IParameterPrecondition, IHasSupportedTypes
 	{
+		/// <summary>
+		/// Whether or not the passed in value can have all its inner values checked if it's an <see cref="IEnumerable"/>.
+		/// </summary>
+		public virtual bool AllowEnumerating { get; set; }
+		/// <summary>
+		/// Whether or not default value passed in to this parameter precondition should be instant success.
+		/// </summary>
+		public virtual bool IsOptionalSuccess { get; set; }
 		/// <inheritdoc />
 		public abstract string Summary { get; }
 		/// <inheritdoc />
 		public abstract IEnumerable<Type> SupportedTypes { get; }
-		/// <summary>
-		/// Whether or not the passed in value can have all its inner values checked if it's an <see cref="IEnumerable"/>.
-		/// </summary>
-		protected virtual bool AllowEnumerating { get; }
-		/// <summary>
-		/// Whether or not default value passed in to this parameter precondition should be instant success.
-		/// </summary>
-		protected virtual bool IsOptionalSuccess { get; }
 
 		/// <inheritdoc />
 		public override async Task<PreconditionResult> CheckPermissionsAsync(

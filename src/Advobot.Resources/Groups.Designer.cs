@@ -169,6 +169,15 @@ namespace Advobot.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to ClearGroup.
+        /// </summary>
+        public static string ClearGroup {
+            get {
+                return ResourceManager.GetString("ClearGroup", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to ClearNickname.
         /// </summary>
         public static string ClearNickname {

@@ -16,6 +16,8 @@ namespace Advobot.Attributes.ParameterPreconditions.Strings
 	public abstract class StringParameterPreconditionAttribute
 		: AdvobotParameterPreconditionAttribute
 	{
+		/// <inheritdoc />
+		public override bool AllowEnumerating => false;
 		/// <summary>
 		/// The type of string this is targetting.
 		/// </summary>
@@ -32,8 +34,6 @@ namespace Advobot.Attributes.ParameterPreconditions.Strings
 		/// Allowed length for strings passed in.
 		/// </summary>
 		public NumberCollection<int> ValidLength { get; }
-		/// <inheritdoc />
-		protected override bool AllowEnumerating => false;
 
 		/// <summary>
 		/// Creates an instance of <see cref="StringParameterPreconditionAttribute"/>.

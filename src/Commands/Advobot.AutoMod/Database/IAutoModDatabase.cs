@@ -13,6 +13,10 @@ namespace Advobot.AutoMod.Database
 
 		Task<int> DeletePersistentRoleAsync(IReadOnlyPersistentRole role);
 
+		Task<int> DeleteSelfRolesAsync(IEnumerable<ulong> roles);
+
+		Task<int> DeleteSelfRolesGroupAsync(ulong guildId, int group);
+
 		Task<IReadOnlyAutoModSettings> GetAutoModSettingsAsync(ulong guildId);
 
 		Task<IReadOnlyList<IReadOnlyBannedPhrase>> GetBannedNamesAsync(ulong guildId);
@@ -33,6 +37,12 @@ namespace Advobot.AutoMod.Database
 
 		Task<IReadOnlyRaidPrevention?> GetRaidPreventionAsync(ulong guildId, RaidType raidType);
 
+		Task<IReadOnlySelfRole?> GetSelfRoleAsync(ulong roleId);
+
+		Task<IReadOnlyList<IReadOnlySelfRole>> GetSelfRolesAsync(ulong guildId);
+
+		Task<IReadOnlyList<IReadOnlySelfRole>> GetSelfRolesAsync(ulong guildId, int group);
+
 		Task<IReadOnlyList<IReadOnlySpamPrevention>> GetSpamPreventionAsync(ulong guildId);
 
 		Task<IReadOnlySpamPrevention?> GetSpamPreventionAsync(ulong guildId, SpamType spamType);
@@ -44,6 +54,8 @@ namespace Advobot.AutoMod.Database
 		Task<int> UpsertChannelSettings(IReadOnlyChannelSettings settings);
 
 		Task<int> UpsertRaidPreventionAsync(IReadOnlyRaidPrevention prevention);
+
+		Task<int> UpsertSelfRolesAsync(IEnumerable<IReadOnlySelfRole> roles);
 
 		Task<int> UpsertSpamPreventionAsync(IReadOnlySpamPrevention prevention);
 	}

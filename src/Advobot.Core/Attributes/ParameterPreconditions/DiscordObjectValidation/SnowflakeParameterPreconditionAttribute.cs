@@ -22,8 +22,6 @@ namespace Advobot.Attributes.ParameterPreconditions.DiscordObjectValidation
 		{
 			typeof(ISnowflakeEntity),
 		}.ToImmutableArray();
-		/// <inheritdoc />
-		protected override bool IsOptionalSuccess => false;
 
 		/// <inheritdoc />
 		protected override Task<PreconditionResult> SingularCheckPermissionsAsync(

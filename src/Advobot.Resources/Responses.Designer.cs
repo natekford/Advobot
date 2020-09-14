@@ -1943,6 +1943,69 @@ namespace Advobot.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Successfully added {0}..
+        /// </summary>
+        public static string SelfRolesAdded {
+            get {
+                return ResourceManager.GetString("SelfRolesAdded", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Successfully added {0} and removed all conflicting self roles..
+        /// </summary>
+        public static string SelfRolesAddedAndRemovedOthers {
+            get {
+                return ResourceManager.GetString("SelfRolesAddedAndRemovedOthers", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Successfully added {0} self roles to group {1}..
+        /// </summary>
+        public static string SelfRolesAddedToGroup {
+            get {
+                return ResourceManager.GetString("SelfRolesAddedToGroup", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Successfully cleared {0} self roles from group {1}..
+        /// </summary>
+        public static string SelfRolesClearedGroup {
+            get {
+                return ResourceManager.GetString("SelfRolesClearedGroup", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Successfully removed {0}..
+        /// </summary>
+        public static string SelfRolesRemoved {
+            get {
+                return ResourceManager.GetString("SelfRolesRemoved", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Successfully removed {0} self roles..
+        /// </summary>
+        public static string SelfRolesRemovedFromGroup {
+            get {
+                return ResourceManager.GetString("SelfRolesRemovedFromGroup", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Self Assignable Roles.
+        /// </summary>
+        public static string SelfRolesTitleDisplay {
+            get {
+                return ResourceManager.GetString("SelfRolesTitleDisplay", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Successfully created {0}..
         /// </summary>
         public static string SnowflakesCreated {
