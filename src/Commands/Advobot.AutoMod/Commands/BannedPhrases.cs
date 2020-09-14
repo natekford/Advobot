@@ -5,19 +5,19 @@ using Advobot.Attributes;
 using Advobot.Attributes.ParameterPreconditions.Strings;
 using Advobot.Attributes.Preconditions.Permissions;
 using Advobot.AutoMod.Attributes.ParameterPreconditions;
-using Advobot.AutoMod.Localization;
 using Advobot.AutoMod.Models;
 using Advobot.AutoMod.ReadOnlyModels;
-using Advobot.AutoMod.Resources;
 using Advobot.AutoMod.TypeReaders;
+using Advobot.Localization;
 using Advobot.Punishments;
+using Advobot.Resources;
 
 using AdvorangesUtils;
 
 using Discord.Commands;
 
-using static Advobot.AutoMod.Resources.Responses;
 using static Advobot.AutoMod.Responses.BannedPhrases;
+using static Advobot.Resources.Responses;
 
 namespace Advobot.AutoMod.Commands
 {

@@ -10,7 +10,7 @@ using AdvorangesUtils;
 
 using Discord;
 
-using static Advobot.Standard.Resources.Responses;
+using static Advobot.Resources.Responses;
 
 namespace Advobot.Standard.Responses
 {

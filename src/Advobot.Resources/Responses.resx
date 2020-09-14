@@ -1,0 +1,926 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <!-- 
+		Microsoft ResX Schema
+
+		Version 1.3
+
+		The primary goals of this format is to allow a simple XML format 
+		that is mostly human readable. The generation and parsing of the 
+		various data types are done through the TypeConverter classes 
+		associated with the data types.
+
+		Example:
+
+		... ado.net/XML headers & schema ...
+		<resheader name="resmimetype">text/microsoft-resx</resheader>
+		<resheader name="version">1.3</resheader>
+		<resheader name="reader">System.Resources.ResXResourceReader, System.Windows.Forms, ...</resheader>
+		<resheader name="writer">System.Resources.ResXResourceWriter, System.Windows.Forms, ...</resheader>
+		<data name="Name1">this is my long string</data>
+		<data name="Color1" type="System.Drawing.Color, System.Drawing">Blue</data>
+		<data name="Bitmap1" mimetype="application/x-microsoft.net.object.binary.base64">
+			[base64 mime encoded serialized .NET Framework object]
+		</data>
+		<data name="Icon1" type="System.Drawing.Icon, System.Drawing" mimetype="application/x-microsoft.net.object.bytearray.base64">
+			[base64 mime encoded string representing a byte array form of the .NET Framework object]
+		</data>
+
+		There are any number of "resheader" rows that contain simple 
+		name/value pairs.
+
+		Each data row contains a name, and value. The row also contains a 
+		type or mimetype. Type corresponds to a .NET class that support 
+		text/value conversion through the TypeConverter architecture. 
+		Classes that don't support this are serialized and stored with the 
+		mimetype set.
+
+		The mimetype is used for serialized objects, and tells the 
+		ResXResourceReader how to depersist the object. This is currently not 
+		extensible. For a given mimetype the value must be set accordingly:
+
+		Note - application/x-microsoft.net.object.binary.base64 is the format 
+		that the ResXResourceWriter will generate, however the reader can 
+		read any of the formats listed below.
+
+		mimetype: application/x-microsoft.net.object.binary.base64
+		value   : The object must be serialized with 
+			: System.Serialization.Formatters.Binary.BinaryFormatter
+			: and then encoded with base64 encoding.
+
+		mimetype: application/x-microsoft.net.object.soap.base64
+		value   : The object must be serialized with 
+			: System.Runtime.Serialization.Formatters.Soap.SoapFormatter
+			: and then encoded with base64 encoding.
+
+		mimetype: application/x-microsoft.net.object.bytearray.base64
+		value   : The object must be serialized into a byte array 
+			: using a System.ComponentModel.TypeConverter
+			: and then encoded with base64 encoding.
+	-->
+  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xsd:element name="root" msdata:IsDataSet="true">
+      <xsd:complexType>
+        <xsd:choice maxOccurs="unbounded">
+          <xsd:element name="data">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+                <xsd:element name="comment" type="xsd:string" minOccurs="0" msdata:Ordinal="2" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" msdata:Ordinal="1" />
+              <xsd:attribute name="type" type="xsd:string" msdata:Ordinal="3" />
+              <xsd:attribute name="mimetype" type="xsd:string" msdata:Ordinal="4" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="resheader">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" />
+            </xsd:complexType>
+          </xsd:element>
+        </xsd:choice>
+      </xsd:complexType>
+    </xsd:element>
+  </xsd:schema>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>1.3</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=2.0.3500.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=2.0.3500.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <data name="ChannelsModifiedOverwriteAllow" xml:space="preserve">
+    <value>Successfully allowed {0} for {1} on {2}.</value>
+  </data>
+  <data name="BannedPhraseAlreadyExists" xml:space="preserve">
+    <value>{0} is already a banned {1}.</value>
+  </data>
+  <data name="BannedPhraseChangedPunishment" xml:space="preserve">
+    <value>Successfully changed the punishment of the banned {0} {1} to {2}.</value>
+  </data>
+  <data name="BannedPhraseModified" xml:space="preserve">
+    <value>Successfully {0} the banned {1} {2}.</value>
+  </data>
+  <data name="BannedPhraseNotExisting" xml:space="preserve">
+    <value>Not already a banned {0}.</value>
+  </data>
+  <data name="BannedPhraseType" xml:space="preserve">
+    <value>banned {0}</value>
+  </data>
+  <data name="BannedPhraseVariableAdded" xml:space="preserve">
+    <value>added</value>
+  </data>
+  <data name="BannedPhraseVariableName" xml:space="preserve">
+    <value>name</value>
+  </data>
+  <data name="BannedPhraseVariableNone" xml:space="preserve">
+    <value>None.</value>
+  </data>
+  <data name="BannedPhraseVariableRegex" xml:space="preserve">
+    <value>regex</value>
+  </data>
+  <data name="BannedPhraseVariableRemoved" xml:space="preserve">
+    <value>removed</value>
+  </data>
+  <data name="BannedPhraseVariableString" xml:space="preserve">
+    <value>string</value>
+  </data>
+  <data name="ChannelsClearedOverwrites" xml:space="preserve">
+    <value>Successfully cleared {0} overwrites from {1}.</value>
+  </data>
+  <data name="ChannelsCopiedOverwrite" xml:space="preserve">
+    <value>Successfully copied {0} from {1} to {2}.</value>
+  </data>
+  <data name="ChannelsCreatededRoleRestrictedChannel" xml:space="preserve">
+    <value>Successfully created {0} and restricted access to people with {1}.</value>
+  </data>
+  <data name="ChannelsFailedPermissionCopy" xml:space="preserve">
+    <value>Failed to copy channel permissions because {0} and {1} are not the same type.</value>
+  </data>
+  <data name="ChannelsModifiedBitrate" xml:space="preserve">
+    <value>Successfully modified the bitrate for {0} to {1}kbps.</value>
+  </data>
+  <data name="ChannelsModifiedLimit" xml:space="preserve">
+    <value>Successfully modified the user limit for {0} to {1}.</value>
+  </data>
+  <data name="ChannelsModifiedNsfw" xml:space="preserve">
+    <value>Successfully modified the NSFW status for {0} to {1}.</value>
+  </data>
+  <data name="ChannelsModifiedOverwriteDeny" xml:space="preserve">
+    <value>Successfully denied {0} for {1} on {2}.</value>
+  </data>
+  <data name="ChannelsModifiedOverwriteInherit" xml:space="preserve">
+    <value>Successfully inherited {0} for {1} on {2}.</value>
+  </data>
+  <data name="ChannelsModifiedTopic" xml:space="preserve">
+    <value>Successfully modified the topic for {0} to {1}.</value>
+  </data>
+  <data name="ChannelsMoved" xml:space="preserve">
+    <value>Successfully modified the position for {0} to {1}.</value>
+  </data>
+  <data name="ChannelsNoCopyableOverwrite" xml:space="preserve">
+    <value>There are not any matching overwrites to copy.</value>
+  </data>
+  <data name="ChannelsNoOverwrite" xml:space="preserve">
+    <value>There is no overwrite for {0} on {1}.</value>
+  </data>
+  <data name="ChannelsRemovedTopic" xml:space="preserve">
+    <value>Successfully removed the topic for {0}.</value>
+  </data>
+  <data name="ChannelsTitleAllOverwrites" xml:space="preserve">
+    <value>{0} Overwrites</value>
+  </data>
+  <data name="ChannelsTitleAllOverwritesRoles" xml:space="preserve">
+    <value>Role Overwrites</value>
+  </data>
+  <data name="ChannelsTitleAllOverwritesUsers" xml:space="preserve">
+    <value>User Overwrites</value>
+  </data>
+  <data name="ChannelsTitleChannelPositions" xml:space="preserve">
+    <value>{0} Channel Positions</value>
+  </data>
+  <data name="ChannelsTitleSingleOverwrite" xml:space="preserve">
+    <value>{0} On {1}</value>
+  </data>
+  <data name="ChannelsVariableAllOverwrites" xml:space="preserve">
+    <value>all overwrites</value>
+  </data>
+  <data name="EmotesAddedRequiredRoles" xml:space="preserve">
+    <value>Successfully added {0} as roles required to use {1}.</value>
+  </data>
+  <data name="EmotesEnqueuedCreation" xml:space="preserve">
+    <value>Successfully enqueued creating the emote {0} at position {1}.</value>
+  </data>
+  <data name="EmotesRemovedRequiredRoles" xml:space="preserve">
+    <value>Successfully removed {0} as roles required to use {1}.</value>
+  </data>
+  <data name="EmotesTitleDisplay" xml:space="preserve">
+    <value>{0} Emotes</value>
+  </data>
+  <data name="GetsFileMessages" xml:space="preserve">
+    <value>{0}_Messages</value>
+  </data>
+  <data name="GetsFileUserJoins" xml:space="preserve">
+    <value>User_Joins</value>
+  </data>
+  <data name="GetsFileUsersWithReason" xml:space="preserve">
+    <value>Users_With_Reason</value>
+  </data>
+  <data name="GetsFooterChannel" xml:space="preserve">
+    <value>Channel Info</value>
+  </data>
+  <data name="GetsFooterEmote" xml:space="preserve">
+    <value>Emote Info</value>
+  </data>
+  <data name="GetsFooterGuild" xml:space="preserve">
+    <value>Guild Info</value>
+  </data>
+  <data name="GetsFooterGuildUsers" xml:space="preserve">
+    <value>Guild Users Info</value>
+  </data>
+  <data name="GetsFooterInvite" xml:space="preserve">
+    <value>Invite Info</value>
+  </data>
+  <data name="GetsFooterRole" xml:space="preserve">
+    <value>Role Info</value>
+  </data>
+  <data name="GetsFooterShards" xml:space="preserve">
+    <value>Shards Info</value>
+  </data>
+  <data name="GetsFooterUser" xml:space="preserve">
+    <value>User Info</value>
+  </data>
+  <data name="GetsFooterWebhook" xml:space="preserve">
+    <value>Webhook Info</value>
+  </data>
+  <data name="GetsGuilds" xml:space="preserve">
+    <value>{0} Owner: {1}</value>
+  </data>
+  <data name="GetsJoinedAt" xml:space="preserve">
+    <value>{0} (#{1})</value>
+  </data>
+  <data name="GetsShowEnumNames" xml:space="preserve">
+    <value>{0} has the following permissions: {1}.</value>
+  </data>
+  <data name="GetsTitleActivities" xml:space="preserve">
+    <value>Activities</value>
+  </data>
+  <data name="GetsTitleActivity" xml:space="preserve">
+    <value>Activity</value>
+  </data>
+  <data name="GetsTitleAfkChannel" xml:space="preserve">
+    <value>Afk Channel</value>
+  </data>
+  <data name="GetsTitleAnimatedEmoteCount" xml:space="preserve">
+    <value>Animated Emote Count</value>
+  </data>
+  <data name="GetsTitleBotCount" xml:space="preserve">
+    <value>Bot Count</value>
+  </data>
+  <data name="GetsTitleCategoryChannelCount" xml:space="preserve">
+    <value>Category Channel Count</value>
+  </data>
+  <data name="GetsTitleChannel" xml:space="preserve">
+    <value>Channel</value>
+  </data>
+  <data name="GetsTitleChannelCount" xml:space="preserve">
+    <value>Channel Count</value>
+  </data>
+  <data name="GetsTitleChannelInfo" xml:space="preserve">
+    <value>Channel Info</value>
+  </data>
+  <data name="GetsTitleColons" xml:space="preserve">
+    <value>Requires Colons</value>
+  </data>
+  <data name="GetsTitleColor" xml:space="preserve">
+    <value>Color</value>
+  </data>
+  <data name="GetsTitleCreator" xml:space="preserve">
+    <value>Creator</value>
+  </data>
+  <data name="GetsTitleDeafen" xml:space="preserve">
+    <value>Is Self Deafened</value>
+  </data>
+  <data name="GetsTitleDefaultChannel" xml:space="preserve">
+    <value>Default Channel</value>
+  </data>
+  <data name="GetsTitleEmbedChannel" xml:space="preserve">
+    <value>Embed Channel</value>
+  </data>
+  <data name="GetsTitleEmoteCount" xml:space="preserve">
+    <value>Emote Count</value>
+  </data>
+  <data name="GetsTitleEmoteInfo" xml:space="preserve">
+    <value>Emote Info</value>
+  </data>
+  <data name="GetsTitleEnumNames" xml:space="preserve">
+    <value>Enum Names</value>
+  </data>
+  <data name="GetsTitleFeatures" xml:space="preserve">
+    <value>Guild Features</value>
+  </data>
+  <data name="GetsTitleGuilds" xml:space="preserve">
+    <value>Guilds</value>
+  </data>
+  <data name="GetsTitleHoisted" xml:space="preserve">
+    <value>Is Hoisted</value>
+  </data>
+  <data name="GetsTitleIgnoredCommands" xml:space="preserve">
+    <value>Is Ignored From Commands</value>
+  </data>
+  <data name="GetsTitleIgnoredLog" xml:space="preserve">
+    <value>Is Ignored From Log</value>
+  </data>
+  <data name="GetsTitleImageLog" xml:space="preserve">
+    <value>Is Image Log</value>
+  </data>
+  <data name="GetsTitleImageOnly" xml:space="preserve">
+    <value>Is Image Only</value>
+  </data>
+  <data name="GetsTitleInVoiceCount" xml:space="preserve">
+    <value>In Voice Count</value>
+  </data>
+  <data name="GetsTitleJoined" xml:space="preserve">
+    <value>Joined At</value>
+  </data>
+  <data name="GetsTitleLocalEmoteCount" xml:space="preserve">
+    <value>Local Emote Count</value>
+  </data>
+  <data name="GetsTitleManaged" xml:space="preserve">
+    <value>Is Managed</value>
+  </data>
+  <data name="GetsTitleManagedEmoteCount" xml:space="preserve">
+    <value>Managed Emote Count</value>
+  </data>
+  <data name="GetsTitleMentionable" xml:space="preserve">
+    <value>Is Mentionable</value>
+  </data>
+  <data name="GetsTitleModLog" xml:space="preserve">
+    <value>Is Mod Log</value>
+  </data>
+  <data name="GetsTitleMute" xml:space="preserve">
+    <value>Is Self Muted</value>
+  </data>
+  <data name="GetsTitleNickname" xml:space="preserve">
+    <value>Nickname</value>
+  </data>
+  <data name="GetsTitleNicknameCount" xml:space="preserve">
+    <value>With Nickname Count</value>
+  </data>
+  <data name="GetsTitleNotifications" xml:space="preserve">
+    <value>Message Notification Level</value>
+  </data>
+  <data name="GetsTitleOwner" xml:space="preserve">
+    <value>Owner</value>
+  </data>
+  <data name="GetsTitlePermissions" xml:space="preserve">
+    <value>Permissions</value>
+  </data>
+  <data name="GetsTitlePosition" xml:space="preserve">
+    <value>Position</value>
+  </data>
+  <data name="GetsTitleRoleCount" xml:space="preserve">
+    <value>Role Count</value>
+  </data>
+  <data name="GetsTitleRoles" xml:space="preserve">
+    <value>Roles</value>
+  </data>
+  <data name="GetsTitleServerDeafen" xml:space="preserve">
+    <value>Is Server Deafened</value>
+  </data>
+  <data name="GetsTitleServerLog" xml:space="preserve">
+    <value>Is Server Log</value>
+  </data>
+  <data name="GetsTitleServerMute" xml:space="preserve">
+    <value>Is Server Muted</value>
+  </data>
+  <data name="GetsTitleStatus" xml:space="preserve">
+    <value>Status</value>
+  </data>
+  <data name="GetsTitleStatuses" xml:space="preserve">
+    <value>Statuses</value>
+  </data>
+  <data name="GetsTitleSystemChannel" xml:space="preserve">
+    <value>System Channel</value>
+  </data>
+  <data name="GetsTitleTextChannelCount" xml:space="preserve">
+    <value>Text Channel Count</value>
+  </data>
+  <data name="GetsTitleTextChannels" xml:space="preserve">
+    <value>Text Channels</value>
+  </data>
+  <data name="GetsTitleUserCount" xml:space="preserve">
+    <value>User Count</value>
+  </data>
+  <data name="GetsTitleUsers" xml:space="preserve">
+    <value>Users</value>
+  </data>
+  <data name="GetsTitleUses" xml:space="preserve">
+    <value>Uses</value>
+  </data>
+  <data name="GetsTitleVerification" xml:space="preserve">
+    <value>Verification Level</value>
+  </data>
+  <data name="GetsTitleVoiceChannel" xml:space="preserve">
+    <value>Voice Channel</value>
+  </data>
+  <data name="GetsTitleVoiceChannelCount" xml:space="preserve">
+    <value>Voice Channel Count</value>
+  </data>
+  <data name="GetsTitleVoiceChannels" xml:space="preserve">
+    <value>Voice Channels</value>
+  </data>
+  <data name="GetsTitleVoiceInfo" xml:space="preserve">
+    <value>Voice Info</value>
+  </data>
+  <data name="GetsTitleVoiceRegion" xml:space="preserve">
+    <value>Voice Region</value>
+  </data>
+  <data name="GetsTitleWebhookCount" xml:space="preserve">
+    <value>Webhook Count</value>
+  </data>
+  <data name="GetsUserJoinPosition" xml:space="preserve">
+    <value>{0} is #{1} to join the guild on {2}.</value>
+  </data>
+  <data name="GetsUserJoins" xml:space="preserve">
+    <value>{0} joined on {1}</value>
+  </data>
+  <data name="GuildsEnqueuedSplash" xml:space="preserve">
+    <value>Successfully enqueued modifying the splash image for this guild at position {0}.</value>
+  </data>
+  <data name="GuildsLeftGuild" xml:space="preserve">
+    <value>Successfully left {0}.</value>
+  </data>
+  <data name="GuildsModifiedAfkChannel" xml:space="preserve">
+    <value>Successfully modified the AFK channel for this guild to {0}.</value>
+  </data>
+  <data name="GuildsModifiedAfkTime" xml:space="preserve">
+    <value>Successfully modified the AFK timeout for this guild to {0}.</value>
+  </data>
+  <data name="GuildsModifiedContentFilter" xml:space="preserve">
+    <value>Successfully modified the explicit content filter level for this guild to {0}.</value>
+  </data>
+  <data name="GuildsModifiedMsgNotif" xml:space="preserve">
+    <value>Successfully modified the default message notification level for this guild to {0}.</value>
+  </data>
+  <data name="GuildsModifiedOwner" xml:space="preserve">
+    <value>Successfully modified the owner for this guild to {0}.</value>
+  </data>
+  <data name="GuildsModifiedRegion" xml:space="preserve">
+    <value>Successfully modified the voice region for this guild to {0} minutes.</value>
+  </data>
+  <data name="GuildsModifiedSystemChannel" xml:space="preserve">
+    <value>Successfully modified the system channel for this guild to {0}.</value>
+  </data>
+  <data name="GuildsModifiedSystemMessageBoost" xml:space="preserve">
+    <value>Successfully modified the system channel boost messages to {0}.</value>
+  </data>
+  <data name="GuildsModifiedSystemMessageWelcome" xml:space="preserve">
+    <value>Successfully modified the system channel welcome messages to {0}.</value>
+  </data>
+  <data name="GuildsModifiedVerif" xml:space="preserve">
+    <value>Successfully modified the verification level for this guild to {0}.</value>
+  </data>
+  <data name="GuildsRemovedSplash" xml:space="preserve">
+    <value>Successfully removed the splash image for this guild.</value>
+  </data>
+  <data name="GuildsTitleRegionIds" xml:space="preserve">
+    <value>Region Ids</value>
+  </data>
+  <data name="GuildsVariableNothing" xml:space="preserve">
+    <value>nothing</value>
+  </data>
+  <data name="InvitesDeletedMultipleInvites" xml:space="preserve">
+    <value>Successfully deleted {0} matching invites.</value>
+  </data>
+  <data name="InvitesNoInviteMatches" xml:space="preserve">
+    <value>Failed to find any invites matching the given conditions.</value>
+  </data>
+  <data name="InvitesTitleDisplay" xml:space="preserve">
+    <value>Invites</value>
+  </data>
+  <data name="LevelsLevelDescription" xml:space="preserve">
+    <value>Rank: {0} out of {1}
+Xp: {2}
+Level: {3}</value>
+  </data>
+  <data name="LevelsLevelFooter" xml:space="preserve">
+    <value>Xp Information</value>
+  </data>
+  <data name="LevelsLevelTitle" xml:space="preserve">
+    <value>{0} Xp Information for {1}</value>
+  </data>
+  <data name="LevelsNoXp" xml:space="preserve">
+    <value>{0} has no {1} xp.</value>
+  </data>
+  <data name="LevelsTopDescription" xml:space="preserve">
+    <value>{0}. {1}: [Xp: {2}, Level: {3}]</value>
+  </data>
+  <data name="LevelsTopFooter" xml:space="preserve">
+    <value>Top Ranks Information</value>
+  </data>
+  <data name="LevelsTopTitle" xml:space="preserve">
+    <value>Top {0} Ranks</value>
+  </data>
+  <data name="LevelsVariableChannel" xml:space="preserve">
+    <value>channel</value>
+  </data>
+  <data name="LevelsVariableGlobal" xml:space="preserve">
+    <value>global</value>
+  </data>
+  <data name="LevelsVariableGuild" xml:space="preserve">
+    <value>guild</value>
+  </data>
+  <data name="ListedInviteBumped" xml:space="preserve">
+    <value>Successfully bumped the listed invite.</value>
+  </data>
+  <data name="ListedInviteCreated" xml:space="preserve">
+    <value>Successfully created a listed invite from {0}.</value>
+  </data>
+  <data name="ListedInviteDeleted" xml:space="preserve">
+    <value>Successfully deleted the listed invite.</value>
+  </data>
+  <data name="ListedInviteNoInviteMatch" xml:space="preserve">
+    <value>Failed to find an invite with the supplied options.</value>
+  </data>
+  <data name="ListedInviteTooManyMatches" xml:space="preserve">
+    <value>Failed to find a suitable invite; too many were found.</value>
+  </data>
+  <data name="LoggingDefaultLogActions" xml:space="preserve">
+    <value>Successfully set the log actions back to default.</value>
+  </data>
+  <data name="LoggingModifiedAllLogActions" xml:space="preserve">
+    <value>Successfully {0} every log action.</value>
+  </data>
+  <data name="LoggingModifiedIgnoredLogChannels" xml:space="preserve">
+    <value>Successfully {0} the following channels: {1}.</value>
+  </data>
+  <data name="LoggingModifiedLogActions" xml:space="preserve">
+    <value>Successfully {0} the following log actions: {1}.</value>
+  </data>
+  <data name="LoggingRemoved" xml:space="preserve">
+    <value>Successfully removed the {0} log.</value>
+  </data>
+  <data name="LoggingSetLog" xml:space="preserve">
+    <value>Successfully set {0} as the {1} log.</value>
+  </data>
+  <data name="LogParameterPreconditionError" xml:space="preserve">
+    <value>{0} is already the current {1} log.</value>
+  </data>
+  <data name="LogParameterPreconditionSummary" xml:space="preserve">
+    <value>Not the current {0} log.</value>
+  </data>
+  <data name="LogPreconditionError" xml:space="preserve">
+    <value>There is no {0} to remove.</value>
+  </data>
+  <data name="LogPreconditionSummary" xml:space="preserve">
+    <value>{0} log must exist.</value>
+  </data>
+  <data name="MiscBasicSyntax" xml:space="preserve">
+    <value>{0} means required.
+{1} means optional.
+{2} means or.</value>
+  </data>
+  <data name="MiscFooterHelp" xml:space="preserve">
+    <value>Help</value>
+  </data>
+  <data name="MiscGeneralCommandInfo" xml:space="preserve">
+    <value>Type {0} for commands from a category.
+
+{1}</value>
+  </data>
+  <data name="MiscGeneralHelp" xml:space="preserve">
+    <value>Type {0} for a list of commands.
+Type {1} for help with a command.</value>
+  </data>
+  <data name="MiscInvalidHelpEntryNumber" xml:space="preserve">
+    <value>{0} is not a valid help entry command number for {1}.</value>
+  </data>
+  <data name="MiscLinks" xml:space="preserve">
+    <value>[GitHub Repository]({0})
+[Discord Server]({1})</value>
+  </data>
+  <data name="MiscMentionSyntax" xml:space="preserve">
+    <value>`User` means `@User|"Username#Discriminator"`
+`Role` means `@Role|"Role name"`
+`Channel` means `#Channel|"Channel name"`</value>
+  </data>
+  <data name="MiscRemind" xml:space="preserve">
+    <value>Successfully added a reminder which will trigger in {0}.</value>
+  </data>
+  <data name="MiscTitleAbleToBeToggled" xml:space="preserve">
+    <value>Able To Be Toggled</value>
+  </data>
+  <data name="MiscTitleAliases" xml:space="preserve">
+    <value>Aliases</value>
+  </data>
+  <data name="MiscTitleAllCommands" xml:space="preserve">
+    <value>All Commands</value>
+  </data>
+  <data name="MiscTitleBasePermissions" xml:space="preserve">
+    <value>Required Permissions</value>
+  </data>
+  <data name="MiscTitleBasicSyntax" xml:space="preserve">
+    <value>Basic Syntax</value>
+  </data>
+  <data name="MiscTitleCategories" xml:space="preserve">
+    <value>Categories</value>
+  </data>
+  <data name="MiscTitleCategoryCommands" xml:space="preserve">
+    <value>Commands In {0}</value>
+  </data>
+  <data name="MiscTitleCommands" xml:space="preserve">
+    <value>Commands</value>
+  </data>
+  <data name="MiscTitleCurrentlyEnabled" xml:space="preserve">
+    <value>Currently Enabled</value>
+  </data>
+  <data name="MiscTitleDescription" xml:space="preserve">
+    <value>Description</value>
+  </data>
+  <data name="MiscTitleEnabledByDefault" xml:space="preserve">
+    <value>Enabled By Default</value>
+  </data>
+  <data name="MiscTitleGeneralHelp" xml:space="preserve">
+    <value>General Help</value>
+  </data>
+  <data name="MiscTitleLinks" xml:space="preserve">
+    <value>Links</value>
+  </data>
+  <data name="MiscTitleMentionSyntax" xml:space="preserve">
+    <value>Mention Syntax</value>
+  </data>
+  <data name="MiscTitleNamedArguments" xml:space="preserve">
+    <value>Named Arguments</value>
+  </data>
+  <data name="MiscVariableAnd" xml:space="preserve">
+    <value> + </value>
+  </data>
+  <data name="MiscVariableCategoryParameter" xml:space="preserve">
+    <value>[Category]</value>
+  </data>
+  <data name="MiscVariableNotApplicable" xml:space="preserve">
+    <value>N/A</value>
+  </data>
+  <data name="MiscVariableOptionalLeft" xml:space="preserve">
+    <value>&lt;</value>
+  </data>
+  <data name="MiscVariableOptionalRight" xml:space="preserve">
+    <value>&gt;</value>
+  </data>
+  <data name="MiscVariableOr" xml:space="preserve">
+    <value> | </value>
+  </data>
+  <data name="MiscVariableRequiredLeft" xml:space="preserve">
+    <value>[</value>
+  </data>
+  <data name="MiscVariableRequiredRight" xml:space="preserve">
+    <value>]</value>
+  </data>
+  <data name="NicknamesModifiedNickname" xml:space="preserve">
+    <value>Successfully modified the nickname for {0} to {1}.</value>
+  </data>
+  <data name="NicknamesRemovedNickname" xml:space="preserve">
+    <value>Successfully removed the nickname for {0}.</value>
+  </data>
+  <data name="NotificationDefault" xml:space="preserve">
+    <value>Successfully set {0} back to default.</value>
+  </data>
+  <data name="NotificationDisabled" xml:space="preserve">
+    <value>Successfully disabled {0}.</value>
+  </data>
+  <data name="NotificationModifedChannel" xml:space="preserve">
+    <value>Successfully modified the channel for {0} to {1}.</value>
+  </data>
+  <data name="NotificationModifiedContent" xml:space="preserve">
+    <value>Successfully modified the content for {0} to {1}.</value>
+  </data>
+  <data name="NotificationModifiedEmbed" xml:space="preserve">
+    <value>Successfully modified the embed for {0} to</value>
+  </data>
+  <data name="NotificationSendNoChannel" xml:space="preserve">
+    <value>Failed to send the {0} notification because it has no channel.</value>
+  </data>
+  <data name="NotificationSendNull" xml:space="preserve">
+    <value>Failed to send the {0} notification because it does not exist.</value>
+  </data>
+  <data name="QuotesAddedQuote" xml:space="preserve">
+    <value>Successfully added the quote {0}.</value>
+  </data>
+  <data name="QuotesNoDescription" xml:space="preserve">
+    <value>The quote {0} has no description.</value>
+  </data>
+  <data name="QuotesRemovedQuote" xml:space="preserve">
+    <value>Successfully removed the quote {0}.</value>
+  </data>
+  <data name="RemindersAddedRemind" xml:space="preserve">
+    <value>Successfully created a reminder for {0} minutes.</value>
+  </data>
+  <data name="RoleMoved" xml:space="preserve">
+    <value>Successfully modified the position for {0} to {1}.</value>
+  </data>
+  <data name="RolesClearedPermissions" xml:space="preserve">
+    <value>Successfully cleared as many permissions as allowed from {0}.</value>
+  </data>
+  <data name="RolesCopiedPermissions" xml:space="preserve">
+    <value>Successfully copied {0} from {1} to {2}.</value>
+  </data>
+  <data name="RolesGave" xml:space="preserve">
+    <value>Successfully gave {0} to {1}.</value>
+  </data>
+  <data name="RolesModifiedColor" xml:space="preserve">
+    <value>Successfully modified the color for {0} to #{1}.</value>
+  </data>
+  <data name="RolesModifiedHoistedStatus" xml:space="preserve">
+    <value>Successfully modified the hosted status for {0} to {1}.</value>
+  </data>
+  <data name="RolesModifiedMentionability" xml:space="preserve">
+    <value>Successfully modified the mentionable status for {0} to {1}.</value>
+  </data>
+  <data name="RolesModifiedPermissionsAllow" xml:space="preserve">
+    <value>Successfully allowed {0} for {1}.</value>
+  </data>
+  <data name="RolesModifiedPermissionsDeny" xml:space="preserve">
+    <value>Successfully denied {0} for {1}.</value>
+  </data>
+  <data name="RolesTitleDisplay" xml:space="preserve">
+    <value>Roles</value>
+  </data>
+  <data name="RolesTitleDisplayPermissions" xml:space="preserve">
+    <value>Permissions For {0}</value>
+  </data>
+  <data name="RolesTook" xml:space="preserve">
+    <value>Successfully took {0} from {1}.</value>
+  </data>
+  <data name="RulesAddedRule" xml:space="preserve">
+    <value>Successfully added a rule to the category {0}.</value>
+  </data>
+  <data name="RulesCreatedCategory" xml:space="preserve">
+    <value>Successfully created the rule category {0}.</value>
+  </data>
+  <data name="RulesDeletedCategory" xml:space="preserve">
+    <value>Successfully deleted the rule category {0}.</value>
+  </data>
+  <data name="RulesInvalidRuleInsert" xml:space="preserve">
+    <value>{0} is an invalid position to insert a rule at.</value>
+  </data>
+  <data name="RulesInvalidRuleRemove" xml:space="preserve">
+    <value>{0} is an invalid position to remove a rule at.</value>
+  </data>
+  <data name="RulesModifiedCategoryValue" xml:space="preserve">
+    <value>Successfully changed the value of the category {0} to {1}.</value>
+  </data>
+  <data name="RulesModifiedRuleValue" xml:space="preserve">
+    <value>Successfully changed the value of the rule {0} to {1}.</value>
+  </data>
+  <data name="RulesRemovedRule" xml:space="preserve">
+    <value>Successfully removed a rule at #{0} in the category {1}.</value>
+  </data>
+  <data name="RulesRuleAlreadyExists" xml:space="preserve">
+    <value>The supplied rule already exists.</value>
+  </data>
+  <data name="RulesSwappedRuleCategories" xml:space="preserve">
+    <value>Successfully swapped the rule categories #{0} ({1} rules) and #{2} ({3} rules).</value>
+  </data>
+  <data name="RulesSwappedRules" xml:space="preserve">
+    <value>Successfully swapped the rules #{0} and #{1] in the category {2}.</value>
+  </data>
+  <data name="SnowflakesCreated" xml:space="preserve">
+    <value>Successfully created {0}.</value>
+  </data>
+  <data name="SnowflakesDeleted" xml:space="preserve">
+    <value>Successfully deleted {0}.</value>
+  </data>
+  <data name="SnowflakesEnqueuedIcon" xml:space="preserve">
+    <value>Successfully queued changing the icon for {0} at position {1}.</value>
+  </data>
+  <data name="SnowflakesModifiedName" xml:space="preserve">
+    <value>Successfully modified the name of {0} to {1}.</value>
+  </data>
+  <data name="SnowflakesRemovedIcon" xml:space="preserve">
+    <value>Successfully removed the icon for {0}.</value>
+  </data>
+  <data name="SnowflakesSoftDeleted" xml:space="preserve">
+    <value>Successfully soft deleted {0}.</value>
+  </data>
+  <data name="SpamPreventionAlreadyToggled" xml:space="preserve">
+    <value>{0} {1} prevention is already {2}.</value>
+  </data>
+  <data name="SpamPreventionCreated" xml:space="preserve">
+    <value>Successfully created {0} {1} prevention.</value>
+  </data>
+  <data name="SpamPreventionNotFound" xml:space="preserve">
+    <value>Failed to find a {0} {1} prevention.</value>
+  </data>
+  <data name="SpamPreventionToggled" xml:space="preserve">
+    <value>Successfully {0} the {1} {2} prevention.</value>
+  </data>
+  <data name="SpamPreventionVariableDisabled" xml:space="preserve">
+    <value>disabled</value>
+  </data>
+  <data name="SpamPreventionVariableEnabled" xml:space="preserve">
+    <value>enabled</value>
+  </data>
+  <data name="SpamPreventionVariableRaid" xml:space="preserve">
+    <value>raid</value>
+  </data>
+  <data name="SpamPreventionVariableSpam" xml:space="preserve">
+    <value>spam</value>
+  </data>
+  <data name="UsersActionDone" xml:space="preserve">
+    <value>Successfully {0} {1}.</value>
+  </data>
+  <data name="UsersAlreadyInChannel" xml:space="preserve">
+    <value>{0} is already in {1}.</value>
+  </data>
+  <data name="UsersCannotGiveRoleBeingGathered" xml:space="preserve">
+    <value>Cannot give the same role being gathered.</value>
+  </data>
+  <data name="UsersDeletedMessages" xml:space="preserve">
+    <value>Successfully deleted {0} message(s) on {1} from {2}.</value>
+  </data>
+  <data name="UsersDeletedMessagesNoTarget" xml:space="preserve">
+    <value>Successfully deleted {0} message(s) on {1}.</value>
+  </data>
+  <data name="UsersFakePrune" xml:space="preserve">
+    <value>Would have pruned {0} guild members with a prune period of {1} days.</value>
+  </data>
+  <data name="UsersMoved" xml:space="preserve">
+    <value>Successfully modified the voice channel for {0} to {1}.</value>
+  </data>
+  <data name="UsersMultiUserActionProgress" xml:space="preserve">
+    <value>Attempting to bulk modify {0} users. ETA on completion: {1} seconds.</value>
+  </data>
+  <data name="UsersMultiUserActionSuccess" xml:space="preserve">
+    <value>Successfully bulk modified {0} users.</value>
+  </data>
+  <data name="UsersRealPrune" xml:space="preserve">
+    <value>Successfully pruned {0} guild members with a prune period of {1} days.</value>
+  </data>
+  <data name="UsersTitleBanReason" xml:space="preserve">
+    <value>Ban Reason For {0}</value>
+  </data>
+  <data name="UsersTitleBans" xml:space="preserve">
+    <value>Bans</value>
+  </data>
+  <data name="UsersUnpunishedTime" xml:space="preserve">
+    <value>They will be {0} in {1}.</value>
+  </data>
+  <data name="UsersVariableBanned" xml:space="preserve">
+    <value>banned</value>
+  </data>
+  <data name="UsersVariableDeafened" xml:space="preserve">
+    <value>deafened</value>
+  </data>
+  <data name="UsersVariableKicked" xml:space="preserve">
+    <value>kicked</value>
+  </data>
+  <data name="UsersVariableMuted" xml:space="preserve">
+    <value>muted</value>
+  </data>
+  <data name="UsersVariableNoBanReason" xml:space="preserve">
+    <value>No ban reason listed.</value>
+  </data>
+  <data name="UsersVariableSoftBanned" xml:space="preserve">
+    <value>soft banned</value>
+  </data>
+  <data name="UsersVariableUnbanned" xml:space="preserve">
+    <value>unbanned</value>
+  </data>
+  <data name="UsersVariableUndeafened" xml:space="preserve">
+    <value>undeafened</value>
+  </data>
+  <data name="UsersVariableUnmuted" xml:space="preserve">
+    <value>unmuted</value>
+  </data>
+  <data name="UsersVariableUnvoiceMuted" xml:space="preserve">
+    <value>unvoice-muted</value>
+  </data>
+  <data name="UsersVariableVoiceMuted" xml:space="preserve">
+    <value>voice-muted</value>
+  </data>
+  <data name="VariableDisabled" xml:space="preserve">
+    <value>disabled</value>
+  </data>
+  <data name="VariableEnabled" xml:space="preserve">
+    <value>enabled</value>
+  </data>
+  <data name="VariableIgnored" xml:space="preserve">
+    <value>ignored</value>
+  </data>
+  <data name="VariableImageLog" xml:space="preserve">
+    <value>image</value>
+  </data>
+  <data name="VariableInvalidUser" xml:space="preserve">
+    <value>invalid user</value>
+  </data>
+  <data name="VariableModLog" xml:space="preserve">
+    <value>mod</value>
+  </data>
+  <data name="VariableNothing" xml:space="preserve">
+    <value>Nothing</value>
+  </data>
+  <data name="VariableQuotes" xml:space="preserve">
+    <value>Quotes</value>
+  </data>
+  <data name="VariableServerLog" xml:space="preserve">
+    <value>server</value>
+  </data>
+  <data name="VariableUnignored" xml:space="preserve">
+    <value>unignored</value>
+  </data>
+  <data name="WebhooksModifiedChannel" xml:space="preserve">
+    <value>Successfully modified the channel for {0} to {1}.</value>
+  </data>
+  <data name="WebhooksTitleDisplayWebhooks" xml:space="preserve">
+    <value>Webhooks On {0}</value>
+  </data>
+</root>

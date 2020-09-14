@@ -8,7 +8,7 @@ using Advobot.Utilities;
 
 using AdvorangesUtils;
 
-using static Advobot.Quotes.Resources.Responses;
+using static Advobot.Resources.Responses;
 
 namespace Advobot.Quotes.Responses
 {

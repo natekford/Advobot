@@ -9,57 +9,6 @@
     <ProjectReference Include="..\..\Advobot.SQLite\Advobot.SQLite.csproj" />
   </ItemGroup>
 
-  <ItemGroup>
-    <Compile Update="Resources\Aliases.Designer.cs">
-      <DesignTime>True</DesignTime>
-      <AutoGen>True</AutoGen>
-      <DependentUpon>Aliases.resx</DependentUpon>
-    </Compile>
-    <Compile Update="Resources\Groups.Designer.cs">
-      <DesignTime>True</DesignTime>
-      <AutoGen>True</AutoGen>
-      <DependentUpon>Groups.resx</DependentUpon>
-    </Compile>
-    <Compile Update="Resources\Names.Designer.cs">
-      <DesignTime>True</DesignTime>
-      <AutoGen>True</AutoGen>
-      <DependentUpon>Names.resx</DependentUpon>
-    </Compile>
-    <Compile Update="Resources\Responses.Designer.cs">
-      <DesignTime>True</DesignTime>
-      <AutoGen>True</AutoGen>
-      <DependentUpon>Responses.resx</DependentUpon>
-    </Compile>
-    <Compile Update="Resources\Summaries.Designer.cs">
-      <DesignTime>True</DesignTime>
-      <AutoGen>True</AutoGen>
-      <DependentUpon>Summaries.resx</DependentUpon>
-    </Compile>
-  </ItemGroup>
-
-  <ItemGroup>
-    <EmbeddedResource Update="Resources\Aliases.resx">
-      <Generator>ResXFileCodeGenerator</Generator>
-      <LastGenOutput>Aliases.Designer.cs</LastGenOutput>
-    </EmbeddedResource>
-    <EmbeddedResource Update="Resources\Groups.resx">
-      <Generator>ResXFileCodeGenerator</Generator>
-      <LastGenOutput>Groups.Designer.cs</LastGenOutput>
-    </EmbeddedResource>
-    <EmbeddedResource Update="Resources\Names.resx">
-      <Generator>ResXFileCodeGenerator</Generator>
-      <LastGenOutput>Names.Designer.cs</LastGenOutput>
-    </EmbeddedResource>
-    <EmbeddedResource Update="Resources\Responses.resx">
-      <Generator>ResXFileCodeGenerator</Generator>
-      <LastGenOutput>Responses.Designer.cs</LastGenOutput>
-    </EmbeddedResource>
-    <EmbeddedResource Update="Resources\Summaries.resx">
-      <Generator>ResXFileCodeGenerator</Generator>
-      <LastGenOutput>Summaries.Designer.cs</LastGenOutput>
-    </EmbeddedResource>
-  </ItemGroup>
-
   <PropertyGroup>
     <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
     <Nullable>enable</Nullable>

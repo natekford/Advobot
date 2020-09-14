@@ -4,11 +4,11 @@ using Advobot.Attributes;
 using Advobot.Attributes.ParameterPreconditions;
 using Advobot.Attributes.ParameterPreconditions.Strings;
 using Advobot.Attributes.Preconditions.Permissions;
+using Advobot.Localization;
 using Advobot.Modules;
+using Advobot.Resources;
 using Advobot.Services.GuildSettings;
 using Advobot.Services.HelpEntries;
-using Advobot.Settings.Localization;
-using Advobot.Settings.Resources;
 
 using Discord.Commands;
 

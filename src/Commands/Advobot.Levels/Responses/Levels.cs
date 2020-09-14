@@ -12,7 +12,7 @@ using AdvorangesUtils;
 
 using Discord;
 
-using static Advobot.Levels.Resources.Responses;
+using static Advobot.Resources.Responses;
 
 namespace Advobot.Levels.Responses
 {

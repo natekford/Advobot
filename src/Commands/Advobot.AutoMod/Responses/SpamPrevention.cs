@@ -3,7 +3,7 @@
 using Advobot.Modules;
 using Advobot.Utilities;
 
-using static Advobot.AutoMod.Resources.Responses;
+using static Advobot.Resources.Responses;
 using static Advobot.Utilities.FormattingUtils;
 
 namespace Advobot.AutoMod.Responses

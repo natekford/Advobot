@@ -7,10 +7,10 @@ using Advobot.Attributes;
 using Advobot.Attributes.ParameterPreconditions.DiscordObjectValidation.Invites;
 using Advobot.Attributes.Preconditions.Permissions;
 using Advobot.Classes;
-using Advobot.Invites.Localization;
 using Advobot.Invites.Preconditions;
 using Advobot.Invites.ReadOnlyModels;
-using Advobot.Invites.Resources;
+using Advobot.Localization;
+using Advobot.Resources;
 
 using AdvorangesUtils;
 

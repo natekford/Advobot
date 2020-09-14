@@ -2,10 +2,10 @@
 using System.Threading.Tasks;
 
 using Advobot.Attributes;
+using Advobot.Localization;
 using Advobot.Modules;
-using Advobot.Quotes.Localization;
 using Advobot.Quotes.ParameterPreconditions;
-using Advobot.Quotes.Resources;
+using Advobot.Resources;
 
 using Discord.Commands;
 

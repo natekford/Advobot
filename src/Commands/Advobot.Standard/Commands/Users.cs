@@ -11,10 +11,10 @@ using Advobot.Attributes.ParameterPreconditions.Numbers;
 using Advobot.Attributes.ParameterPreconditions.Strings;
 using Advobot.Attributes.Preconditions.Permissions;
 using Advobot.Classes;
+using Advobot.Localization;
 using Advobot.Modules;
+using Advobot.Resources;
 using Advobot.Services.Time;
-using Advobot.Standard.Localization;
-using Advobot.Standard.Resources;
 using Advobot.TypeReaders;
 using Advobot.Utilities;
 

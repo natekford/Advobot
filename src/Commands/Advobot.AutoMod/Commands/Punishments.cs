@@ -1,7 +1,7 @@
 ﻿using Advobot.Attributes;
 using Advobot.Attributes.Preconditions.Permissions;
-using Advobot.AutoMod.Localization;
-using Advobot.AutoMod.Resources;
+using Advobot.Localization;
+using Advobot.Resources;
 
 using Discord.Commands;
 

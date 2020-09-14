@@ -4,18 +4,18 @@ using System.Threading.Tasks;
 using Advobot.Attributes;
 using Advobot.Attributes.ParameterPreconditions.DiscordObjectValidation.Channels;
 using Advobot.Attributes.Preconditions.Permissions;
-using Advobot.Logging.Localization;
+using Advobot.Localization;
 using Advobot.Logging.OptionSetters;
 using Advobot.Logging.ParameterPreconditions;
 using Advobot.Logging.Preconditions;
-using Advobot.Logging.Resources;
+using Advobot.Resources;
 
 using AdvorangesUtils;
 
 using Discord;
 using Discord.Commands;
 
-using static Advobot.Logging.Resources.Responses;
+using static Advobot.Resources.Responses;
 using static Advobot.Logging.Responses.Logging;
 using static Discord.ChannelPermission;
 

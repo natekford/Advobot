@@ -3,10 +3,10 @@
 using Advobot.Attributes;
 using Advobot.Attributes.ParameterPreconditions.DiscordObjectValidation.Channels;
 using Advobot.Attributes.Preconditions.Permissions;
-using Advobot.Logging.Localization;
+using Advobot.Localization;
 using Advobot.Logging.Models;
 using Advobot.Logging.OptionSetters;
-using Advobot.Logging.Resources;
+using Advobot.Resources;
 
 using AdvorangesUtils;
 

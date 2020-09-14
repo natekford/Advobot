@@ -15,7 +15,7 @@ using AdvorangesUtils;
 using Discord;
 using Discord.Commands;
 
-using static Advobot.Standard.Resources.Responses;
+using static Advobot.Resources.Responses;
 using static Advobot.Utilities.FormattingUtils;
 
 namespace Advobot.Standard.Responses

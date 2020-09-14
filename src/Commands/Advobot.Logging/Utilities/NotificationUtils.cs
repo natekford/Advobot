@@ -8,7 +8,7 @@ using AdvorangesUtils;
 
 using Discord;
 
-using static Advobot.Logging.Resources.Responses;
+using static Advobot.Resources.Responses;
 
 namespace Advobot.Logging.Utilities
 {

@@ -7,7 +7,7 @@ using Advobot.Utilities;
 
 using AdvorangesUtils;
 
-using static Advobot.AutoMod.Resources.Responses;
+using static Advobot.Resources.Responses;
 using static Advobot.Utilities.FormattingUtils;
 
 namespace Advobot.AutoMod.Responses

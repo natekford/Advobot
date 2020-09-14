@@ -1,7 +1,7 @@
 ﻿using Advobot.Modules;
 using Advobot.Utilities;
 
-using static Advobot.Quotes.Resources.Responses;
+using static Advobot.Resources.Responses;
 
 namespace Advobot.Quotes.Responses
 {

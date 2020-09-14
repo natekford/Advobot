@@ -6,10 +6,10 @@ using Advobot.Attributes;
 using Advobot.Attributes.ParameterPreconditions.DiscordObjectValidation.Channels;
 using Advobot.Attributes.ParameterPreconditions.Strings;
 using Advobot.Attributes.Preconditions.Permissions;
+using Advobot.Localization;
 using Advobot.Modules;
+using Advobot.Resources;
 using Advobot.Services.ImageResizing;
-using Advobot.Standard.Localization;
-using Advobot.Standard.Resources;
 using Advobot.Utilities;
 
 using AdvorangesUtils;

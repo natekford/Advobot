@@ -83,7 +83,7 @@ namespace Advobot.Utilities
 		{
 			if (input.GuildId != output.GuildId)
 			{
-				throw new ArgumentException($"Both channels must come from the same guild.");
+				throw new ArgumentException("Both channels must come from the same guild.");
 			}
 
 			var overwrites = input.GetOverwrites(id);

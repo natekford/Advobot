@@ -3,9 +3,9 @@
 using Advobot.Attributes;
 using Advobot.Attributes.ParameterPreconditions.Numbers;
 using Advobot.Levels.Database;
-using Advobot.Levels.Localization;
-using Advobot.Levels.Resources;
 using Advobot.Levels.Utilities;
+using Advobot.Localization;
+using Advobot.Resources;
 
 using AdvorangesUtils;
 

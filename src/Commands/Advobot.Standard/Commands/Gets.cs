@@ -10,10 +10,10 @@ using Advobot.Attributes.ParameterPreconditions.Numbers;
 using Advobot.Attributes.Preconditions;
 using Advobot.Attributes.Preconditions.Permissions;
 using Advobot.Classes;
+using Advobot.Localization;
 using Advobot.Modules;
+using Advobot.Resources;
 using Advobot.Services.LogCounters;
-using Advobot.Standard.Localization;
-using Advobot.Standard.Resources;
 using Advobot.Utilities;
 
 using AdvorangesUtils;

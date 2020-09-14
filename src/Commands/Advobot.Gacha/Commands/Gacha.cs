@@ -1,12 +1,12 @@
 ﻿using System.Threading.Tasks;
 
 using Advobot.Attributes;
-using Advobot.Gacha.Localization;
 using Advobot.Gacha.ParameterPreconditions;
 using Advobot.Gacha.Preconditions;
 using Advobot.Gacha.ReadOnlyModels;
-using Advobot.Gacha.Resources;
 using Advobot.Gacha.Trading;
+using Advobot.Localization;
+using Advobot.Resources;
 
 using AdvorangesUtils;
 

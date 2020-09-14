@@ -15,7 +15,7 @@ using Discord.Commands;
 
 using Microsoft.Extensions.DependencyInjection;
 
-using static Advobot.Logging.Resources.Responses;
+using static Advobot.Resources.Responses;
 
 namespace Advobot.Logging.ParameterPreconditions
 {

@@ -6,9 +6,9 @@ using Advobot.Attributes.ParameterPreconditions.DiscordObjectValidation.Roles;
 using Advobot.Attributes.ParameterPreconditions.Numbers;
 using Advobot.Attributes.ParameterPreconditions.Strings;
 using Advobot.Attributes.Preconditions.Permissions;
+using Advobot.Localization;
 using Advobot.Modules;
-using Advobot.Standard.Localization;
-using Advobot.Standard.Resources;
+using Advobot.Resources;
 using Advobot.TypeReaders;
 using Advobot.Utilities;
 

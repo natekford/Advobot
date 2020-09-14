@@ -11,7 +11,7 @@ using AdvorangesUtils;
 
 using Discord;
 
-using static Advobot.Invites.Resources.Responses;
+using static Advobot.Resources.Responses;
 
 namespace Advobot.Invites.Responses
 {

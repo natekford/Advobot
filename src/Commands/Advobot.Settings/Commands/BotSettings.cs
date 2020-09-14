@@ -3,10 +3,10 @@
 using Advobot.Attributes;
 using Advobot.Attributes.ParameterPreconditions.Strings;
 using Advobot.Attributes.Preconditions;
+using Advobot.Localization;
 using Advobot.Modules;
+using Advobot.Resources;
 using Advobot.Services.BotSettings;
-using Advobot.Settings.Localization;
-using Advobot.Settings.Resources;
 
 using Discord.Commands;
 

@@ -9,10 +9,10 @@ using Advobot.Attributes.ParameterPreconditions.Strings;
 using Advobot.Attributes.Preconditions;
 using Advobot.Attributes.Preconditions.Permissions;
 using Advobot.Classes;
+using Advobot.Localization;
 using Advobot.Modules;
+using Advobot.Resources;
 using Advobot.Services.HelpEntries;
-using Advobot.Standard.Localization;
-using Advobot.Standard.Resources;
 using Advobot.Utilities;
 
 using AdvorangesUtils;
@@ -40,7 +40,7 @@ namespace Advobot.Standard.Commands
 			[LocalizedSummary(nameof(Summaries.HelpModuleHelp))]
 			public Task<RuntimeResult> Command(
 				[LocalizedSummary(nameof(Summaries.HelpVariableCommand))]
-				[LocalizedName(nameof(Names.Command))]
+				[LocalizedName(nameof(Parameters.Command))]
 				[Remainder]
 				IModuleHelpEntry helpEntry
 			) => Responses.Misc.Help(helpEntry, Context.Settings);
@@ -49,10 +49,10 @@ namespace Advobot.Standard.Commands
 			[LocalizedSummary(nameof(Summaries.HelpCommandHelp))]
 			public Task<RuntimeResult> Command(
 				[LocalizedSummary(nameof(Summaries.HelpVariableExactCommand))]
-				[LocalizedName(nameof(Names.Command))]
+				[LocalizedName(nameof(Parameters.Command))]
 				IModuleHelpEntry helpEntry,
 				[LocalizedSummary(nameof(Summaries.HelpVariableCommandPosition))]
-				[LocalizedName(nameof(Names.Position))]
+				[LocalizedName(nameof(Parameters.Position))]
 				[Positive]
 				int position
 			) => Responses.Misc.Help(helpEntry, position - 1);

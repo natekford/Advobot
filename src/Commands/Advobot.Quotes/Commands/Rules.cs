@@ -3,14 +3,14 @@ using System.Threading.Tasks;
 
 using Advobot.Attributes;
 using Advobot.Attributes.Preconditions.Permissions;
+using Advobot.Localization;
 using Advobot.Modules;
 using Advobot.Quotes.Database;
 using Advobot.Quotes.Formatting;
-using Advobot.Quotes.Localization;
 using Advobot.Quotes.Models;
 using Advobot.Quotes.ParameterPreconditions;
 using Advobot.Quotes.ReadOnlyModels;
-using Advobot.Quotes.Resources;
+using Advobot.Resources;
 
 using AdvorangesUtils;
 

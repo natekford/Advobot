@@ -8,9 +8,9 @@ using Advobot.Attributes.ParameterPreconditions.DiscordObjectValidation.Channels
 using Advobot.Attributes.ParameterPreconditions.DiscordObjectValidation.Invites;
 using Advobot.Attributes.Preconditions.Permissions;
 using Advobot.Classes;
+using Advobot.Localization;
 using Advobot.Modules;
-using Advobot.Standard.Localization;
-using Advobot.Standard.Resources;
+using Advobot.Resources;
 using Advobot.TypeReaders;
 
 using AdvorangesUtils;
