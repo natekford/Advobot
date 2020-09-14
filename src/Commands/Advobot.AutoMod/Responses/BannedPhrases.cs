@@ -26,7 +26,7 @@ namespace Advobot.AutoMod.Responses
 			var joined = phrases.Join(x => x.Phrase);
 			if (string.IsNullOrWhiteSpace(joined))
 			{
-				return Success(BannedPhraseVariableNone);
+				return Success(VariableNone);
 			}
 			return Success(joined.WithBigBlock().Value);
 		}
@@ -48,9 +48,8 @@ namespace Advobot.AutoMod.Responses
 
 		private static AdvobotResult Modified(string type, bool added, string phrase)
 		{
-			var modified = added ? BannedPhraseVariableAdded : BannedPhraseVariableRemoved;
-			return Success(BannedPhraseModified.Format(
-				modified.WithNoMarkdown(),
+			var format = added ? BannedPhraseAdded : BannedPhraseRemoved;
+			return Success(format.Format(
 				type.WithNoMarkdown(),
 				phrase.WithBlock()
 			));

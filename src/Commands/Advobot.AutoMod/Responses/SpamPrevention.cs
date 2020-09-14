@@ -16,11 +16,10 @@ namespace Advobot.AutoMod.Responses
 
 		public static AdvobotResult AlreadyToggledPrevention(Enum type, bool enabled)
 		{
-			var toggled = enabled ? SpamPreventionVariableEnabled : SpamPreventionVariableDisabled;
-			return Success(SpamPreventionAlreadyToggled.Format(
+			var format = enabled ? SpamPreventionAlreadyEnabled : SpamPreventionAlreadyDisabled;
+			return Success(format.Format(
 				type.ToString().WithBlock(),
-				GetType(type),
-				toggled.WithBlock()
+				GetType(type)
 			));
 		}
 
@@ -42,9 +41,8 @@ namespace Advobot.AutoMod.Responses
 
 		public static AdvobotResult ToggledPrevention(Enum type, bool enabled)
 		{
-			var toggled = enabled ? SpamPreventionVariableEnabled : SpamPreventionVariableDisabled;
-			return Success(SpamPreventionToggled.Format(
-				toggled.WithBlock(),
+			var format = enabled ? SpamPreventionEnabled : SpamPreventionDisabled;
+			return Success(format.Format(
 				type.ToString().WithBlock(),
 				GetType(type)
 			));
@@ -52,8 +50,8 @@ namespace Advobot.AutoMod.Responses
 
 		private static MarkdownFormattedArg GetType(Enum type) => type switch
 		{
-			RaidType _ => SpamPreventionVariableRaid.WithNoMarkdown(),
-			SpamType _ => SpamPreventionVariableSpam.WithNoMarkdown(),
+			RaidType _ => VariableRaid.WithNoMarkdown(),
+			SpamType _ => VariableSpam.WithNoMarkdown(),
 			_ => throw new ArgumentOutOfRangeException(nameof(type)),
 		};
 	}

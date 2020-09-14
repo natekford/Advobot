@@ -22,7 +22,7 @@ namespace Advobot.AutoMod.TypeReaders
 	public sealed class BannedNameTypeReader : BannedPhraseTypeReaderBase
 	{
 		/// <inheritdoc />
-		protected override string BannedPhraseName => BannedPhraseVariableName;
+		protected override string BannedPhraseName => VariableName;
 
 		/// <inheritdoc />
 		protected override bool IsValid(IReadOnlyBannedPhrase phrase, string input)
@@ -68,7 +68,7 @@ namespace Advobot.AutoMod.TypeReaders
 	public sealed class BannedRegexTypeReader : BannedPhraseTypeReaderBase
 	{
 		/// <inheritdoc />
-		protected override string BannedPhraseName => BannedPhraseVariableRegex;
+		protected override string BannedPhraseName => VariableRegex;
 
 		/// <inheritdoc />
 		protected override bool IsValid(IReadOnlyBannedPhrase phrase, string input)
@@ -81,7 +81,7 @@ namespace Advobot.AutoMod.TypeReaders
 	public sealed class BannedStringTypeReader : BannedPhraseTypeReaderBase
 	{
 		/// <inheritdoc />
-		protected override string BannedPhraseName => BannedPhraseVariableString;
+		protected override string BannedPhraseName => VariableString;
 
 		/// <inheritdoc />
 		protected override bool IsValid(IReadOnlyBannedPhrase phrase, string input)

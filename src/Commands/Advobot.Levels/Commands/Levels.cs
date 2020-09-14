@@ -23,7 +23,7 @@ namespace Advobot.Levels.Commands
 	{
 		[LocalizedGroup(nameof(Groups.Show))]
 		[LocalizedAlias(nameof(Aliases.Show))]
-		[Summary("temp")]
+		[LocalizedSummary(nameof(Summaries.LevelsShow))]
 		[Meta("bebda6ba-6fbf-4278-94e0-408dcdc77d3c", IsEnabled = true)]
 		public sealed class Show : LevelModuleBase
 		{
@@ -56,7 +56,7 @@ namespace Advobot.Levels.Commands
 
 		[LocalizedGroup(nameof(Groups.Top))]
 		[LocalizedAlias(nameof(Aliases.Top))]
-		[Summary("temp")]
+		[LocalizedSummary(nameof(Summaries.LevelsTop))]
 		[Meta("649ec476-4043-48b0-9802-62a9288d007b", IsEnabled = true)]
 		public sealed class Top : LevelModuleBase
 		{

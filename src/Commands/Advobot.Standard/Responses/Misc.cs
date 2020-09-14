@@ -52,7 +52,7 @@ namespace Advobot.Standard.Responses
 			string prefix)
 		{
 			var description = MiscGeneralCommandInfo.Format(
-				GetPrefixedCommand(prefix, _Commands, MiscVariableCategoryParameter),
+				GetPrefixedCommand(prefix, _Commands, VariableCategoryParameter),
 				categories.Join().WithBigBlock()
 			);
 			return Success(new EmbedWrapper
@@ -66,12 +66,12 @@ namespace Advobot.Standard.Responses
 		{
 			var description = MiscGeneralHelp.Format(
 				GetPrefixedCommand(prefix, _Commands),
-				GetPrefixedCommand(prefix, _Help, MiscVariableCategoryParameter)
+				GetPrefixedCommand(prefix, _Help, VariableCategoryParameter)
 			);
 			var syntaxFieldValue = MiscBasicSyntax.Format(
-				(MiscVariableRequiredLeft + MiscVariableRequiredRight).WithBlock(),
-				(MiscVariableOptionalLeft + MiscVariableOptionalRight).WithBlock(),
-				MiscVariableOr.WithBlock()
+				(VariableRequiredLeft + VariableRequiredRight).WithBlock(),
+				(VariableOptionalLeft + VariableOptionalRight).WithBlock(),
+				VariableOr.WithBlock()
 			);
 			return Success(new EmbedWrapper
 			{
@@ -193,8 +193,8 @@ namespace Advobot.Standard.Responses
 
 		private static string FormatParameter(IParameterHelpEntry p)
 		{
-			var left = p.IsOptional ? MiscVariableOptionalLeft : MiscVariableRequiredLeft;
-			var right = p.IsOptional ? MiscVariableOptionalRight : MiscVariableRequiredRight;
+			var left = p.IsOptional ? VariableOptionalLeft : VariableRequiredLeft;
+			var right = p.IsOptional ? VariableOptionalRight : VariableRequiredRight;
 			return left + p.Name + right;
 		}
 
@@ -202,31 +202,31 @@ namespace Advobot.Standard.Responses
 		{
 			if (!preconditions.Any())
 			{
-				return MiscVariableNotApplicable;
+				return VariableNotApplicable;
 			}
 			if (preconditions.Any(x => x.Group == null))
 			{
-				return preconditions.Join(x => x.Summary, MiscVariableAnd);
+				return preconditions.Join(x => x.Summary, VariableAnd);
 			}
 
 			var groups = preconditions
 				.GroupBy(x => x.Group)
-				.Select(g => g.Join(x => x.Summary, MiscVariableOr))
+				.Select(g => g.Join(x => x.Summary, VariableOr))
 				.ToArray();
 			if (groups.Length == 1)
 			{
 				return groups[0];
 			}
-			return groups.Join(g => $"({g})", MiscVariableAnd);
+			return groups.Join(g => $"({g})", VariableAnd);
 		}
 
 		private static string FormatPreconditions(IEnumerable<IParameterPrecondition> preconditions)
 		{
 			if (!preconditions.Any())
 			{
-				return MiscVariableNotApplicable;
+				return VariableNotApplicable;
 			}
-			return preconditions.Join(x => x.Summary, MiscVariableAnd);
+			return preconditions.Join(x => x.Summary, VariableAnd);
 		}
 
 		private static bool GetEnabledStatus(IModuleHelpEntry entry, IGuildSettings settings)

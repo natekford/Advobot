@@ -85,7 +85,7 @@ namespace Advobot.AutoMod.Commands
 					Phrase = name,
 					PunishmentType = punishment
 				}).CAF();
-				return Added(BannedPhraseVariableName, name);
+				return Added(VariableName, name);
 			}
 
 			[LocalizedCommand(nameof(Groups.ChangePunishment))]
@@ -99,7 +99,7 @@ namespace Advobot.AutoMod.Commands
 				{
 					PunishmentType = punishment
 				}).CAF();
-				return PunishmentChanged(BannedPhraseVariableName, name.Phrase, punishment);
+				return PunishmentChanged(VariableName, name.Phrase, punishment);
 			}
 
 			[LocalizedCommand(nameof(Groups.Remove))]
@@ -109,7 +109,7 @@ namespace Advobot.AutoMod.Commands
 				IReadOnlyBannedPhrase name)
 			{
 				await Db.DeletedBannedPhraseAsync(name).CAF();
-				return Removed(BannedPhraseVariableName, name.Phrase);
+				return Removed(VariableName, name.Phrase);
 			}
 		}
 
@@ -136,7 +136,7 @@ namespace Advobot.AutoMod.Commands
 					Phrase = regex,
 					PunishmentType = punishment
 				}).CAF();
-				return Added(BannedPhraseVariableRegex, regex);
+				return Added(VariableRegex, regex);
 			}
 
 			[LocalizedCommand(nameof(Groups.ChangePunishment))]
@@ -150,7 +150,7 @@ namespace Advobot.AutoMod.Commands
 				{
 					PunishmentType = punishment
 				}).CAF();
-				return PunishmentChanged(BannedPhraseVariableRegex, regex.Phrase, punishment);
+				return PunishmentChanged(VariableRegex, regex.Phrase, punishment);
 			}
 
 			[LocalizedCommand(nameof(Groups.Remove))]
@@ -160,7 +160,7 @@ namespace Advobot.AutoMod.Commands
 				IReadOnlyBannedPhrase regex)
 			{
 				await Db.DeletedBannedPhraseAsync(regex).CAF();
-				return Removed(BannedPhraseVariableRegex, regex.Phrase);
+				return Removed(VariableRegex, regex.Phrase);
 			}
 		}
 
@@ -187,7 +187,7 @@ namespace Advobot.AutoMod.Commands
 					Phrase = phrase,
 					PunishmentType = punishment
 				}).CAF();
-				return Added(BannedPhraseVariableString, phrase);
+				return Added(VariableString, phrase);
 			}
 
 			[LocalizedCommand(nameof(Groups.ChangePunishment))]
@@ -201,7 +201,7 @@ namespace Advobot.AutoMod.Commands
 				{
 					PunishmentType = punishment
 				}).CAF();
-				return PunishmentChanged(BannedPhraseVariableString, phrase.Phrase, punishment);
+				return PunishmentChanged(VariableString, phrase.Phrase, punishment);
 			}
 
 			[LocalizedCommand(nameof(Groups.Remove))]
@@ -211,7 +211,7 @@ namespace Advobot.AutoMod.Commands
 				IReadOnlyBannedPhrase phrase)
 			{
 				await Db.DeletedBannedPhraseAsync(phrase).CAF();
-				return Removed(BannedPhraseVariableString, phrase.Phrase);
+				return Removed(VariableString, phrase.Phrase);
 			}
 		}
 	}

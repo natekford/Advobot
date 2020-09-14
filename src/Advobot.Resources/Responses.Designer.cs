@@ -61,6 +61,15 @@ namespace Advobot.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Successfully added the banned {0} {1}..
+        /// </summary>
+        public static string BannedPhraseAdded {
+            get {
+                return ResourceManager.GetString("BannedPhraseAdded", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to {0} is already a banned {1}..
         /// </summary>
         public static string BannedPhraseAlreadyExists {
@@ -79,15 +88,6 @@ namespace Advobot.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Successfully {0} the banned {1} {2}..
-        /// </summary>
-        public static string BannedPhraseModified {
-            get {
-                return ResourceManager.GetString("BannedPhraseModified", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Not already a banned {0}..
         /// </summary>
         public static string BannedPhraseNotExisting {
@@ -97,65 +97,20 @@ namespace Advobot.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Successfully removed the banned {0} {1}..
+        /// </summary>
+        public static string BannedPhraseRemoved {
+            get {
+                return ResourceManager.GetString("BannedPhraseRemoved", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to banned {0}.
         /// </summary>
         public static string BannedPhraseType {
             get {
                 return ResourceManager.GetString("BannedPhraseType", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to added.
-        /// </summary>
-        public static string BannedPhraseVariableAdded {
-            get {
-                return ResourceManager.GetString("BannedPhraseVariableAdded", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to name.
-        /// </summary>
-        public static string BannedPhraseVariableName {
-            get {
-                return ResourceManager.GetString("BannedPhraseVariableName", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to None..
-        /// </summary>
-        public static string BannedPhraseVariableNone {
-            get {
-                return ResourceManager.GetString("BannedPhraseVariableNone", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to regex.
-        /// </summary>
-        public static string BannedPhraseVariableRegex {
-            get {
-                return ResourceManager.GetString("BannedPhraseVariableRegex", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to removed.
-        /// </summary>
-        public static string BannedPhraseVariableRemoved {
-            get {
-                return ResourceManager.GetString("BannedPhraseVariableRemoved", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to string.
-        /// </summary>
-        public static string BannedPhraseVariableString {
-            get {
-                return ResourceManager.GetString("BannedPhraseVariableString", resourceCulture);
             }
         }
         
@@ -336,15 +291,6 @@ namespace Advobot.Resources {
         public static string ChannelsTitleSingleOverwrite {
             get {
                 return ResourceManager.GetString("ChannelsTitleSingleOverwrite", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to all overwrites.
-        /// </summary>
-        public static string ChannelsVariableAllOverwrites {
-            get {
-                return ResourceManager.GetString("ChannelsVariableAllOverwrites", resourceCulture);
             }
         }
         
@@ -1673,78 +1619,6 @@ namespace Advobot.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to  + .
-        /// </summary>
-        public static string MiscVariableAnd {
-            get {
-                return ResourceManager.GetString("MiscVariableAnd", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to [Category].
-        /// </summary>
-        public static string MiscVariableCategoryParameter {
-            get {
-                return ResourceManager.GetString("MiscVariableCategoryParameter", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to N/A.
-        /// </summary>
-        public static string MiscVariableNotApplicable {
-            get {
-                return ResourceManager.GetString("MiscVariableNotApplicable", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to &lt;.
-        /// </summary>
-        public static string MiscVariableOptionalLeft {
-            get {
-                return ResourceManager.GetString("MiscVariableOptionalLeft", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to &gt;.
-        /// </summary>
-        public static string MiscVariableOptionalRight {
-            get {
-                return ResourceManager.GetString("MiscVariableOptionalRight", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to  | .
-        /// </summary>
-        public static string MiscVariableOr {
-            get {
-                return ResourceManager.GetString("MiscVariableOr", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to [.
-        /// </summary>
-        public static string MiscVariableRequiredLeft {
-            get {
-                return ResourceManager.GetString("MiscVariableRequiredLeft", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to ].
-        /// </summary>
-        public static string MiscVariableRequiredRight {
-            get {
-                return ResourceManager.GetString("MiscVariableRequiredRight", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Successfully modified the nickname for {0} to {1}..
         /// </summary>
         public static string NicknamesModifiedNickname {
@@ -2123,11 +1997,20 @@ namespace Advobot.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to {0} {1} prevention is already {2}..
+        ///   Looks up a localized string similar to {0} {1} prevention is already disabled..
         /// </summary>
-        public static string SpamPreventionAlreadyToggled {
+        public static string SpamPreventionAlreadyDisabled {
             get {
-                return ResourceManager.GetString("SpamPreventionAlreadyToggled", resourceCulture);
+                return ResourceManager.GetString("SpamPreventionAlreadyDisabled", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to {0} {1} prevention is already enabled..
+        /// </summary>
+        public static string SpamPreventionAlreadyEnabled {
+            get {
+                return ResourceManager.GetString("SpamPreventionAlreadyEnabled", resourceCulture);
             }
         }
         
@@ -2141,56 +2024,29 @@ namespace Advobot.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Successfully disabled the {0} {1} prevention..
+        /// </summary>
+        public static string SpamPreventionDisabled {
+            get {
+                return ResourceManager.GetString("SpamPreventionDisabled", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Successfully enabled the {0} {1} prevention..
+        /// </summary>
+        public static string SpamPreventionEnabled {
+            get {
+                return ResourceManager.GetString("SpamPreventionEnabled", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Failed to find a {0} {1} prevention..
         /// </summary>
         public static string SpamPreventionNotFound {
             get {
                 return ResourceManager.GetString("SpamPreventionNotFound", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Successfully {0} the {1} {2} prevention..
-        /// </summary>
-        public static string SpamPreventionToggled {
-            get {
-                return ResourceManager.GetString("SpamPreventionToggled", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to disabled.
-        /// </summary>
-        public static string SpamPreventionVariableDisabled {
-            get {
-                return ResourceManager.GetString("SpamPreventionVariableDisabled", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to enabled.
-        /// </summary>
-        public static string SpamPreventionVariableEnabled {
-            get {
-                return ResourceManager.GetString("SpamPreventionVariableEnabled", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to raid.
-        /// </summary>
-        public static string SpamPreventionVariableRaid {
-            get {
-                return ResourceManager.GetString("SpamPreventionVariableRaid", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to spam.
-        /// </summary>
-        public static string SpamPreventionVariableSpam {
-            get {
-                return ResourceManager.GetString("SpamPreventionVariableSpam", resourceCulture);
             }
         }
         
@@ -2276,6 +2132,15 @@ namespace Advobot.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to No ban reason listed..
+        /// </summary>
+        public static string UsersNoBanReason {
+            get {
+                return ResourceManager.GetString("UsersNoBanReason", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Successfully pruned {0} guild members with a prune period of {1} days..
         /// </summary>
         public static string UsersRealPrune {
@@ -2312,101 +2177,56 @@ namespace Advobot.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to added.
+        /// </summary>
+        public static string VariableAdded {
+            get {
+                return ResourceManager.GetString("VariableAdded", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to all.
+        /// </summary>
+        public static string VariableAll {
+            get {
+                return ResourceManager.GetString("VariableAll", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to  + .
+        /// </summary>
+        public static string VariableAnd {
+            get {
+                return ResourceManager.GetString("VariableAnd", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to banned.
         /// </summary>
-        public static string UsersVariableBanned {
+        public static string VariableBanned {
             get {
-                return ResourceManager.GetString("UsersVariableBanned", resourceCulture);
+                return ResourceManager.GetString("VariableBanned", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to [Category].
+        /// </summary>
+        public static string VariableCategoryParameter {
+            get {
+                return ResourceManager.GetString("VariableCategoryParameter", resourceCulture);
             }
         }
         
         /// <summary>
         ///   Looks up a localized string similar to deafened.
         /// </summary>
-        public static string UsersVariableDeafened {
+        public static string VariableDeafened {
             get {
-                return ResourceManager.GetString("UsersVariableDeafened", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to kicked.
-        /// </summary>
-        public static string UsersVariableKicked {
-            get {
-                return ResourceManager.GetString("UsersVariableKicked", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to muted.
-        /// </summary>
-        public static string UsersVariableMuted {
-            get {
-                return ResourceManager.GetString("UsersVariableMuted", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to No ban reason listed..
-        /// </summary>
-        public static string UsersVariableNoBanReason {
-            get {
-                return ResourceManager.GetString("UsersVariableNoBanReason", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to soft banned.
-        /// </summary>
-        public static string UsersVariableSoftBanned {
-            get {
-                return ResourceManager.GetString("UsersVariableSoftBanned", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to unbanned.
-        /// </summary>
-        public static string UsersVariableUnbanned {
-            get {
-                return ResourceManager.GetString("UsersVariableUnbanned", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to undeafened.
-        /// </summary>
-        public static string UsersVariableUndeafened {
-            get {
-                return ResourceManager.GetString("UsersVariableUndeafened", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to unmuted.
-        /// </summary>
-        public static string UsersVariableUnmuted {
-            get {
-                return ResourceManager.GetString("UsersVariableUnmuted", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to unvoice-muted.
-        /// </summary>
-        public static string UsersVariableUnvoiceMuted {
-            get {
-                return ResourceManager.GetString("UsersVariableUnvoiceMuted", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to voice-muted.
-        /// </summary>
-        public static string UsersVariableVoiceMuted {
-            get {
-                return ResourceManager.GetString("UsersVariableVoiceMuted", resourceCulture);
+                return ResourceManager.GetString("VariableDeafened", resourceCulture);
             }
         }
         
@@ -2456,11 +2276,56 @@ namespace Advobot.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to kicked.
+        /// </summary>
+        public static string VariableKicked {
+            get {
+                return ResourceManager.GetString("VariableKicked", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to mod.
         /// </summary>
         public static string VariableModLog {
             get {
                 return ResourceManager.GetString("VariableModLog", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to muted.
+        /// </summary>
+        public static string VariableMuted {
+            get {
+                return ResourceManager.GetString("VariableMuted", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to name.
+        /// </summary>
+        public static string VariableName {
+            get {
+                return ResourceManager.GetString("VariableName", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to None..
+        /// </summary>
+        public static string VariableNone {
+            get {
+                return ResourceManager.GetString("VariableNone", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to N/A.
+        /// </summary>
+        public static string VariableNotApplicable {
+            get {
+                return ResourceManager.GetString("VariableNotApplicable", resourceCulture);
             }
         }
         
@@ -2474,11 +2339,83 @@ namespace Advobot.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to &lt;.
+        /// </summary>
+        public static string VariableOptionalLeft {
+            get {
+                return ResourceManager.GetString("VariableOptionalLeft", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to &gt;.
+        /// </summary>
+        public static string VariableOptionalRight {
+            get {
+                return ResourceManager.GetString("VariableOptionalRight", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to  | .
+        /// </summary>
+        public static string VariableOr {
+            get {
+                return ResourceManager.GetString("VariableOr", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Quotes.
         /// </summary>
         public static string VariableQuotes {
             get {
                 return ResourceManager.GetString("VariableQuotes", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to raid.
+        /// </summary>
+        public static string VariableRaid {
+            get {
+                return ResourceManager.GetString("VariableRaid", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to regex.
+        /// </summary>
+        public static string VariableRegex {
+            get {
+                return ResourceManager.GetString("VariableRegex", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to removed.
+        /// </summary>
+        public static string VariableRemoved {
+            get {
+                return ResourceManager.GetString("VariableRemoved", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to [.
+        /// </summary>
+        public static string VariableRequiredLeft {
+            get {
+                return ResourceManager.GetString("VariableRequiredLeft", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to ].
+        /// </summary>
+        public static string VariableRequiredRight {
+            get {
+                return ResourceManager.GetString("VariableRequiredRight", resourceCulture);
             }
         }
         
@@ -2492,11 +2429,83 @@ namespace Advobot.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to soft banned.
+        /// </summary>
+        public static string VariableSoftBanned {
+            get {
+                return ResourceManager.GetString("VariableSoftBanned", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to spam.
+        /// </summary>
+        public static string VariableSpam {
+            get {
+                return ResourceManager.GetString("VariableSpam", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to string.
+        /// </summary>
+        public static string VariableString {
+            get {
+                return ResourceManager.GetString("VariableString", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to unbanned.
+        /// </summary>
+        public static string VariableUnbanned {
+            get {
+                return ResourceManager.GetString("VariableUnbanned", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to undeafened.
+        /// </summary>
+        public static string VariableUndeafened {
+            get {
+                return ResourceManager.GetString("VariableUndeafened", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to unignored.
         /// </summary>
         public static string VariableUnignored {
             get {
                 return ResourceManager.GetString("VariableUnignored", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to unmuted.
+        /// </summary>
+        public static string VariableUnmuted {
+            get {
+                return ResourceManager.GetString("VariableUnmuted", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to unvoice-muted.
+        /// </summary>
+        public static string VariableUnvoiceMuted {
+            get {
+                return ResourceManager.GetString("VariableUnvoiceMuted", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to voice-muted.
+        /// </summary>
+        public static string VariableVoiceMuted {
+            get {
+                return ResourceManager.GetString("VariableVoiceMuted", resourceCulture);
             }
         }
         

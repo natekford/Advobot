@@ -41,7 +41,7 @@ namespace Advobot.Standard.Responses
 			}
 
 			return Success(ChannelsCopiedOverwrite.Format(
-				(obj?.Format() ?? ChannelsVariableAllOverwrites).WithBlock(),
+				(obj?.Format() ?? VariableAll).WithBlock(),
 				input.Format().WithBlock(),
 				output.Format().WithBlock()
 			));
@@ -66,7 +66,7 @@ namespace Advobot.Standard.Responses
 			);
 			var description = channels
 				.OrderBy(x => x.Position)
-				.Join(x => $"{x.Position.ToString("00")}. {x.Name}", "\n")
+				.Join(x => $"{x.Position:00}. {x.Name}", "\n")
 				.WithBigBlock()
 				.Value;
 			return Success(new EmbedWrapper

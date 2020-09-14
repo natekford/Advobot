@@ -23,9 +23,9 @@ namespace Advobot.Gacha.Commands
 	{
 		[LocalizedGroup(nameof(Groups.Character))]
 		[LocalizedAlias(nameof(Aliases.Character))]
-		[Summary("temp")]
+		[LocalizedSummary(nameof(Summaries.GachaCharacter))]
 		[Meta("23e41fce-8760-4f5a-8f68-154bb8ce1bc8")]
-		public sealed class GachaCharacter : GachaModuleBase
+		public sealed class Character : GachaModuleBase
 		{
 			[Command(RunMode = RunMode.Async)]
 			public async Task<RuntimeResult> Command(IReadOnlyCharacter character)
@@ -37,10 +37,10 @@ namespace Advobot.Gacha.Commands
 
 		[LocalizedGroup(nameof(Groups.Give))]
 		[LocalizedAlias(nameof(Aliases.Give))]
-		[Summary("temp")]
+		[LocalizedSummary(nameof(Summaries.GachaGive))]
 		[Meta("db62db89-d645-4bdd-9794-2945ca8dde9c")]
 		[CancelPreviousTrades]
-		public sealed class GachaGive : GachaExchangeModuleBase
+		public sealed class Give : GachaExchangeModuleBase
 		{
 			protected override ExchangeMethod Method => ExchangeMethod.Gift;
 
@@ -58,9 +58,9 @@ namespace Advobot.Gacha.Commands
 
 		[LocalizedGroup(nameof(Groups.Harem))]
 		[LocalizedAlias(nameof(Aliases.Harem))]
-		[Summary("temp")]
+		[LocalizedSummary(nameof(Summaries.GachaHarem))]
 		[Meta("cdd5d2e6-e26e-4d1b-85d2-28b3778b6c2c")]
-		public sealed class GachaHarem : GachaModuleBase
+		public sealed class Harem : GachaModuleBase
 		{
 			[Command(RunMode = RunMode.Async)]
 			public async Task<RuntimeResult> Command(IReadOnlyUser user)
@@ -72,9 +72,9 @@ namespace Advobot.Gacha.Commands
 
 		[LocalizedGroup(nameof(Groups.Roll))]
 		[LocalizedAlias(nameof(Aliases.Roll))]
-		[Summary("temp")]
+		[LocalizedSummary(nameof(Summaries.GachaRoll))]
 		[Meta("ea1f45fd-d9e1-43df-bd9b-46c31b4ec221")]
-		public sealed class GachaRoll : GachaModuleBase
+		public sealed class Roll : GachaModuleBase
 		{
 			[Command(RunMode = RunMode.Async)]
 			public async Task<RuntimeResult> Command()
@@ -86,9 +86,9 @@ namespace Advobot.Gacha.Commands
 
 		[LocalizedGroup(nameof(Groups.Source))]
 		[LocalizedAlias(nameof(Aliases.Source))]
-		[Summary("temp")]
+		[LocalizedSummary(nameof(Summaries.GachaSource))]
 		[Meta("12827e74-4ba1-439c-9c39-9e2d2b7f2cfb")]
-		public sealed class GachaSource : GachaModuleBase
+		public sealed class Source : GachaModuleBase
 		{
 			[Command(RunMode = RunMode.Async)]
 			public async Task<RuntimeResult> Command(IReadOnlySource source)
@@ -100,10 +100,10 @@ namespace Advobot.Gacha.Commands
 
 		[LocalizedGroup(nameof(Groups.Trade))]
 		[LocalizedAlias(nameof(Aliases.Trade))]
-		[Summary("temp")]
+		[LocalizedSummary(nameof(Summaries.GachaTrade))]
 		[Meta("dfd7e368-5a03-4af7-8054-4eb156a5e4fb")]
 		[CancelPreviousTrades]
-		public sealed class GachaTrade : GachaExchangeModuleBase
+		public sealed class Trade : GachaExchangeModuleBase
 		{
 			protected override ExchangeMethod Method => ExchangeMethod.Trade;
 

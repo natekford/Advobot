@@ -27,7 +27,7 @@ namespace Advobot.AutoMod.Attributes.ParameterPreconditions
 		: NotAlreadyBannedPhraseParameterPreconditionAttribute
 	{
 		/// <inheritdoc />
-		protected override string BannedPhraseName => BannedPhraseVariableName;
+		protected override string BannedPhraseName => VariableName;
 
 		/// <inheritdoc />
 		protected override bool IsMatch(IReadOnlyBannedPhrase phrase, string input)
@@ -94,7 +94,7 @@ namespace Advobot.AutoMod.Attributes.ParameterPreconditions
 		: NotAlreadyBannedPhraseParameterPreconditionAttribute
 	{
 		/// <inheritdoc />
-		protected override string BannedPhraseName => BannedPhraseVariableRegex;
+		protected override string BannedPhraseName => VariableRegex;
 
 		/// <inheritdoc />
 		protected override bool IsMatch(IReadOnlyBannedPhrase phrase, string input)
@@ -109,7 +109,7 @@ namespace Advobot.AutoMod.Attributes.ParameterPreconditions
 		: NotAlreadyBannedPhraseParameterPreconditionAttribute
 	{
 		/// <inheritdoc />
-		protected override string BannedPhraseName => BannedPhraseVariableString;
+		protected override string BannedPhraseName => VariableString;
 
 		/// <inheritdoc />
 		protected override bool IsMatch(IReadOnlyBannedPhrase phrase, string input)

@@ -412,6 +412,60 @@ namespace Advobot.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Displays information about the specified character..
+        /// </summary>
+        public static string GachaCharacter {
+            get {
+                return ResourceManager.GetString("GachaCharacter", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Gifts a character to a different user..
+        /// </summary>
+        public static string GachaGive {
+            get {
+                return ResourceManager.GetString("GachaGive", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Displays the characters you have claimed.
+        /// </summary>
+        public static string GachaHarem {
+            get {
+                return ResourceManager.GetString("GachaHarem", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Rolls a random character that you can claim..
+        /// </summary>
+        public static string GachaRoll {
+            get {
+                return ResourceManager.GetString("GachaRoll", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Displays information about the specified source..
+        /// </summary>
+        public static string GachaSource {
+            get {
+                return ResourceManager.GetString("GachaSource", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Trade characters with a different user..
+        /// </summary>
+        public static string GachaTrade {
+            get {
+                return ResourceManager.GetString("GachaTrade", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to A channel on the guild which you can see..
         /// </summary>
         public static string GenericChannelArgument {
@@ -606,6 +660,24 @@ namespace Advobot.Resources {
         public static string LeaveGuild {
             get {
                 return ResourceManager.GetString("LeaveGuild", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Displays the level of yourself or a different user..
+        /// </summary>
+        public static string LevelsShow {
+            get {
+                return ResourceManager.GetString("LevelsShow", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Displays the highest leveled people in the server..
+        /// </summary>
+        public static string LevelsTop {
+            get {
+                return ResourceManager.GetString("LevelsTop", resourceCulture);
             }
         }
         

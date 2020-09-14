@@ -544,4 +544,28 @@
   <data name="VoiceMute" xml:space="preserve">
     <value>Prevents a user from speaking in voice chat.</value>
   </data>
+  <data name="GachaCharacter" xml:space="preserve">
+    <value>Displays information about the specified character.</value>
+  </data>
+  <data name="GachaGive" xml:space="preserve">
+    <value>Gifts a character to a different user.</value>
+  </data>
+  <data name="GachaHarem" xml:space="preserve">
+    <value>Displays the characters you have claimed</value>
+  </data>
+  <data name="GachaRoll" xml:space="preserve">
+    <value>Rolls a random character that you can claim.</value>
+  </data>
+  <data name="GachaSource" xml:space="preserve">
+    <value>Displays information about the specified source.</value>
+  </data>
+  <data name="GachaTrade" xml:space="preserve">
+    <value>Trade characters with a different user.</value>
+  </data>
+  <data name="LevelsShow" xml:space="preserve">
+    <value>Displays the level of yourself or a different user.</value>
+  </data>
+  <data name="LevelsTop" xml:space="preserve">
+    <value>Displays the highest leveled people in the server.</value>
+  </data>
 </root>

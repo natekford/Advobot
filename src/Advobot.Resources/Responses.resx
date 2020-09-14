@@ -106,8 +106,8 @@
   <data name="BannedPhraseChangedPunishment" xml:space="preserve">
     <value>Successfully changed the punishment of the banned {0} {1} to {2}.</value>
   </data>
-  <data name="BannedPhraseModified" xml:space="preserve">
-    <value>Successfully {0} the banned {1} {2}.</value>
+  <data name="BannedPhraseAdded" xml:space="preserve">
+    <value>Successfully added the banned {0} {1}.</value>
   </data>
   <data name="BannedPhraseNotExisting" xml:space="preserve">
     <value>Not already a banned {0}.</value>
@@ -115,22 +115,22 @@
   <data name="BannedPhraseType" xml:space="preserve">
     <value>banned {0}</value>
   </data>
-  <data name="BannedPhraseVariableAdded" xml:space="preserve">
+  <data name="VariableAdded" xml:space="preserve">
     <value>added</value>
   </data>
-  <data name="BannedPhraseVariableName" xml:space="preserve">
+  <data name="VariableName" xml:space="preserve">
     <value>name</value>
   </data>
-  <data name="BannedPhraseVariableNone" xml:space="preserve">
+  <data name="VariableNone" xml:space="preserve">
     <value>None.</value>
   </data>
-  <data name="BannedPhraseVariableRegex" xml:space="preserve">
+  <data name="VariableRegex" xml:space="preserve">
     <value>regex</value>
   </data>
-  <data name="BannedPhraseVariableRemoved" xml:space="preserve">
+  <data name="VariableRemoved" xml:space="preserve">
     <value>removed</value>
   </data>
-  <data name="BannedPhraseVariableString" xml:space="preserve">
+  <data name="VariableString" xml:space="preserve">
     <value>string</value>
   </data>
   <data name="ChannelsClearedOverwrites" xml:space="preserve">
@@ -190,8 +190,8 @@
   <data name="ChannelsTitleSingleOverwrite" xml:space="preserve">
     <value>{0} On {1}</value>
   </data>
-  <data name="ChannelsVariableAllOverwrites" xml:space="preserve">
-    <value>all overwrites</value>
+  <data name="VariableAll" xml:space="preserve">
+    <value>all</value>
   </data>
   <data name="EmotesAddedRequiredRoles" xml:space="preserve">
     <value>Successfully added {0} as roles required to use {1}.</value>
@@ -641,28 +641,28 @@ Type {1} for help with a command.</value>
   <data name="MiscTitleNamedArguments" xml:space="preserve">
     <value>Named Arguments</value>
   </data>
-  <data name="MiscVariableAnd" xml:space="preserve">
+  <data name="VariableAnd" xml:space="preserve">
     <value> + </value>
   </data>
-  <data name="MiscVariableCategoryParameter" xml:space="preserve">
+  <data name="VariableCategoryParameter" xml:space="preserve">
     <value>[Category]</value>
   </data>
-  <data name="MiscVariableNotApplicable" xml:space="preserve">
+  <data name="VariableNotApplicable" xml:space="preserve">
     <value>N/A</value>
   </data>
-  <data name="MiscVariableOptionalLeft" xml:space="preserve">
+  <data name="VariableOptionalLeft" xml:space="preserve">
     <value>&lt;</value>
   </data>
-  <data name="MiscVariableOptionalRight" xml:space="preserve">
+  <data name="VariableOptionalRight" xml:space="preserve">
     <value>&gt;</value>
   </data>
-  <data name="MiscVariableOr" xml:space="preserve">
+  <data name="VariableOr" xml:space="preserve">
     <value> | </value>
   </data>
-  <data name="MiscVariableRequiredLeft" xml:space="preserve">
+  <data name="VariableRequiredLeft" xml:space="preserve">
     <value>[</value>
   </data>
-  <data name="MiscVariableRequiredRight" xml:space="preserve">
+  <data name="VariableRequiredRight" xml:space="preserve">
     <value>]</value>
   </data>
   <data name="NicknamesModifiedNickname" xml:space="preserve">
@@ -791,8 +791,8 @@ Type {1} for help with a command.</value>
   <data name="SnowflakesSoftDeleted" xml:space="preserve">
     <value>Successfully soft deleted {0}.</value>
   </data>
-  <data name="SpamPreventionAlreadyToggled" xml:space="preserve">
-    <value>{0} {1} prevention is already {2}.</value>
+  <data name="SpamPreventionAlreadyEnabled" xml:space="preserve">
+    <value>{0} {1} prevention is already enabled.</value>
   </data>
   <data name="SpamPreventionCreated" xml:space="preserve">
     <value>Successfully created {0} {1} prevention.</value>
@@ -800,19 +800,13 @@ Type {1} for help with a command.</value>
   <data name="SpamPreventionNotFound" xml:space="preserve">
     <value>Failed to find a {0} {1} prevention.</value>
   </data>
-  <data name="SpamPreventionToggled" xml:space="preserve">
-    <value>Successfully {0} the {1} {2} prevention.</value>
+  <data name="SpamPreventionEnabled" xml:space="preserve">
+    <value>Successfully enabled the {0} {1} prevention.</value>
   </data>
-  <data name="SpamPreventionVariableDisabled" xml:space="preserve">
-    <value>disabled</value>
-  </data>
-  <data name="SpamPreventionVariableEnabled" xml:space="preserve">
-    <value>enabled</value>
-  </data>
-  <data name="SpamPreventionVariableRaid" xml:space="preserve">
+  <data name="VariableRaid" xml:space="preserve">
     <value>raid</value>
   </data>
-  <data name="SpamPreventionVariableSpam" xml:space="preserve">
+  <data name="VariableSpam" xml:space="preserve">
     <value>spam</value>
   </data>
   <data name="UsersActionDone" xml:space="preserve">
@@ -854,37 +848,37 @@ Type {1} for help with a command.</value>
   <data name="UsersUnpunishedTime" xml:space="preserve">
     <value>They will be {0} in {1}.</value>
   </data>
-  <data name="UsersVariableBanned" xml:space="preserve">
+  <data name="VariableBanned" xml:space="preserve">
     <value>banned</value>
   </data>
-  <data name="UsersVariableDeafened" xml:space="preserve">
+  <data name="VariableDeafened" xml:space="preserve">
     <value>deafened</value>
   </data>
-  <data name="UsersVariableKicked" xml:space="preserve">
+  <data name="VariableKicked" xml:space="preserve">
     <value>kicked</value>
   </data>
-  <data name="UsersVariableMuted" xml:space="preserve">
+  <data name="VariableMuted" xml:space="preserve">
     <value>muted</value>
   </data>
-  <data name="UsersVariableNoBanReason" xml:space="preserve">
+  <data name="UsersNoBanReason" xml:space="preserve">
     <value>No ban reason listed.</value>
   </data>
-  <data name="UsersVariableSoftBanned" xml:space="preserve">
+  <data name="VariableSoftBanned" xml:space="preserve">
     <value>soft banned</value>
   </data>
-  <data name="UsersVariableUnbanned" xml:space="preserve">
+  <data name="VariableUnbanned" xml:space="preserve">
     <value>unbanned</value>
   </data>
-  <data name="UsersVariableUndeafened" xml:space="preserve">
+  <data name="VariableUndeafened" xml:space="preserve">
     <value>undeafened</value>
   </data>
-  <data name="UsersVariableUnmuted" xml:space="preserve">
+  <data name="VariableUnmuted" xml:space="preserve">
     <value>unmuted</value>
   </data>
-  <data name="UsersVariableUnvoiceMuted" xml:space="preserve">
+  <data name="VariableUnvoiceMuted" xml:space="preserve">
     <value>unvoice-muted</value>
   </data>
-  <data name="UsersVariableVoiceMuted" xml:space="preserve">
+  <data name="VariableVoiceMuted" xml:space="preserve">
     <value>voice-muted</value>
   </data>
   <data name="VariableDisabled" xml:space="preserve">
@@ -922,5 +916,14 @@ Type {1} for help with a command.</value>
   </data>
   <data name="WebhooksTitleDisplayWebhooks" xml:space="preserve">
     <value>Webhooks On {0}</value>
+  </data>
+  <data name="SpamPreventionAlreadyDisabled" xml:space="preserve">
+    <value>{0} {1} prevention is already disabled.</value>
+  </data>
+  <data name="SpamPreventionDisabled" xml:space="preserve">
+    <value>Successfully disabled the {0} {1} prevention.</value>
+  </data>
+  <data name="BannedPhraseRemoved" xml:space="preserve">
+    <value>Successfully removed the banned {0} {1}.</value>
   </data>
 </root>

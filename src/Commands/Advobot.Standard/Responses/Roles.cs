@@ -44,7 +44,7 @@ namespace Advobot.Standard.Responses
 		public static AdvobotResult Display(IEnumerable<IRole> roles)
 		{
 			var description = roles
-				.Join(x => $"{x.Position.ToString("00")}. {x.Name}", Environment.NewLine)
+				.Join(x => $"{x.Position:00}. {x.Name}", Environment.NewLine)
 				.WithBigBlock()
 				.Value;
 			return Success(new EmbedWrapper
