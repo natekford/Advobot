@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 
 using Advobot.Interfaces;
 
@@ -15,20 +16,17 @@ namespace Advobot.Services.HelpEntries
 		/// Whether or not the parameter is optional.
 		/// </summary>
 		bool IsOptional { get; }
-
 		/// <summary>
 		/// The names of the available properties if the parameter's type has <see cref="NamedArgumentTypeAttribute"/>.
 		/// </summary>
 		IReadOnlyList<string> NamedArguments { get; }
-
 		/// <summary>
 		/// The base permissions to have this parameter be valid.
 		/// </summary>
 		IReadOnlyList<IParameterPrecondition> Preconditions { get; }
-
 		/// <summary>
-		/// The name of the parameter type.
+		/// The type of the parameter.
 		/// </summary>
-		string TypeName { get; }
+		Type Type { get; }
 	}
 }

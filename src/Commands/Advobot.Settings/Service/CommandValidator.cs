@@ -28,13 +28,30 @@ namespace Advobot.Settings.Service
 			ICommandContext context,
 			CommandInfo command)
 		{
+			static PreconditionResult MetaResult(MetaAttribute meta)
+			{
+				if (meta.IsEnabled)
+				{
+					return PreconditionResult.FromSuccess();
+				}
+				return PreconditionResult.FromError("Command is disabled by default.");
+			}
+
 			// If we can't get an id, return success since the command isn't designed to work with this
-			if (!(command.Attributes.SingleOrDefault(x => x is MetaAttribute) is MetaAttribute meta))
+			var attributes = command.Module.Attributes;
+			if (!(attributes.SingleOrDefault(x => x is MetaAttribute) is MetaAttribute meta))
 			{
 				return PreconditionResult.FromSuccess();
 			}
-			var id = meta.Guid.ToString();
+			// Can't toggle, so will always be default
+			// If changed from toggleable to not toggle, we also want to use the default value
+			// instead of a potentially unchangable value in the database
+			if (!meta.CanToggle)
+			{
+				return MetaResult(meta);
+			}
 
+			var id = meta.Guid.ToString();
 			var overrides = await _Db.GetCommandOverridesAsync(context.Guild.Id, id).CAF();
 			foreach (var @override in overrides)
 			{
@@ -47,14 +64,9 @@ namespace Advobot.Settings.Service
 				{
 					return PreconditionResult.FromSuccess();
 				}
-				return PreconditionResult.FromError($"Command is not enabled for {entity.Format()}.");
+				return PreconditionResult.FromError($"Command is not enabled for `{entity.Format()}`.");
 			}
-
-			if (meta.IsEnabled)
-			{
-				return PreconditionResult.FromSuccess();
-			}
-			return PreconditionResult.FromError("Command is disabled by default.");
+			return MetaResult(meta);
 		}
 
 		private static IEntity<ulong>? GetEntity(

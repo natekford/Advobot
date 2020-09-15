@@ -15,7 +15,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 namespace Advobot.Tests.Commands.Invites.Database
 {
 	[TestClass]
-	public sealed class CRUD_Tests
+	public sealed class InvitesCRUD_Tests
 		: DatabaseTestsBase<InviteDatabase, FakeSQLiteConnectionString>
 	{
 		[TestMethod]

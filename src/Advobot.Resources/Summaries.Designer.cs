@@ -844,6 +844,33 @@ namespace Advobot.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Clears the command overrides on the specified entity..
+        /// </summary>
+        public static string ModifyCommandsClear {
+            get {
+                return ResourceManager.GetString("ModifyCommandsClear", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Creates or modifies a command override to a &apos;disallowed&apos; state with the supplied priority on the specified entity. A higher priority is used first..
+        /// </summary>
+        public static string ModifyCommandsDisable {
+            get {
+                return ResourceManager.GetString("ModifyCommandsDisable", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Creates or modifies a command override to an &apos;allowed&apos; state with the supplied priority on the specified entity. A higher priority is used first..
+        /// </summary>
+        public static string ModifyCommandsEnable {
+            get {
+                return ResourceManager.GetString("ModifyCommandsEnable", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Modifies an emote name..
         /// </summary>
         public static string ModifyEmoteName {

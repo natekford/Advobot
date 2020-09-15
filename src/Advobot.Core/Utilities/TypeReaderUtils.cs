@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 
 using Discord.Commands;
@@ -27,7 +28,7 @@ namespace Advobot.Utilities
 		/// <param name="value"></param>
 		/// <returns></returns>
 		public static TypeReaderResult MultipleValidResults<T>(
-			IReadOnlyList<T> matches,
+			IReadOnlyCollection<T> matches,
 			string type,
 			string value)
 		{
@@ -68,13 +69,13 @@ namespace Advobot.Utilities
 		/// <param name="value"></param>
 		/// <returns></returns>
 		public static TypeReaderResult SingleValidResult<T>(
-			IReadOnlyList<T> matches,
+			IReadOnlyCollection<T> matches,
 			string type,
 			string value)
 		{
 			if (matches.Count == 1)
 			{
-				return TypeReaderResult.FromSuccess(matches[0]);
+				return TypeReaderResult.FromSuccess(matches.Single());
 			}
 			else if (matches.Count > 1)
 			{

@@ -18,6 +18,13 @@ namespace Advobot.Settings.Models
 			CommandId = "";
 		}
 
+		public CommandOverride(CommandOverrideEntity entity) : this()
+		{
+			GuildId = entity.GuildId;
+			TargetId = entity.Entity.Id;
+			TargetType = entity.EntityType;
+		}
+
 		public CommandOverride(IGuild guild) : this()
 		{
 			GuildId = guild.Id;

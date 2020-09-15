@@ -1,13 +1,18 @@
 ﻿using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Linq;
+using System.Security.Cryptography.X509Certificates;
 
 using Advobot.Attributes;
+
+using AdvorangesUtils;
 
 using Discord.Commands;
 
 namespace Advobot.Services.HelpEntries
 {
+	[DebuggerDisplay("{DebuggerDisplay,nq}")]
 	internal sealed class CommandHelpEntry : ICommandHelpEntry
 	{
 		public IReadOnlyList<string> Aliases { get; }
@@ -15,12 +20,15 @@ namespace Advobot.Services.HelpEntries
 		public IReadOnlyList<IParameterHelpEntry> Parameters { get; }
 		public IReadOnlyList<IPrecondition> Preconditions { get; }
 		public string Summary { get; }
+		private string DebuggerDisplay => $"{Name} ({Parameters.Count})";
 
 		public CommandHelpEntry(CommandInfo command)
 		{
-			Name = command.Name;
+			Name = command.Aliases.Any(a => a.Split(' ')[^1].CaseInsEquals(command.Name))
+				? command.Name : "";
 			Summary = command.Summary;
 			Aliases = command.Aliases;
+
 			Preconditions = command.Preconditions
 				.Concat(command.Module.Preconditions)
 				.OfType<IPrecondition>()

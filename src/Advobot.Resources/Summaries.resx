@@ -568,4 +568,13 @@
   <data name="LevelsTop" xml:space="preserve">
     <value>Displays the highest leveled people in the server.</value>
   </data>
+  <data name="ModifyCommandsEnable" xml:space="preserve">
+    <value>Creates or modifies a command override to an 'allowed' state with the supplied priority on the specified entity. A higher priority is used first.</value>
+  </data>
+  <data name="ModifyCommandsDisable" xml:space="preserve">
+    <value>Creates or modifies a command override to a 'disallowed' state with the supplied priority on the specified entity. A higher priority is used first.</value>
+  </data>
+  <data name="ModifyCommandsClear" xml:space="preserve">
+    <value>Clears the command overrides on the specified entity.</value>
+  </data>
 </root>

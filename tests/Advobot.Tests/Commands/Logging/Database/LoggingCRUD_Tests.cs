@@ -13,7 +13,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 namespace Advobot.Tests.Commands.Logging.Database
 {
 	[TestClass]
-	public sealed class CRUD_Tests
+	public sealed class LoggingCRUD_Tests
 		: DatabaseTestsBase<LoggingDatabase, FakeSQLiteConnectionString>
 	{
 		private const ulong GUILD_ID = ulong.MaxValue;

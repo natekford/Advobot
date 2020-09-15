@@ -29,7 +29,7 @@ namespace Advobot.Standard.Responses
 		}
 
 		public static AdvobotResult CategoryCommands(
-			IReadOnlyList<IModuleHelpEntry> entries,
+			IEnumerable<IModuleHelpEntry> entries,
 			string category)
 		{
 			var title = MiscTitleCategoryCommands.Format(
@@ -47,7 +47,7 @@ namespace Advobot.Standard.Responses
 		}
 
 		public static AdvobotResult GeneralCommandInfo(
-			IReadOnlyList<string> categories,
+			IEnumerable<string> categories,
 			string prefix)
 		{
 			var description = MiscGeneralCommandInfo.Format(
@@ -116,39 +116,44 @@ namespace Advobot.Standard.Responses
 			meta.Add(MiscTitleEnabledByDefault, module.EnabledByDefault);
 			meta.Add(MiscTitleAbleToBeToggled, module.AbleToBeToggled);
 
-			if (module.Commands.Count == 0)
+			if (module.Submodules.Count != 0)
 			{
-				return Success(CreateHelpEmbed(module.Name, info.ToString()));
+				var submodules = "\n" + module.Submodules.Select((x, i) =>
+				{
+					return $"{i + 1}. {x.Name}";
+				}).Join("\n").WithBigBlock().Value;
+				info.CreateCollection().Add(MiscTitleSubmodules, submodules);
 			}
 
-			var commands = "\n" + module.Commands.Select((x, i) =>
+			if (module.Commands.Count != 0)
 			{
-				//If the name of the command is not in its alias, then the name isnt set
-				var name = x.Aliases.Any(a => a.CaseInsContains(x.Name)) ? $" {x.Name}" : "";
-				var parameters = x.Parameters.Join(FormatParameter);
-				return $"{i + 1}.{name} ({parameters})";
-			}).Join("\n").WithBigBlock().Value;
-			info.CreateCollection().Add(MiscTitleCommands, commands);
+				var commands = "\n" + module.Commands.Select((x, i) =>
+				{
+					var parameters = x.Parameters.Join(FormatParameter);
+					return $"{i + 1}.{x.Name} ({parameters})";
+				}).Join("\n").WithBigBlock().Value;
+				info.CreateCollection().Add(MiscTitleCommands, commands);
+			}
 
 			return Success(CreateHelpEmbed(module.Aliases[0], info.ToString()));
 		}
 
 		public static AdvobotResult Help(
 			IModuleHelpEntry module,
-			int index)
+			int position)
 		{
-			if (module.Commands.Count <= index)
+			if (module.Commands.Count < position)
 			{
 				return Failure(MiscInvalidHelpEntryNumber.Format(
-					index.ToString().WithBlock(),
+					position.ToString().WithBlock(),
 					module.Name.WithBlock()
 				));
 			}
-			var command = module.Commands[index];
+			var command = module.Commands[position - 1];
 
 			var info = new InformationMatrix();
 			var top = info.CreateCollection();
-			top.Add(MiscTitleAliases, command.Aliases.Join());
+			top.Add(MiscTitleAliases, command.Aliases.Join(x => x.WithBlock().Value));
 			top.Add(MiscTitleBasePermissions, FormatPreconditions(command.Preconditions));
 			var description = info.CreateCollection();
 			description.Add(MiscTitleDescription, command.Summary);

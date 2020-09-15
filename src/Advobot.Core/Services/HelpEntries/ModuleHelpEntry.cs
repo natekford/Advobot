@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Linq;
 
 using Advobot.Attributes;
@@ -9,6 +10,7 @@ using Discord.Commands;
 
 namespace Advobot.Services.HelpEntries
 {
+	[DebuggerDisplay("{DebuggerDisplay,nq}")]
 	internal sealed class ModuleHelpEntry : IModuleHelpEntry
 	{
 		public bool AbleToBeToggled { get; }
@@ -19,7 +21,9 @@ namespace Advobot.Services.HelpEntries
 		public string Id { get; }
 		public string Name { get; }
 		public IReadOnlyList<IPrecondition> Preconditions { get; }
+		public IReadOnlyList<IModuleHelpEntry> Submodules { get; }
 		public string Summary { get; }
+		private string DebuggerDisplay => $"{Name} ({Id})";
 
 		public ModuleHelpEntry(ModuleInfo module, MetaAttribute meta, CategoryAttribute category)
 		{
@@ -33,10 +37,17 @@ namespace Advobot.Services.HelpEntries
 
 			Aliases = module.Aliases.Select(x => x.ToLower()).ToImmutableArray();
 			Preconditions = module.Preconditions.OfType<IPrecondition>().ToImmutableArray();
-			Commands = module.Commands
+			Commands = module
+				.Commands
 				.Where(x => !x.Attributes.Any(a => a is HiddenAttribute))
 				.OrderBy(x => x.Parameters.Count)
 				.Select(x => new CommandHelpEntry(x))
+				.ToImmutableArray();
+			Submodules = module
+				.Submodules
+				.Where(x => !x.Attributes.Any(a => a is HiddenAttribute))
+				.OrderBy(x => x.Name)
+				.Select(x => new ModuleHelpEntry(x, meta, category))
 				.ToImmutableArray();
 		}
 	}

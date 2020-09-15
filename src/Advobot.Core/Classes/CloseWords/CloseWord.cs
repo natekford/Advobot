@@ -1,4 +1,5 @@
-﻿using System.Diagnostics;
+﻿using System;
+using System.Diagnostics;
 
 namespace Advobot.Classes.CloseWords
 {
@@ -6,30 +7,52 @@ namespace Advobot.Classes.CloseWords
 	/// Holds an object which has a name and text and its closeness.
 	/// </summary>
 	[DebuggerDisplay("{DebuggerDisplay,nq}")]
-	public sealed class CloseWord<T>
+	public readonly struct CloseWord<T> : IComparable<CloseWord<T>>
 	{
 		/// <summary>
-		/// How close the name is to the search term.
+		/// The Damerau Levenshtein distance between <see cref="Name"/> and <see cref="Search"/>.
 		/// </summary>
-		public int Closeness { get; set; }
-
+		public int Distance { get; }
+		/// <summary>
+		/// The name being compared.
+		/// </summary>
+		public string Name { get; }
+		/// <summary>
+		/// The search term.
+		/// </summary>
+		public string Search { get; }
 		/// <summary>
 		/// The object this is coming from.
 		/// </summary>
-		public T Value { get; set; }
-
+		public T Value { get; }
 		private string DebuggerDisplay
-			=> $"Value = {Value}, Closeness = {Closeness}";
+			=> $"Name = {Name}, Distance = {Distance}";
 
 		/// <summary>
-		/// Initializes the object with the supplied values.
+		/// Creates an instance of <see cref="CloseWord{T}"/>.
 		/// </summary>
-		/// <param name="closeness"></param>
+		/// <param name="name"></param>
+		/// <param name="search"></param>
+		/// <param name="distance"></param>
 		/// <param name="value"></param>
-		public CloseWord(int closeness, T value)
+		public CloseWord(string name, string search, int distance, T value)
 		{
-			Closeness = closeness;
+			Name = name;
+			Search = search;
+			Distance = distance;
 			Value = value;
+		}
+
+		/// <inheritdoc />
+		public int CompareTo(CloseWord<T> other)
+		{
+			var distance = Distance.CompareTo(other.Distance);
+			if (distance != 0)
+			{
+				return distance;
+			}
+
+			return Name.CompareTo(other.Name);
 		}
 	}
 }

@@ -56,14 +56,15 @@ namespace Advobot.Standard.Commands
 			[Command, Priority(2)]
 			[LocalizedSummary(nameof(Summaries.HelpCommandHelp))]
 			public Task<RuntimeResult> Command(
-				[LocalizedSummary(nameof(Summaries.HelpVariableExactCommand))]
-				[LocalizedName(nameof(Parameters.Command))]
-				IModuleHelpEntry helpEntry,
 				[LocalizedSummary(nameof(Summaries.HelpVariableCommandPosition))]
 				[LocalizedName(nameof(Parameters.Position))]
 				[Positive]
-				int position
-			) => Responses.Misc.Help(helpEntry, position - 1);
+				int position,
+				[LocalizedSummary(nameof(Summaries.HelpVariableExactCommand))]
+				[LocalizedName(nameof(Parameters.Command))]
+				[Remainder]
+				IModuleHelpEntry helpEntry
+			) => Responses.Misc.Help(helpEntry, position);
 
 			[Command(RunMode = RunMode.Async), Priority(0)]
 			[Hidden]
@@ -100,8 +101,11 @@ namespace Advobot.Standard.Commands
 			}
 
 			[Command]
-			public Task<RuntimeResult> Command([CommandCategory] string category)
-				=> Responses.Misc.CategoryCommands(HelpEntries.GetHelpEntries(category), category);
+			public Task<RuntimeResult> Command(Category category)
+			{
+				var entries = HelpEntries.GetHelpEntries(category.Name);
+				return Responses.Misc.CategoryCommands(entries, category.Name);
+			}
 		}
 
 		[LocalizedGroup(nameof(Groups.MakeAnEmbed))]
@@ -159,7 +163,6 @@ namespace Advobot.Standard.Commands
 		[LocalizedSummary(nameof(Summaries.Test))]
 		[Meta("6c0b693e-e3ac-421e-910e-3178110d791d", IsEnabled = true)]
 		[RequireBotOwner]
-		[Hidden]
 		public sealed class Test : AdvobotModuleBase
 		{
 			[Command]

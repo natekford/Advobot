@@ -18,7 +18,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 namespace Advobot.Tests.Commands.AutoMod.Database
 {
 	[TestClass]
-	public sealed class CRUD_Tests
+	public sealed class AutoModCRUD_Tests
 		: DatabaseTestsBase<AutoModDatabase, FakeSQLiteConnectionString>
 	{
 		private const ulong GUILD_ID = 73;

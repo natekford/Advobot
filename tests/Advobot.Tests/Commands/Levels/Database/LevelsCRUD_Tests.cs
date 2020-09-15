@@ -13,7 +13,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 namespace Advobot.Tests.Commands.Levels.Database
 {
 	[TestClass]
-	public sealed class CRUD_Tests
+	public sealed class LevelsCRUD_Tests
 		: DatabaseTestsBase<LevelDatabase, FakeSQLiteConnectionString>
 	{
 		[TestMethod]

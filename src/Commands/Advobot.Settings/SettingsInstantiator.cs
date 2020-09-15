@@ -1,6 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Text;
 using System.Threading.Tasks;
 
 using Advobot.CommandAssemblies;
@@ -39,8 +37,7 @@ namespace Advobot.Settings
 
 		public Task ConfigureServicesAsync(IServiceProvider services)
 		{
-#warning uncomment
-			//services.GetRequiredService<IConnectionStringFor<SettingsDatabase>>().MigrateUp();
+			services.GetRequiredService<IConnectionStringFor<SettingsDatabase>>().MigrateUp();
 
 			return Task.CompletedTask;
 		}

@@ -10,10 +10,10 @@ using AdvorangesUtils;
 
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
-namespace Advobot.Tests.Commands.Notifications.Database
+namespace Advobot.Tests.Commands.Logging.Database
 {
 	[TestClass]
-	public sealed class CRUD_Tests
+	public sealed class NotificationCRUD_Tests
 		: DatabaseTestsBase<NotificationDatabase, FakeSQLiteConnectionString>
 	{
 		private const ulong CHANNEL_ID = 73;

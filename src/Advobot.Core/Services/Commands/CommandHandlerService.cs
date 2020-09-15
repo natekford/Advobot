@@ -116,6 +116,33 @@ namespace Advobot.Services.Commands
 			CultureInfo.CurrentUICulture = currentCulture;
 		}
 
+		private static void ThrowIfDuplicateId(
+			ModuleInfo module,
+			IDictionary<Guid, ModuleInfo> ids,
+			MetaAttribute meta)
+		{
+			if (!ids.TryGetValue(meta.Guid, out var original))
+			{
+				ids.Add(meta.Guid, module);
+				return;
+			}
+
+			var shouldThrow = true;
+			for (var m = module; m != null; m = m.Parent)
+			{
+				if (m == original)
+				{
+					shouldThrow = false;
+					break;
+				}
+			}
+
+			if (shouldThrow)
+			{
+				throw new InvalidOperationException($"Duplicate id between {original.Name} and {module.Name}.");
+			}
+		}
+
 		private async Task AddCommandsAsync(
 			CultureInfo culture,
 			Assembly assembly,
@@ -133,37 +160,45 @@ namespace Advobot.Services.Commands
 			}
 
 			var modules = await commandService.AddModulesAsync(assembly, _Provider).CAF();
+
 			int moduleCount = 0, commandCount = 0, helpEntryCount = 0;
 			var ids = new Dictionary<Guid, ModuleInfo>();
 			foreach (var module in modules)
 			{
 				++moduleCount;
-				foreach (var command in module.Submodules)
-				{
-					++commandCount;
-					var attributes = command.Attributes;
-
-					var meta = attributes.GetAttribute<MetaAttribute>();
-					if (ids.TryGetValue(meta.Guid, out var original))
-					{
-						throw new InvalidOperationException($"Duplicate id between {original.Name} and {command.Name}.");
-					}
-					ids.Add(meta.Guid, command);
-
-					if (!attributes.Any(a => a is HiddenAttribute))
-					{
-						++helpEntryCount;
-
-						var category = attributes.GetAttribute<CategoryAttribute>();
-						_Help.Add(new ModuleHelpEntry(command, meta, category));
-					}
-				}
+				var (commands, entries) = AddSubmodules(module, ids);
+				commandCount += commands;
+				helpEntryCount += entries;
 			}
 
 			ConsoleUtils.WriteLine($"Successfully loaded {moduleCount} modules " +
 				$"containing {commandCount} commands " +
 				$"({helpEntryCount} were given help entries) " +
 				$"from {assembly.GetName().Name} in the {culture} culture.");
+		}
+
+		private (int Commands, int Entries) AddSubmodules(
+			ModuleInfo module,
+			IDictionary<Guid, ModuleInfo> ids)
+		{
+			int commandCount = 0, helpEntryCount = 0;
+			foreach (var submodule in module.Submodules)
+			{
+				++commandCount;
+
+				var attributes = submodule.Attributes;
+				if (!attributes.Any(a => a is HiddenAttribute))
+				{
+					++helpEntryCount;
+
+					var meta = attributes.GetAttribute<MetaAttribute>();
+					var category = attributes.GetAttribute<CategoryAttribute>();
+
+					ThrowIfDuplicateId(submodule, ids, meta);
+					_Help.Add(new ModuleHelpEntry(submodule, meta, category));
+				}
+			}
+			return (commandCount, helpEntryCount);
 		}
 
 		private Task OnCommandExecuted(

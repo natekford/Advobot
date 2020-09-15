@@ -21,23 +21,47 @@ namespace Advobot.Services.HelpEntries
 		/// <inheritdoc />
 		public IReadOnlyList<IModuleHelpEntry> FindCloseHelpEntries(string input)
 		{
-			var matches = new CloseHelpEntries(GetHelpEntries()).FindMatches(input);
-			return matches.Select(x => x.Value).ToArray();
+			var matches = new CloseHelpEntries(_HelpEntries.Get()).FindMatches(input);
+			var array = new IModuleHelpEntry[matches.Count];
+			for (var i = 0; i < matches.Count; ++i)
+			{
+				array[i] = matches[i].Value;
+			}
+			return array;
 		}
 
 		/// <inheritdoc />
-		public IReadOnlyList<string> GetCategories()
-			=> GetHelpEntries().Select(x => x.Category).Distinct().ToArray();
+		public IReadOnlyCollection<string> GetCategories()
+		{
+			var set = new HashSet<string>();
+			foreach (var entry in _HelpEntries.Get())
+			{
+				set.Add(entry.Category);
+			}
+			return set;
+		}
 
 		/// <inheritdoc />
-		public IReadOnlyList<IModuleHelpEntry> GetHelpEntries(string? category = null)
+		public IEnumerable<IModuleHelpEntry> GetHelpEntries(string? category = null)
 		{
-			var helpEntries = _HelpEntries.Get();
+			static IEnumerable<IModuleHelpEntry> GetHelpEntries(IModuleHelpEntry entry)
+			{
+				yield return entry;
+				foreach (var submodule in entry.Submodules)
+				{
+					foreach (var item in GetHelpEntries(submodule))
+					{
+						yield return item;
+					}
+				}
+			}
+
+			var entries = _HelpEntries.Get().SelectMany(GetHelpEntries);
 			if (category == null)
 			{
-				return helpEntries;
+				return entries;
 			}
-			return helpEntries.Where(x => x.Category.CaseInsEquals(category)).ToArray();
+			return entries.Where(x => x.Category.CaseInsEquals(category));
 		}
 	}
 }

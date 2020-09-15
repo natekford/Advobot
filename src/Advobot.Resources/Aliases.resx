@@ -670,4 +670,7 @@
   <data name="ClearGroup" xml:space="preserve">
     <value>clg</value>
   </data>
+  <data name="Clear" xml:space="preserve">
+    <value>c</value>
+  </data>
 </root>

@@ -37,5 +37,9 @@ namespace Advobot.Services.HelpEntries
 		/// The base permissions to use the command.
 		/// </summary>
 		IReadOnlyList<IPrecondition> Preconditions { get; }
+		/// <summary>
+		/// Nested modules of this module.
+		/// </summary>
+		IReadOnlyList<IModuleHelpEntry> Submodules { get; }
 	}
 }

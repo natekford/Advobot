@@ -17,6 +17,14 @@ namespace Advobot.Settings.Database
 		{
 		}
 
+		public Task<int> DeleteCommandOverridesAsync(IEnumerable<IReadOnlyCommandOverride> overrides)
+		{
+			return BulkModifyAsync(@"
+				DELETE FROM CommandOverride
+				WHERE GuildId = @GuildId AND CommandId = @CommandId AND TargetId = @TargetId
+			", overrides);
+		}
+
 		public async Task<IReadOnlyList<IReadOnlyCommandOverride>> GetCommandOverridesAsync(
 			ulong guildId,
 			string commandId)
@@ -29,7 +37,7 @@ namespace Advobot.Settings.Database
 			return await GetManyAsync<CommandOverride>(@"
 				SELECT * FROM CommandOverride
 				WHERE GuildId = @GuildId AND CommandId = @CommandId
-				ORDER BY Position DESC
+				ORDER BY Priority DESC, TargetType ASC
 			", param).CAF();
 		}
 
@@ -40,7 +48,7 @@ namespace Advobot.Settings.Database
 			return await GetManyAsync<CommandOverride>(@"
 				SELECT * FROM CommandOverride
 				WHERE GuildId = @GuildId
-				ORDER BY CommandId ASC, Position DESC
+				ORDER BY CommandId ASC, Priority DESC, TargetType ASC
 			", param).CAF();
 		}
 
@@ -50,7 +58,22 @@ namespace Advobot.Settings.Database
 			return await GetOneAsync<GuildSettings>(@"
 				SELECT * FROM GuildSetting
 				WHERE GuildId = @GuildId
-			", param).CAF();
+			", param).CAF() ?? new GuildSettings { GuildId = guildId };
+		}
+
+		public Task<int> UpsertCommandOverridesAsync(IEnumerable<IReadOnlyCommandOverride> overrides)
+		{
+			return BulkModifyAsync(@"
+				INSERT OR IGNORE INTO CommandOverride
+					( GuildId, CommandId, TargetId, TargetType, Enabled, Priority )
+					VALUES
+					( @GuildId, @CommandId, @TargetId, @TargetType, @Enabled, @Priority );
+				UPDATE CommandOverride
+				SET
+					Enabled = @Enabled,
+					Priority = @Priority
+				WHERE GuildId = @GuildId AND CommandId = @CommandId AND TargetId = @TargetId
+			", overrides);
 		}
 
 		public Task<int> UpsertGuildSettingsAsync(IReadOnlyGuildSettings settings)

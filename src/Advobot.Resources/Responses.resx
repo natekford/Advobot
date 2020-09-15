@@ -947,4 +947,16 @@ Type {1} for help with a command.</value>
   <data name="SelfRolesAddedAndRemovedOthers" xml:space="preserve">
     <value>Successfully added {0} and removed all conflicting self roles.</value>
   </data>
+  <data name="SettingsClearedCommands" xml:space="preserve">
+    <value>Successfully cleared the command overrides for {0}.</value>
+  </data>
+  <data name="SettingsEnabledCommands" xml:space="preserve">
+    <value>Successfully enabled and set the priority to {0} for {1}.</value>
+  </data>
+  <data name="SettingsDisabledCommands" xml:space="preserve">
+    <value>Successfully disabled and set the priority to {0} for {1}.</value>
+  </data>
+  <data name="MiscTitleSubmodules" xml:space="preserve">
+    <value>Submodules</value>
+  </data>
 </root>

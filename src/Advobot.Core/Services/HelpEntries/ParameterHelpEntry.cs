@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Linq;
 using System.Reflection;
 
@@ -8,6 +9,7 @@ using Discord.Commands;
 
 namespace Advobot.Services.HelpEntries
 {
+	[DebuggerDisplay("{DebuggerDisplay,nq}")]
 	internal sealed class ParameterHelpEntry : IParameterHelpEntry
 	{
 		public bool IsOptional { get; }
@@ -15,13 +17,14 @@ namespace Advobot.Services.HelpEntries
 		public IReadOnlyList<string> NamedArguments { get; }
 		public IReadOnlyList<IParameterPrecondition> Preconditions { get; }
 		public string Summary { get; }
-		public string TypeName { get; }
+		public Type Type { get; }
+		private string DebuggerDisplay => $"{Name} ({Type.Name})";
 
 		public ParameterHelpEntry(Discord.Commands.ParameterInfo parameter)
 		{
 			Name = parameter.Name;
 			Summary = parameter.Summary;
-			TypeName = parameter.Type.Name;
+			Type = parameter.Type;
 			IsOptional = parameter.IsOptional;
 			NamedArguments = GetNamedArgumentNames(parameter.Type);
 			Preconditions = parameter.Preconditions.OfType<IParameterPrecondition>().ToImmutableArray();

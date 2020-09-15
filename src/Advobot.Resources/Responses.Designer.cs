@@ -1619,6 +1619,15 @@ namespace Advobot.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Submodules.
+        /// </summary>
+        public static string MiscTitleSubmodules {
+            get {
+                return ResourceManager.GetString("MiscTitleSubmodules", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Successfully modified the nickname for {0} to {1}..
         /// </summary>
         public static string NicknamesModifiedNickname {
@@ -2002,6 +2011,33 @@ namespace Advobot.Resources {
         public static string SelfRolesTitleDisplay {
             get {
                 return ResourceManager.GetString("SelfRolesTitleDisplay", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Successfully cleared the command overrides for {0}..
+        /// </summary>
+        public static string SettingsClearedCommands {
+            get {
+                return ResourceManager.GetString("SettingsClearedCommands", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Successfully disabled and set the priority to {0} for {1}..
+        /// </summary>
+        public static string SettingsDisabledCommands {
+            get {
+                return ResourceManager.GetString("SettingsDisabledCommands", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Successfully enabled and set the priority to {0} for {1}..
+        /// </summary>
+        public static string SettingsEnabledCommands {
+            get {
+                return ResourceManager.GetString("SettingsEnabledCommands", resourceCulture);
             }
         }
         

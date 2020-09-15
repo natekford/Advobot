@@ -1,4 +1,5 @@
-﻿using System.Threading.Tasks;
+﻿using System.Linq;
+using System.Threading.Tasks;
 
 using Advobot.Services.HelpEntries;
 using Advobot.Tests.Fakes.Services.HelpEntries;
@@ -36,7 +37,7 @@ namespace Advobot.Tests.Core.TypeReaders
 				});
 			}
 
-			var result = await ReadAsync(_HelpEntries.GetHelpEntries()[0].Name).CAF();
+			var result = await ReadAsync(_HelpEntries.GetHelpEntries().First().Name).CAF();
 			Assert.IsTrue(result.IsSuccess);
 			Assert.IsInstanceOfType(result.BestMatch, typeof(IModuleHelpEntry));
 		}

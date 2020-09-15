@@ -24,13 +24,13 @@ namespace Advobot.Services.HelpEntries
 		/// Returns an array of every command category.
 		/// </summary>
 		/// <returns></returns>
-		IReadOnlyList<string> GetCategories();
+		IReadOnlyCollection<string> GetCategories();
 
 		/// <summary>
 		/// Returns an array of every <see cref="IModuleHelpEntry"/> unless a category is specified.
 		/// </summary>
 		/// <param name="category"></param>
 		/// <returns></returns>
-		IReadOnlyList<IModuleHelpEntry> GetHelpEntries(string? category = null);
+		IEnumerable<IModuleHelpEntry> GetHelpEntries(string? category = null);
 	}
 }

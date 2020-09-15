@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 
 using Advobot.Classes.CloseWords;
 
@@ -14,18 +13,24 @@ namespace Advobot.Services.HelpEntries
 		/// Creates an instance of <see cref="CloseHelpEntries"/>.
 		/// </summary>
 		/// <param name="source"></param>
-		public CloseHelpEntries(IEnumerable<IModuleHelpEntry> source)
+		public CloseHelpEntries(IReadOnlyList<IModuleHelpEntry> source)
 			: base(source, x => x.Name) { }
 
 		/// <inheritdoc />
-		protected override int FindCloseness(string search, IModuleHelpEntry obj)
+		protected override CloseWord<IModuleHelpEntry> FindCloseness(string search, IModuleHelpEntry obj)
 		{
-			var closeness = FindCloseness(obj.Name, search);
+			var closest = obj.Name;
+			var distance = FindCloseness(obj.Name, search);
 			foreach (var alias in obj.Aliases)
 			{
-				closeness = Math.Min(closeness, FindCloseness(alias, search));
+				var aliasDistance = FindCloseness(alias, search);
+				if (aliasDistance < distance)
+				{
+					closest = alias;
+					distance = aliasDistance;
+				}
 			}
-			return closeness;
+			return new CloseWord<IModuleHelpEntry>(closest, search, distance, obj);
 		}
 	}
 }

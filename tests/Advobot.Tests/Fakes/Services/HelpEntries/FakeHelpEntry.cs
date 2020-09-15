@@ -15,6 +15,7 @@ namespace Advobot.Tests.Fakes.Services.HelpEntries
 		public string Id { get; set; } = Guid.NewGuid().ToString();
 		public string Name { get; set; } = "Fake Module";
 		public IReadOnlyList<IPrecondition> Preconditions { get; set; } = Array.Empty<IPrecondition>();
+		public IReadOnlyList<IModuleHelpEntry> Submodules { get; set; } = Array.Empty<IModuleHelpEntry>();
 		public string Summary { get; set; } = "";
 	}
 }
