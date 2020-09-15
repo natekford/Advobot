@@ -1,8 +1,6 @@
 ﻿using System;
 using System.Diagnostics;
 
-using Advobot.Services.GuildSettings;
-
 using Discord;
 using Discord.Commands;
 using Discord.WebSocket;
@@ -21,10 +19,6 @@ namespace Advobot.Modules
 		/// </summary>
 		public new SocketTextChannel Channel { get; }
 		/// <summary>
-		/// The settings for the guild.
-		/// </summary>
-		public IGuildSettings Settings { get; }
-		/// <summary>
 		/// The user this command is executing from.
 		/// </summary>
 		public new SocketGuildUser User { get; }
@@ -40,11 +34,9 @@ namespace Advobot.Modules
 		/// <summary>
 		/// Creates an instance of <see cref="AdvobotCommandContext"/>.
 		/// </summary>
-		/// <param name="settings"></param>
 		/// <param name="client"></param>
 		/// <param name="msg"></param>
 		public AdvobotCommandContext(
-			IGuildSettings settings,
 			DiscordShardedClient client,
 			SocketUserMessage msg)
 			: base(client, msg)
@@ -52,7 +44,6 @@ namespace Advobot.Modules
 			_Stopwatch.Start();
 			User = (SocketGuildUser)msg.Author;
 			Channel = (SocketTextChannel)msg.Channel;
-			Settings = settings;
 		}
 	}
 }

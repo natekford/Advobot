@@ -37,6 +37,7 @@ namespace Advobot.Gacha
 			services.GetRequiredService<IConnectionStringFor<GachaDatabase>>().MigrateUp();
 
 			var db = services.GetRequiredService<IGachaDatabase>();
+			//TODO: move to interface
 			if (db is GachaDatabase gdb)
 			{
 				await gdb.CacheNamesAsync().CAF();

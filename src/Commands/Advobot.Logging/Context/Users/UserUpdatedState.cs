@@ -1,6 +1,6 @@
 ﻿using System.Threading.Tasks;
 
-using Advobot.Logging.Service;
+using Advobot.Logging.Database;
 
 using Discord;
 
@@ -16,7 +16,7 @@ namespace Advobot.Logging.Context.Users
 			Before = before;
 		}
 
-		public override Task<bool> CanLog(ILoggingService service, ILogContext context)
+		public override Task<bool> CanLog(ILoggingDatabase db, ILogContext context)
 			=> Task.FromResult(!(User.IsBot || User.IsWebhook));
 	}
 }

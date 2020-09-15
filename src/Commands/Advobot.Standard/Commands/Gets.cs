@@ -70,7 +70,7 @@ namespace Advobot.Standard.Commands
 			[LocalizedAlias(nameof(Aliases.Channel))]
 			[Priority(1)]
 			public Task<RuntimeResult> Channel(IGuildChannel channel)
-				=> Responses.Gets.Channel(channel, Context.Settings);
+				=> Responses.Gets.Channel(channel);
 
 			[LocalizedCommand(nameof(Groups.Role))]
 			[LocalizedAlias(nameof(Aliases.Role))]
@@ -104,7 +104,7 @@ namespace Advobot.Standard.Commands
 
 			[Command]
 			public Task<RuntimeResult> Implicit(IGuildChannel channel)
-				=> Responses.Gets.Channel(channel, Context.Settings);
+				=> Responses.Gets.Channel(channel);
 
 			[Command]
 			public Task<RuntimeResult> Implicit(IRole role)

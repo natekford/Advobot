@@ -6,8 +6,6 @@ using System.Linq;
 using System.Resources;
 
 using Advobot.Services;
-using Advobot.Services.BotSettings;
-using Advobot.Services.GuildSettings;
 using Advobot.Settings;
 
 using Discord;
@@ -109,15 +107,6 @@ namespace Advobot.Utilities
 		/// <returns></returns>
 		public static FileInfo GetBaseBotDirectoryFile(this IBotDirectoryAccessor accessor, string fileName)
 			=> new FileInfo(Path.Combine(accessor.BaseBotDirectory.FullName, fileName));
-
-		/// <summary>
-		/// Gets the prefix to use for this guild. Prioritizes the guild prefix over the global prefix.
-		/// </summary>
-		/// <param name="settings"></param>
-		/// <param name="botSettings"></param>
-		/// <returns></returns>
-		public static string GetPrefix(this IGuildSettings settings, IBotSettings botSettings)
-			=> settings.Prefix ?? botSettings.Prefix ?? throw new InvalidOperationException("Invalid prefix.");
 
 		/// <summary>
 		/// Calls <see cref="ResourceManager.GetString(string)"/> and throws an exception if it does not exist.

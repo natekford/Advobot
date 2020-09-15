@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 
 using Advobot.Classes;
 using Advobot.Formatting;
+using Advobot.Logging.Database;
 using Advobot.Logging.Utilities;
 using Advobot.Modules;
 using Advobot.Services.BotSettings;
@@ -19,7 +20,7 @@ namespace Advobot.Logging.Service
 	public sealed class CommandHandlerLogger
 	{
 		private readonly IBotSettings _BotSettings;
-		private readonly ILoggingService _Logging;
+		private readonly ILoggingDatabase _Db;
 
 		private readonly InformationMatrixFormattingArgs _ResultFormattingArgs = new InformationMatrixFormattingArgs
 		{
@@ -27,20 +28,33 @@ namespace Advobot.Logging.Service
 			TitleFormatter = x => x.FormatTitle() + ":",
 		};
 
-		public CommandHandlerLogger(ILoggingService logging, IBotSettings botSettings)
+		public CommandHandlerLogger(ILoggingDatabase db, IBotSettings botSettings)
 		{
-			_Logging = logging;
+			_Db = db;
 			_BotSettings = botSettings;
 		}
 
 		public async Task OnCommandInvoked(CommandInfo command, ICommandContext context, IResult result)
 		{
+			static bool CanBeIgnored(ICommandContext context, IResult result)
+			{
+				return result == null
+					|| result.Error == CommandError.UnknownCommand
+					|| (!result.IsSuccess && result.ErrorReason == null)
+					|| (result is PreconditionGroupResult g && g.PreconditionResults.All(x => CanBeIgnored(context, x)));
+			}
+
+			if (CanBeIgnored(context, result))
+			{
+				return;
+			}
+
 			var color = result.IsSuccess ? ConsoleColor.Green : ConsoleColor.Red;
 			ConsoleUtils.WriteLine(FormatResult(command, context, result), color);
 
-			if (result is AdvobotResult a)
+			if (result is AdvobotResult advobotResult)
 			{
-				await a.SendAsync(context).CAF();
+				await advobotResult.SendAsync(context).CAF();
 			}
 			else if (!result.IsSuccess)
 			{
@@ -50,13 +64,13 @@ namespace Advobot.Logging.Service
 				}).CAF();
 			}
 
-			var ignoredChannels = await _Logging.GetIgnoredChannelsAsync(context.Guild.Id).CAF();
+			var ignoredChannels = await _Db.GetIgnoredChannelsAsync(context.Guild.Id).CAF();
 			if (ignoredChannels.Contains(context.Channel.Id))
 			{
 				return;
 			}
 
-			var channels = await _Logging.GetLogChannelsAsync(context.Guild.Id).CAF();
+			var channels = await _Db.GetLogChannelsAsync(context.Guild.Id).CAF();
 			var modLog = await context.Guild.GetTextChannelAsync(channels.ModLogId).CAF();
 			if (modLog is null)
 			{

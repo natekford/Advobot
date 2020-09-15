@@ -2,7 +2,7 @@
 using System.Linq;
 using System.Threading.Tasks;
 
-using Advobot.Logging.Service;
+using Advobot.Logging.Database;
 
 using AdvorangesUtils;
 
@@ -17,10 +17,10 @@ namespace Advobot.Logging.Context.Messages
 		{
 		}
 
-		public override async Task<bool> CanLog(ILoggingService service, ILogContext context)
+		public override async Task<bool> CanLog(ILoggingDatabase db, ILogContext context)
 		{
 			// Log all deleted messages, no matter the source user, unless they're on an unlogged channel
-			var ignoredChannels = await service.GetIgnoredChannelsAsync(Channel.GuildId).CAF();
+			var ignoredChannels = await db.GetIgnoredChannelsAsync(Channel.GuildId).CAF();
 			return !ignoredChannels.Contains(Channel.Id);
 		}
 	}

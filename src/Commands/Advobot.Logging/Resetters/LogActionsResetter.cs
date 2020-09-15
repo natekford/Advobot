@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Threading.Tasks;
 
-using Advobot.Logging.Service;
+using Advobot.Logging.Database;
 using Advobot.Services;
 using Advobot.Utilities;
 
@@ -13,7 +13,7 @@ namespace Advobot.Logging.OptionSetters
 {
 	public sealed class LogActionsResetter : IResetter
 	{
-		private readonly ILoggingService _Logging;
+		private readonly ILoggingDatabase _Db;
 
 		public static IReadOnlyList<LogAction> All { get; }
 			= AdvobotUtils.GetValues<LogAction>();
@@ -27,15 +27,15 @@ namespace Advobot.Logging.OptionSetters
 			LogAction.MessageDeleted
 		};
 
-		public LogActionsResetter(ILoggingService logging)
+		public LogActionsResetter(ILoggingDatabase db)
 		{
-			_Logging = logging;
+			_Db = db;
 		}
 
 		public async Task ResetAsync(ICommandContext context)
 		{
-			await _Logging.RemoveLogActionsAsync(context.Guild.Id, All).CAF();
-			await _Logging.AddLogActionsAsync(context.Guild.Id, Default).CAF();
+			await _Db.DeleteLogActionsAsync(context.Guild.Id, All).CAF();
+			await _Db.AddLogActionsAsync(context.Guild.Id, Default).CAF();
 		}
 	}
 }

@@ -30,10 +30,6 @@ namespace Advobot.AutoMod
 			services.GetRequiredService<IConnectionStringFor<AutoModDatabase>>().MigrateUp();
 			services.GetRequiredService<IConnectionStringFor<RemovablePunishmentDatabase>>().MigrateUp();
 
-			// Needed to instantiate the services
-			services.GetRequiredService<AutoModService>();
-			services.GetRequiredService<RemovablePunishmentService>().Start();
-
 			return Task.CompletedTask;
 		}
 	}

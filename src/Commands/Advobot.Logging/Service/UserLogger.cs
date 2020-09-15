@@ -6,6 +6,7 @@ using Advobot.Classes;
 using Advobot.Logging.Caches;
 using Advobot.Logging.Context;
 using Advobot.Logging.Context.Users;
+using Advobot.Logging.Database;
 using Advobot.Logging.Utilities;
 using Advobot.Services.Time;
 using Advobot.Utilities;
@@ -30,20 +31,20 @@ namespace Advobot.Logging.Service
 		private readonly LogHandler<UserUpdatedState> _UserUpdated;
 		#endregion Handlers
 
-		public UserLogger(ILoggingService logging, BaseSocketClient client, ITime time)
+		public UserLogger(ILoggingDatabase db, BaseSocketClient client, ITime time)
 		{
 			_Client = client;
 			_Time = time;
 
-			_UserJoined = new LogHandler<UserState>(LogAction.UserJoined, logging)
+			_UserJoined = new LogHandler<UserState>(LogAction.UserJoined, db)
 			{
 				HandleJoinLogging,
 			};
-			_UserLeft = new LogHandler<UserState>(LogAction.UserLeft, logging)
+			_UserLeft = new LogHandler<UserState>(LogAction.UserLeft, db)
 			{
 				HandleLeftLogging,
 			};
-			_UserUpdated = new LogHandler<UserUpdatedState>(LogAction.UserUpdated, logging)
+			_UserUpdated = new LogHandler<UserUpdatedState>(LogAction.UserUpdated, db)
 			{
 				HandleUsernameUpdated,
 			};

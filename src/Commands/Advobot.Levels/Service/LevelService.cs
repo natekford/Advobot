@@ -7,7 +7,6 @@ using System.Text;
 using System.Threading.Tasks;
 
 using Advobot.Levels.Database;
-using Advobot.Levels.Metadata;
 using Advobot.Services.Time;
 using Advobot.Utilities;
 
@@ -22,7 +21,7 @@ namespace Advobot.Levels.Service
 	{
 		private readonly BaseSocketClient _Client;
 		private readonly LevelServiceConfig _Config;
-		private readonly LevelDatabase _Db;
+		private readonly ILevelDatabase _Db;
 
 		private readonly ConcurrentDictionary<Key, RuntimeInfo> _RuntimeInfo
 			= new ConcurrentDictionary<Key, RuntimeInfo>();
@@ -31,7 +30,7 @@ namespace Advobot.Levels.Service
 
 		public LevelService(
 			LevelServiceConfig config,
-			LevelDatabase db,
+			ILevelDatabase db,
 			BaseSocketClient client,
 			ITime time)
 		{
@@ -50,15 +49,6 @@ namespace Advobot.Levels.Service
 			var powed = (int)Math.Pow(logged, _Config.Pow);
 			return Math.Max(powed, 0); //No negative levels
 		}
-
-		public Task<IRank> GetRankAsync(ISearchArgs args)
-			=> _Db.GetRankAsync(args);
-
-		public Task<IReadOnlyList<IRank>> GetRanksAsync(ISearchArgs args, int offset, int limit)
-			=> _Db.GetRanksAsync(args, offset, limit);
-
-		public Task<int> GetXpAsync(ISearchArgs args)
-			=> _Db.GetXpAsync(args);
 
 		private async Task AddExperienceAsync(IMessage message)
 		{
@@ -243,7 +233,7 @@ namespace Advobot.Levels.Service
 			}
 
 			public static async Task<XpContext?> CreateAsync(
-				LevelDatabase db,
+				ILevelDatabase db,
 				IMessage message)
 			{
 				if (!(message is IUserMessage msg)

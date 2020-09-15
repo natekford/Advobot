@@ -17,7 +17,7 @@ using Dapper;
 
 namespace Advobot.Levels.Database
 {
-	public sealed class LevelDatabase : DatabaseBase<SQLiteConnection>
+	public sealed class LevelDatabase : DatabaseBase<SQLiteConnection>, ILevelDatabase
 	{
 		public LevelDatabase(IConnectionStringFor<LevelDatabase> conn) : base(conn)
 		{
@@ -85,12 +85,10 @@ namespace Advobot.Levels.Database
 			using var connection = await GetConnectionAsync().CAF();
 
 			var xp = await GetXpAsync(args).CAF();
-
-			var where = GenerateWhereStatement(args);
 			var results = await connection.QueryAsync<int>($@"
 				SELECT SUM(Experience)
 				FROM User
-				{where}
+				{GenerateWhereStatement(args)}
 				GROUP BY UserId
 			", args).CAF();
 
@@ -149,7 +147,7 @@ namespace Advobot.Levels.Database
 			", args).CAF() ?? 0;
 		}
 
-		public Task UpsertUserAsync(IReadOnlyUser user)
+		public Task<int> UpsertUserAsync(IReadOnlyUser user)
 		{
 			return ModifyAsync(@"
 				INSERT OR IGNORE INTO User

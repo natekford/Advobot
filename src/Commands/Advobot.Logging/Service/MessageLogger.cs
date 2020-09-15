@@ -8,6 +8,7 @@ using Advobot.Classes;
 using Advobot.Logging.Caches;
 using Advobot.Logging.Context;
 using Advobot.Logging.Context.Messages;
+using Advobot.Logging.Database;
 using Advobot.Logging.Utilities;
 using Advobot.Utilities;
 
@@ -36,21 +37,21 @@ namespace Advobot.Logging.Service
 		private readonly LogHandler<MessageEditState> _MessageUpdated;
 		#endregion Handlers
 
-		public MessageLogger(ILoggingService logging)
+		public MessageLogger(ILoggingDatabase db)
 		{
-			_MessageDeleted = new LogHandler<MessageDeletedState>(LogAction.MessageDeleted, logging)
+			_MessageDeleted = new LogHandler<MessageDeletedState>(LogAction.MessageDeleted, db)
 			{
 				HandleMessageDeletedLogging,
 			};
-			_MessagesBulkDeleted = new LogHandler<MessagesBulkDeletedState>(LogAction.MessageDeleted, logging)
+			_MessagesBulkDeleted = new LogHandler<MessagesBulkDeletedState>(LogAction.MessageDeleted, db)
 			{
 				HandleMessagesBulkDeletedLogging,
 			};
-			_MessageReceived = new LogHandler<MessageState>(LogAction.MessageReceived, logging)
+			_MessageReceived = new LogHandler<MessageState>(LogAction.MessageReceived, db)
 			{
 				HandleImageLoggingAsync,
 			};
-			_MessageUpdated = new LogHandler<MessageEditState>(LogAction.MessageUpdated, logging)
+			_MessageUpdated = new LogHandler<MessageEditState>(LogAction.MessageUpdated, db)
 			{
 				HandleMessageEditedLoggingAsync,
 				HandleMessageEditedImageLoggingAsync,

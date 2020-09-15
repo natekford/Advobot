@@ -4,7 +4,6 @@ using System.Threading.Tasks;
 
 using Advobot.AutoMod.Database;
 using Advobot.AutoMod.Models;
-using Advobot.AutoMod.ReadOnlyModels;
 using Advobot.AutoMod.TypeReaders;
 using Advobot.Tests.TestBases;
 

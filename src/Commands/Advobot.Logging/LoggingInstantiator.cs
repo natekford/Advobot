@@ -17,12 +17,12 @@ namespace Advobot.Logging
 		public Task AddServicesAsync(IServiceCollection services)
 		{
 			services
-				.AddSingleton<LoggingDatabase>()
+				.AddSingleton<ILoggingDatabase, LoggingDatabase>()
 				.AddSQLiteFileDatabaseConnectionStringFor<LoggingDatabase>("Logging.db")
-				.AddSingleton<ILoggingService, LoggingService>()
-				.AddSingleton<NotificationDatabase>()
+				.AddSingleton<LoggingService>()
+				.AddSingleton<INotificationDatabase, NotificationDatabase>()
 				.AddSQLiteFileDatabaseConnectionStringFor<NotificationDatabase>("Notification.db")
-				.AddSingleton<INotificationService, NotificationService>()
+				.AddSingleton<NotificationService>()
 				.AddDefaultOptionsSetter<LogActionsResetter>()
 				.AddDefaultOptionsSetter<WelcomeNotificationResetter>()
 				.AddDefaultOptionsSetter<GoodbyeNotificationResetter>();
@@ -32,19 +32,8 @@ namespace Advobot.Logging
 
 		public Task ConfigureServicesAsync(IServiceProvider services)
 		{
-			{
-				services.GetRequiredService<IConnectionStringFor<LoggingDatabase>>().MigrateUp();
-
-				// Needed to instantiate the log service
-				services.GetRequiredService<ILoggingService>();
-			}
-
-			{
-				services.GetRequiredService<IConnectionStringFor<NotificationDatabase>>().MigrateUp();
-
-				// Needed to instasntiate the notification service
-				services.GetRequiredService<INotificationService>();
-			}
+			services.GetRequiredService<IConnectionStringFor<LoggingDatabase>>().MigrateUp();
+			services.GetRequiredService<IConnectionStringFor<NotificationDatabase>>().MigrateUp();
 
 			return Task.CompletedTask;
 		}

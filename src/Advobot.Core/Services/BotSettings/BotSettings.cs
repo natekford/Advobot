@@ -217,7 +217,7 @@ namespace Advobot.Services.BotSettings
 		/// </summary>
 		/// <param name="config"></param>
 		/// <returns></returns>
-		public static BotSettings CreateOrLoad(ILowLevelConfig config)
+		public static BotSettings CreateOrLoad(IConfig config)
 		{
 			var settings = IOUtils.DeserializeFromFile<BotSettings>(StaticGetPath(config)) ?? new BotSettings();
 			settings.BaseBotDirectory = config.BaseBotDirectory;

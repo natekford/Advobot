@@ -64,6 +64,6 @@ namespace Advobot.Settings.Responses
 			=> Success(Default.FormatInterpolated($"Successfully reset the setting {name}"));
 
 		public static AdvobotResult ResetAll()
-			=> Success($"Successfully reset all settings.");
+			=> Success("Successfully reset all settings.");
 	}
 }

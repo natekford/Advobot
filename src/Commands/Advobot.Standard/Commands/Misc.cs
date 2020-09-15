@@ -12,6 +12,7 @@ using Advobot.Classes;
 using Advobot.Localization;
 using Advobot.Modules;
 using Advobot.Resources;
+using Advobot.Services.GuildSettingsProvider;
 using Advobot.Services.HelpEntries;
 using Advobot.Utilities;
 
@@ -31,10 +32,17 @@ namespace Advobot.Standard.Commands
 		[Meta("0e89a6fd-5c9c-4008-a912-7c719ea7827d", IsEnabled = true, CanToggle = false)]
 		public sealed class Help : AdvobotModuleBase
 		{
+#pragma warning disable CS8618 // Non-nullable field is uninitialized.
+			public IGuildSettingsProvider GuildSettings { get; set; }
+#pragma warning restore CS8618 // Non-nullable field is uninitialized.
+
 			[Command]
 			[LocalizedSummary(nameof(Summaries.HelpGeneralHelp))]
-			public Task<RuntimeResult> Command()
-				=> Responses.Misc.GeneralHelp(Context.Settings.GetPrefix(BotSettings));
+			public async Task<RuntimeResult> Command()
+			{
+				var prefix = await GuildSettings.GetPrefixAsync(Context.Guild).CAF();
+				return Responses.Misc.GeneralHelp(prefix);
+			}
 
 			[Command, Priority(1)]
 			[LocalizedSummary(nameof(Summaries.HelpModuleHelp))]
@@ -43,7 +51,7 @@ namespace Advobot.Standard.Commands
 				[LocalizedName(nameof(Parameters.Command))]
 				[Remainder]
 				IModuleHelpEntry helpEntry
-			) => Responses.Misc.Help(helpEntry, Context.Settings);
+			) => Responses.Misc.Help(helpEntry);
 
 			[Command, Priority(2)]
 			[LocalizedSummary(nameof(Summaries.HelpCommandHelp))]
@@ -67,7 +75,7 @@ namespace Advobot.Standard.Commands
 				var entry = await NextItemAtIndexAsync(helpEntries, x => x.Name).CAF();
 				if (entry.HasValue)
 				{
-					return Responses.Misc.Help(entry.Value, Context.Settings);
+					return Responses.Misc.Help(entry.Value);
 				}
 				return AdvobotResult.IgnoreFailure;
 			}
@@ -81,11 +89,15 @@ namespace Advobot.Standard.Commands
 		{
 #pragma warning disable CS8618 // Non-nullable field is uninitialized.
 			public IHelpEntryService HelpEntries { get; set; }
+			public IGuildSettingsProvider GuildSettings { get; set; }
 #pragma warning restore CS8618 // Non-nullable field is uninitialized.
 
 			[Command]
-			public Task<RuntimeResult> Command()
-				=> Responses.Misc.GeneralCommandInfo(HelpEntries.GetCategories(), Prefix);
+			public async Task<RuntimeResult> Command()
+			{
+				var prefix = await GuildSettings.GetPrefixAsync(Context.Guild).CAF();
+				return Responses.Misc.GeneralCommandInfo(HelpEntries.GetCategories(), prefix);
+			}
 
 			[Command]
 			public Task<RuntimeResult> Command([CommandCategory] string category)

@@ -6,7 +6,6 @@ using System.Reflection;
 using Advobot.Classes;
 using Advobot.Formatting;
 using Advobot.Modules;
-using Advobot.Services.GuildSettings;
 using Advobot.Services.HelpEntries;
 using Advobot.Utilities;
 
@@ -105,9 +104,7 @@ namespace Advobot.Standard.Responses
 			});
 		}
 
-		public static AdvobotResult Help(
-			IModuleHelpEntry module,
-			IGuildSettings settings)
+		public static AdvobotResult Help(IModuleHelpEntry module)
 		{
 			var info = new InformationMatrix();
 			var top = info.CreateCollection();
@@ -116,7 +113,6 @@ namespace Advobot.Standard.Responses
 			var description = info.CreateCollection();
 			description.Add(MiscTitleDescription, module.Summary);
 			var meta = info.CreateCollection();
-			meta.Add(MiscTitleCurrentlyEnabled, GetEnabledStatus(module, settings));
 			meta.Add(MiscTitleEnabledByDefault, module.EnabledByDefault);
 			meta.Add(MiscTitleAbleToBeToggled, module.AbleToBeToggled);
 
@@ -228,9 +224,6 @@ namespace Advobot.Standard.Responses
 			}
 			return preconditions.Join(x => x.Summary, VariableAnd);
 		}
-
-		private static bool GetEnabledStatus(IModuleHelpEntry entry, IGuildSettings settings)
-			=> settings?.CommandSettings?.IsCommandEnabled(entry.Id) ?? entry.EnabledByDefault;
 
 		private static MarkdownFormattedArg GetPrefixedCommand(
 			string prefix,

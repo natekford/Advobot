@@ -7,7 +7,6 @@ using System.Threading.Tasks;
 using Advobot.Classes;
 using Advobot.Formatting;
 using Advobot.Modules;
-using Advobot.Services.GuildSettings;
 using Advobot.Services.LogCounters;
 using Advobot.Utilities;
 
@@ -153,11 +152,9 @@ namespace Advobot.Standard.Responses
 			return Success(embed);
 		}
 
-		public static async Task<RuntimeResult> Channel(
-			IGuildChannel channel,
-			IGuildSettings settings)
+		public static async Task<RuntimeResult> Channel(IGuildChannel channel)
 		{
-			var userCount = (await channel.GetUsersAsync().FlattenAsync().CAF()).Count();
+			var userCount = channel is SocketGuildChannel sgc ? sgc.Users.Count : 0;
 			var roles = new List<string>();
 			var users = new List<string>();
 			foreach (var o in channel.PermissionOverwrites)
@@ -178,13 +175,6 @@ namespace Advobot.Standard.Responses
 			var meta = info.CreateCollection();
 			meta.Add(GetsTitlePosition, channel.Position);
 			meta.Add(GetsTitleUserCount, userCount);
-			var logs = info.CreateCollection();
-			//logs.Add(GetsTitleIgnoredLog, settings.IgnoredLogChannels.Contains(channel.Id));
-			logs.Add(GetsTitleIgnoredCommands, settings.IgnoredCommandChannels.Contains(channel.Id));
-			//logs.Add(GetsTitleImageOnly, settings.ImageOnlyChannels.Contains(channel.Id));
-			//logs.Add(GetsTitleServerLog, settings.ServerLogId == channel.Id);
-			//logs.Add(GetsTitleModLog, settings.ModLogId == channel.Id);
-			//logs.Add(GetsTitleImageLog, settings.ImageLogId == channel.Id);
 
 			var embed = new EmbedWrapper
 			{

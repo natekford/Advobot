@@ -1,8 +1,8 @@
 ﻿using System.Threading.Tasks;
 
+using Advobot.Logging.Database;
 using Advobot.Logging.Models;
 using Advobot.Logging.Preconditions;
-using Advobot.Logging.Service;
 using Advobot.Tests.Fakes.Services.Logging;
 using Advobot.Tests.TestBases;
 
@@ -45,7 +45,7 @@ namespace Advobot.Tests.Commands.Logging.Preconditions
 		{
 			services
 				.AddSingleton(_Channels)
-				.AddSingleton<ILoggingService, FakeLoggingService>();
+				.AddSingleton<ILoggingDatabase, FakeLoggingDatabase>();
 		}
 	}
 }

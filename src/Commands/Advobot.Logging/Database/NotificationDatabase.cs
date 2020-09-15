@@ -10,7 +10,7 @@ using AdvorangesUtils;
 
 namespace Advobot.Logging.Database
 {
-	public sealed class NotificationDatabase : DatabaseBase<SQLiteConnection>
+	public sealed class NotificationDatabase : DatabaseBase<SQLiteConnection>, INotificationDatabase
 	{
 		public NotificationDatabase(IConnectionStringFor<NotificationDatabase> conn) : base(conn)
 		{

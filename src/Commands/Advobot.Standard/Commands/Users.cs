@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -14,6 +15,7 @@ using Advobot.Classes;
 using Advobot.Localization;
 using Advobot.Modules;
 using Advobot.Resources;
+using Advobot.Services.GuildSettingsProvider;
 using Advobot.Services.Time;
 using Advobot.TypeReaders;
 using Advobot.Utilities;
@@ -352,24 +354,35 @@ namespace Advobot.Standard.Commands
 		[RequireGuildPermissions(GuildPermission.ManageRoles, GuildPermission.ManageMessages)]
 		public sealed class Mute : AdvobotModuleBase
 		{
-			private static readonly OverwritePermissions TextPerms = new OverwritePermissions(0, (ulong)(0
-				| CreateInstantInvite
-				| ManageChannels
-				| ManageRoles
-				| ManageWebhooks
-				| SendMessages
-				| ManageMessages
-				| AddReactions));
+#pragma warning disable CS8618 // Non-nullable field is uninitialized. Consider declaring as nullable.
+			public IGuildSettingsProvider MuteRoleProvider { get; set; }
+#pragma warning restore CS8618 // Non-nullable field is uninitialized. Consider declaring as nullable.
 
-			private static readonly OverwritePermissions VoicePerms = new OverwritePermissions(0, (ulong)(0
-				| CreateInstantInvite
-				| ManageChannels
-				| ManageRoles
-				| ManageWebhooks
-				| Speak
-				| MuteMembers
-				| DeafenMembers
-				| MoveMembers));
+			private static readonly OverwritePermissions CategoryPerms
+				= new OverwritePermissions(0,
+					TextPerms.DenyValue | VoicePerms.DenyValue
+				);
+			private static readonly OverwritePermissions TextPerms
+				= new OverwritePermissions(0, (ulong)(0
+					| CreateInstantInvite
+					| ManageChannels
+					| ManageRoles
+					| ManageWebhooks
+					| SendMessages
+					| ManageMessages
+					| AddReactions)
+				);
+			private static readonly OverwritePermissions VoicePerms
+				= new OverwritePermissions(0, (ulong)(0
+					| CreateInstantInvite
+					| ManageChannels
+					| ManageRoles
+					| ManageWebhooks
+					| Speak
+					| MuteMembers
+					| DeafenMembers
+					| MoveMembers)
+				);
 
 			[Command]
 			public async Task<RuntimeResult> Command(
@@ -378,7 +391,9 @@ namespace Advobot.Standard.Commands
 				ModerationReason reason = default
 			)
 			{
-				var role = await GetOrCreateMuteRoleAsync().CAF();
+				var role = await MuteRoleProvider.GetMuteRoleAsync(Context.Guild).CAF();
+				await ConfigureMuteRoleAsync(role).CAF();
+
 				var isGive = !user.RoleIds.Contains(role.Id);
 				await Punisher.HandleAsync(new Punishments.RoleMute(user, isGive, role)
 				{
@@ -388,32 +403,30 @@ namespace Advobot.Standard.Commands
 				return Responses.Users.Muted(isGive, user, reason.Time);
 			}
 
-			private async Task<IRole> GetOrCreateMuteRoleAsync()
+			private async Task ConfigureMuteRoleAsync(IRole role)
 			{
-				IRole muteRole = Context.Guild.GetRole(Context.Settings.MuteRoleId);
-				var result = await Context.User.ValidateRole(muteRole).CAF();
-				if (!result.IsSuccess)
+				if (role.Permissions.RawValue != 0)
 				{
-					muteRole = await Context.Guild.CreateRoleAsync("Advobot Mute", new GuildPermissions(0), null, false, false, null).CAF();
-					Context.Settings.MuteRoleId = muteRole.Id;
-					Context.Settings.Save();
+					await role.ModifyAsync(x => x.Permissions = new GuildPermissions(0)).CAF();
 				}
 
-				foreach (var textChannel in Context.Guild.TextChannels)
+				static async Task ConfigureChannelsAsync(
+					IRole role,
+					IReadOnlyCollection<IGuildChannel> channels,
+					OverwritePermissions perms)
 				{
-					if (textChannel.GetPermissionOverwrite(muteRole) == null)
+					foreach (var c in channels)
 					{
-						await textChannel.AddPermissionOverwriteAsync(muteRole, TextPerms).CAF();
+						if (c.GetPermissionOverwrite(role)?.DenyValue != perms.DenyValue)
+						{
+							await c.AddPermissionOverwriteAsync(role, perms).CAF();
+						}
 					}
 				}
-				foreach (var voiceChannel in Context.Guild.VoiceChannels)
-				{
-					if (voiceChannel.GetPermissionOverwrite(muteRole) == null)
-					{
-						await voiceChannel.AddPermissionOverwriteAsync(muteRole, VoicePerms).CAF();
-					}
-				}
-				return muteRole;
+
+				await ConfigureChannelsAsync(role, Context.Guild.CategoryChannels, CategoryPerms).CAF();
+				await ConfigureChannelsAsync(role, Context.Guild.TextChannels, TextPerms).CAF();
+				await ConfigureChannelsAsync(role, Context.Guild.VoiceChannels, VoicePerms).CAF();
 			}
 		}
 

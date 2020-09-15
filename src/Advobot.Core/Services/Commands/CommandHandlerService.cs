@@ -11,7 +11,7 @@ using Advobot.CommandAssemblies;
 using Advobot.Localization;
 using Advobot.Modules;
 using Advobot.Services.BotSettings;
-using Advobot.Services.GuildSettings;
+using Advobot.Services.GuildSettingsProvider;
 using Advobot.Services.HelpEntries;
 using Advobot.Utilities;
 
@@ -30,14 +30,14 @@ namespace Advobot.Services.Commands
 	{
 		private readonly IBotSettings _BotSettings;
 		private readonly DiscordShardedClient _Client;
-		private readonly CommandServiceConfig _CommandConfig;
 		private readonly AsyncEvent<Func<CommandInfo, ICommandContext, IResult, Task>> _CommandInvoked
 			= new AsyncEvent<Func<CommandInfo, ICommandContext, IResult, Task>>();
 		private readonly Localized<CommandService> _CommandService;
+		private readonly CommandServiceConfig _Config;
 		private readonly ConcurrentDictionary<ulong, byte> _GatheringUsers
 			= new ConcurrentDictionary<ulong, byte>();
-		private readonly IGuildSettingsFactory _GuildSettings;
-		private readonly IHelpEntryService _HelpEntries;
+		private readonly IGuildSettingsProvider _GuildSettings;
+		private readonly IHelpEntryService _Help;
 		private readonly AsyncEvent<Func<LogMessage, Task>> _Log
 			= new AsyncEvent<Func<LogMessage, Task>>();
 		private readonly IServiceProvider _Provider;
@@ -80,18 +80,18 @@ namespace Advobot.Services.Commands
 			CommandServiceConfig config,
 			DiscordShardedClient client,
 			IBotSettings botSettings,
-			IGuildSettingsFactory guildSettings,
+			IGuildSettingsProvider guildSettings,
 			IHelpEntryService help)
 		{
 			_Provider = provider;
-			_CommandConfig = config;
+			_Config = config;
 			_Client = client;
 			_BotSettings = botSettings;
 			_GuildSettings = guildSettings;
-			_HelpEntries = help;
+			_Help = help;
 			_CommandService = new Localized<CommandService>(_ =>
 			{
-				var commands = new CommandService(_CommandConfig);
+				var commands = new CommandService(_Config);
 				commands.Log += OnLog;
 				commands.CommandExecuted += OnCommandExecuted;
 				return commands;
@@ -155,7 +155,7 @@ namespace Advobot.Services.Commands
 						++helpEntryCount;
 
 						var category = attributes.GetAttribute<CategoryAttribute>();
-						_HelpEntries.Add(new ModuleHelpEntry(command, meta, category));
+						_Help.Add(new ModuleHelpEntry(command, meta, category));
 					}
 				}
 			}
@@ -166,29 +166,16 @@ namespace Advobot.Services.Commands
 				$"from {assembly.GetName().Name} in the {culture} culture.");
 		}
 
-		private async Task OnCommandExecuted(
+		private Task OnCommandExecuted(
 			Optional<CommandInfo> command,
 			ICommandContext context,
 			IResult result)
 		{
-			static bool CanBeIgnored(IAdvobotCommandContext c, IResult r)
+			if (!command.IsSpecified || result.Error == CommandError.UnknownCommand)
 			{
-				return r == null
-					|| r.Error == CommandError.UnknownCommand
-					|| (!r.IsSuccess && (r.ErrorReason == null || c.Settings.NonVerboseErrors))
-					|| (r is PreconditionGroupResult g && g.PreconditionResults.All(x => CanBeIgnored(c, x)));
+				return Task.CompletedTask;
 			}
-
-			if (!(context is IAdvobotCommandContext ctx))
-			{
-				throw new ArgumentException(nameof(context));
-			}
-			if (!command.IsSpecified || CanBeIgnored(ctx, result))
-			{
-				return;
-			}
-
-			await _CommandInvoked.InvokeAsync(command.Value, ctx, result).CAF();
+			return _CommandInvoked.InvokeAsync(command.Value, context, result);
 		}
 
 		private Task OnLog(LogMessage arg)
@@ -196,18 +183,13 @@ namespace Advobot.Services.Commands
 
 		private async Task OnMessageReceived(IMessage message)
 		{
-			var argPos = -1;
 			if (_ShardsReady != _Client.Shards.Count
 				|| _BotSettings.Pause
 				|| message.Author.IsBot
 				|| string.IsNullOrWhiteSpace(message.Content)
 				|| _BotSettings.UsersIgnoredFromCommands.Contains(message.Author.Id)
 				|| !(message is SocketUserMessage msg)
-				|| !(msg.Author is SocketGuildUser user)
-				|| !(await _GuildSettings.GetOrCreateAsync(user.Guild).CAF() is IGuildSettings settings)
-				|| settings.IgnoredCommandChannels.Contains(msg.Channel.Id)
-				|| !(msg.HasStringPrefix(settings.GetPrefix(_BotSettings), ref argPos)
-					|| msg.HasMentionPrefix(_Client.CurrentUser, ref argPos)))
+				|| !(msg.Author is SocketGuildUser user))
 			{
 				return;
 			}
@@ -217,8 +199,18 @@ namespace Advobot.Services.Commands
 				_ = user.Guild.DownloadUsersAsync();
 			}
 
-			CultureInfo.CurrentUICulture = CultureInfo.GetCultureInfo(settings.Culture);
-			var context = new AdvobotCommandContext(settings, _Client, msg);
+			var argPos = -1;
+			if (!msg.HasMentionPrefix(_Client.CurrentUser, ref argPos))
+			{
+				var prefix = await _GuildSettings.GetPrefixAsync(user.Guild).CAF();
+				if (!msg.HasStringPrefix(prefix, ref argPos))
+				{
+					return;
+				}
+			}
+
+			CultureInfo.CurrentUICulture = await _GuildSettings.GetCultureAsync(user.Guild).CAF();
+			var context = new AdvobotCommandContext(_Client, msg);
 			var commands = _CommandService.Get();
 			await commands.ExecuteAsync(context, argPos, _Provider).CAF();
 		}

@@ -2,14 +2,8 @@
 using System.Linq;
 using System.Threading.Tasks;
 
-using Advobot.Services.GuildSettings;
-
-using AdvorangesUtils;
-
 using Discord;
 using Discord.Commands;
-
-using Microsoft.Extensions.DependencyInjection;
 
 namespace Advobot.Attributes.Preconditions.Permissions
 {
@@ -38,13 +32,14 @@ namespace Advobot.Attributes.Preconditions.Permissions
 			IServiceProvider services)
 		{
 			var bits = user.GuildPermissions.RawValue;
+			/*
 			if (!user.IsBot)
 			{
 				var settingsFactory = services.GetRequiredService<IGuildSettingsFactory>();
 				var settings = await settingsFactory.GetOrCreateAsync(context.Guild).CAF();
 				var match = settings.BotUsers.FirstOrDefault(x => x.UserId == context.User.Id);
 				bits |= match?.Permissions ?? 0;
-			}
+			}*/
 			return bits == 0 ? null : (Enum)(GuildPermission)bits;
 		}
 	}

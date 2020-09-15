@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
-using Advobot.Logging.Service;
+using Advobot.Logging.Database;
 
 using AdvorangesUtils;
 
@@ -19,13 +19,13 @@ namespace Advobot.Logging.Context
 			new List<Func<ILogContext<T>, Task>>();
 
 		public LogAction Action { get; }
-		public ILoggingService Service { get; }
+		public ILoggingDatabase Db { get; }
 		public int Count => _Actions.Count;
 		public bool IsReadOnly => _Actions.IsReadOnly;
 
-		public LogHandler(LogAction action, ILoggingService service)
+		public LogHandler(LogAction action, ILoggingDatabase db)
 		{
-			Service = service;
+			Db = db;
 			Action = action;
 		}
 
@@ -52,7 +52,7 @@ namespace Advobot.Logging.Context
 				return;
 			}
 
-			var canLog = await state.CanLog(Service, context).CAF();
+			var canLog = await state.CanLog(Db, context).CAF();
 			if (!canLog)
 			{
 				return;
@@ -86,13 +86,13 @@ namespace Advobot.Logging.Context
 			}
 
 			// Action is disabled so don't bother logging
-			var actions = await Service.GetLogActionsAsync(guild.Id).CAF();
+			var actions = await Db.GetLogActionsAsync(guild.Id).CAF();
 			if (!actions.Contains(Action))
 			{
 				return null;
 			}
 
-			var channels = await Service.GetLogChannelsAsync(guild.Id).CAF();
+			var channels = await Db.GetLogChannelsAsync(guild.Id).CAF();
 			var imageLog = await guild.GetTextChannelAsync(channels.ImageLogId).CAF();
 			var modLog = await guild.GetTextChannelAsync(channels.ModLogId).CAF();
 			var serverLog = await guild.GetTextChannelAsync(channels.ServerLogId).CAF();

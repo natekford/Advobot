@@ -35,19 +35,19 @@ namespace Advobot.Utilities
 		/// Returns true if the invoking user's position is greater than the target user's position or if both users are the bot.
 		/// </summary>
 		/// <param name="invoker"></param>
-		/// <param name="t"></param>
+		/// <param name="target"></param>
 		/// <returns></returns>
-		public static bool CanModify(this IGuildUser invoker, IGuildUser t)
-			=> invoker.GetHierarchy() > t.GetHierarchy();
+		public static bool CanModify(this IGuildUser invoker, IGuildUser target)
+			=> invoker.GetHierarchy() > target.GetHierarchy();
 
 		/// <summary>
-		/// Returns true if the invoking user's position is greater than the target user's position.
+		/// Returns true if the invoking user's position is greater than the target role's position.
 		/// </summary>
 		/// <param name="invoker"></param>
-		/// <param name="t"></param>
+		/// <param name="target"></param>
 		/// <returns></returns>
-		public static bool CanModify(this IGuildUser invoker, IRole t)
-			=> invoker.GetHierarchy() > t.Position;
+		public static bool CanModify(this IGuildUser invoker, IRole target)
+			=> invoker.GetHierarchy() > target.Position;
 
 		/// <summary>
 		/// Creates a <see cref="PreconditionResult"/> from the exist status of an object.

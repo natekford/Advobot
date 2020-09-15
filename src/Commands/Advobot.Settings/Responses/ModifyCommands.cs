@@ -18,6 +18,6 @@ namespace Advobot.Settings.Responses
 			=> Success(Default.FormatInterpolated($"Successfully {GetEnabled(value)} the following: {commands}.")).WithTime(DefaultTime);
 
 		public static AdvobotResult Unmodified(string command, bool value)
-							=> Failure(Default.FormatInterpolated($"{command} is already {GetEnabled(value)}."));
+			=> Failure(Default.FormatInterpolated($"{command} is already {GetEnabled(value)}."));
 	}
 }

@@ -39,7 +39,7 @@ namespace Advobot.Logging.Commands
 				[CanModifyChannel(ManageChannels | ManageRoles)]
 				ITextChannel channel)
 			{
-				await Notifications.SetChannelAsync(Event, Context.Guild.Id, channel.Id).CAF();
+				await Db.UpsertNotificationChannelAsync(Event, Context.Guild.Id, channel.Id).CAF();
 				return ModifiedChannel(Event, channel);
 			}
 
@@ -47,7 +47,7 @@ namespace Advobot.Logging.Commands
 			[LocalizedAlias(nameof(Aliases.Content))]
 			public async Task<RuntimeResult> Content([Remainder] string? content = null)
 			{
-				await Notifications.SetContentAsync(Event, Context.Guild.Id, content).CAF();
+				await Db.UpsertNotificationContentAsync(Event, Context.Guild.Id, content).CAF();
 				return ModifiedContent(Event, content);
 			}
 
@@ -63,7 +63,7 @@ namespace Advobot.Logging.Commands
 			[LocalizedAlias(nameof(Aliases.Disable))]
 			public async Task<RuntimeResult> Disable()
 			{
-				await Notifications.DisableAsync(Event, Context.Guild.Id).CAF();
+				await Db.UpsertNotificationChannelAsync(Event, Context.Guild.Id, null).CAF();
 				return Disabled(Event);
 			}
 
@@ -71,7 +71,7 @@ namespace Advobot.Logging.Commands
 			[LocalizedAlias(nameof(Aliases.Embed))]
 			public async Task<RuntimeResult> Embed(CustomEmbed? embed = null)
 			{
-				await Notifications.SetEmbedAsync(Event, Context.Guild.Id, embed).CAF();
+				await Db.UpsertNotificationEmbedAsync(Event, Context.Guild.Id, embed).CAF();
 				return ModifiedEmbed(Event, embed);
 			}
 
@@ -79,7 +79,7 @@ namespace Advobot.Logging.Commands
 			[LocalizedAlias(nameof(Aliases.Send))]
 			public async Task<RuntimeResult> Send()
 			{
-				var notification = await Notifications.GetAsync(Event, Context.Guild.Id).CAF();
+				var notification = await Db.GetAsync(Event, Context.Guild.Id).CAF();
 				return SendNotification(Event, notification);
 			}
 		}
@@ -100,7 +100,7 @@ namespace Advobot.Logging.Commands
 				[CanModifyChannel(ManageChannels | ManageRoles)]
 				ITextChannel channel)
 			{
-				await Notifications.SetChannelAsync(Event, Context.Guild.Id, channel.Id).CAF();
+				await Db.UpsertNotificationChannelAsync(Event, Context.Guild.Id, channel.Id).CAF();
 				return ModifiedChannel(Event, channel);
 			}
 
@@ -108,7 +108,7 @@ namespace Advobot.Logging.Commands
 			[LocalizedAlias(nameof(Aliases.Content))]
 			public async Task<RuntimeResult> Content([Remainder] string? content = null)
 			{
-				await Notifications.SetContentAsync(Event, Context.Guild.Id, content).CAF();
+				await Db.UpsertNotificationContentAsync(Event, Context.Guild.Id, content).CAF();
 				return ModifiedContent(Event, content);
 			}
 
@@ -124,7 +124,7 @@ namespace Advobot.Logging.Commands
 			[LocalizedAlias(nameof(Aliases.Disable))]
 			public async Task<RuntimeResult> Disable()
 			{
-				await Notifications.DisableAsync(Event, Context.Guild.Id).CAF();
+				await Db.UpsertNotificationChannelAsync(Event, Context.Guild.Id, null).CAF();
 				return Disabled(Event);
 			}
 
@@ -132,7 +132,7 @@ namespace Advobot.Logging.Commands
 			[LocalizedAlias(nameof(Aliases.Embed))]
 			public async Task<RuntimeResult> Embed(CustomEmbed? embed = null)
 			{
-				await Notifications.SetEmbedAsync(Event, Context.Guild.Id, embed).CAF();
+				await Db.UpsertNotificationEmbedAsync(Event, Context.Guild.Id, embed).CAF();
 				return ModifiedEmbed(Event, embed);
 			}
 
@@ -140,7 +140,7 @@ namespace Advobot.Logging.Commands
 			[LocalizedAlias(nameof(Aliases.Send))]
 			public async Task<RuntimeResult> Send()
 			{
-				var notification = await Notifications.GetAsync(Event, Context.Guild.Id).CAF();
+				var notification = await Db.GetAsync(Event, Context.Guild.Id).CAF();
 				return SendNotification(Event, notification);
 			}
 		}

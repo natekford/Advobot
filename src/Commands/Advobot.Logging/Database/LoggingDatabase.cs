@@ -15,7 +15,7 @@ using Dapper;
 
 namespace Advobot.Logging.Database
 {
-	public sealed class LoggingDatabase : DatabaseBase<SQLiteConnection>
+	public sealed class LoggingDatabase : DatabaseBase<SQLiteConnection>, ILoggingDatabase
 	{
 		public LoggingDatabase(IConnectionStringFor<LoggingDatabase> conn) : base(conn)
 		{

@@ -1,10 +1,7 @@
 ﻿using System.Threading.Tasks;
 
 using Advobot.Attributes.Preconditions.Permissions;
-using Advobot.Services.GuildSettings;
-using Advobot.Services.GuildSettings.Settings;
 using Advobot.Tests.Fakes.Discord;
-using Advobot.Tests.Fakes.Services.GuildSettings;
 using Advobot.Tests.TestBases;
 
 using AdvorangesUtils;
@@ -12,7 +9,6 @@ using AdvorangesUtils;
 using Discord;
 using Discord.Commands;
 
-using Microsoft.Extensions.DependencyInjection;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace Advobot.Tests.Core.Attributes.Preconditions.Permissions
@@ -24,7 +20,6 @@ namespace Advobot.Tests.Core.Attributes.Preconditions.Permissions
 		private const GuildPermission FLAGS2 = GuildPermission.ManageMessages | GuildPermission.ManageRoles;
 		private const GuildPermission FLAGS3 = GuildPermission.ManageGuild;
 
-		private readonly GuildSettings _Settings = new GuildSettings();
 		protected override PreconditionAttribute Instance { get; }
 			= new RequireGuildPermissionsAttribute(FLAGS1, FLAGS2, FLAGS3);
 
@@ -62,12 +57,6 @@ namespace Advobot.Tests.Core.Attributes.Preconditions.Permissions
 
 			var result = await CheckPermissionsAsync().CAF();
 			Assert.IsFalse(result.IsSuccess);
-
-			await Context.User.RemoveRoleAsync(role).CAF();
-			_Settings.BotUsers.Add(new BotUser(Context.User.Id, val));
-
-			var result2 = await CheckPermissionsAsync().CAF();
-			Assert.IsFalse(result2.IsSuccess);
 		}
 
 		[DataRow(GuildPermission.Administrator)]
@@ -89,18 +78,6 @@ namespace Advobot.Tests.Core.Attributes.Preconditions.Permissions
 
 			var result = await CheckPermissionsAsync().CAF();
 			Assert.IsTrue(result.IsSuccess);
-
-			await Context.User.RemoveRoleAsync(role).CAF();
-			_Settings.BotUsers.Add(new BotUser(Context.User.Id, val));
-
-			var result2 = await CheckPermissionsAsync().CAF();
-			Assert.IsTrue(result2.IsSuccess);
-		}
-
-		protected override void ModifyServices(IServiceCollection services)
-		{
-			services
-				.AddSingleton<IGuildSettingsFactory>(new FakeGuildSettingsFactory(_Settings));
 		}
 	}
 }

@@ -2,7 +2,7 @@
 using System.Linq;
 using System.Threading.Tasks;
 
-using Advobot.Logging.Service;
+using Advobot.Logging.Database;
 
 using AdvorangesUtils;
 
@@ -25,7 +25,7 @@ namespace Advobot.Logging.Context.Messages
 			Channel = (message?.Channel as ITextChannel)!;
 		}
 
-		public virtual async Task<bool> CanLog(ILoggingService service, ILogContext context)
+		public virtual async Task<bool> CanLog(ILoggingDatabase db, ILogContext context)
 		{
 			// Only log message updates and do actions on received messages if they're not a bot and not on an unlogged channel
 			if (User.IsBot || User.IsWebhook)
@@ -33,7 +33,7 @@ namespace Advobot.Logging.Context.Messages
 				return false;
 			}
 
-			var ignoredChannels = await service.GetIgnoredChannelsAsync(Channel.GuildId).CAF();
+			var ignoredChannels = await db.GetIgnoredChannelsAsync(Channel.GuildId).CAF();
 			return !ignoredChannels.Contains(Channel.Id);
 		}
 	}

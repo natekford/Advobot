@@ -1,8 +1,8 @@
 ﻿using System;
 using System.Threading.Tasks;
 
+using Advobot.Logging.Database;
 using Advobot.Logging.ReadOnlyModels;
-using Advobot.Logging.Service;
 using Advobot.Services.HelpEntries;
 using Advobot.Utilities;
 
@@ -38,7 +38,7 @@ namespace Advobot.Logging.Preconditions
 			CommandInfo command,
 			IServiceProvider services)
 		{
-			var service = services.GetRequiredService<ILoggingService>();
+			var service = services.GetRequiredService<ILoggingDatabase>();
 			var channels = await service.GetLogChannelsAsync(context.Guild.Id).CAF();
 			if (GetId(channels) != 0)
 			{

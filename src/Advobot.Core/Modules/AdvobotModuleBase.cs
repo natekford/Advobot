@@ -19,9 +19,9 @@ using Discord.Commands;
 namespace Advobot.Modules
 {
 	/// <summary>
-	/// Shorter way to write the used modulebase and also has every command go through the <see cref="RequireCommandEnabledAttribute"/> first.
+	/// Shorter way to write the used modulebase and also has every command go through the <see cref="ExtendableCommandValidationAttribute"/> first.
 	/// </summary>
-	[RequireCommandEnabled]
+	[ExtendableCommandValidation]
 	[RequireContext(ContextType.Guild, Group = nameof(RequireContextAttribute))]
 	public abstract class AdvobotModuleBase : ModuleBase<AdvobotCommandContext>
 	{
@@ -40,10 +40,6 @@ namespace Advobot.Modules
 		/// </summary>
 		[DontInject]
 		public TimeSpan DefaultInteractivityTime { get; set; } = TimeSpan.FromSeconds(5);
-		/// <summary>
-		/// The prefix for this context.
-		/// </summary>
-		public string Prefix => Context.Settings.GetPrefix(BotSettings);
 		/// <summary>
 		/// The punisher to use for giving punishments.
 		/// </summary>

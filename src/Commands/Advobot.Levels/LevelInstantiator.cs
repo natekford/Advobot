@@ -16,7 +16,7 @@ namespace Advobot.Levels
 		{
 			services
 				.AddSingleton<LevelServiceConfig>()
-				.AddSingleton<LevelDatabase>()
+				.AddSingleton<ILevelDatabase, LevelDatabase>()
 				.AddSQLiteFileDatabaseConnectionStringFor<LevelDatabase>("Levels.db")
 				.AddSingleton<ILevelService, LevelService>();
 
@@ -26,9 +26,6 @@ namespace Advobot.Levels
 		public Task ConfigureServicesAsync(IServiceProvider services)
 		{
 			services.GetRequiredService<IConnectionStringFor<LevelDatabase>>().MigrateUp();
-
-			// Needed to instantiate the level service
-			services.GetRequiredService<ILevelService>();
 
 			return Task.CompletedTask;
 		}

@@ -41,11 +41,11 @@ namespace Advobot.Logging.Commands
 			{
 				if (enable)
 				{
-					await Logging.AddLogActionsAsync(Context.Guild.Id, LogActionsResetter.All).CAF();
+					await Db.AddLogActionsAsync(Context.Guild.Id, LogActionsResetter.All).CAF();
 				}
 				else
 				{
-					await Logging.RemoveLogActionsAsync(Context.Guild.Id, LogActionsResetter.All).CAF();
+					await Db.DeleteLogActionsAsync(Context.Guild.Id, LogActionsResetter.All).CAF();
 				}
 				return ModifiedAllLogActions(enable);
 			}
@@ -55,11 +55,11 @@ namespace Advobot.Logging.Commands
 			{
 				if (enable)
 				{
-					await Logging.AddLogActionsAsync(Context.Guild.Id, logActions).CAF();
+					await Db.AddLogActionsAsync(Context.Guild.Id, logActions).CAF();
 				}
 				else
 				{
-					await Logging.RemoveLogActionsAsync(Context.Guild.Id, logActions).CAF();
+					await Db.DeleteLogActionsAsync(Context.Guild.Id, logActions).CAF();
 				}
 				return ModifiedLogActions(logActions, enable);
 			}
@@ -88,7 +88,7 @@ namespace Advobot.Logging.Commands
 			)
 			{
 				var ids = channels.Select(x => x.Id);
-				await Logging.AddIgnoredChannelsAsync(Context.Guild.Id, ids).CAF();
+				await Db.AddIgnoredChannelsAsync(Context.Guild.Id, ids).CAF();
 				return ModifiedIgnoredLogChannels(channels, true);
 			}
 
@@ -100,7 +100,7 @@ namespace Advobot.Logging.Commands
 			)
 			{
 				var ids = channels.Select(x => x.Id);
-				await Logging.RemoveIgnoredChannelsAsync(Context.Guild.Id, ids).CAF();
+				await Db.DeleteIgnoredChannelsAsync(Context.Guild.Id, ids).CAF();
 				return ModifiedIgnoredLogChannels(channels, false);
 			}
 		}
@@ -119,7 +119,7 @@ namespace Advobot.Logging.Commands
 				[NotImageLog, CanModifyChannel(ManageChannels | ManageRoles)]
 				ITextChannel channel)
 			{
-				await Logging.SetLogChannelAsync(LogType, Context.Guild.Id, channel.Id).CAF();
+				await Db.UpsertLogChannelAsync(LogType, Context.Guild.Id, channel.Id).CAF();
 				return SetLog(VariableImageLog, channel);
 			}
 
@@ -128,7 +128,7 @@ namespace Advobot.Logging.Commands
 			[RequireImageLog]
 			public async Task<RuntimeResult> Remove()
 			{
-				await Logging.RemoveLogChannelAsync(LogType, Context.Guild.Id).CAF();
+				await Db.UpsertLogChannelAsync(LogType, Context.Guild.Id, null).CAF();
 				return Removed(VariableImageLog);
 			}
 		}
@@ -147,7 +147,7 @@ namespace Advobot.Logging.Commands
 				[NotModLog, CanModifyChannel(ManageChannels | ManageRoles)]
 				ITextChannel channel)
 			{
-				await Logging.SetLogChannelAsync(LogType, Context.Guild.Id, channel.Id).CAF();
+				await Db.UpsertLogChannelAsync(LogType, Context.Guild.Id, channel.Id).CAF();
 				return SetLog(VariableModLog, channel);
 			}
 
@@ -156,7 +156,7 @@ namespace Advobot.Logging.Commands
 			[RequireModLog]
 			public async Task<RuntimeResult> Remove()
 			{
-				await Logging.RemoveLogChannelAsync(LogType, Context.Guild.Id).CAF();
+				await Db.UpsertLogChannelAsync(LogType, Context.Guild.Id, null).CAF();
 				return Removed(VariableModLog);
 			}
 		}
@@ -175,7 +175,7 @@ namespace Advobot.Logging.Commands
 				[NotServerLog, CanModifyChannel(ManageChannels | ManageRoles)]
 				ITextChannel channel)
 			{
-				await Logging.SetLogChannelAsync(LogType, Context.Guild.Id, channel.Id).CAF();
+				await Db.UpsertLogChannelAsync(LogType, Context.Guild.Id, channel.Id).CAF();
 				return SetLog(VariableServerLog, channel);
 			}
 
@@ -184,7 +184,7 @@ namespace Advobot.Logging.Commands
 			[RequireServerLog]
 			public async Task<RuntimeResult> Remove()
 			{
-				await Logging.RemoveLogChannelAsync(LogType, Context.Guild.Id).CAF();
+				await Db.UpsertLogChannelAsync(LogType, Context.Guild.Id, null).CAF();
 				return Removed(VariableServerLog);
 			}
 		}

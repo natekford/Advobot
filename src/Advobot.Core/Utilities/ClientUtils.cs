@@ -3,13 +3,11 @@ using System.Diagnostics;
 using System.Reflection;
 using System.Threading.Tasks;
 
-using Advobot.Services.BotSettings;
 using Advobot.Settings;
 
 using AdvorangesUtils;
 
 using Discord;
-using Discord.WebSocket;
 
 namespace Advobot.Utilities
 {

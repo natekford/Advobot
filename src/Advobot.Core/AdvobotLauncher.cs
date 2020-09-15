@@ -6,14 +6,10 @@ using System.Threading;
 using System.Threading.Tasks;
 
 using Advobot.CommandAssemblies;
-using Advobot.Databases;
-using Advobot.Databases.Abstract;
-using Advobot.Databases.LiteDB;
-using Advobot.Databases.MongoDB;
 using Advobot.Punishments;
 using Advobot.Services.BotSettings;
 using Advobot.Services.Commands;
-using Advobot.Services.GuildSettings;
+using Advobot.Services.GuildSettingsProvider;
 using Advobot.Services.HelpEntries;
 using Advobot.Services.ImageResizing;
 using Advobot.Services.LogCounters;
@@ -29,8 +25,6 @@ using Discord.WebSocket;
 
 using Microsoft.Extensions.DependencyInjection;
 
-using MongoDB.Driver;
-
 namespace Advobot
 {
 	/// <summary>
@@ -38,14 +32,14 @@ namespace Advobot
 	/// </summary>
 	public sealed class AdvobotLauncher
 	{
-		private readonly ILowLevelConfig _Config;
+		private readonly IConfig _Config;
 		private IServiceProvider? _Services;
 
 		/// <summary>
 		/// Creates an instance of <see cref="AdvobotLauncher"/>.
 		/// </summary>
 		/// <param name="config"></param>
-		public AdvobotLauncher(ILowLevelConfig config)
+		public AdvobotLauncher(IConfig config)
 		{
 			AppDomain.CurrentDomain.UnhandledException += (sender, e) => IOUtils.LogUncaughtException(e.ExceptionObject);
 			ConsoleUtils.PrintingFlags = 0
@@ -65,7 +59,7 @@ namespace Advobot
 		/// <returns></returns>
 		public static async Task<IServiceProvider> NoConfigurationStart(string[] args)
 		{
-			var launcher = new AdvobotLauncher(LowLevelConfig.Load(args));
+			var launcher = new AdvobotLauncher(Config.Load(args));
 			await launcher.GetPathAndKeyAsync().CAF();
 
 			var commands = CommandAssemblyCollection.Find();
@@ -86,18 +80,18 @@ namespace Advobot
 		/// <returns></returns>
 		public async Task GetPathAndKeyAsync()
 		{
-			//Get the save path
-			_Config.ValidatePath(null, true);
-			while (!_Config.ValidatedPath)
+			// Get the save path
+			var validPath = _Config.ValidatePath(null, true);
+			while (!validPath)
 			{
-				_Config.ValidatePath(Console.ReadLine(), false);
+				validPath = _Config.ValidatePath(Console.ReadLine(), false);
 			}
 
-			//Get the bot key
-			await _Config.ValidateBotKey(null, true, ClientUtils.RestartBotAsync).CAF();
-			while (!_Config.ValidatedKey)
+			// Get the bot key
+			var validKey = await _Config.ValidateBotKey(null, true, ClientUtils.RestartBotAsync).CAF();
+			while (!validKey)
 			{
-				await _Config.ValidateBotKey(Console.ReadLine(), false, ClientUtils.RestartBotAsync).CAF();
+				validKey = await _Config.ValidateBotKey(Console.ReadLine(), false, ClientUtils.RestartBotAsync).CAF();
 			}
 		}
 
@@ -107,13 +101,7 @@ namespace Advobot
 		/// <param name="client"></param>
 		/// <returns></returns>
 		public Task StartAsync(BaseSocketClient client)
-		{
-			if (!(_Config.ValidatedPath && _Config.ValidatedKey))
-			{
-				throw new InvalidOperationException("Attempted to start the bot before the path and key have been set.");
-			}
-			return _Config.StartAsync(client);
-		}
+			=> _Config.StartAsync(client);
 
 		/// <summary>
 		/// Waits until the old process is killed. This is blocking.
@@ -136,7 +124,7 @@ namespace Advobot
 
 		private static async Task<IServiceProvider> CreateServicesAsync(
 			CommandAssemblyCollection assemblies,
-			ILowLevelConfig config)
+			IConfig config)
 		{
 			var botSettings = BotSettings.CreateOrLoad(config);
 			var commandConfig = new CommandServiceConfig
@@ -171,23 +159,10 @@ namespace Advobot
 				.AddSingleton<ITime, DefaultTime>()
 				.AddSingleton<IHelpEntryService, HelpEntryService>()
 				.AddSingleton<ICommandHandlerService, CommandHandlerService>()
-				.AddSingleton<IGuildSettingsFactory, GuildSettingsFactory>()
 				.AddSingleton<ILogCounterService, LogCounterService>()
 				.AddSingleton<IImageResizer, ImageResizer>()
-				.AddSingleton<IPunisher, Punisher>();
-
-			switch (config.DatabaseType)
-			{
-				//-DatabaseType LiteDB (or no arguments supplied at all)
-				case DatabaseType.LiteDB:
-					collection.AddSingleton<IDatabaseWrapperFactory, LiteDBWrapperFactory>();
-					break;
-				//-DatabaseType MongoDB -DatabaseConnectionString "mongodb://localhost:27017"
-				case DatabaseType.MongoDB:
-					collection.AddSingleton<IDatabaseWrapperFactory, MongoDBWrapperFactory>();
-					collection.AddSingleton<IMongoClient>(_ => new MongoClient(config.DatabaseConnectionString));
-					break;
-			}
+				.AddSingleton<IPunisher, Punisher>()
+				.AddSingleton<IGuildSettingsProvider, NaiveGuildSettingsProvider>();
 
 			foreach (var assembly in assemblies.Assemblies)
 			{
@@ -205,11 +180,8 @@ namespace Advobot
 					continue;
 				}
 
-				var instance = provider.GetRequiredService(service.ServiceType);
-				if (instance is IUsesDatabase usesDb)
-				{
-					usesDb.Start();
-				}
+				// Just to instantiate it
+				_ = provider.GetRequiredService(service.ServiceType);
 			}
 
 			foreach (var assembly in assemblies.Assemblies)

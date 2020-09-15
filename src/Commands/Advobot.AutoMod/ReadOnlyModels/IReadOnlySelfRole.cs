@@ -1,9 +1,10 @@
-﻿namespace Advobot.AutoMod.ReadOnlyModels
+﻿using Advobot.SQLite.Relationships;
+
+namespace Advobot.AutoMod.ReadOnlyModels
 {
-	public interface IReadOnlySelfRole
+	public interface IReadOnlySelfRole : IGuildChild
 	{
 		int GroupId { get; }
-		ulong GuildId { get; }
 		ulong RoleId { get; }
 	}
 }

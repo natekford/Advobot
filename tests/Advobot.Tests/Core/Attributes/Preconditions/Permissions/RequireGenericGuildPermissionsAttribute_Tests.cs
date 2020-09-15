@@ -1,22 +1,6 @@
-﻿using System.Threading.Tasks;
-
-using Advobot.Attributes.Preconditions.Permissions;
-using Advobot.Services.GuildSettings;
-using Advobot.Services.GuildSettings.Settings;
-using Advobot.Tests.Fakes.Discord;
-using Advobot.Tests.Fakes.Services.GuildSettings;
-using Advobot.Tests.TestBases;
-
-using AdvorangesUtils;
-
-using Discord;
-using Discord.Commands;
-
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
-
-namespace Advobot.Tests.Core.Attributes.Preconditions.Permissions
+﻿namespace Advobot.Tests.Core.Attributes.Preconditions.Permissions
 {
+	/*
 	[TestClass]
 	public sealed class RequireGenericGuildPermissionsAttribute_Tests : PreconditionTestsBase
 	{
@@ -101,5 +85,5 @@ namespace Advobot.Tests.Core.Attributes.Preconditions.Permissions
 			services
 				.AddSingleton<IGuildSettingsFactory>(new FakeGuildSettingsFactory(_Settings));
 		}
-	}
+	}*/
 }

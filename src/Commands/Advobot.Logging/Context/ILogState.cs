@@ -1,6 +1,6 @@
 ﻿using System.Threading.Tasks;
 
-using Advobot.Logging.Service;
+using Advobot.Logging.Database;
 
 using Discord;
 
@@ -11,6 +11,6 @@ namespace Advobot.Logging.Context
 		IGuild? Guild { get; }
 		bool IsValid { get; }
 
-		Task<bool> CanLog(ILoggingService service, ILogContext context);
+		Task<bool> CanLog(ILoggingDatabase db, ILogContext context);
 	}
 }

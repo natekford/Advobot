@@ -4,8 +4,6 @@ using System.Threading.Tasks;
 
 using Advobot.Attributes;
 using Advobot.Attributes.Preconditions;
-using Advobot.Services.GuildSettings;
-using Advobot.Tests.Fakes.Services.GuildSettings;
 using Advobot.Tests.Fakes.Services.HelpEntries;
 using Advobot.Tests.TestBases;
 
@@ -18,6 +16,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace Advobot.Tests.Core.Attributes.Preconditions
 {
+	/*
 	[TestClass]
 	public sealed class RequireCommandEnabledAttribute_Tests : PreconditionTestsBase
 	{
@@ -27,10 +26,9 @@ namespace Advobot.Tests.Core.Attributes.Preconditions
 			AbleToBeToggled = typeof(FakeModule).GetCustomAttribute<MetaAttribute>()!.CanToggle,
 			EnabledByDefault = typeof(FakeModule).GetCustomAttribute<MetaAttribute>()!.IsEnabled,
 		};
-		private readonly GuildSettings _Settings = new GuildSettings();
 
 		protected override PreconditionAttribute Instance { get; }
-			= new RequireCommandEnabledAttribute();
+			= new ExtendableCommandValidationAttribute();
 
 		[TestMethod]
 		public async Task Off_Test()
@@ -72,5 +70,5 @@ namespace Advobot.Tests.Core.Attributes.Preconditions
 			[Command]
 			public Task Command() => throw new NotImplementedException();
 		}
-	}
+	}*/
 }

@@ -4,8 +4,8 @@ using System.Collections.Immutable;
 using System.Threading.Tasks;
 
 using Advobot.Attributes.ParameterPreconditions;
+using Advobot.Logging.Database;
 using Advobot.Logging.ReadOnlyModels;
-using Advobot.Logging.Service;
 using Advobot.Utilities;
 
 using AdvorangesUtils;
@@ -58,7 +58,7 @@ namespace Advobot.Logging.ParameterPreconditions
 				return this.FromOnlySupports(value);
 			}
 
-			var service = services.GetRequiredService<ILoggingService>();
+			var service = services.GetRequiredService<ILoggingDatabase>();
 			var channels = await service.GetLogChannelsAsync(context.Guild.Id).CAF();
 			if (GetId(channels) != channel.Id)
 			{

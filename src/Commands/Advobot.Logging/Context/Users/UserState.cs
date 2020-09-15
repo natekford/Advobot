@@ -1,6 +1,6 @@
 ﻿using System.Threading.Tasks;
 
-using Advobot.Logging.Service;
+using Advobot.Logging.Database;
 
 using Discord;
 
@@ -18,7 +18,7 @@ namespace Advobot.Logging.Context.Users
 		}
 
 		// Only log if it wasn't this bot that was affected
-		public virtual Task<bool> CanLog(ILoggingService service, ILogContext context)
+		public virtual Task<bool> CanLog(ILoggingDatabase db, ILogContext context)
 			=> Task.FromResult(User.Id != context.Bot.Id);
 	}
 }
