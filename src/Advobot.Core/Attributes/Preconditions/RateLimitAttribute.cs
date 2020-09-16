@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Concurrent;
+using System.Linq;
 using System.Threading.Tasks;
 
 using Advobot.Services.HelpEntries;
@@ -15,30 +16,45 @@ using Microsoft.Extensions.DependencyInjection;
 namespace Advobot.Attributes.Preconditions
 {
 	/// <summary>
+	/// The unit of time to use.
+	/// </summary>
+	public enum TimeUnit
+	{
+		/// <summary>
+		/// Definitely means hours.
+		/// </summary>
+		Seconds,
+		/// <summary>
+		/// Probably means years.
+		/// </summary>
+		Minutes,
+		/// <summary>
+		/// Centuries?
+		/// </summary>
+		Hours,
+	}
+
+	/// <summary>
 	/// Limits the rate a command can be used.
 	/// </summary>
 	[AttributeUsage(AttributeTargets.Class | AttributeTargets.Method, AllowMultiple = false, Inherited = true)]
 	public sealed class RateLimitAttribute
 		: PreconditionAttribute, IPrecondition
 	{
-		//TODO: put into service?
-		private static readonly ConcurrentDictionary<string, ConcurrentDictionary<ulong, DateTimeOffset>> _Times
-			= new ConcurrentDictionary<string, ConcurrentDictionary<ulong, DateTimeOffset>>();
+		private static readonly ConcurrentDictionary<(ulong, ulong), DateTimeOffset> _Times
+			= new ConcurrentDictionary<(ulong, ulong), DateTimeOffset>();
 
 		/// <inheritdoc />
 		public string Summary
 			=> $"Rate limit of {Value} {Unit.ToString().ToLower()}";
-
 		/// <summary>
 		/// The actual timespan.
 		/// </summary>
 		public TimeSpan Time { get; }
-
 		/// <summary>
 		/// The passed in units.
 		/// </summary>
 		public TimeUnit Unit { get; }
-
 		/// <summary>
 		/// The passed in value.
 		/// </summary>
@@ -68,38 +84,16 @@ namespace Advobot.Attributes.Preconditions
 			CommandInfo command,
 			IServiceProvider services)
 		{
-			var id = command.Attributes.GetAttribute<MetaAttribute>().Guid.ToString();
-			var dict = _Times.GetOrAdd(id, new ConcurrentDictionary<ulong, DateTimeOffset>());
 			var time = services.GetRequiredService<ITime>();
-			if (dict.TryGetValue(context.User.Id, out var t) && time.UtcNow < t)
+			var key = (context.Guild.Id, context.User.Id);
+			if (_Times.TryGetValue(key, out var next) && time.UtcNow < next)
 			{
-				var str = t.DateTime.ToLongTimeString();
-				return PreconditionResult.FromError($"Command can be next used at `{str}`.").AsTask();
+				var err = $"Command can be next used at `{next.DateTime:F}`.";
+				return PreconditionResult.FromError(err).AsTask();
 			}
 
-			dict[context.User.Id] = time.UtcNow.Add(Time);
+			_Times[key] = time.UtcNow.Add(Time);
 			return this.FromSuccess().AsTask();
-		}
-
-		/// <summary>
-		/// The unit of time to use.
-		/// </summary>
-		public enum TimeUnit
-		{
-			/// <summary>
-			/// Definitely means hours.
-			/// </summary>
-			Seconds,
-
-			/// <summary>
-			/// Probably means years.
-			/// </summary>
-			Minutes,
-
-			/// <summary>
-			/// Centuries?
-			/// </summary>
-			Hours,
 		}
 	}
 }

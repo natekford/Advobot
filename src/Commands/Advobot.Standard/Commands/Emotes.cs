@@ -28,7 +28,7 @@ namespace Advobot.Standard.Commands
 		[LocalizedAlias(nameof(Aliases.CreateEmote))]
 		[LocalizedSummary(nameof(Summaries.CreateEmote))]
 		[Meta("e001108f-5bae-4589-865e-775a2d21e327", IsEnabled = true)]
-		[RateLimit(RateLimitAttribute.TimeUnit.Minutes, 1)]
+		[RateLimit(TimeUnit.Minutes, 1)]
 		[RequireGuildPermissions(GuildPermission.ManageEmojis)]
 		public sealed class CreateEmote : ImageResizerModule
 		{
