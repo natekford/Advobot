@@ -189,9 +189,8 @@ namespace Advobot.Standard.Commands
 				var webhookId = _GuildsToWebhooks.AddOrUpdate(Context.Guild.Id, webhook.Id, (_, v) =>
 				{
 					//If the most recently used webhook does not match the id of the supplied one, remove that client
-					if (v != webhook.Id)
+					if (v != webhook.Id && _Clients.TryRemove(v, out var removed))
 					{
-						_Clients.TryRemove(v, out var removed);
 						removed.Dispose();
 					}
 					return webhook.Id;

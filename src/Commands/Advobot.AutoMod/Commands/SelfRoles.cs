@@ -40,7 +40,7 @@ namespace Advobot.AutoMod.Commands
 
 				// Remove roles the user already has from the group if they're targeting an exclusive group
 				await Context.User.AddRoleAsync(role.Role, GenerateRequestOptions("self role giving")).CAF();
-				if (role.ConflictingRoles == null)
+				if (role.ConflictingRoles.Count == 0)
 				{
 					return AddedRole(role.Role);
 				}

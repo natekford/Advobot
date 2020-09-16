@@ -182,7 +182,8 @@ namespace Advobot.Tests.Fakes.Discord
 			=> GetBanAsync(user.Id, options);
 
 		public Task<IBan> GetBanAsync(ulong userId, RequestOptions options = null)
-			=> Task.FromResult<IBan>(FakeBans.SingleOrDefault(x => x.User.Id == userId));
+			// D.Net throws when not found
+			=> Task.FromResult<IBan>(FakeBans.Single(x => x.User.Id == userId));
 
 		public Task<IReadOnlyCollection<IBan>> GetBansAsync(RequestOptions options = null)
 			=> Task.FromResult<IReadOnlyCollection<IBan>>(FakeBans);
@@ -211,7 +212,7 @@ namespace Advobot.Tests.Fakes.Discord
 		public Task<IGuildUser> GetOwnerAsync(CacheMode mode = CacheMode.AllowDownload, RequestOptions options = null)
 			=> Task.FromResult<IGuildUser>(FakeOwner);
 
-		public IRole GetRole(ulong id)
+		public IRole? GetRole(ulong id)
 			=> FakeRoles.SingleOrDefault(x => x.Id == id);
 
 		public Task<ITextChannel> GetSystemChannelAsync(CacheMode mode = CacheMode.AllowDownload, RequestOptions options = null) => throw new NotImplementedException();
@@ -220,8 +221,8 @@ namespace Advobot.Tests.Fakes.Discord
 
 		public Task<IReadOnlyCollection<ITextChannel>> GetTextChannelsAsync(CacheMode mode = CacheMode.AllowDownload, RequestOptions options = null) => throw new NotImplementedException();
 
-		public Task<IGuildUser> GetUserAsync(ulong id, CacheMode mode = CacheMode.AllowDownload, RequestOptions options = null)
-			=> Task.FromResult<IGuildUser>(FakeUsers.SingleOrDefault(x => x.Id == id));
+		public Task<IGuildUser?> GetUserAsync(ulong id, CacheMode mode = CacheMode.AllowDownload, RequestOptions options = null)
+			=> Task.FromResult<IGuildUser?>(FakeUsers.SingleOrDefault(x => x.Id == id));
 
 		public Task<IReadOnlyCollection<IGuildUser>> GetUsersAsync(CacheMode mode = CacheMode.AllowDownload, RequestOptions options = null)
 			=> Task.FromResult<IReadOnlyCollection<IGuildUser>>(FakeUsers);
@@ -235,8 +236,8 @@ namespace Advobot.Tests.Fakes.Discord
 		public Task<IReadOnlyCollection<IVoiceRegion>> GetVoiceRegionsAsync(RequestOptions options = null)
 			=> FakeClient.GetVoiceRegionsAsync(options);
 
-		public Task<IWebhook> GetWebhookAsync(ulong id, RequestOptions options = null)
-			=> Task.FromResult<IWebhook>(FakeWebhooks.SingleOrDefault(x => x.Id == id));
+		public Task<IWebhook?> GetWebhookAsync(ulong id, RequestOptions options = null)
+			=> Task.FromResult<IWebhook?>(FakeWebhooks.SingleOrDefault(x => x.Id == id));
 
 		public Task<IReadOnlyCollection<IWebhook>> GetWebhooksAsync(RequestOptions options = null)
 			=> Task.FromResult<IReadOnlyCollection<IWebhook>>(FakeWebhooks);

@@ -13,7 +13,7 @@ using Advobot.CommandAssemblies;
 [assembly: AssemblyCompany("Advorange")]
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCopyright("Copyright © 2020")]
-[assembly: AssemblyDescription("Automatic moderation tools for Discord.")]
+[assembly: AssemblyDescription("Automatic moderation tools.")]
 [assembly: AssemblyProduct("Advobot")]
 [assembly: AssemblyTitle("Advobot.AutoMod")]
 [assembly: NeutralResourcesLanguage("en")]

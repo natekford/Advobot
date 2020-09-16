@@ -12,7 +12,11 @@ namespace Advobot.Gacha.Interaction
 			}
 
 			var field = typeof(InteractionType).GetField(value.ToString());
-			var attr = field.GetCustomAttribute<UnicodeRepresentationAttribute>();
+			var attr = field?.GetCustomAttribute<UnicodeRepresentationAttribute>();
+			if (attr is null)
+			{
+				return value.ToString();
+			}
 			return attr.Name;
 		}
 	}

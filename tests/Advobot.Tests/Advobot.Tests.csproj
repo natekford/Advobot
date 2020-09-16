@@ -1,16 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>netcoreapp3.0</TargetFramework>
-    <IsPackable>false</IsPackable>
-    <Authors>Advorange</Authors>
-    <Company>Advorange</Company>
-    <Product>Advobot</Product>
-    <Copyright>Copyright © 2020</Copyright>
-    <PackageProjectUrl>https://github.com/advorange/Advobot</PackageProjectUrl>
-    <RepositoryUrl>https://github.com/advorange/Advobot</RepositoryUrl>
-    <NeutralLanguage>English</NeutralLanguage>
-    <Description>Unit tests for Advobot.</Description>
+    <TargetFramework>net5.0</TargetFramework>
   </PropertyGroup>
 
   <ItemGroup>
@@ -23,10 +14,6 @@
     <ProjectReference Include="..\..\src\Advobot.Core\Advobot.Core.csproj" />
     <ProjectReference Include="..\..\src\Advobot.SQLite\Advobot.SQLite.csproj" />
     <ProjectReference Include="..\..\src\Commands\Advobot.AllCommands\Advobot.AllCommands.csproj" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Folder Include="Commands\Quotes\Database\" />
   </ItemGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">

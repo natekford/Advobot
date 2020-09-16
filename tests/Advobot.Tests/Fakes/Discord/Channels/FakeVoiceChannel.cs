@@ -37,10 +37,10 @@ namespace Advobot.Tests.Fakes.Discord.Channels
 		public Task DisconnectAsync()
 			=> throw new NotImplementedException();
 
-		public Task<ICategoryChannel> GetCategoryAsync(CacheMode mode = CacheMode.AllowDownload, RequestOptions options = null)
+		public Task<ICategoryChannel?> GetCategoryAsync(CacheMode mode = CacheMode.AllowDownload, RequestOptions options = null)
 		{
 			var match = FakeGuild.FakeChannels.SingleOrDefault(x => x.Id == CategoryId);
-			return Task.FromResult((ICategoryChannel)match);
+			return Task.FromResult(match as ICategoryChannel);
 		}
 
 		public Task<IReadOnlyCollection<IInviteMetadata>> GetInvitesAsync(RequestOptions options = null)

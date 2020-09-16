@@ -13,7 +13,7 @@ using Advobot.Logging;
 [assembly: AssemblyCompany("Advorange")]
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCopyright("Copyright © 2020")]
-[assembly: AssemblyDescription("Logging for certain events in Discord.")]
+[assembly: AssemblyDescription("Logging for certain events.")]
 [assembly: AssemblyProduct("Advobot")]
 [assembly: AssemblyTitle("Advobot.Logging")]
 [assembly: NeutralResourcesLanguage("en")]

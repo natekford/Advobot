@@ -22,7 +22,7 @@ namespace Advobot.Tests.Fakes.Database
 		/// <inheritdoc />
 		public Task EnsureCreatedAsync()
 		{
-			Directory.CreateDirectory(Path.GetDirectoryName(Location));
+			Directory.CreateDirectory(Path.GetDirectoryName(Location)!);
 			using (File.Create(Location)) { }
 			return Task.CompletedTask;
 		}

@@ -57,7 +57,7 @@ namespace Advobot.Gacha.Counters
 			return _IsStaggered ? ts : ts + TimeSpan.FromMinutes(_ResetMinute);
 		}
 
-		private void Callback(object state)
+		private void Callback(object? state)
 		{
 			if (!_IsStaggered)
 			{

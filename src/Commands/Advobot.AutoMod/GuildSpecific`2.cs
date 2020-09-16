@@ -5,6 +5,7 @@ using Discord;
 namespace Advobot.AutoMod
 {
 	public sealed class GuildSpecific<TKey, TValue>
+		where TKey : notnull
 		where TValue : new()
 	{
 		private readonly ConcurrentDictionary<ulong, ConcurrentDictionary<TKey, TValue>> _Dict

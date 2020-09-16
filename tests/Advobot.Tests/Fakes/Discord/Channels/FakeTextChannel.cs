@@ -48,10 +48,10 @@ namespace Advobot.Tests.Fakes.Discord.Channels
 		public Task DeleteMessagesAsync(IEnumerable<ulong> messageIds, RequestOptions options = null)
 			=> throw new NotImplementedException();
 
-		public Task<ICategoryChannel> GetCategoryAsync(CacheMode mode = CacheMode.AllowDownload, RequestOptions options = null)
+		public Task<ICategoryChannel?> GetCategoryAsync(CacheMode mode = CacheMode.AllowDownload, RequestOptions options = null)
 		{
 			var match = FakeGuild.FakeChannels.SingleOrDefault(x => x.Id == CategoryId);
-			return Task.FromResult((ICategoryChannel)match);
+			return Task.FromResult(match as ICategoryChannel);
 		}
 
 		public Task<IReadOnlyCollection<IInviteMetadata>> GetInvitesAsync(RequestOptions options = null)
@@ -60,11 +60,11 @@ namespace Advobot.Tests.Fakes.Discord.Channels
 			return Task.FromResult<IReadOnlyCollection<IInviteMetadata>>(matches);
 		}
 
-		public Task<IWebhook> GetWebhookAsync(ulong id, RequestOptions options = null)
+		public Task<IWebhook?> GetWebhookAsync(ulong id, RequestOptions options = null)
 		{
 			var matches = FakeGuild.FakeWebhooks.Where(x => x.ChannelId == Id);
 			var match = matches.SingleOrDefault(x => x.Id == id);
-			return Task.FromResult<IWebhook>(match);
+			return Task.FromResult<IWebhook?>(match);
 		}
 
 		public Task<IReadOnlyCollection<IWebhook>> GetWebhooksAsync(RequestOptions options = null)

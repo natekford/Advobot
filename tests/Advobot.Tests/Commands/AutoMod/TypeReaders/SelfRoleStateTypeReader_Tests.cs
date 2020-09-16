@@ -54,7 +54,7 @@ namespace Advobot.Tests.Commands.AutoMod.TypeReaders
 				Assert.IsNotNull(cast.ConflictingRoles);
 				Assert.AreEqual(selfRoles[0].RoleId, cast.Role.Id);
 				Assert.AreEqual(selfRoles[0].GroupId, cast.Group);
-				Assert.AreEqual(roles.Count - 1, cast.ConflictingRoles.Count());
+				Assert.AreEqual(roles.Count - 1, cast.ConflictingRoles.Count);
 			}
 
 			await roles[^1].DeleteAsync().CAF();
@@ -73,7 +73,7 @@ namespace Advobot.Tests.Commands.AutoMod.TypeReaders
 				Assert.IsNotNull(cast.ConflictingRoles);
 				Assert.AreEqual(selfRoles[0].RoleId, cast.Role.Id);
 				Assert.AreEqual(selfRoles[0].GroupId, cast.Group);
-				Assert.AreEqual(roles.Count - 2, cast.ConflictingRoles.Count());
+				Assert.AreEqual(roles.Count - 2, cast.ConflictingRoles.Count);
 			}
 
 			{

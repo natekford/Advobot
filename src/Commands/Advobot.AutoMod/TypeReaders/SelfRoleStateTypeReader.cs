@@ -40,7 +40,7 @@ namespace Advobot.AutoMod.TypeReaders
 					$"`{role.Format()}` is not a self assignable role.");
 			}
 
-			var conflicting = default(IEnumerable<IRole>);
+			IReadOnlyList<IRole> conflicting = Array.Empty<IRole>();
 			if (selfRole.GroupId != 0)
 			{
 				conflicting = await GetConflictingRoles(db, context, selfRole).CAF();

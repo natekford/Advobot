@@ -13,7 +13,7 @@ using Advobot.Invites;
 [assembly: AssemblyCompany("Advorange")]
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCopyright("Copyright © 2020")]
-[assembly: AssemblyDescription("A Discord invite aggregator.")]
+[assembly: AssemblyDescription("Invite aggregator commands.")]
 [assembly: AssemblyProduct("Advobot")]
 [assembly: AssemblyTitle("Advobot.Invites")]
 [assembly: NeutralResourcesLanguage("en")]

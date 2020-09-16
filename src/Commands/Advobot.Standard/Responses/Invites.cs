@@ -29,18 +29,19 @@ namespace Advobot.Standard.Responses
 		public static AdvobotResult DisplayInvites(IReadOnlyList<IInviteMetadata> invites)
 		{
 			var codeLen = -1;
-			var useLen = -1;
+			var uses = -1;
 			foreach (var invite in invites)
 			{
 				codeLen = Math.Max(codeLen, invite.Code.Length);
-				useLen = Math.Max(useLen, invite.Uses.ToString().Length);
+				uses = Math.Max(uses, invite.Uses ?? 0);
 			}
+			var useLen = uses.ToString().Length;
 
 			string FormatInvite(IInviteMetadata i)
-				=> $"{i.Code.PadRight(codeLen)} {i.Uses.ToString().PadRight(useLen)} {i.Inviter.Format()}";
+				=> $"{i.Code.PadRight(codeLen)} {(i.Uses ?? 0).ToString().PadRight(useLen)} {i.Inviter.Format()}";
 
 			var description = invites
-				.Join(FormatInvite, Environment.NewLine)
+				.Join(FormatInvite, "\n")
 				.WithBigBlock()
 				.Value;
 			return Success(new EmbedWrapper

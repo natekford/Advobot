@@ -1,36 +1,14 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>netstandard2.1</TargetFramework>
-    <Authors>Advorange</Authors>
-    <Company>Advorange</Company>
-    <Product>Advobot</Product>
-    <Description>Some shitty attempt at a gacha game in Discord.</Description>
-    <Copyright>Copyright © 2020</Copyright>
-    <PackageProjectUrl>https://github.com/advorange/Advobot</PackageProjectUrl>
-    <RepositoryUrl>https://github.com/advorange/Advobot</RepositoryUrl>
-    <NeutralLanguage>English</NeutralLanguage>
+    <TargetFramework>net5.0</TargetFramework>
   </PropertyGroup>
   
   <ItemGroup>
     <ProjectReference Include="..\..\Advobot.Core\Advobot.Core.csproj" />
     <ProjectReference Include="..\..\Advobot.SQLite\Advobot.SQLite.csproj" />
   </ItemGroup>
-
-  <Target Name="ChangeAliasesOfNugetRefs" BeforeTargets="FindReferenceAssembliesForReferences;ResolveReferences">
-    <ItemGroup>
-      <ReferencePath Condition="'%(FileName)' == 'System.Threading.Tasks.Extensions'">
-        <Aliases>notnetstandard</Aliases>
-      </ReferencePath>
-    </ItemGroup>
-  </Target>
-
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
-    <DebugType>full</DebugType>
-    <DebugSymbols>true</DebugSymbols>
-    <DefineConstants>TRACE</DefineConstants>
-  </PropertyGroup>
-
+  
   <PropertyGroup>
     <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
     <Nullable>enable</Nullable>

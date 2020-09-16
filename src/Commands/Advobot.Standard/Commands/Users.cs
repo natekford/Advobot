@@ -519,7 +519,7 @@ namespace Advobot.Standard.Commands
 				var options = GenerateRequestOptions();
 				//If not the context channel then get the first message in that channel
 				var thisChannel = Context.Message.Channel.Id == channel.Id;
-				IMessage start = Context.Message;
+				IMessage? start = Context.Message;
 				if (!thisChannel)
 				{
 					var msgs = await channel.GetMessagesAsync(1).FlattenAsync().CAF();
@@ -537,7 +537,7 @@ namespace Advobot.Standard.Commands
 
 				//If the context channel isn't the targetted channel then delete the start message
 				//Increase by one to account for it not being targetted.
-				if (!thisChannel)
+				if (!thisChannel && start != null)
 				{
 					await start.DeleteAsync(options).CAF();
 					++deleted;

@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 
 namespace Advobot.AutoMod
@@ -52,8 +53,8 @@ namespace Advobot.AutoMod
 			}
 		}
 
-		public bool TryGetValue(TEnum key, out TValue value)
-			=> _Dict.TryGetValue(key, out value);
+		public bool TryGetValue(TEnum key, [NotNullWhen(true)] out TValue value)
+			=> _Dict.TryGetValue(key, out value!);
 
 		public void Update(TEnum key, Func<TValue, TValue> updater)
 			=> _Dict[key] = updater(_Dict[key]);

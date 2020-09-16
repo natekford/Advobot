@@ -34,8 +34,8 @@ namespace Advobot.Tests.Fakes.Discord
 
 		public Task<IReadOnlyCollection<IGroupChannel>> GetGroupChannelsAsync(CacheMode mode = CacheMode.AllowDownload, RequestOptions options = null) => throw new NotImplementedException();
 
-		public Task<IGuild> GetGuildAsync(ulong id, CacheMode mode = CacheMode.AllowDownload, RequestOptions options = null)
-			=> Task.FromResult<IGuild>(FakeGuilds.SingleOrDefault(x => x.Id == id));
+		public Task<IGuild?> GetGuildAsync(ulong id, CacheMode mode = CacheMode.AllowDownload, RequestOptions options = null)
+			=> Task.FromResult<IGuild?>(FakeGuilds.SingleOrDefault(x => x.Id == id));
 
 		public Task<IReadOnlyCollection<IGuild>> GetGuildsAsync(CacheMode mode = CacheMode.AllowDownload, RequestOptions options = null)
 			=> Task.FromResult<IReadOnlyCollection<IGuild>>(FakeGuilds);

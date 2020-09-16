@@ -13,7 +13,7 @@ using Advobot.Levels;
 [assembly: AssemblyCompany("Advorange")]
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCopyright("Copyright © 2020")]
-[assembly: AssemblyDescription("A Discord XP system.")]
+[assembly: AssemblyDescription("A system for handling XP.")]
 [assembly: AssemblyProduct("Advobot")]
 [assembly: AssemblyTitle("Advobot.Levels")]
 [assembly: NeutralResourcesLanguage("en")]

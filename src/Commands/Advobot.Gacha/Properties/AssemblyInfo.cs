@@ -13,7 +13,7 @@ using Advobot.Gacha;
 [assembly: AssemblyCompany("Advorange")]
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCopyright("Copyright © 2020")]
-[assembly: AssemblyDescription("Some shitty attempt at a gacha game in Discord.")]
+[assembly: AssemblyDescription("Some shitty attempt at a gacha game.")]
 [assembly: AssemblyProduct("Advobot")]
 [assembly: AssemblyTitle("Advobot.Gacha")]
 [assembly: NeutralResourcesLanguage("en")]
