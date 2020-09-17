@@ -6,7 +6,7 @@ namespace Advobot.Attributes.ParameterPreconditions.Strings
 	/// Validates the emote name by making sure it is between 2 and 32 characters.
 	/// </summary>
 	[AttributeUsage(AttributeTargets.Parameter, AllowMultiple = false, Inherited = true)]
-	public sealed class EmoteNameAttribute : StringParameterPreconditionAttribute
+	public sealed class EmoteNameAttribute : StringRangeParameterPreconditionAttribute
 	{
 		/// <inheritdoc />
 		public override string StringType => "emote name";

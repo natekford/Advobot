@@ -6,7 +6,7 @@ namespace Advobot.Attributes.ParameterPreconditions.Strings
 	/// Validates the channel topic by making sure it is between 0 and 1024 characters.
 	/// </summary>
 	[AttributeUsage(AttributeTargets.Parameter, AllowMultiple = false, Inherited = true)]
-	public sealed class ChannelTopicAttribute : StringParameterPreconditionAttribute
+	public sealed class ChannelTopicAttribute : StringRangeParameterPreconditionAttribute
 	{
 		/// <inheritdoc />
 		public override string StringType => "channel topic";

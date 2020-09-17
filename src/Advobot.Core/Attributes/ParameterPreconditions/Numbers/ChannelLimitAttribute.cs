@@ -6,7 +6,7 @@ namespace Advobot.Attributes.ParameterPreconditions.Numbers
 	/// Validates the channel limit allowing 0 to 99.
 	/// </summary>
 	[AttributeUsage(AttributeTargets.Parameter, AllowMultiple = false, Inherited = true)]
-	public class ChannelLimitAttribute : IntParameterPreconditionAttribute
+	public sealed class ChannelLimitAttribute : RangeParameterPreconditionAttribute
 	{
 		/// <inheritdoc />
 		public override string NumberType => "channel limit";

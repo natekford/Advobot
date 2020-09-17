@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Threading.Tasks;
 
+using Advobot.GeneratedParameterPreconditions;
 using Advobot.Utilities;
 
 using Discord;
@@ -18,7 +19,7 @@ namespace Advobot.Attributes.ParameterPreconditions.DiscordObjectValidation.Emot
 		public override string Summary => "Has required roles";
 
 		/// <inheritdoc />
-		protected override Task<PreconditionResult> SingularCheckGuildEmoteAsync(
+		protected override Task<PreconditionResult> SingularCheckPermissionsAsync(
 			ICommandContext context,
 			ParameterInfo parameter,
 			IGuildUser invoker,

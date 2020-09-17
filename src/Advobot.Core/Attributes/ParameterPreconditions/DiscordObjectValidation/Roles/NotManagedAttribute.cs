@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Threading.Tasks;
 
+using Advobot.GeneratedParameterPreconditions;
 using Advobot.Utilities;
 
 using Discord;
@@ -12,14 +13,13 @@ namespace Advobot.Attributes.ParameterPreconditions.DiscordObjectValidation.Role
 	/// Does not allow managed roles but does allow the everyone role.
 	/// </summary>
 	[AttributeUsage(AttributeTargets.Parameter, AllowMultiple = false, Inherited = true)]
-	public sealed class NotManagedAttribute : RoleParameterPreconditionAttribute
+	public sealed class NotManagedAttribute : IRoleParameterPreconditionAttribute
 	{
 		/// <inheritdoc />
-		public override string Summary
-			=> "Not managed";
+		public override string Summary => "Not managed";
 
 		/// <inheritdoc />
-		protected override Task<PreconditionResult> SingularCheckRoleAsync(
+		protected override Task<PreconditionResult> SingularCheckPermissionsAsync(
 			ICommandContext context,
 			ParameterInfo parameter,
 			IGuildUser invoker,

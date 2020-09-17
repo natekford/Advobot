@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Threading.Tasks;
 
+using Advobot.GeneratedParameterPreconditions;
 using Advobot.Utilities;
 
 using Discord;
@@ -12,15 +13,13 @@ namespace Advobot.Attributes.ParameterPreconditions.DiscordObjectValidation.Role
 	/// Makes sure the passed in <see cref="IRole"/> can be modified.
 	/// </summary>
 	[AttributeUsage(AttributeTargets.Parameter, AllowMultiple = false, Inherited = true)]
-	public sealed class CanModifyRoleAttribute
-		: RoleParameterPreconditionAttribute
+	public sealed class CanModifyRoleAttribute : IRoleParameterPreconditionAttribute
 	{
 		/// <inheritdoc />
-		public override string Summary
-			=> "Can be modified by both the bot and the invoking user";
+		public override string Summary => "Can be modified by the bot and invoking user";
 
 		/// <inheritdoc />
-		protected override Task<PreconditionResult> SingularCheckRoleAsync(
+		protected override Task<PreconditionResult> SingularCheckPermissionsAsync(
 			ICommandContext context,
 			ParameterInfo parameter,
 			IGuildUser invoker,

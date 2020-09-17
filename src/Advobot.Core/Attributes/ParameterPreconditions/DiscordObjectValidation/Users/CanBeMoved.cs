@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Threading.Tasks;
 
+using Advobot.GeneratedParameterPreconditions;
 using Advobot.Utilities;
 
 using Discord;
@@ -12,7 +13,7 @@ namespace Advobot.Attributes.ParameterPreconditions.DiscordObjectValidation.User
 	/// Checks if the user can be moved from their voice channel.
 	/// </summary>
 	[AttributeUsage(AttributeTargets.Parameter, AllowMultiple = false, Inherited = true)]
-	public class CanBeMovedAttribute : UserParameterPreconditionAttribute
+	public sealed class CanBeMovedAttribute : IGuildUserParameterPreconditionAttribute
 	{
 		private static readonly ChannelPermission[] _MoveMembers = new[]
 		{
@@ -20,11 +21,10 @@ namespace Advobot.Attributes.ParameterPreconditions.DiscordObjectValidation.User
 		};
 
 		/// <inheritdoc />
-		public override string Summary
-			=> "Can be moved from their current channel";
+		public override string Summary => "Can be moved from their current channel";
 
 		/// <inheritdoc />
-		protected override Task<PreconditionResult> SingularCheckUserAsync(
+		protected override Task<PreconditionResult> SingularCheckPermissionsAsync(
 			ICommandContext context,
 			ParameterInfo parameter,
 			IGuildUser invoker,

@@ -6,7 +6,7 @@ namespace Advobot.Attributes.ParameterPreconditions.Numbers
 	/// Validates the amount of days to prune with allowing specified valid values.
 	/// </summary>
 	[AttributeUsage(AttributeTargets.Parameter, AllowMultiple = false, Inherited = true)]
-	public class PruneDaysAttribute : IntParameterPreconditionAttribute
+	public sealed class PruneDaysAttribute : RangeParameterPreconditionAttribute
 	{
 		/// <inheritdoc />
 		public override string NumberType => "prune days";

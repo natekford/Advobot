@@ -31,7 +31,7 @@ namespace Advobot.Settings.Commands
 				=> Responses.GuildSettings.DisplaySettings(Context.Client, Context.Guild, Settings);
 
 			[Command]
-			public Task<RuntimeResult> Command([Remainder, BotSettingName] string name)
+			public Task<RuntimeResult> Command([Remainder] string name)
 				=> Responses.GuildSettings.DisplaySetting(Context.Client, Context.Guild, Settings, name);
 
 			[LocalizedCommand(nameof(Groups.Json))]

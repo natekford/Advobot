@@ -6,7 +6,7 @@ namespace Advobot.Attributes.ParameterPreconditions.Strings
 	/// Validates the role name by making sure it is between 1 and 100 characters.
 	/// </summary>
 	[AttributeUsage(AttributeTargets.Parameter, AllowMultiple = false, Inherited = true)]
-	public sealed class RoleNameAttribute : StringParameterPreconditionAttribute
+	public sealed class RoleNameAttribute : StringRangeParameterPreconditionAttribute
 	{
 		/// <inheritdoc />
 		public override string StringType => "role name";

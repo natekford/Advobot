@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Threading.Tasks;
 
+using Advobot.GeneratedParameterPreconditions;
 using Advobot.Utilities;
 
 using Discord;
@@ -12,15 +13,13 @@ namespace Advobot.Attributes.ParameterPreconditions.DiscordObjectValidation.Invi
 	/// Does not allow invites which can expire.
 	/// </summary>
 	[AttributeUsage(AttributeTargets.Parameter, AllowMultiple = false, Inherited = true)]
-	public sealed class NeverExpiresAttribute
-		: InviteParameterPreconditionAttribute
+	public sealed class NeverExpiresAttribute : IInviteMetadataParameterPreconditionAttribute
 	{
 		/// <inheritdoc />
-		public override string Summary
-			=> "Never expires";
+		public override string Summary => "Never expires";
 
 		/// <inheritdoc />
-		protected override Task<PreconditionResult> SingularCheckInviteAsync(
+		protected override Task<PreconditionResult> SingularCheckPermissionsAsync(
 			ICommandContext context,
 			ParameterInfo parameter,
 			IGuildUser invoker,

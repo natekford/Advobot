@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Threading.Tasks;
 
+using Advobot.GeneratedParameterPreconditions;
 using Advobot.Utilities;
 
 using Discord;
@@ -12,14 +13,13 @@ namespace Advobot.Attributes.ParameterPreconditions.DiscordObjectValidation.User
 	/// Validates the passed in <see cref="IGuildUser"/>.
 	/// </summary>
 	[AttributeUsage(AttributeTargets.Parameter, AllowMultiple = false, Inherited = true)]
-	public sealed class CanModifyUserAttribute : UserParameterPreconditionAttribute
+	public sealed class CanModifyUserAttribute : IGuildUserParameterPreconditionAttribute
 	{
 		/// <inheritdoc />
-		public override string Summary
-			=> "Can be modified by both the bot and the invoking user";
+		public override string Summary => "Can be modified by the bot and invoking user";
 
 		/// <inheritdoc />
-		protected override Task<PreconditionResult> SingularCheckUserAsync(
+		protected override Task<PreconditionResult> SingularCheckPermissionsAsync(
 			ICommandContext context,
 			ParameterInfo parameter,
 			IGuildUser invoker,

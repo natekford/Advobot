@@ -3,6 +3,7 @@ using System.Collections.Immutable;
 using System.Linq;
 using System.Threading.Tasks;
 
+using Advobot.GeneratedParameterPreconditions;
 using Advobot.Utilities;
 
 using Discord;
@@ -14,7 +15,7 @@ namespace Advobot.Attributes.ParameterPreconditions.DiscordObjectValidation.Chan
 	/// Validates the passed in <see cref="IGuildChannel"/>.
 	/// </summary>
 	[AttributeUsage(AttributeTargets.Parameter, AllowMultiple = false, Inherited = true)]
-	public sealed class CanModifyChannelAttribute : ChannelParameterPreconditionAttribute
+	public sealed class CanModifyChannelAttribute : IGuildChannelParameterPreconditionAttribute
 	{
 		/// <summary>
 		/// The permissions to make sure the invoking user has on the channel.
@@ -22,7 +23,7 @@ namespace Advobot.Attributes.ParameterPreconditions.DiscordObjectValidation.Chan
 		public ImmutableHashSet<ChannelPermission> Permissions { get; }
 
 		/// <inheritdoc />
-		public override string Summary { get; }
+		public override string Summary => "Can be modified by the bot and invoking user";
 
 		/// <summary>
 		/// Creates an instance of <see cref="CanModifyChannelAttribute"/>.
@@ -34,11 +35,10 @@ namespace Advobot.Attributes.ParameterPreconditions.DiscordObjectValidation.Chan
 				.Select(x => x | ChannelPermission.ViewChannel)
 				.DefaultIfEmpty(ChannelPermission.ViewChannel)
 				.ToImmutableHashSet();
-			Summary = Permissions.FormatPermissions();
 		}
 
 		/// <inheritdoc />
-		protected override Task<PreconditionResult> SingularCheckChannelAsync(
+		protected override Task<PreconditionResult> SingularCheckPermissionsAsync(
 			ICommandContext context,
 			ParameterInfo parameter,
 			IGuildUser invoker,

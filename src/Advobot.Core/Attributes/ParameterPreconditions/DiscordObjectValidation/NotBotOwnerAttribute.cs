@@ -1,12 +1,12 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.Threading.Tasks;
 
+using Advobot.GeneratedParameterPreconditions;
 using Advobot.Utilities;
 
 using AdvorangesUtils;
 
+using Discord;
 using Discord.Commands;
 
 namespace Advobot.Attributes.ParameterPreconditions.Numbers
@@ -15,31 +15,21 @@ namespace Advobot.Attributes.ParameterPreconditions.Numbers
 	/// Makes sure the passed in number is not the owner.
 	/// </summary>
 	[AttributeUsage(AttributeTargets.Parameter, AllowMultiple = false, Inherited = true)]
-	public sealed class NotBotOwnerAttribute
-		: AdvobotParameterPreconditionAttribute
+	public sealed class NotBotOwnerAttribute : UInt64ParameterPreconditionAttribute
 	{
 		/// <inheritdoc />
 		public override string Summary => "Not the bot owner";
-		/// <inheritdoc />
-		public override IEnumerable<Type> SupportedTypes { get; } = new[]
-		{
-			typeof(ulong),
-		}.ToImmutableArray();
 
 		/// <inheritdoc />
 		protected override async Task<PreconditionResult> SingularCheckPermissionsAsync(
 			ICommandContext context,
 			ParameterInfo parameter,
-			object value,
+			IGuildUser invoker,
+			ulong value,
 			IServiceProvider services)
 		{
-			if (!(value is ulong num))
-			{
-				return this.FromOnlySupports(value);
-			}
-
 			var application = await context.Client.GetApplicationInfoAsync().CAF();
-			if (application.Owner.Id != num)
+			if (application.Owner.Id != value)
 			{
 				return this.FromSuccess();
 			}

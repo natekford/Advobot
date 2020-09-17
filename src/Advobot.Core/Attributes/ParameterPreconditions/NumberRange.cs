@@ -8,27 +8,27 @@ namespace Advobot.Attributes.ParameterPreconditions
 	/// Holds a collection of valid numbers.
 	/// </summary>
 	/// <typeparam name="T"></typeparam>
-	public sealed class NumberCollection<T> where T : IComparable<T>
+	public sealed class NumberRange<T> where T : IComparable<T>
 	{
 		private readonly bool _IsRange;
 		private readonly ImmutableSortedSet<T> _Values;
 
 		/// <summary>
-		/// Creates an instance of <see cref="NumberCollection{T}"/> with the specified valid values.
+		/// Creates an instance of <see cref="NumberRange{T}"/> with the specified valid values.
 		/// </summary>
 		/// <param name="values"></param>
-		public NumberCollection(IEnumerable<T> values)
+		public NumberRange(IEnumerable<T> values)
 		{
 			_Values = values.ToImmutableSortedSet();
 			_IsRange = false;
 		}
 
 		/// <summary>
-		/// Creates an instance of <see cref="NumberCollection{T}"/> with the specified inclusive range.
+		/// Creates an instance of <see cref="NumberRange{T}"/> with the specified inclusive range.
 		/// </summary>
 		/// <param name="start"></param>
 		/// <param name="end"></param>
-		public NumberCollection(T start, T end)
+		public NumberRange(T start, T end)
 		{
 			if (start.CompareTo(end) > 0)
 			{

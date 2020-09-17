@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Threading.Tasks;
 
+using Advobot.GeneratedParameterPreconditions;
 using Advobot.Utilities;
 
 using Discord;
@@ -12,14 +13,13 @@ namespace Advobot.Attributes.ParameterPreconditions.DiscordObjectValidation.Role
 	/// Does not allow roles which are already mentionable to be used.
 	/// </summary>
 	[AttributeUsage(AttributeTargets.Parameter, AllowMultiple = false, Inherited = true)]
-	public sealed class NotMentionableAttribute : RoleParameterPreconditionAttribute
+	public sealed class NotMentionableAttribute : IRoleParameterPreconditionAttribute
 	{
 		/// <inheritdoc />
-		public override string Summary
-			=> "Not mentionable";
+		public override string Summary => "Not mentionable";
 
 		/// <inheritdoc />
-		protected override Task<PreconditionResult> SingularCheckRoleAsync(
+		protected override Task<PreconditionResult> SingularCheckPermissionsAsync(
 			ICommandContext context,
 			ParameterInfo parameter,
 			IGuildUser invoker,

@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Threading.Tasks;
 
+using Advobot.GeneratedParameterPreconditions;
 using Advobot.Utilities;
 
 using Discord;
@@ -12,15 +13,13 @@ namespace Advobot.Attributes.ParameterPreconditions.DiscordObjectValidation.Invi
 	/// Does not allow invites which are not from this guild.
 	/// </summary>
 	[AttributeUsage(AttributeTargets.Parameter, AllowMultiple = false, Inherited = true)]
-	public sealed class FromThisGuildAttribute
-		: InviteParameterPreconditionAttribute
+	public sealed class FromThisGuildAttribute : IInviteMetadataParameterPreconditionAttribute
 	{
 		/// <inheritdoc />
-		public override string Summary
-			=> "From this guild";
+		public override string Summary => "From this guild";
 
 		/// <inheritdoc />
-		protected override Task<PreconditionResult> SingularCheckInviteAsync(
+		protected override Task<PreconditionResult> SingularCheckPermissionsAsync(
 			ICommandContext context,
 			ParameterInfo parameter,
 			IGuildUser invoker,

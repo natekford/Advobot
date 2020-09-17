@@ -5,6 +5,7 @@ using Advobot.Utilities;
 
 using AdvorangesUtils;
 
+using Discord;
 using Discord.Commands;
 
 namespace Advobot.Attributes.ParameterPreconditions.Strings
@@ -22,10 +23,11 @@ namespace Advobot.Attributes.ParameterPreconditions.Strings
 		protected override async Task<PreconditionResult> SingularCheckPermissionsAsync(
 			ICommandContext context,
 			ParameterInfo parameter,
+			IGuildUser invoker,
 			string value,
 			IServiceProvider services)
 		{
-			var result = await base.SingularCheckPermissionsAsync(context, parameter, value, services).CAF();
+			var result = await base.SingularCheckPermissionsAsync(context, parameter, invoker, value, services).CAF();
 			if (!result.IsSuccess)
 			{
 				return result;

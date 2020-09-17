@@ -6,7 +6,7 @@ namespace Advobot.Attributes.ParameterPreconditions.Numbers
 	/// Validates the guild afk timer in seconds allowing specified valid values.
 	/// </summary>
 	[AttributeUsage(AttributeTargets.Parameter, AllowMultiple = false, Inherited = true)]
-	public class GuildAfkTimeAttribute : IntParameterPreconditionAttribute
+	public sealed class GuildAfkTimeAttribute : RangeParameterPreconditionAttribute
 	{
 		/// <inheritdoc />
 		public override string NumberType => "afk time";

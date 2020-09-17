@@ -1,13 +1,14 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading.Tasks;
 
+using Advobot.GeneratedParameterPreconditions;
 using Advobot.Utilities;
 
 using AdvorangesUtils;
 
+using Discord;
 using Discord.Commands;
 
 namespace Advobot.Attributes.ParameterPreconditions.DiscordObjectValidation
@@ -16,33 +17,23 @@ namespace Advobot.Attributes.ParameterPreconditions.DiscordObjectValidation
 	/// Makes sure the passed in <see cref="ulong"/> is not already banned.
 	/// </summary>
 	[AttributeUsage(AttributeTargets.Parameter, AllowMultiple = false, Inherited = true)]
-	public sealed class NotBannedAttribute
-		: AdvobotParameterPreconditionAttribute, IExistenceParameterPrecondition
+	public sealed class NotBannedAttribute : UInt64ParameterPreconditionAttribute, IExistenceParameterPrecondition
 	{
 		/// <inheritdoc />
 		public ExistenceStatus Status => ExistenceStatus.MustNotExist;
 		/// <inheritdoc />
-		public override string Summary => "not already banned";
-		/// <inheritdoc />
-		public override IEnumerable<Type> SupportedTypes { get; } = new[]
-		{
-			typeof(ulong),
-		}.ToImmutableArray();
+		public override string Summary => "Not already banned";
 
 		/// <inheritdoc />
 		protected override async Task<PreconditionResult> SingularCheckPermissionsAsync(
 			ICommandContext context,
 			ParameterInfo parameter,
-			object value,
+			IGuildUser invoker,
+			ulong value,
 			IServiceProvider services)
 		{
-			if (!(value is ulong id))
-			{
-				return this.FromOnlySupports(value);
-			}
-
 			var bans = await context.Guild.GetBansAsync().CAF();
-			var exists = bans.Select(x => x.User.Id).Contains(id);
+			var exists = bans.Select(x => x.User.Id).Contains(value);
 			return this.FromExistence(exists, value, "ban");
 		}
 	}

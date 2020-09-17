@@ -6,7 +6,7 @@ namespace Advobot.Attributes.ParameterPreconditions.Strings
 	/// Validates the game by making sure it is between 0 and 128 characters.
 	/// </summary>
 	[AttributeUsage(AttributeTargets.Parameter, AllowMultiple = false, Inherited = true)]
-	public sealed class GameAttribute : StringParameterPreconditionAttribute
+	public sealed class GameAttribute : StringRangeParameterPreconditionAttribute
 	{
 		/// <inheritdoc />
 		public override string StringType => "game";

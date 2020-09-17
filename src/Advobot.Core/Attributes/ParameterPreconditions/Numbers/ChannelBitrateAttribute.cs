@@ -11,7 +11,7 @@ namespace Advobot.Attributes.ParameterPreconditions.Numbers
 	/// Validates the channel bitrate allowing 8 to 96 unless the guild is partnered or has a premium tier in which the maximum is raised to 128.
 	/// </summary>
 	[AttributeUsage(AttributeTargets.Parameter, AllowMultiple = false, Inherited = true)]
-	public class ChannelBitrateAttribute : IntParameterPreconditionAttribute
+	public sealed class ChannelBitrateAttribute : RangeParameterPreconditionAttribute
 	{
 		/// <inheritdoc />
 		public override string NumberType => "channel bitrate";
@@ -22,7 +22,7 @@ namespace Advobot.Attributes.ParameterPreconditions.Numbers
 		public ChannelBitrateAttribute() : base(8, 96) { }
 
 		/// <inheritdoc />
-		protected override NumberCollection<int> GetNumbers(
+		protected override NumberRange<int> GetRange(
 			ICommandContext context,
 			ParameterInfo parameter,
 			IServiceProvider services)
@@ -35,7 +35,7 @@ namespace Advobot.Attributes.ParameterPreconditions.Numbers
 				_ when context.Guild.Features.CaseInsContains("VIP_REGIONS") => 128,
 				_ => 96,
 			};
-			return new NumberCollection<int>(8, end);
+			return new NumberRange<int>(8, end);
 		}
 	}
 }

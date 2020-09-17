@@ -8,6 +8,7 @@ using Advobot.Utilities;
 
 using AdvorangesUtils;
 
+using Discord;
 using Discord.Commands;
 
 using Microsoft.Extensions.DependencyInjection;
@@ -16,7 +17,7 @@ namespace Advobot.Quotes.ParameterPreconditions
 {
 	[AttributeUsage(AttributeTargets.Parameter, AllowMultiple = false, Inherited = true)]
 	public sealed class QuoteNameAttribute
-		: StringParameterPreconditionAttribute, IExistenceParameterPrecondition
+		: StringRangeParameterPreconditionAttribute, IExistenceParameterPrecondition
 	{
 		public ExistenceStatus Status => ExistenceStatus.MustNotExist;
 		public override string StringType => "quote name";
@@ -28,10 +29,11 @@ namespace Advobot.Quotes.ParameterPreconditions
 		protected override async Task<PreconditionResult> SingularCheckPermissionsAsync(
 			ICommandContext context,
 			ParameterInfo parameter,
+			IGuildUser invoker,
 			string value,
 			IServiceProvider services)
 		{
-			var result = await base.SingularCheckPermissionsAsync(context, parameter, value, services).CAF();
+			var result = await base.SingularCheckPermissionsAsync(context, parameter, invoker, value, services).CAF();
 			if (!result.IsSuccess)
 			{
 				return result;
