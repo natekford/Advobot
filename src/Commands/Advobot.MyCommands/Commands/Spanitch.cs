@@ -23,14 +23,14 @@ namespace Advobot.MyCommands.Commands
 	[Group("spanitch")]
 	[Summary("spanitches a user")]
 	[Meta("0c96c96b-5d11-41cd-941b-8864b7542349", IsEnabled = true)]
-	[RequireGuildPermissions(GuildPermission.ManageRoles)]
+	[RequireGuildPermissionsOrMickezoor(GuildPermission.ManageRoles)]
 	[RequireGuild(199339772118827008)]
 	[SpanitchRolesExist]
 	public sealed class SpanitchModule : AutoModModuleBase
 	{
+		private const ulong MIJE_ID = 107770708142067712;
 		private const ulong MUTE_ID = 328101628664086528;
 		private const ulong SPAN_ID = 741058143450300487;
-
 		private IRole[]? _Roles;
 
 		private RequestOptions Options => GenerateRequestOptions("spanitch");
@@ -86,6 +86,33 @@ namespace Advobot.MyCommands.Commands
 					RoleId = x.Id,
 				};
 			});
+		}
+
+		public sealed class RequireGuildPermissionsOrMickezoor : RequireGuildPermissionsAttribute
+		{
+			public override string Summary => base.Summary + " or you are Mickezoor";
+
+			public RequireGuildPermissionsOrMickezoor(params GuildPermission[] permissions)
+				: base(permissions)
+			{
+			}
+
+			public override async Task<PreconditionResult> CheckPermissionsAsync(
+				ICommandContext context,
+				CommandInfo command,
+				IServiceProvider services)
+			{
+				var result = await base.CheckPermissionsAsync(context, command, services).CAF();
+				if (result.IsSuccess)
+				{
+					return result;
+				}
+				if (context.User.Id == MIJE_ID)
+				{
+					return PreconditionResult.FromSuccess();
+				}
+				return result;
+			}
 		}
 
 		public sealed class SpanitchRolesExist : PreconditionAttribute
