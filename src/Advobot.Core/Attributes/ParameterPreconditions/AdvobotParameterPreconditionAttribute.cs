@@ -68,8 +68,15 @@ namespace Advobot.Attributes.ParameterPreconditions
 				// Need the count check otherwise empty strings count as success
 				if (count != 0)
 				{
-					// If nothing failed then it gets to this point, so return success
 					return this.FromSuccess();
+				}
+				if (count == 0 && (parameter?.IsMultiple ?? false))
+				{
+					if (AllowOptional)
+					{
+						return this.FromSuccess();
+					}
+					return PreconditionResult.FromError("Nothing was supplied.");
 				}
 			}
 
