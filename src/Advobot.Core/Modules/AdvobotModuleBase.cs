@@ -4,6 +4,7 @@ using System.Threading;
 using System.Threading.Tasks;
 
 using Advobot.Attributes.Preconditions;
+using Advobot.Classes;
 using Advobot.Interactivity;
 using Advobot.Interactivity.Criterions;
 using Advobot.Interactivity.TryParsers;
@@ -149,6 +150,15 @@ namespace Advobot.Modules
 
 		/// <inheritdoc />
 		protected override Task<IUserMessage> ReplyAsync(string? message = null, bool isTTS = false, Embed? embed = null, RequestOptions? options = null, AllowedMentions? mentions = null)
-			=> base.ReplyAsync(message.Sanitize(), isTTS, embed, options, mentions);
+		{
+			return Context.Channel.SendMessageAsync(new SendMessageArgs
+			{
+				Content = message,
+				IsTTS = isTTS,
+				Embed = embed != null ? new EmbedWrapper(embed.ToEmbedBuilder()) : null,
+				Options = options,
+				AllowedMentions = mentions,
+			});
+		}
 	}
 }

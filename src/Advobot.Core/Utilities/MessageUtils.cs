@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Security.Cryptography.X509Certificates;
 using System.Threading.Tasks;
 
 using Advobot.Classes;
@@ -17,134 +18,101 @@ namespace Advobot.Utilities
 	/// </summary>
 	public static class MessageUtils
 	{
-		/// <summary>
-		/// The oldest messages are allowed to be when bulk deleting.
-		/// </summary>
-		public static readonly TimeSpan OldestAllowed = TimeSpan.FromDays(14);
+		private static readonly TimeSpan OldestAllowed = TimeSpan.FromDays(13.9);
 
 		/// <summary>
 		/// Removes the given count of messages from a channel.
 		/// </summary>
 		/// <param name="channel"></param>
-		/// <param name="from"></param>
-		/// <param name="requestCount"></param>
-		/// <param name="now"></param>
-		/// <param name="options"></param>
-		/// <param name="predicate"></param>
+		/// <param name="args"></param>
 		/// <returns></returns>
 		public static async Task<int> DeleteMessagesAsync(
-			ITextChannel channel,
-			IMessage? from,
-			int requestCount,
-			DateTimeOffset now,
-			RequestOptions options,
-			Func<IMessage, bool>? predicate = null)
+			this ITextChannel channel,
+			DeleteMessageArgs args)
 		{
-			if (from == null)
+			var deleteCount = args.DeleteCount;
+			var from = args.FromMessage;
+			var messages = new List<IMessage>();
+
+			// Early exit of the method
+			// Delete any messages still in the list
+			// Return starting request count - remaining + list count
+			static async Task<int> DoneAsync(
+				ITextChannel channel,
+				List<IMessage> messages,
+				int remaining,
+				DeleteMessageArgs args)
 			{
-				return 0;
+				if (messages.Count == 1)
+				{
+					await messages[0].DeleteAsync(args.Options).CAF();
+				}
+				else if (messages.Count > 1)
+				{
+					await channel.DeleteMessagesAsync(messages, args.Options).CAF();
+				}
+				return args.DeleteCount - remaining + messages.Count;
 			}
 
-			var totalDeletedCount = 0;
-			while (requestCount > 0)
+			// Intermediary step of the method
+			// Delete all messages in the list and clear it
+			// Return the amount of messages deleted
+			static async Task<int> DeleteBatchAsync(
+				ITextChannel channel,
+				List<IMessage> messages,
+				DeleteMessageArgs args)
 			{
-				const int MAX_GATHER = 100;
+				await channel.DeleteMessagesAsync(messages, args.Options).CAF();
+				var count = messages.Count;
+				messages.Clear();
+				return count;
+			}
 
-				var get = channel.GetMessagesAsync(from, Direction.Before, MAX_GATHER);
-				var retrieved = await get.FirstOrDefaultAsync().CAF();
-				if (retrieved.Count == 0)
+			while (deleteCount > 0)
+			{
+				var startCount = messages.Count;
+				// We can't pass in a null message/id so if/else to get the right method
+				var request = from == null
+					? channel.GetMessagesAsync(options: args.Options)
+					: channel.GetMessagesAsync(from, Direction.Before, options: args.Options);
+				await foreach (var batch in request)
 				{
-					break;
+					foreach (var message in batch)
+					{
+						from = message;
+
+						// Messages are too old to bulk delete, stop looking
+						if (args.Now - message.CreatedAt.UtcDateTime > OldestAllowed)
+						{
+							return await DoneAsync(channel, messages, deleteCount, args).CAF();
+						}
+						if (args.Predicate == null || args.Predicate(message))
+						{
+							messages.Add(message);
+						}
+
+						// We have the requested amount of message to delete
+						if (messages.Count == deleteCount)
+						{
+							return await DoneAsync(channel, messages, deleteCount, args).CAF();
+						}
+						// We have reached the max count of messages we can delete in one batch
+						if (messages.Count == DiscordConfig.MaxMessagesPerBatch)
+						{
+							deleteCount -= await DeleteBatchAsync(channel, messages, args).CAF();
+							startCount = int.MaxValue;
+						}
+					}
 				}
 
-				var filtered = FilterMessages(retrieved, requestCount, predicate);
-				var deletedCount = await DeleteMessagesAsync(channel, filtered, now, options).CAF();
-				totalDeletedCount += deletedCount;
-				requestCount -= deletedCount;
-				//If less messages are deleted than gathered,
-				//that means there are some that are too old meaning we can stop
-				if (deletedCount < retrieved.Count)
+				// Haven't found any matching messages in the past batch, don't waste time
+				// endlessly searching
+				if (startCount == messages.Count)
 				{
-					break;
+					return await DoneAsync(channel, messages, deleteCount, args).CAF();
 				}
-
-				from = retrieved.ElementAt(retrieved.Count - 1);
 			}
-			return totalDeletedCount;
-		}
-
-		/// <summary>
-		/// Deletes the passed in messages directly. Will only delete messages under 14 days old.
-		/// </summary>
-		/// <param name="channel"></param>
-		/// <param name="messages"></param>
-		/// <param name="now"></param>
-		/// <param name="options"></param>
-		/// <returns></returns>
-		public static async Task<int> DeleteMessagesAsync(
-			ITextChannel channel,
-			IEnumerable<IMessage> messages,
-			DateTimeOffset now,
-			RequestOptions? options)
-		{
-			var m = messages.Where(x => now - x.CreatedAt.UtcDateTime < OldestAllowed).ToArray();
-			if (m.Length == 0)
-			{
-				return 0;
-			}
-
-			try
-			{
-				if (m.Length == 1)
-				{
-					await m[0].DeleteAsync(options).CAF();
-				}
-				else
-				{
-					await channel.DeleteMessagesAsync(m, options).CAF();
-				}
-				return m.Length;
-			}
-			catch
-			{
-				return -1;
-			}
-		}
-
-		/// <summary>
-		/// Sanitizes a message's content so it won't mention everyone or link invites.
-		/// </summary>
-		/// <param name="content"></param>
-		/// <returns></returns>
-		public static string Sanitize(this string? content)
-		{
-			const string SPACE = Constants.ZERO_WIDTH_SPACE;
-			const string EVERYONE = "everyone";
-			const string SANITIZED_EVERYONE = SPACE + EVERYONE;
-			const string HERE = "here";
-			const string SANITIZED_HERE = SPACE + HERE;
-			const string INVITE = "discord.gg";
-			const string SANITIZED_INVITE = INVITE + SPACE;
-			const string INVITE_2 = "discordapp.com/invite";
-			const string SANITIZED_INVITE_2 = INVITE_2 + SPACE;
-			const string INVITE_3 = "discord.com";
-			const string SANITIZED_INVITE_3 = INVITE_3 + SPACE;
-
-			if (content == null)
-			{
-				return SPACE;
-			}
-			else if (!content.StartsWith(SPACE))
-			{
-				content = SPACE + content;
-			}
-
-			return content
-				.Replace(EVERYONE, SANITIZED_EVERYONE)
-				.Replace(HERE, SANITIZED_HERE)
-				.CaseInsReplace(INVITE, SANITIZED_INVITE)
-				.CaseInsReplace(INVITE_2, SANITIZED_INVITE_2)
-				.CaseInsReplace(INVITE_3, SANITIZED_INVITE_3);
+			return args.DeleteCount;
 		}
 
 		/// <summary>
@@ -155,10 +123,8 @@ namespace Advobot.Utilities
 		/// <returns></returns>
 		public static Task<IUserMessage> SendMessageAsync(
 			this IMessageChannel channel,
-			MessageArgs? args)
+			SendMessageArgs args)
 		{
-			args ??= new MessageArgs();
-
 			if (args.Content is null && args.Embed is null && args.File is null)
 			{
 				throw new ArgumentNullException("A sendable value must exist (content, embed, or file).");
@@ -248,33 +214,74 @@ namespace Advobot.Utilities
 			}
 		}
 
-		private static IEnumerable<IMessage> FilterMessages(
-			IReadOnlyCollection<IMessage> messages,
-			int requestCount,
-			Func<IMessage, bool>? predicate)
+		private static string Sanitize(this string? content)
 		{
-			IEnumerable<IMessage> filtered = messages;
-			if (predicate != null)
+			const string SPACE = Constants.ZERO_WIDTH_SPACE;
+			const string EVERYONE = "everyone";
+			const string SANITIZED_EVERYONE = SPACE + EVERYONE;
+			const string HERE = "here";
+			const string SANITIZED_HERE = SPACE + HERE;
+			const string INVITE = "discord.gg";
+			const string SANITIZED_INVITE = INVITE + SPACE;
+			const string INVITE_2 = "discordapp.com/invite";
+			const string SANITIZED_INVITE_2 = INVITE_2 + SPACE;
+			const string INVITE_3 = "discord.com";
+			const string SANITIZED_INVITE_3 = INVITE_3 + SPACE;
+
+			if (content == null)
 			{
-				filtered = filtered.Where(predicate);
+				return SPACE;
 			}
-			if (requestCount < messages.Count)
+			else if (!content.StartsWith(SPACE))
 			{
-				filtered = filtered.Take(requestCount);
+				content = SPACE + content;
 			}
-			return filtered;
+
+			return content
+				.Replace(EVERYONE, SANITIZED_EVERYONE)
+				.Replace(HERE, SANITIZED_HERE)
+				.CaseInsReplace(INVITE, SANITIZED_INVITE)
+				.CaseInsReplace(INVITE_2, SANITIZED_INVITE_2)
+				.CaseInsReplace(INVITE_3, SANITIZED_INVITE_3);
 		}
+	}
+
+	/// <summary>
+	/// Arguments used for deleting a message.
+	/// </summary>
+	public sealed class DeleteMessageArgs
+	{
+		/// <summary>
+		/// The amount of messages to delete.
+		/// </summary>
+		public int DeleteCount { get; set; }
+		/// <summary>
+		/// The message to start deleting at. This message will also be deleted.
+		/// </summary>
+		public IMessage? FromMessage { get; set; }
+		/// <summary>
+		/// The current time.
+		/// </summary>
+		public DateTimeOffset Now { get; set; } = DateTimeOffset.UtcNow;
+		/// <summary>
+		/// Request options to use when deleting messages.
+		/// </summary>
+		public RequestOptions? Options { get; set; }
+		/// <summary>
+		/// Determines matching messages.
+		/// </summary>
+		public Func<IMessage, bool>? Predicate { get; set; }
 	}
 
 	/// <summary>
 	/// Arguments used for sending a message.
 	/// </summary>
-	public sealed class MessageArgs
+	public sealed class SendMessageArgs
 	{
 		/// <summary>
 		/// The allowed mentions of the message. By default this is None.
 		/// </summary>
-		public AllowedMentions AllowedMentions { get; set; } = new AllowedMentions();
+		public AllowedMentions? AllowedMentions { get; set; } = new AllowedMentions();
 		/// <summary>
 		/// Whether or not to allow null channels. If true, a null message will be returned. If false, an exception will occur.
 		/// </summary>

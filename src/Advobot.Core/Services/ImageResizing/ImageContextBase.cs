@@ -65,7 +65,7 @@ namespace Advobot.Services.ImageResizing
 			}
 			else
 			{
-				_Message = await Context.Channel.SendMessageAsync(new MessageArgs
+				_Message = await Context.Channel.SendMessageAsync(new SendMessageArgs
 				{
 					Content = content,
 				}).CAF();
@@ -84,7 +84,7 @@ namespace Advobot.Services.ImageResizing
 			var content = result.IsSuccess
 				? $"Successfully created the {t}."
 				: $"Failed to create the {t}. Reason: {result.ErrorReason}.";
-			await Context.Channel.SendMessageAsync(new MessageArgs
+			await Context.Channel.SendMessageAsync(new SendMessageArgs
 			{
 				Content = content,
 			}).CAF();

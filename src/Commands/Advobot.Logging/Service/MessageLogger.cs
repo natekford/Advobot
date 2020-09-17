@@ -192,7 +192,7 @@ namespace Advobot.Logging.Service
 				}.ToMessageArgs());
 			}
 
-			return context.ServerLog.SendMessageAsync(new MessageArgs
+			return context.ServerLog.SendMessageAsync(new SendMessageArgs
 			{
 				File = new TextFileInfo
 				{
@@ -252,7 +252,7 @@ namespace Advobot.Logging.Service
 					sb.AppendLineFeed(m.Format(withMentions: false).RemoveDuplicateNewLines().RemoveAllMarkdown());
 				}
 
-				return log.SendMessageAsync(new MessageArgs
+				return log.SendMessageAsync(new SendMessageArgs
 				{
 					File = new TextFileInfo
 					{

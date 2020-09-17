@@ -167,6 +167,22 @@ namespace Advobot.Classes
 		}
 
 		/// <summary>
+		/// Creates an instance of <see cref="EmbedWrapper"/>.
+		/// </summary>
+		public EmbedWrapper()
+		{
+		}
+
+		/// <summary>
+		/// Creates an instance of <see cref="EmbedWrapper"/>.
+		/// </summary>
+		/// <param name="builder"></param>
+		public EmbedWrapper(EmbedBuilder builder)
+		{
+			_Builder = builder;
+		}
+
+		/// <summary>
 		/// Converts an <see cref="EmbedWrapper"/> to an <see cref="Embed"/>.
 		/// </summary>
 		/// <param name="wrapper"></param>

@@ -183,7 +183,7 @@ namespace Advobot.Modules
 					}
 					else if (value.IsStart)
 					{
-						message = await _Channel.SendMessageAsync(new MessageArgs
+						message = await _Channel.SendMessageAsync(new SendMessageArgs
 						{
 							Content = _CreateResult(value),
 							Options = _Options,

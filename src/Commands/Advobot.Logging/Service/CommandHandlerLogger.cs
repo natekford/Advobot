@@ -58,7 +58,7 @@ namespace Advobot.Logging.Service
 			}
 			else if (!result.IsSuccess)
 			{
-				await context.Channel.SendMessageAsync(new MessageArgs
+				await context.Channel.SendMessageAsync(new SendMessageArgs
 				{
 					Content = result.ErrorReason
 				}).CAF();

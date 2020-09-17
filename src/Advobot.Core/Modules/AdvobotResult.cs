@@ -128,14 +128,14 @@ namespace Advobot.Modules
 				destination = await context.Guild.GetTextChannelAsync(id).CAF();
 				if (destination == null)
 				{
-					return await context.Channel.SendMessageAsync(new MessageArgs
+					return await context.Channel.SendMessageAsync(new SendMessageArgs
 					{
 						Content = $"{id} is not a valid destination channel.",
 					}).CAF();
 				}
 			}
 
-			return await destination.SendMessageAsync(new MessageArgs
+			return await destination.SendMessageAsync(new SendMessageArgs
 			{
 				Content = Reason,
 				Embed = Embed,

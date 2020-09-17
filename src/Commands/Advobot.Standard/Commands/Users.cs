@@ -474,75 +474,60 @@ namespace Advobot.Standard.Commands
 			[RequireChannelPermissions(ManageMessages)]
 			public Task<RuntimeResult> Command(
 				[Positive]
-				int requestCount
-			) => CommandRunner(requestCount, Context.Channel, null);
+				int deleteCount
+			) => CommandRunner(deleteCount, Context.Channel, null);
 
 			[Command]
 			[RequireChannelPermissions(ManageMessages)]
 			public Task<RuntimeResult> Command(
 				[Positive]
-				int requestCount,
+				int deleteCount,
 				IUser user
-			) => CommandRunner(requestCount, Context.Channel, user);
+			) => CommandRunner(deleteCount, Context.Channel, user);
 
 			[Command]
 			public Task<RuntimeResult> Command(
 				[Positive]
-				int requestCount,
+				int deleteCount,
 				[CanModifyChannel(ManageMessages)]
 				ITextChannel channel
-			) => CommandRunner(requestCount, channel, null);
+			) => CommandRunner(deleteCount, channel, null);
 
 			[Command]
 			public Task<RuntimeResult> Command(
 				[Positive]
-				int requestCount,
+				int deleteCount,
 				IUser user,
 				[CanModifyChannel(ManageMessages)]
 				ITextChannel channel
-			) => CommandRunner(requestCount, channel, user);
+			) => CommandRunner(deleteCount, channel, user);
 
 			[Command]
 			public Task<RuntimeResult> Command(
 				[Positive]
-				int requestCount,
+				int deleteCount,
 				[CanModifyChannel(ManageMessages)]
 				ITextChannel channel,
 				IUser user
-			) => CommandRunner(requestCount, channel, user);
+			) => CommandRunner(deleteCount, channel, user);
 
 			private async Task<RuntimeResult> CommandRunner(
-				int req,
+				int deleteCount,
 				ITextChannel channel,
 				IUser? user)
 			{
-				var options = GenerateRequestOptions();
-				//If not the context channel then get the first message in that channel
-				var thisChannel = Context.Message.Channel.Id == channel.Id;
-				IMessage? start = Context.Message;
-				if (!thisChannel)
+				var deleted = await channel.DeleteMessagesAsync(new DeleteMessageArgs
 				{
-					var msgs = await channel.GetMessagesAsync(1).FlattenAsync().CAF();
-					start = msgs.FirstOrDefault();
-				}
-
-				//If there is a non null user then delete messages specifically from that user
-				Func<IMessage, bool>? predicate = null;
-				if (user != null)
-				{
-					predicate = x => x.Author.Id == user?.Id;
-				}
-				var now = Time.UtcNow;
-				var deleted = await MessageUtils.DeleteMessagesAsync(channel, start, req, now, options, predicate).CAF();
-
-				//If the context channel isn't the targetted channel then delete the start message
-				//Increase by one to account for it not being targetted.
-				if (!thisChannel && start != null)
-				{
-					await start.DeleteAsync(options).CAF();
-					++deleted;
-				}
-
+					Now = Time.UtcNow,
+					DeleteCount = deleteCount,
+					Options = GenerateRequestOptions(),
+					FromMessage = Context.Message.Channel.Id == channel.Id
+						? Context.Message
+						: null,
+					Predicate = user is null
+						? default(Func<IMessage, bool>?)
+						: x => x.Author.Id == user?.Id,
+				}).CAF();
 				return Responses.Users.RemovedMessages(channel, user, deleted);
 			}
 		}

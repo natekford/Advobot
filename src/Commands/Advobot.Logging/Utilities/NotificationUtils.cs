@@ -69,7 +69,7 @@ namespace Advobot.Logging.Utilities
 				?.CaseInsReplace(USER_MENTION, user?.Mention ?? VariableInvalidUser)
 				?.CaseInsReplace(USER_STRING, user?.Format() ?? VariableInvalidUser);
 			var embed = notification.EmbedEmpty() ? null : notification.BuildWrapper();
-			return await channel.SendMessageAsync(new MessageArgs
+			return await channel.SendMessageAsync(new SendMessageArgs
 			{
 				Content = content,
 				Embed = embed,
@@ -77,9 +77,9 @@ namespace Advobot.Logging.Utilities
 			}).CAF();
 		}
 
-		public static MessageArgs ToMessageArgs(this EmbedWrapper embed)
+		public static SendMessageArgs ToMessageArgs(this EmbedWrapper embed)
 		{
-			return new MessageArgs
+			return new SendMessageArgs
 			{
 				Embed = embed,
 				AllowedMentions = new AllowedMentions(AllowedMentionTypes.Users),
