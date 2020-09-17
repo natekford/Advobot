@@ -1,7 +1,11 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
+    <RootNamespace>Advobot</RootNamespace>
     <TargetFramework>netstandard2.1</TargetFramework>
+    <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
+    <Nullable>enable</Nullable>
+    <LangVersion>preview</LangVersion>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
@@ -19,13 +23,8 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Advobot.ParameterPreconditions\Advobot.ParameterPreconditions.csproj"
-                      OutputItemType="Analyzer"
-                      ReferenceOutputAssembly="false"/>
-  </ItemGroup>
-
-  <ItemGroup>
     <ProjectReference Include="..\Advobot.Resources\Advobot.Resources.csproj" />
+    <ProjectReference Include="..\Advobot.ParameterPreconditions\Advobot.ParameterPreconditions.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
   </ItemGroup>
 
   <ItemGroup>
@@ -69,20 +68,9 @@
     </None>
   </ItemGroup>
 
-  <PropertyGroup>
-    <RootNamespace>Advobot</RootNamespace>
-  </PropertyGroup>
-
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
     <DebugType>full</DebugType>
     <DebugSymbols>true</DebugSymbols>
     <DefineConstants>TRACE</DefineConstants>
   </PropertyGroup>
-
-  <PropertyGroup>
-    <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
-    <Nullable>enable</Nullable>
-    <LangVersion>preview</LangVersion>
-  </PropertyGroup>
-  
 </Project>

@@ -1,18 +1,13 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
-
   <PropertyGroup>
     <TargetFramework>net5.0</TargetFramework>
+    <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
+    <Nullable>enable</Nullable>
+    <LangVersion>preview</LangVersion>
   </PropertyGroup>
   
   <ItemGroup>
     <ProjectReference Include="..\..\Advobot.Core\Advobot.Core.csproj" />
     <ProjectReference Include="..\..\Advobot.SQLite\Advobot.SQLite.csproj" />
   </ItemGroup>
-  
-  <PropertyGroup>
-    <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
-    <Nullable>enable</Nullable>
-    <LangVersion>preview</LangVersion>
-  </PropertyGroup>
-
 </Project>

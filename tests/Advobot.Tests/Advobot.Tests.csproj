@@ -1,7 +1,9 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
-
   <PropertyGroup>
     <TargetFramework>net5.0</TargetFramework>
+    <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
+    <Nullable>enable</Nullable>
+    <LangVersion>preview</LangVersion>
   </PropertyGroup>
 
   <ItemGroup>
@@ -23,14 +25,7 @@
     <NoWarn>1701;1702;RCS1047;RCS1079;CS8618;CS8619;CS8625;</NoWarn>
   </PropertyGroup>
 
-  <PropertyGroup>
-    <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
-    <Nullable>enable</Nullable>
-    <LangVersion>preview</LangVersion>
-  </PropertyGroup>
-
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
     <NoWarn>1701;1702;RCS1047;RCS1079</NoWarn>
   </PropertyGroup>
-
 </Project>

@@ -33,7 +33,7 @@ namespace Advobot.Preconditions
 		private static string GenerateReason(object value, Type supportedType)
 		{
 			var type = value.GetType().Name;
-			return $"Received object of type {type}; only supports {supportedType.Name}.";
+			return $"Received object of type `{type}`; only supports `{supportedType.Name}`.";
 		}
 	}
 }

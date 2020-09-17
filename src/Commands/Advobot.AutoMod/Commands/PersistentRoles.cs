@@ -34,20 +34,19 @@ namespace Advobot.AutoMod.Commands
 			public async Task<RuntimeResult> Command()
 			{
 				var roles = await Db.GetPersistentRolesAsync(Context.Guild.Id).CAF();
-				return DisplayPersistentRoles(ToGrouping(roles));
+				return Display(roles);
 			}
 
 			[Command]
 			public async Task<RuntimeResult> Command(IGuildUser user)
 			{
 				var roles = await Db.GetPersistentRolesAsync(Context.Guild.Id, user.Id).CAF();
-				return DisplayPersistentRoles(ToGrouping(roles));
+				return Display(roles);
 			}
 
-			private IEnumerable<IGrouping<string, IRole>> ToGrouping(
-				IEnumerable<IReadOnlyPersistentRole> roles)
+			private RuntimeResult Display(IEnumerable<IReadOnlyPersistentRole> roles)
 			{
-				return roles
+				var grouped = roles
 					.Select(x =>
 					{
 						var user = Context.Guild.GetUser(x.UserId).Format() ?? x.UserId.ToString();
@@ -56,6 +55,7 @@ namespace Advobot.AutoMod.Commands
 					})
 					.Where(x => x.Role != null)
 					.GroupBy(x => x.User, x => x.Role);
+				return DisplayPersistentRoles(grouped);
 			}
 		}
 

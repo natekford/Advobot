@@ -1,8 +1,10 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
-
   <PropertyGroup>
     <OutputType>WinExe</OutputType>
     <TargetFramework>net5.0</TargetFramework>
+    <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
+    <Nullable>enable</Nullable>
+    <LangVersion>preview</LangVersion>
   </PropertyGroup>
   
   <ItemGroup>
@@ -97,11 +99,4 @@
     <DebugSymbols>true</DebugSymbols>
     <DefineConstants>TRACE</DefineConstants>
   </PropertyGroup>
-
-  <PropertyGroup>
-    <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
-    <Nullable>enable</Nullable>
-    <LangVersion>preview</LangVersion>
-  </PropertyGroup>
-
 </Project>

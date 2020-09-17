@@ -10,6 +10,7 @@ using Advobot.AutoMod.Models;
 using Advobot.AutoMod.ReadOnlyModels;
 using Advobot.Localization;
 using Advobot.Resources;
+using Advobot.Utilities;
 
 using AdvorangesUtils;
 
@@ -52,7 +53,7 @@ namespace Advobot.AutoMod.Commands
 					return AddedRole(role.Role);
 				}
 
-				await Context.User.RemoveRolesAsync(conflicting, GenerateRequestOptions("self role removal")).CAF();
+				await Context.User.SmartRemoveRolesAsync(conflicting, GenerateRequestOptions("self role removal")).CAF();
 				return AddedRoleAndRemovedOthers(role.Role);
 			}
 		}
@@ -71,7 +72,7 @@ namespace Advobot.AutoMod.Commands
 			public async Task<RuntimeResult> Command([NotNegative] int group)
 				=> Display(await Db.GetSelfRolesAsync(Context.Guild.Id, group).CAF());
 
-			private RuntimeResult Display(IReadOnlyList<IReadOnlySelfRole> roles)
+			private RuntimeResult Display(IEnumerable<IReadOnlySelfRole> roles)
 			{
 				var grouped = roles
 					.Select(x => (x.GroupId, Role: Context.Guild.GetRole(x.RoleId)))

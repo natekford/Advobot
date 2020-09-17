@@ -19,7 +19,7 @@ namespace Advobot.Preconditions
 		/// </summary>
 		/// <param name="type"></param>
 		public UnableToFindPreconditionResult(Type type)
-			: base(CommandError.ObjectNotFound, $"Unable to find a matching {type.Name}.")
+			: base(CommandError.ObjectNotFound, $"Unable to find a matching `{type.Name}`.")
 		{
 			Type = type;
 		}
