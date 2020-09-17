@@ -5,6 +5,7 @@ using Advobot.Attributes.ParameterPreconditions;
 using Advobot.Gacha.ReadOnlyModels;
 using Advobot.Utilities;
 
+using Discord;
 using Discord.Commands;
 
 namespace Advobot.Gacha.ParameterPreconditions
@@ -17,6 +18,7 @@ namespace Advobot.Gacha.ParameterPreconditions
 		protected override Task<PreconditionResult> SingularCheckPermissionsAsync(
 			ICommandContext context,
 			ParameterInfo parameter,
+			IGuildUser invoker,
 			object value,
 			IServiceProvider services)
 		{
@@ -24,7 +26,7 @@ namespace Advobot.Gacha.ParameterPreconditions
 			{
 				return this.FromOnlySupports(value, typeof(IReadOnlyUser)).AsTask();
 			}
-			else if (user.GuildId == context.User.Id)
+			if (user.GuildId == context.User.Id)
 			{
 				return this.FromSuccess().AsTask();
 			}

@@ -7,6 +7,7 @@ using Advobot.Utilities;
 
 using AdvorangesUtils;
 
+using Discord;
 using Discord.Commands;
 
 namespace Advobot.Attributes.ParameterPreconditions
@@ -17,14 +18,12 @@ namespace Advobot.Attributes.ParameterPreconditions
 	public abstract class AdvobotParameterPreconditionAttribute
 		: ParameterPreconditionAttribute, IParameterPrecondition
 	{
-		/// <summary>
-		/// Whether or not the passed in value can have all its inner values checked if it's an <see cref="IEnumerable"/>.
-		/// </summary>
+		/// <inheritdoc />
 		public virtual bool AllowEnumerating { get; set; }
-		/// <summary>
-		/// Whether or not default value passed in to this parameter precondition should be instant success.
-		/// </summary>
-		public virtual bool IsOptionalSuccess { get; set; }
+		/// <inheritdoc />
+		public virtual bool AllowNonGuildInvokers { get; set; }
+		/// <inheritdoc />
+		public virtual bool AllowOptional { get; set; }
 		/// <inheritdoc />
 		public abstract string Summary { get; }
 
@@ -35,27 +34,35 @@ namespace Advobot.Attributes.ParameterPreconditions
 			object value,
 			IServiceProvider services)
 		{
-			//If optional, return success when nothing is supplied
-			if (IsOptionalSuccess && parameter.IsOptional && parameter.DefaultValue == value)
+			// If optional, return success when nothing is supplied
+			if (AllowOptional && parameter.IsOptional && parameter.DefaultValue == value)
 			{
 				return this.FromSuccess();
+			}
+
+			var invoker = context.User as IGuildUser;
+			if (!AllowNonGuildInvokers && invoker == null)
+			{
+				return this.FromInvalidInvoker();
 			}
 
 			if (AllowEnumerating && value is IEnumerable enumerable)
 			{
 				foreach (var item in enumerable)
 				{
-					var result = await CheckPermissionsAsync(context, parameter, item, services).CAF();
-					//Don't bother testing more if anything is a failure.
+					var result = await SingularCheckPermissionsAsync(context, parameter, invoker!, item, services).CAF();
+					// Don't bother testing more if anything is a failure.
 					if (!result.IsSuccess)
 					{
 						return result;
 					}
 				}
-				//If nothing failed then it gets to this point, so return success
+
+				// If nothing failed then it gets to this point, so return success
 				return this.FromSuccess();
 			}
-			return await SingularCheckPermissionsAsync(context, parameter, value, services).CAF();
+
+			return await SingularCheckPermissionsAsync(context, parameter, invoker!, value, services).CAF();
 		}
 
 		/// <summary>
@@ -63,12 +70,14 @@ namespace Advobot.Attributes.ParameterPreconditions
 		/// </summary>
 		/// <param name="context"></param>
 		/// <param name="parameter"></param>
+		/// <param name="invoker"></param>
 		/// <param name="value"></param>
 		/// <param name="services"></param>
 		/// <returns></returns>
 		protected abstract Task<PreconditionResult> SingularCheckPermissionsAsync(
 			ICommandContext context,
 			ParameterInfo parameter,
+			IGuildUser invoker,
 			object value,
 			IServiceProvider services);
 	}

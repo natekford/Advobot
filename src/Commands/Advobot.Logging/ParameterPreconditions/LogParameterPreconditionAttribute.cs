@@ -35,7 +35,7 @@ namespace Advobot.Logging.ParameterPreconditions
 		/// <summary>
 		/// Gets the current id of this log.
 		/// </summary>
-		/// <param name="settings"></param>
+		/// <param name="channels"></param>
 		/// <returns></returns>
 		protected abstract ulong GetId(IReadOnlyLogChannels channels);
 
@@ -43,6 +43,7 @@ namespace Advobot.Logging.ParameterPreconditions
 		protected override async Task<PreconditionResult> SingularCheckPermissionsAsync(
 			ICommandContext context,
 			ParameterInfo parameter,
+			IGuildUser invoker,
 			object value,
 			IServiceProvider services)
 		{

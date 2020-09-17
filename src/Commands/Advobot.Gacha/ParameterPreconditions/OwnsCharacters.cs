@@ -8,6 +8,7 @@ using Advobot.Utilities;
 
 using AdvorangesUtils;
 
+using Discord;
 using Discord.Commands;
 
 using Microsoft.Extensions.DependencyInjection;
@@ -22,6 +23,7 @@ namespace Advobot.Gacha.ParameterPreconditions
 		protected override async Task<PreconditionResult> SingularCheckPermissionsAsync(
 			ICommandContext context,
 			ParameterInfo parameter,
+			IGuildUser invoker,
 			object value,
 			IServiceProvider services)
 		{

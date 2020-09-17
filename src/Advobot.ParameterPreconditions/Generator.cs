@@ -55,20 +55,16 @@ namespace Advobot.GeneratedParameterPreconditions
 		protected override global::System.Threading.Tasks.Task<global::Discord.Commands.PreconditionResult> SingularCheckPermissionsAsync(
 			global::Discord.Commands.ICommandContext context,
 			global::Discord.Commands.ParameterInfo parameter,
+			global::Discord.IGuildUser invoker,
 			global::System.Object value,
 			global::System.IServiceProvider services)
 		{{
-			if (!(context.User is global::Discord.IGuildUser user))
-			{{
-				var result = global::Advobot.Utilities.PreconditionUtils.FromInvalidInvoker(this);
-				return global::Advobot.Utilities.PreconditionUtils.AsTask(result);
-			}}
 			if (!(value is global::{fullName} cast))
 			{{
 				var result = global::Advobot.Utilities.PreconditionUtils.FromOnlySupports(this, value, typeof(global::{fullName}));
 				return global::Advobot.Utilities.PreconditionUtils.AsTask(result);
 			}}
-			return SingularCheckPermissionsAsync(context, parameter, user, cast, services);
+			return SingularCheckPermissionsAsync(context, parameter, invoker, cast, services);
 		}}
 
 		/// <summary>
