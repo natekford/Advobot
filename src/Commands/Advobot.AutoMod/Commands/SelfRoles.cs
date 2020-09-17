@@ -93,9 +93,7 @@ namespace Advobot.AutoMod.Commands
 			public async Task<RuntimeResult> Add(
 				[NotNegative]
 				int group,
-				[CanModifyRole(AllowEnumerating = true)]
-				[NotEveryone(AllowEnumerating = true)]
-				[NotManaged(AllowEnumerating = true)]
+				[CanModifyRole, NotEveryone, NotManaged]
 				params IRole[] roles)
 			{
 				var selfRoles = roles.Select(x => new SelfRole
@@ -119,9 +117,7 @@ namespace Advobot.AutoMod.Commands
 			[LocalizedCommand(nameof(Groups.Remove))]
 			[LocalizedAlias(nameof(Aliases.Remove))]
 			public async Task<RuntimeResult> Remove(
-				[CanModifyRole(AllowEnumerating = true)]
-				[NotEveryone(AllowEnumerating = true)]
-				[NotManaged(AllowEnumerating = true)]
+				[CanModifyRole, NotEveryone, NotManaged]
 				params IRole[] roles)
 			{
 				var count = await Db.DeleteSelfRolesAsync(roles.Select(x => x.Id)).CAF();

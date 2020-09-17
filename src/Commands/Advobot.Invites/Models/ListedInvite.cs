@@ -31,7 +31,15 @@ namespace Advobot.Invites.Models
 			GuildId = invite.GuildId ?? throw new ArgumentException(nameof(invite));
 			MemberCount = invite.MemberCount ?? 1;
 			Name = invite.GuildName;
-			HasGlobalEmotes = invite.Guild.Emotes.Any(x => x.IsManaged && x.RequireColons);
+
+			try
+			{
+				HasGlobalEmotes = invite.Guild.Emotes.Any(x => x.IsManaged && x.RequireColons);
+			}
+			catch
+			{
+				HasGlobalEmotes = false;
+			}
 		}
 	}
 }

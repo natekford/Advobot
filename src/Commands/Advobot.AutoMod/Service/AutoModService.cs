@@ -233,8 +233,10 @@ namespace Advobot.AutoMod.Service
 				return false;
 			}
 
-			var roles = persistent.Select(x => context.Guild.GetRole(x.RoleId));
-			await context.User.AddRolesAsync(roles, _PersistentRoles).CAF();
+			var roles = persistent
+				.Select(x => context.Guild.GetRole(x.RoleId))
+				.Where(x => x != null);
+			await context.User.SmartAddRolesAsync(roles, _PersistentRoles).CAF();
 			return true;
 		}
 

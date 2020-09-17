@@ -51,7 +51,7 @@ namespace Advobot.AutoMod.Responses
 
 		public static AdvobotResult DisplayGroups(IEnumerable<IGrouping<int, IRole>> groups)
 		{
-			var sb = new StringBuilder("```");
+			var sb = new StringBuilder("```\n");
 			foreach (var group in groups)
 			{
 				sb.AppendLineFeed().Append(group.Key).AppendLineFeed();

@@ -19,7 +19,7 @@ namespace Advobot.Attributes.ParameterPreconditions
 		: ParameterPreconditionAttribute, IParameterPrecondition
 	{
 		/// <inheritdoc />
-		public virtual bool AllowEnumerating { get; set; }
+		public virtual bool AllowEnumerating { get; set; } = true;
 		/// <inheritdoc />
 		public virtual bool AllowNonGuildInvokers { get; set; }
 		/// <inheritdoc />
@@ -46,23 +46,34 @@ namespace Advobot.Attributes.ParameterPreconditions
 				return this.FromInvalidInvoker();
 			}
 
-			if (AllowEnumerating && value is IEnumerable enumerable)
+			// Check for success first before enumerating for types like string
+			var result = await CheckPermissionsAsync(context, parameter, invoker!, value, services).CAF();
+
+			// Not success, but if enumerable we will still allow success if all items succeed
+			if (!result.IsSuccess && AllowEnumerating && value is IEnumerable enumerable)
 			{
+				var count = 0;
 				foreach (var item in enumerable)
 				{
-					var result = await CheckPermissionsAsync(context, parameter, invoker!, item, services).CAF();
+					++count;
+
+					var eResult = await CheckPermissionsAsync(context, parameter, invoker!, item, services).CAF();
 					// Don't bother testing more if anything is a failure.
-					if (!result.IsSuccess)
+					if (!eResult.IsSuccess)
 					{
-						return result;
+						return eResult;
 					}
 				}
 
-				// If nothing failed then it gets to this point, so return success
-				return this.FromSuccess();
+				// Need the count check otherwise empty strings count as success
+				if (count != 0)
+				{
+					// If nothing failed then it gets to this point, so return success
+					return this.FromSuccess();
+				}
 			}
 
-			return await CheckPermissionsAsync(context, parameter, invoker!, value, services).CAF();
+			return result;
 		}
 
 		/// <summary>

@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Diagnostics;
 using System.Globalization;
 using System.Reflection;
 
@@ -7,6 +8,7 @@ namespace Advobot.CommandAssemblies
 	/// <summary>
 	/// Holds an assembly and the attribute marking it as a command assembly.
 	/// </summary>
+	[DebuggerDisplay("{DebuggerDisplay,nq}")]
 	public readonly struct CommandAssembly
 	{
 		/// <summary>
@@ -21,6 +23,7 @@ namespace Advobot.CommandAssemblies
 		/// The cultures this command assembly supports.
 		/// </summary>
 		public IReadOnlyList<CultureInfo> SupportedCultures { get; }
+		private string DebuggerDisplay => Assembly.GetName().Name;
 
 		/// <summary>
 		/// Creates an instance of <see cref="CommandAssembly"/>.

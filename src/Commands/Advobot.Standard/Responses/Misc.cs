@@ -118,10 +118,11 @@ namespace Advobot.Standard.Responses
 
 			if (module.Submodules.Count != 0)
 			{
-				var submodules = "\n" + module.Submodules.Select((x, i) =>
-				{
-					return $"{i + 1}. {x.Name}";
-				}).Join("\n").WithBigBlock().Value;
+				var submodules = "\n" + module.Submodules
+					.Select((x, i) => $"{i + 1}. {x.Name}")
+					.Join("\n")
+					.WithBigBlock()
+					.Value;
 				info.CreateCollection().Add(MiscTitleSubmodules, submodules);
 			}
 
@@ -130,7 +131,8 @@ namespace Advobot.Standard.Responses
 				var commands = "\n" + module.Commands.Select((x, i) =>
 				{
 					var parameters = x.Parameters.Join(FormatParameter);
-					return $"{i + 1}.{x.Name} ({parameters})";
+					var name = string.IsNullOrWhiteSpace(x.Name) ? "" : x.Name + " ";
+					return $"{i + 1}. {name}({parameters})";
 				}).Join("\n").WithBigBlock().Value;
 				info.CreateCollection().Add(MiscTitleCommands, commands);
 			}

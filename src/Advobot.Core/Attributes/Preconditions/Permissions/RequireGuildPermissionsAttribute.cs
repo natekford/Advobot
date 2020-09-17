@@ -26,13 +26,13 @@ namespace Advobot.Attributes.Preconditions.Permissions
 			: base(permissions.Cast<Enum>().Append(_Admin)) { }
 
 		/// <inheritdoc />
-		public override async Task<Enum?> GetUserPermissionsAsync(
+		public override Task<Enum?> GetUserPermissionsAsync(
 			ICommandContext context,
 			IGuildUser user,
 			IServiceProvider services)
 		{
 			var bits = user.GuildPermissions.RawValue;
-			/*
+			/* TODO: reimplement bot perms?
 			if (!user.IsBot)
 			{
 				var settingsFactory = services.GetRequiredService<IGuildSettingsFactory>();
@@ -40,7 +40,7 @@ namespace Advobot.Attributes.Preconditions.Permissions
 				var match = settings.BotUsers.FirstOrDefault(x => x.UserId == context.User.Id);
 				bits |= match?.Permissions ?? 0;
 			}*/
-			return bits == 0 ? null : (Enum)(GuildPermission)bits;
+			return Task.FromResult(bits == 0 ? null : (Enum)(GuildPermission)bits);
 		}
 	}
 }

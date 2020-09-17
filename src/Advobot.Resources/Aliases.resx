@@ -215,31 +215,31 @@
     <value>dbp</value>
   </data>
   <data name="DisplayChannelPerms" xml:space="preserve">
-    <value>dispcperms</value>
+    <value>dcpe</value>
   </data>
   <data name="DisplayChannelPosition" xml:space="preserve">
-    <value>dispcpos</value>
+    <value>dcpo</value>
   </data>
   <data name="DisplayCurrentBanList" xml:space="preserve">
-    <value>dispcbl</value>
+    <value>dbl</value>
   </data>
   <data name="DisplayEmotes" xml:space="preserve">
-    <value>dispe</value>
+    <value>de</value>
   </data>
   <data name="DisplayInvites" xml:space="preserve">
-    <value>dispi</value>
+    <value>di</value>
   </data>
   <data name="DisplayRolePerms" xml:space="preserve">
-    <value>disprperms</value>
+    <value>drpe</value>
   </data>
   <data name="DisplayRolePositions" xml:space="preserve">
-    <value>disprpos</value>
+    <value>drpo</value>
   </data>
   <data name="DisplaySelfRoles" xml:space="preserve">
     <value>dsr</value>
   </data>
   <data name="DisplayWebhooks" xml:space="preserve">
-    <value>dispw</value>
+    <value>dw</value>
   </data>
   <data name="Embed" xml:space="preserve">
     <value>e</value>
@@ -401,10 +401,10 @@
     <value>mcnsfw</value>
   </data>
   <data name="ModifyChannelPerms" xml:space="preserve">
-    <value>mcperms</value>
+    <value>mcpe</value>
   </data>
   <data name="ModifyChannelPosition" xml:space="preserve">
-    <value>mcpos</value>
+    <value>mcpo</value>
   </data>
   <data name="ModifyChannelTopic" xml:space="preserve">
     <value>mct</value>
@@ -672,5 +672,11 @@
   </data>
   <data name="Clear" xml:space="preserve">
     <value>c</value>
+  </data>
+  <data name="ModifyPersistentRoles" xml:space="preserve">
+    <value>mpr</value>
+  </data>
+  <data name="DisplayPersistentRoles" xml:space="preserve">
+    <value>dpr</value>
   </data>
 </root>

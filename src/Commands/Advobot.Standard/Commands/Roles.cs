@@ -1,4 +1,5 @@
-﻿using System.Linq;
+﻿using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 
 using Advobot.Attributes;
@@ -131,9 +132,10 @@ namespace Advobot.Standard.Commands
 			[Command]
 			public async Task<RuntimeResult> Command(
 				IGuildUser user,
-				[CanModifyRole, NotManaged, NotEveryone] params IRole[] roles)
+				[CanModifyRole, NotManaged, NotEveryone]
+				params IRole[] roles)
 			{
-				await user.AddRolesAsync(roles, GenerateRequestOptions()).CAF();
+				await user.SmartAddRolesAsync(roles, GenerateRequestOptions()).CAF();
 				return Responses.Roles.Gave(roles, user);
 			}
 		}
@@ -251,7 +253,7 @@ namespace Advobot.Standard.Commands
 				[CanModifyRole] IRole role,
 				[Positive] int position)
 			{
-				var pos = await DiscordUtils.ModifyRolePositionAsync(role, position, GenerateRequestOptions()).CAF();
+				var pos = await role.SmartModifyRolePositionAsync(position, GenerateRequestOptions()).CAF();
 				return Responses.Roles.Moved(role, pos);
 			}
 		}
@@ -269,7 +271,7 @@ namespace Advobot.Standard.Commands
 			{
 				await role.DeleteAsync(GenerateRequestOptions()).CAF();
 				await Context.Guild.CreateRoleAsync(role.Name, role.Permissions, role.Color, false, GenerateRequestOptions()).CAF();
-				await DiscordUtils.ModifyRolePositionAsync(role, role.Position, GenerateRequestOptions()).CAF();
+				await role.SmartModifyRolePositionAsync(role.Position, GenerateRequestOptions()).CAF();
 				return Responses.Snowflakes.SoftDeleted(role);
 			}
 		}
@@ -284,9 +286,10 @@ namespace Advobot.Standard.Commands
 			[Command]
 			public async Task<RuntimeResult> Command(
 				IGuildUser user,
-				[CanModifyRole, NotManaged, NotEveryone] params IRole[] roles)
+				[CanModifyRole, NotManaged, NotEveryone]
+				params IRole[] roles)
 			{
-				await user.RemoveRolesAsync(roles, GenerateRequestOptions()).CAF();
+				await user.SmartRemoveRolesAsync(roles, GenerateRequestOptions()).CAF();
 				return Responses.Roles.Took(roles, user);
 			}
 		}

@@ -577,4 +577,10 @@
   <data name="ModifyCommandsClear" xml:space="preserve">
     <value>Clears the command overrides on the specified entity.</value>
   </data>
+  <data name="ModifyPersistentRoles" xml:space="preserve">
+    <value>Adds or removes roles which stay on users if they leave and rejoin the guild.</value>
+  </data>
+  <data name="DisplayPersistentRoles" xml:space="preserve">
+    <value>Displays the persistent roles which exist in this guild.</value>
+  </data>
 </root>

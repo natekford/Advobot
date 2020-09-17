@@ -10,7 +10,7 @@ using Discord.Commands;
 namespace Advobot.Attributes.ParameterPreconditions.DiscordObjectValidation.Invites
 {
 	/// <summary>
-	/// Does not allow invites which are not from this guild.
+	/// Only allows invites from this guild.
 	/// </summary>
 	[AttributeUsage(AttributeTargets.Parameter, AllowMultiple = false, Inherited = true)]
 	public sealed class FromThisGuildAttribute : IInviteMetadataParameterPreconditionAttribute

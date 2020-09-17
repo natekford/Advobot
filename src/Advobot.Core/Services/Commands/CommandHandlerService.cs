@@ -161,44 +161,45 @@ namespace Advobot.Services.Commands
 
 			var modules = await commandService.AddModulesAsync(assembly, _Provider).CAF();
 
-			int moduleCount = 0, commandCount = 0, helpEntryCount = 0;
-			var ids = new Dictionary<Guid, ModuleInfo>();
-			foreach (var module in modules)
+			static IEnumerable<ModuleInfo> GetAllModules(ModuleInfo module)
 			{
-				++moduleCount;
-				var (commands, entries) = AddSubmodules(module, ids);
-				commandCount += commands;
-				helpEntryCount += entries;
+				yield return module;
+				foreach (var submodule in module.Submodules)
+				{
+					foreach (var m in GetAllModules(submodule))
+					{
+						yield return m;
+					}
+				}
 			}
 
-			ConsoleUtils.WriteLine($"Successfully loaded {moduleCount} modules " +
-				$"containing {commandCount} commands " +
-				$"({helpEntryCount} were given help entries) " +
-				$"from {assembly.GetName().Name} in the {culture} culture.");
-		}
-
-		private (int Commands, int Entries) AddSubmodules(
-			ModuleInfo module,
-			IDictionary<Guid, ModuleInfo> ids)
-		{
 			int commandCount = 0, helpEntryCount = 0;
-			foreach (var submodule in module.Submodules)
+			var ids = new Dictionary<Guid, ModuleInfo>();
+			var newCategories = new HashSet<string>();
+			foreach (var module in modules.SelectMany(GetAllModules))
 			{
-				++commandCount;
+				var meta = module.Attributes.GetAttribute<MetaAttribute>();
+				if (meta is null)
+				{
+					continue;
+				}
+				ThrowIfDuplicateId(module, ids, meta);
 
-				var attributes = submodule.Attributes;
-				if (!attributes.Any(a => a is HiddenAttribute))
+				++commandCount;
+				if (!module.Attributes.Any(a => a is HiddenAttribute))
 				{
 					++helpEntryCount;
 
-					var meta = attributes.GetAttribute<MetaAttribute>();
-					var category = attributes.GetAttribute<CategoryAttribute>();
-
-					ThrowIfDuplicateId(submodule, ids, meta);
-					_Help.Add(new ModuleHelpEntry(submodule, meta, category));
+					var category = module.Attributes.GetAttribute<CategoryAttribute>();
+					newCategories.Add(category.Category);
+					_Help.Add(new ModuleHelpEntry(module, meta, category));
 				}
 			}
-			return (commandCount, helpEntryCount);
+
+			ConsoleUtils.WriteLine($"Successfully loaded {newCategories.Count} categories " +
+				$"containing {commandCount} commands " +
+				$"({helpEntryCount} were given help entries) " +
+				$"from {assembly.GetName().Name} in the {culture} culture.");
 		}
 
 		private Task OnCommandExecuted(

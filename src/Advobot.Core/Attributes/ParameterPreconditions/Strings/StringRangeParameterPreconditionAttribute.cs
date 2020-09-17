@@ -15,8 +15,6 @@ namespace Advobot.Attributes.ParameterPreconditions.Strings
 	[AttributeUsage(AttributeTargets.Parameter, AllowMultiple = false, Inherited = true)]
 	public abstract class StringRangeParameterPreconditionAttribute : StringParameterPreconditionAttribute
 	{
-		/// <inheritdoc />
-		public override bool AllowEnumerating => false;
 		/// <summary>
 		/// Allowed length for strings passed in.
 		/// </summary>

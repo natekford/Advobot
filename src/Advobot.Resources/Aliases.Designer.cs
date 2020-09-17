@@ -430,7 +430,7 @@ namespace Advobot.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to dispcperms.
+        ///   Looks up a localized string similar to dcpe.
         /// </summary>
         public static string DisplayChannelPerms {
             get {
@@ -439,7 +439,7 @@ namespace Advobot.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to dispcpos.
+        ///   Looks up a localized string similar to dcpo.
         /// </summary>
         public static string DisplayChannelPosition {
             get {
@@ -448,7 +448,7 @@ namespace Advobot.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to dispcbl.
+        ///   Looks up a localized string similar to dbl.
         /// </summary>
         public static string DisplayCurrentBanList {
             get {
@@ -457,7 +457,7 @@ namespace Advobot.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to dispe.
+        ///   Looks up a localized string similar to de.
         /// </summary>
         public static string DisplayEmotes {
             get {
@@ -466,7 +466,7 @@ namespace Advobot.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to dispi.
+        ///   Looks up a localized string similar to di.
         /// </summary>
         public static string DisplayInvites {
             get {
@@ -475,7 +475,16 @@ namespace Advobot.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to disprperms.
+        ///   Looks up a localized string similar to dpr.
+        /// </summary>
+        public static string DisplayPersistentRoles {
+            get {
+                return ResourceManager.GetString("DisplayPersistentRoles", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to drpe.
         /// </summary>
         public static string DisplayRolePerms {
             get {
@@ -484,7 +493,7 @@ namespace Advobot.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to disprpos.
+        ///   Looks up a localized string similar to drpo.
         /// </summary>
         public static string DisplayRolePositions {
             get {
@@ -502,7 +511,7 @@ namespace Advobot.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to dispw.
+        ///   Looks up a localized string similar to dw.
         /// </summary>
         public static string DisplayWebhooks {
             get {
@@ -988,7 +997,7 @@ namespace Advobot.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to mcperms.
+        ///   Looks up a localized string similar to mcpe.
         /// </summary>
         public static string ModifyChannelPerms {
             get {
@@ -997,7 +1006,7 @@ namespace Advobot.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to mcpos.
+        ///   Looks up a localized string similar to mcpo.
         /// </summary>
         public static string ModifyChannelPosition {
             get {
@@ -1191,6 +1200,15 @@ namespace Advobot.Resources {
         public static string ModifyNickName {
             get {
                 return ResourceManager.GetString("ModifyNickName", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to mpr.
+        /// </summary>
+        public static string ModifyPersistentRoles {
+            get {
+                return ResourceManager.GetString("ModifyPersistentRoles", resourceCulture);
             }
         }
         

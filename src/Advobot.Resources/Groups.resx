@@ -676,4 +676,10 @@
   <data name="Clear" xml:space="preserve">
     <value>Clear</value>
   </data>
+  <data name="ModifyPersistentRoles" xml:space="preserve">
+    <value>ModifyPersistentRoles</value>
+  </data>
+  <data name="DisplayPersistentRoles" xml:space="preserve">
+    <value>DisplayPersistentRoles</value>
+  </data>
 </root>

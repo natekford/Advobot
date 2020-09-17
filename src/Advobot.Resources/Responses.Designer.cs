@@ -1709,6 +1709,24 @@ namespace Advobot.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Successfully gave {0} the persistent role {1}..
+        /// </summary>
+        public static string PersistentRolesGave {
+            get {
+                return ResourceManager.GetString("PersistentRolesGave", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Successfully removed the persistent role {0} from {1}..
+        /// </summary>
+        public static string PersistentRolesRemoved {
+            get {
+                return ResourceManager.GetString("PersistentRolesRemoved", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Successfully added the quote {0}..
         /// </summary>
         public static string QuotesAddedQuote {

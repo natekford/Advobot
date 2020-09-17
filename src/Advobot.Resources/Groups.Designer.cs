@@ -475,6 +475,15 @@ namespace Advobot.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to DisplayPersistentRoles.
+        /// </summary>
+        public static string DisplayPersistentRoles {
+            get {
+                return ResourceManager.GetString("DisplayPersistentRoles", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to DisplayRolePerms.
         /// </summary>
         public static string DisplayRolePerms {
@@ -1191,6 +1200,15 @@ namespace Advobot.Resources {
         public static string ModifyNickName {
             get {
                 return ResourceManager.GetString("ModifyNickName", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to ModifyPersistentRoles.
+        /// </summary>
+        public static string ModifyPersistentRoles {
+            get {
+                return ResourceManager.GetString("ModifyPersistentRoles", resourceCulture);
             }
         }
         

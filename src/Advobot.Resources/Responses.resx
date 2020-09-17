@@ -959,4 +959,10 @@ Type {1} for help with a command.</value>
   <data name="MiscTitleSubmodules" xml:space="preserve">
     <value>Submodules</value>
   </data>
+  <data name="PersistentRolesGave" xml:space="preserve">
+    <value>Successfully gave {0} the persistent role {1}.</value>
+  </data>
+  <data name="PersistentRolesRemoved" xml:space="preserve">
+    <value>Successfully removed the persistent role {0} from {1}.</value>
+  </data>
 </root>

@@ -83,46 +83,6 @@ namespace Advobot.Utilities
 			=> (IUser)client.GetUser(id) ?? await client.Rest.GetUserAsync(id).CAF();
 
 		/// <summary>
-		/// Changes the role's position and says the supplied reason in the audit log.
-		/// </summary>
-		/// <param name="role"></param>
-		/// <param name="position"></param>
-		/// <param name="options"></param>
-		/// <returns></returns>
-		public static async Task<int> ModifyRolePositionAsync(IRole role, int position, RequestOptions options)
-		{
-			//Make sure it's put at the highest a bot can edit, so no permission exception
-			var bot = await role.Guild.GetCurrentUserAsync().CAF();
-			var roles = role.Guild.Roles
-				.Where(x => x.Id != role.Id && bot.CanModify(x))
-				.OrderBy(x => x.Position)
-				.ToArray();
-			position = Math.Max(1, Math.Min(position, roles.Length));
-
-			var reorderProperties = new ReorderRoleProperties[roles.Length + 1];
-			var newPosition = -1;
-			for (var i = 0; i < reorderProperties.Length; ++i)
-			{
-				if (i > position)
-				{
-					reorderProperties[i] = new ReorderRoleProperties(roles[i - 1].Id, i);
-				}
-				else if (i < position)
-				{
-					reorderProperties[i] = new ReorderRoleProperties(roles[i].Id, i);
-				}
-				else
-				{
-					reorderProperties[i] = new ReorderRoleProperties(role.Id, i);
-					newPosition = i;
-				}
-			}
-
-			await role.Guild.ReorderRolesAsync(reorderProperties, options).CAF();
-			return newPosition;
-		}
-
-		/// <summary>
 		/// Changes the guild's system channel flags.
 		/// </summary>
 		/// <param name="guild"></param>
@@ -166,6 +126,96 @@ namespace Advobot.Utilities
 				.Where(x => x.JoinedAt.HasValue)
 				.OrderBy(x => x.JoinedAt.GetValueOrDefault().Ticks)
 				.ToArray();
+		}
+
+		/// <summary>
+		/// Adds multiple roles in one API call.
+		/// </summary>
+		/// <param name="user"></param>
+		/// <param name="roles"></param>
+		/// <param name="options"></param>
+		/// <returns></returns>
+		public static Task SmartAddRolesAsync(
+			this IGuildUser user,
+			IEnumerable<IRole> roles,
+			RequestOptions? options = null)
+		{
+			return user.ModifyAsync(x =>
+			{
+				var set = new HashSet<ulong>();
+				set.AddRange(user.RoleIds);
+				set.AddRange(roles.Select(x => x.Id));
+				set.Remove(user.Guild.EveryoneRole.Id);
+				x.RoleIds = new Optional<IEnumerable<ulong>>(set);
+			}, options);
+		}
+
+		/// <summary>
+		/// Changes the role's position and says the supplied reason in the audit log.
+		/// </summary>
+		/// <param name="role"></param>
+		/// <param name="position"></param>
+		/// <param name="options"></param>
+		/// <returns></returns>
+		public static async Task<int> SmartModifyRolePositionAsync(
+			this IRole role,
+			int position,
+			RequestOptions options)
+		{
+			// Make sure it's put at the highest a bot can edit, so no permission exception
+			var bot = await role.Guild.GetCurrentUserAsync().CAF();
+			var roles = role.Guild.Roles
+				.Where(x => x.Id != role.Id && bot.CanModify(x))
+				.OrderBy(x => x.Position)
+				.ToArray();
+			position = Math.Max(1, Math.Min(position, roles.Length));
+
+			var reorderProperties = new ReorderRoleProperties[roles.Length + 1];
+			var newPosition = -1;
+			for (var i = 0; i < reorderProperties.Length; ++i)
+			{
+				if (i > position)
+				{
+					reorderProperties[i] = new ReorderRoleProperties(roles[i - 1].Id, i);
+				}
+				else if (i < position)
+				{
+					reorderProperties[i] = new ReorderRoleProperties(roles[i].Id, i);
+				}
+				else
+				{
+					reorderProperties[i] = new ReorderRoleProperties(role.Id, i);
+					newPosition = i;
+				}
+			}
+
+			await role.Guild.ReorderRolesAsync(reorderProperties, options).CAF();
+			return newPosition;
+		}
+
+		/// <summary>
+		/// Removes multiple roles in one API call.
+		/// </summary>
+		/// <param name="user"></param>
+		/// <param name="roles"></param>
+		/// <param name="options"></param>
+		/// <returns></returns>
+		public static Task SmartRemoveRolesAsync(
+			this IGuildUser user,
+			IEnumerable<IRole> roles,
+			RequestOptions? options = null)
+		{
+			return user.ModifyAsync(x =>
+			{
+				var set = new HashSet<ulong>();
+				set.AddRange(user.RoleIds);
+				set.Remove(user.Guild.EveryoneRole.Id);
+				foreach (var id in roles.Select(x => x.Id))
+				{
+					set.Remove(id);
+				}
+				x.RoleIds = new Optional<IEnumerable<ulong>>(set);
+			}, options);
 		}
 	}
 }

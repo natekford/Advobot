@@ -327,13 +327,13 @@ namespace Advobot.Standard.Responses
 			});
 		}
 
-		public static AdvobotResult Invite(IInviteMetadata invite)
+		public static AdvobotResult Invite(IInviteMetadata invite, IGuildChannel channel)
 		{
 			var info = new InformationMatrix();
 			info.AddTimeCreatedCollection(invite.Id, invite.CreatedAt.GetValueOrDefault().UtcDateTime);
 			var meta = info.CreateCollection();
 			meta.Add(GetsTitleCreator, invite.Inviter.Format());
-			meta.Add(GetsTitleChannel, invite.Channel.Format());
+			meta.Add(GetsTitleChannel, channel.Format());
 			meta.Add(GetsTitleUses, invite.Uses ?? 0);
 
 			return Success(new EmbedWrapper
@@ -342,13 +342,13 @@ namespace Advobot.Standard.Responses
 				Author = new EmbedAuthorBuilder
 				{
 					Name = invite.Format(),
-					IconUrl = invite.Guild.IconUrl,
+					IconUrl = channel.Guild.IconUrl,
 					Url = invite.Url,
 				},
 				Footer = new EmbedFooterBuilder
 				{
 					Text = GetsFooterInvite,
-					IconUrl = invite.Guild.IconUrl,
+					IconUrl = channel.Guild.IconUrl,
 				},
 			});
 		}

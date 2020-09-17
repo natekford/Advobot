@@ -42,6 +42,7 @@ namespace Advobot.ParameterPreconditions
 
 		public static StringBuilder AddType(this StringBuilder sb, string typeName, string fullName)
 		{
+#pragma warning disable RCS1197 // Optimize StringBuilder.Append/AppendLine call.
 			return sb.Append($@"
 namespace Advobot.GeneratedParameterPreconditions
 {{
@@ -86,6 +87,7 @@ namespace Advobot.GeneratedParameterPreconditions
 	}}
 }}
 ");
+#pragma warning restore RCS1197 // Optimize StringBuilder.Append/AppendLine call.
 		}
 
 		public static StringBuilder AddType(this StringBuilder sb, Type type)

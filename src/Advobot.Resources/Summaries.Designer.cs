@@ -358,6 +358,15 @@ namespace Advobot.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Displays the persistent roles which exist in this guild..
+        /// </summary>
+        public static string DisplayPersistentRoles {
+            get {
+                return ResourceManager.GetString("DisplayPersistentRoles", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Displays the permissions .
         /// </summary>
         public static string DisplayRolePerms {
@@ -1029,6 +1038,15 @@ namespace Advobot.Resources {
         public static string ModifyNickName {
             get {
                 return ResourceManager.GetString("ModifyNickName", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Adds or removes roles which stay on users if they leave and rejoin the guild..
+        /// </summary>
+        public static string ModifyPersistentRoles {
+            get {
+                return ResourceManager.GetString("ModifyPersistentRoles", resourceCulture);
             }
         }
         

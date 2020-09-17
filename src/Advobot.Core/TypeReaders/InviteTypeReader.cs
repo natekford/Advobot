@@ -25,8 +25,9 @@ namespace Advobot.TypeReaders
 			IServiceProvider services)
 		{
 			{
+				var code = input.Split('/')[^1];
 				var invites = await context.Guild.GetInvitesAsync().CAF();
-				var invite = invites.FirstOrDefault(x => x.Code.CaseInsEquals(input));
+				var invite = invites.FirstOrDefault(x => x.Code.CaseInsEquals(code));
 				if (invite != null)
 				{
 					return TypeReaderResult.FromSuccess(invite);
