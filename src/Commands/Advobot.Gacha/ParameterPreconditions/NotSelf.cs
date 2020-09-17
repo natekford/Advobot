@@ -1,6 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.Threading.Tasks;
 
 using Advobot.Attributes.ParameterPreconditions;
@@ -15,10 +13,6 @@ namespace Advobot.Gacha.ParameterPreconditions
 	public sealed class NotSelf : AdvobotParameterPreconditionAttribute
 	{
 		public override string Summary => "Not the invoker";
-		public override IEnumerable<Type> SupportedTypes { get; } = new[]
-		{
-			typeof(IReadOnlyUser),
-		}.ToImmutableArray();
 
 		protected override Task<PreconditionResult> SingularCheckPermissionsAsync(
 			ICommandContext context,
@@ -28,7 +22,7 @@ namespace Advobot.Gacha.ParameterPreconditions
 		{
 			if (!(value is IReadOnlyUser user))
 			{
-				return this.FromOnlySupports(value).AsTask();
+				return this.FromOnlySupports(value, typeof(IReadOnlyUser)).AsTask();
 			}
 			else if (user.GuildId == context.User.Id)
 			{

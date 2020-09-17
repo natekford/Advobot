@@ -1,13 +1,10 @@
 ﻿using System;
 using System.Collections.Concurrent;
-using System.Linq;
 using System.Threading.Tasks;
 
 using Advobot.Services.HelpEntries;
 using Advobot.Services.Time;
 using Advobot.Utilities;
-
-using AdvorangesUtils;
 
 using Discord.Commands;
 

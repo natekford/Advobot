@@ -1,9 +1,7 @@
 ﻿using System;
 using System.Collections;
-using System.Collections.Generic;
 using System.Threading.Tasks;
 
-using Advobot.Preconditions;
 using Advobot.Services.HelpEntries;
 using Advobot.Utilities;
 
@@ -17,7 +15,7 @@ namespace Advobot.Attributes.ParameterPreconditions
 	/// Requires the parameter meet a precondition unless it's optional.
 	/// </summary>
 	public abstract class AdvobotParameterPreconditionAttribute
-		: ParameterPreconditionAttribute, IParameterPrecondition, IHasSupportedTypes
+		: ParameterPreconditionAttribute, IParameterPrecondition
 	{
 		/// <summary>
 		/// Whether or not the passed in value can have all its inner values checked if it's an <see cref="IEnumerable"/>.
@@ -29,8 +27,6 @@ namespace Advobot.Attributes.ParameterPreconditions
 		public virtual bool IsOptionalSuccess { get; set; }
 		/// <inheritdoc />
 		public abstract string Summary { get; }
-		/// <inheritdoc />
-		public abstract IEnumerable<Type> SupportedTypes { get; }
 
 		/// <inheritdoc />
 		public override async Task<PreconditionResult> CheckPermissionsAsync(

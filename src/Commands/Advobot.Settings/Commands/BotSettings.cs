@@ -1,7 +1,6 @@
 ﻿using System.Threading.Tasks;
 
 using Advobot.Attributes;
-using Advobot.Attributes.ParameterPreconditions.Strings;
 using Advobot.Attributes.Preconditions;
 using Advobot.Localization;
 using Advobot.Modules;

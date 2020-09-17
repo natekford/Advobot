@@ -88,13 +88,15 @@ namespace Advobot.Utilities
 		/// <summary>
 		/// Creates a <see cref="NotSupportedPreconditionResult"/>.
 		/// </summary>
-		/// <param name="attribute"></param>
+		/// <param name="_"></param>
 		/// <param name="value"></param>
+		/// <param name="type"></param>
 		/// <returns></returns>
 		public static PreconditionResult FromOnlySupports(
-			this IHasSupportedTypes attribute,
-			object value)
-			=> new NotSupportedPreconditionResult(value, attribute.SupportedTypes);
+			this Attribute _,
+			object value,
+			Type type)
+			=> new NotSupportedPreconditionResult(value, type);
 
 		/// <summary>
 		/// Returns <see cref="SuccessInstance"/>.

@@ -1,6 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -43,11 +41,6 @@ namespace Advobot.AutoMod.Attributes.ParameterPreconditions
 	{
 		/// <inheritdoc />
 		public override string Summary => BannedPhraseNotExisting.Format(BannedPhraseName.WithNoMarkdown());
-		/// <inheritdoc />
-		public override IEnumerable<Type> SupportedTypes { get; } = new[]
-		{
-			typeof(string),
-		}.ToImmutableArray();
 		/// <summary>
 		/// Gets the name of the banned phrase type.
 		/// </summary>
@@ -70,7 +63,7 @@ namespace Advobot.AutoMod.Attributes.ParameterPreconditions
 		{
 			if (!(value is string input))
 			{
-				return this.FromOnlySupports(value);
+				return this.FromOnlySupports(value, typeof(string));
 			}
 
 			var db = services.GetRequiredService<IAutoModDatabase>();

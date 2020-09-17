@@ -1,8 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-
-using AdvorangesUtils;
 
 using Discord.Commands;
 
@@ -16,7 +12,7 @@ namespace Advobot.Preconditions
 		/// <summary>
 		/// The types which are supported by the precondition.
 		/// </summary>
-		public IEnumerable<Type> SupportedTypes { get; }
+		public Type SupportedType { get; }
 		/// <summary>
 		/// The value which is not of the correct type.
 		/// </summary>
@@ -26,19 +22,18 @@ namespace Advobot.Preconditions
 		/// Creates an instance of <see cref="NotSupportedPreconditionResult"/>.
 		/// </summary>
 		/// <param name="value"></param>
-		/// <param name="supportedTypes"></param>
-		public NotSupportedPreconditionResult(object value, IEnumerable<Type> supportedTypes)
-			: base(CommandError.ParseFailed, GenerateReason(value, supportedTypes))
+		/// <param name="supportedType"></param>
+		public NotSupportedPreconditionResult(object value, Type supportedType)
+			: base(CommandError.ParseFailed, GenerateReason(value, supportedType))
 		{
 			Value = value;
-			SupportedTypes = supportedTypes;
+			SupportedType = supportedType;
 		}
 
-		private static string GenerateReason(object value, IEnumerable<Type> supportedTypes)
+		private static string GenerateReason(object value, Type supportedType)
 		{
 			var type = value.GetType().Name;
-			var supported = supportedTypes.Join(x => x.Name);
-			return $"Received object of type {type}; only supports {supported}.";
+			return $"Received object of type {type}; only supports {supportedType.Name}.";
 		}
 	}
 }

@@ -41,51 +41,38 @@ namespace Advobot.ParameterPreconditions
 
 		public static StringBuilder AddType(this StringBuilder sb, string typeName, string fullName)
 		{
-			return sb.AppendLine($@"
+			return sb.Append($@"
 namespace Advobot.GeneratedParameterPreconditions
 {{
-	using System;
-	using System.Collections.Generic;
-	using System.Threading.Tasks;
-
-	using Advobot.Attributes.ParameterPreconditions;
-	using Advobot.Utilities;
-
-	using Discord.Commands;
-	using Discord;
-
 	/// <summary>
-	/// Automatically generated parameter precondition attribute for {typeName}.
+	/// Automatically generated parameter precondition attribute for <see cref=""global::{fullName}""/>.
+	/// Ensures type safety of the parameter and that the invoking user is an <see cref=""Discord.IGuildUser""/>.
 	/// </summary>
 	public abstract class {typeName}ParameterPreconditionAttribute
-		: AdvobotParameterPreconditionAttribute
+		: global::Advobot.Attributes.ParameterPreconditions.AdvobotParameterPreconditionAttribute
 	{{
 		/// <inheritdoc />
-		public override IEnumerable<Type> SupportedTypes {{ get; }} = new[]
+		protected override global::System.Threading.Tasks.Task<global::Discord.Commands.PreconditionResult> SingularCheckPermissionsAsync(
+			global::Discord.Commands.ICommandContext context,
+			global::Discord.Commands.ParameterInfo parameter,
+			global::System.Object value,
+			global::System.IServiceProvider services)
 		{{
-			typeof({fullName}),
-		}};
-
-		/// <inheritdoc />
-		protected override Task<PreconditionResult> SingularCheckPermissionsAsync(
-			ICommandContext context,
-			ParameterInfo parameter,
-			object value,
-			IServiceProvider services)
-		{{
-			if (!(context.User is IGuildUser user))
+			if (!(context.User is global::Discord.IGuildUser user))
 			{{
-				return this.FromInvalidInvoker().AsTask();
+				var result = global::Advobot.Utilities.PreconditionUtils.FromInvalidInvoker(this);
+				return global::Advobot.Utilities.PreconditionUtils.AsTask(result);
 			}}
-			if (!(value is {fullName} cast))
+			if (!(value is global::{fullName} cast))
 			{{
-				return this.FromOnlySupports(value).AsTask();
+				var result = global::Advobot.Utilities.PreconditionUtils.FromOnlySupports(this, value, typeof(global::{fullName}));
+				return global::Advobot.Utilities.PreconditionUtils.AsTask(result);
 			}}
 			return SingularCheckPermissionsAsync(context, parameter, user, cast, services);
 		}}
 
 		/// <summary>
-		/// Checks whether the condition for the <see cref=""{typeName}""/> is met before execution of the command.
+		/// Checks whether the condition for the <see cref=""global::{fullName}""/> is met before execution of the command.
 		/// </summary>
 		/// <param name=""context""></param>
 		/// <param name=""parameter""></param>
@@ -93,12 +80,12 @@ namespace Advobot.GeneratedParameterPreconditions
 		/// <param name=""invoker""></param>
 		/// <param name=""services""></param>
 		/// <returns></returns>
-		protected abstract Task<PreconditionResult> SingularCheckPermissionsAsync(
-			ICommandContext context,
-			ParameterInfo parameter,
-			IGuildUser invoker,
-			{fullName} value,
-			IServiceProvider services);
+		protected abstract global::System.Threading.Tasks.Task<global::Discord.Commands.PreconditionResult> SingularCheckPermissionsAsync(
+			global::Discord.Commands.ICommandContext context,
+			global::Discord.Commands.ParameterInfo parameter,
+			global::Discord.IGuildUser invoker,
+			global::{fullName} value,
+			global::System.IServiceProvider services);
 	}}
 }}
 ");
