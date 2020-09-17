@@ -26,14 +26,14 @@ namespace Advobot.Quotes.ParameterPreconditions
 		{
 		}
 
-		protected override async Task<PreconditionResult> SingularCheckPermissionsAsync(
+		protected override async Task<PreconditionResult> CheckPermissionsAsync(
 			ICommandContext context,
 			ParameterInfo parameter,
 			IGuildUser invoker,
 			string value,
 			IServiceProvider services)
 		{
-			var result = await base.SingularCheckPermissionsAsync(context, parameter, invoker, value, services).CAF();
+			var result = await base.CheckPermissionsAsync(context, parameter, invoker, value, services).CAF();
 			if (!result.IsSuccess)
 			{
 				return result;

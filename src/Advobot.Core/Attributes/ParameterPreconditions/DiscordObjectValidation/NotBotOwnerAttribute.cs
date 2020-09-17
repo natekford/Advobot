@@ -21,7 +21,7 @@ namespace Advobot.Attributes.ParameterPreconditions.Numbers
 		public override string Summary => "Not the bot owner";
 
 		/// <inheritdoc />
-		protected override async Task<PreconditionResult> SingularCheckPermissionsAsync(
+		protected override async Task<PreconditionResult> CheckPermissionsAsync(
 			ICommandContext context,
 			ParameterInfo parameter,
 			IGuildUser invoker,

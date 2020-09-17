@@ -19,7 +19,7 @@ namespace Advobot.Attributes.ParameterPreconditions.DiscordObjectValidation.Invi
 		public override string Summary => "From this guild";
 
 		/// <inheritdoc />
-		protected override Task<PreconditionResult> SingularCheckPermissionsAsync(
+		protected override Task<PreconditionResult> CheckPermissionsAsync(
 			ICommandContext context,
 			ParameterInfo parameter,
 			IGuildUser invoker,

@@ -46,21 +46,8 @@ namespace Advobot.Attributes.ParameterPreconditions.Numbers
 			Range = new NumberRange<int>(start, end);
 		}
 
-		/// <summary>
-		/// Returns the number to use for the start.
-		/// </summary>
-		/// <param name="context"></param>
-		/// <param name="parameter"></param>
-		/// <param name="services"></param>
-		/// <returns></returns>
-		protected virtual NumberRange<int> GetRange(
-			ICommandContext context,
-			ParameterInfo parameter,
-			IServiceProvider services)
-			=> Range;
-
 		/// <inheritdoc />
-		protected override Task<PreconditionResult> SingularCheckPermissionsAsync(
+		protected override Task<PreconditionResult> CheckPermissionsAsync(
 			ICommandContext context,
 			ParameterInfo parameter,
 			IGuildUser invoker,
@@ -74,5 +61,18 @@ namespace Advobot.Attributes.ParameterPreconditions.Numbers
 			}
 			return PreconditionResult.FromError($"Invalid {parameter?.Name} supplied, must be in `{Range}`").AsTask();
 		}
+
+		/// <summary>
+		/// Returns the number to use for the start.
+		/// </summary>
+		/// <param name="context"></param>
+		/// <param name="parameter"></param>
+		/// <param name="services"></param>
+		/// <returns></returns>
+		protected virtual NumberRange<int> GetRange(
+			ICommandContext context,
+			ParameterInfo parameter,
+			IServiceProvider services)
+			=> Range;
 	}
 }

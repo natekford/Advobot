@@ -15,7 +15,7 @@ namespace Advobot.Gacha.ParameterPreconditions
 	{
 		public override string Summary => "Not the invoker";
 
-		protected override Task<PreconditionResult> SingularCheckPermissionsAsync(
+		protected override Task<PreconditionResult> CheckPermissionsAsync(
 			ICommandContext context,
 			ParameterInfo parameter,
 			IGuildUser invoker,

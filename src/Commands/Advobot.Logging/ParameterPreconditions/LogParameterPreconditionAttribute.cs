@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Threading.Tasks;
 
-using Advobot.Attributes.ParameterPreconditions;
+using Advobot.GeneratedParameterPreconditions;
 using Advobot.Logging.Database;
 using Advobot.Logging.ReadOnlyModels;
 using Advobot.Utilities;
@@ -22,7 +22,7 @@ namespace Advobot.Logging.ParameterPreconditions
 	/// </summary>
 	[AttributeUsage(AttributeTargets.Parameter, AllowMultiple = false, Inherited = true)]
 	public abstract class LogParameterPreconditionAttribute
-		: AdvobotParameterPreconditionAttribute
+		: ITextChannelParameterPreconditionAttribute
 	{
 		/// <inheritdoc />
 		public override string Summary
@@ -32,36 +32,31 @@ namespace Advobot.Logging.ParameterPreconditions
 		/// </summary>
 		protected abstract string LogName { get; }
 
+		/// <inheritdoc />
+		protected override async Task<PreconditionResult> CheckPermissionsAsync(
+			ICommandContext context,
+			ParameterInfo parameter,
+			IGuildUser invoker,
+			ITextChannel value,
+			IServiceProvider services)
+		{
+			var service = services.GetRequiredService<ILoggingDatabase>();
+			var channels = await service.GetLogChannelsAsync(context.Guild.Id).CAF();
+			if (GetId(channels) != value.Id)
+			{
+				return this.FromSuccess();
+			}
+			return PreconditionResult.FromError(LogParameterPreconditionSummary.Format(
+				value.Format().WithBlock(),
+				LogName.WithNoMarkdown()
+			));
+		}
+
 		/// <summary>
 		/// Gets the current id of this log.
 		/// </summary>
 		/// <param name="channels"></param>
 		/// <returns></returns>
 		protected abstract ulong GetId(IReadOnlyLogChannels channels);
-
-		/// <inheritdoc />
-		protected override async Task<PreconditionResult> SingularCheckPermissionsAsync(
-			ICommandContext context,
-			ParameterInfo parameter,
-			IGuildUser invoker,
-			object value,
-			IServiceProvider services)
-		{
-			if (!(value is ITextChannel channel))
-			{
-				return this.FromOnlySupports(value, typeof(ITextChannel));
-			}
-
-			var service = services.GetRequiredService<ILoggingDatabase>();
-			var channels = await service.GetLogChannelsAsync(context.Guild.Id).CAF();
-			if (GetId(channels) != channel.Id)
-			{
-				return this.FromSuccess();
-			}
-			return PreconditionResult.FromError(LogParameterPreconditionSummary.Format(
-				channel.Format().WithBlock(),
-				LogName.WithNoMarkdown()
-			));
-		}
 	}
 }

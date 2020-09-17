@@ -24,7 +24,7 @@ namespace Advobot.Attributes.ParameterPreconditions.DiscordObjectValidation.User
 		public override string Summary => "Can be moved from their current channel";
 
 		/// <inheritdoc />
-		protected override Task<PreconditionResult> SingularCheckPermissionsAsync(
+		protected override Task<PreconditionResult> CheckPermissionsAsync(
 			ICommandContext context,
 			ParameterInfo parameter,
 			IGuildUser invoker,

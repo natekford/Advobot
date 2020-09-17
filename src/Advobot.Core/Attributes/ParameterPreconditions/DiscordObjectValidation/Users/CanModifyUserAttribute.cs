@@ -19,7 +19,7 @@ namespace Advobot.Attributes.ParameterPreconditions.DiscordObjectValidation.User
 		public override string Summary => "Can be modified by the bot and invoking user";
 
 		/// <inheritdoc />
-		protected override Task<PreconditionResult> SingularCheckPermissionsAsync(
+		protected override Task<PreconditionResult> CheckPermissionsAsync(
 			ICommandContext context,
 			ParameterInfo parameter,
 			IGuildUser invoker,

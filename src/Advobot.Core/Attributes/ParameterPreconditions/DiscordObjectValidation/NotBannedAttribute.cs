@@ -25,7 +25,7 @@ namespace Advobot.Attributes.ParameterPreconditions.DiscordObjectValidation
 		public override string Summary => "Not already banned";
 
 		/// <inheritdoc />
-		protected override async Task<PreconditionResult> SingularCheckPermissionsAsync(
+		protected override async Task<PreconditionResult> CheckPermissionsAsync(
 			ICommandContext context,
 			ParameterInfo parameter,
 			IGuildUser invoker,

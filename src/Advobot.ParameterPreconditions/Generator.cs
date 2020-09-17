@@ -18,6 +18,7 @@ namespace Advobot.ParameterPreconditions
 				.AddType(typeof(string))
 				.AddType("Discord.GuildEmote")
 				.AddType("Discord.IGuildChannel")
+				.AddType("Discord.ITextChannel")
 				.AddType("Discord.IInviteMetadata")
 				.AddType("Discord.IRole")
 				.AddType("Discord.IGuildUser");
@@ -46,13 +47,13 @@ namespace Advobot.GeneratedParameterPreconditions
 {{
 	/// <summary>
 	/// Automatically generated parameter precondition attribute for <see cref=""global::{fullName}""/>.
-	/// Ensures type safety of the parameter and that the invoking user is an <see cref=""Discord.IGuildUser""/>.
+	/// Ensures type safety of the parameter.
 	/// </summary>
 	public abstract class {typeName}ParameterPreconditionAttribute
 		: global::Advobot.Attributes.ParameterPreconditions.AdvobotParameterPreconditionAttribute
 	{{
 		/// <inheritdoc />
-		protected override global::System.Threading.Tasks.Task<global::Discord.Commands.PreconditionResult> SingularCheckPermissionsAsync(
+		protected override global::System.Threading.Tasks.Task<global::Discord.Commands.PreconditionResult> CheckPermissionsAsync(
 			global::Discord.Commands.ICommandContext context,
 			global::Discord.Commands.ParameterInfo parameter,
 			global::Discord.IGuildUser invoker,
@@ -64,7 +65,7 @@ namespace Advobot.GeneratedParameterPreconditions
 				var result = global::Advobot.Utilities.PreconditionUtils.FromOnlySupports(this, value, typeof(global::{fullName}));
 				return global::Advobot.Utilities.PreconditionUtils.AsTask(result);
 			}}
-			return SingularCheckPermissionsAsync(context, parameter, invoker, cast, services);
+			return CheckPermissionsAsync(context, parameter, invoker, cast, services);
 		}}
 
 		/// <summary>
@@ -76,7 +77,7 @@ namespace Advobot.GeneratedParameterPreconditions
 		/// <param name=""invoker""></param>
 		/// <param name=""services""></param>
 		/// <returns></returns>
-		protected abstract global::System.Threading.Tasks.Task<global::Discord.Commands.PreconditionResult> SingularCheckPermissionsAsync(
+		protected abstract global::System.Threading.Tasks.Task<global::Discord.Commands.PreconditionResult> CheckPermissionsAsync(
 			global::Discord.Commands.ICommandContext context,
 			global::Discord.Commands.ParameterInfo parameter,
 			global::Discord.IGuildUser invoker,

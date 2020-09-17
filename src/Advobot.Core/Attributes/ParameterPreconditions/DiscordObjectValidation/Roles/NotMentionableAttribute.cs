@@ -19,7 +19,7 @@ namespace Advobot.Attributes.ParameterPreconditions.DiscordObjectValidation.Role
 		public override string Summary => "Not mentionable";
 
 		/// <inheritdoc />
-		protected override Task<PreconditionResult> SingularCheckPermissionsAsync(
+		protected override Task<PreconditionResult> CheckPermissionsAsync(
 			ICommandContext context,
 			ParameterInfo parameter,
 			IGuildUser invoker,

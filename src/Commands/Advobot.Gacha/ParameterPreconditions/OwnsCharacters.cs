@@ -20,7 +20,7 @@ namespace Advobot.Gacha.ParameterPreconditions
 	{
 		public override string Summary => "Character is owned by the invoker";
 
-		protected override async Task<PreconditionResult> SingularCheckPermissionsAsync(
+		protected override async Task<PreconditionResult> CheckPermissionsAsync(
 			ICommandContext context,
 			ParameterInfo parameter,
 			IGuildUser invoker,

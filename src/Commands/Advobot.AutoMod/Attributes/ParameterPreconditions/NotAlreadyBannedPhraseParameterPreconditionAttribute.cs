@@ -2,9 +2,9 @@
 using System.Linq;
 using System.Threading.Tasks;
 
-using Advobot.Attributes.ParameterPreconditions;
 using Advobot.AutoMod.Database;
 using Advobot.AutoMod.ReadOnlyModels;
+using Advobot.GeneratedParameterPreconditions;
 using Advobot.Utilities;
 
 using AdvorangesUtils;
@@ -38,7 +38,7 @@ namespace Advobot.AutoMod.Attributes.ParameterPreconditions
 	/// </summary>
 	[AttributeUsage(AttributeTargets.Parameter, AllowMultiple = false, Inherited = true)]
 	public abstract class NotAlreadyBannedPhraseParameterPreconditionAttribute
-		: AdvobotParameterPreconditionAttribute
+		: StringParameterPreconditionAttribute
 	{
 		/// <inheritdoc />
 		public override string Summary => BannedPhraseNotExisting.Format(BannedPhraseName.WithNoMarkdown());
@@ -47,6 +47,26 @@ namespace Advobot.AutoMod.Attributes.ParameterPreconditions
 		/// </summary>
 		protected abstract string BannedPhraseName { get; }
 
+		/// <inheritdoc />
+		protected override async Task<PreconditionResult> CheckPermissionsAsync(
+			ICommandContext context,
+			ParameterInfo parameter,
+			IGuildUser invoker,
+			string value,
+			IServiceProvider services)
+		{
+			var db = services.GetRequiredService<IAutoModDatabase>();
+			var phrases = await db.GetBannedPhrasesAsync(context.Guild.Id).CAF();
+			if (phrases.Any(x => IsMatch(x, value)))
+			{
+				return PreconditionResult.FromError(BannedPhraseAlreadyExists.Format(
+					value.WithBlock(),
+					BannedPhraseName.WithNoMarkdown()
+				));
+			}
+			return this.FromSuccess();
+		}
+
 		/// <summary>
 		/// Gets the phrases this should look through.
 		/// </summary>
@@ -54,31 +74,6 @@ namespace Advobot.AutoMod.Attributes.ParameterPreconditions
 		/// <param name="input"></param>
 		/// <returns></returns>
 		protected abstract bool IsMatch(IReadOnlyBannedPhrase phrase, string input);
-
-		/// <inheritdoc />
-		protected override async Task<PreconditionResult> SingularCheckPermissionsAsync(
-			ICommandContext context,
-			ParameterInfo parameter,
-			IGuildUser invoker,
-			object value,
-			IServiceProvider services)
-		{
-			if (!(value is string input))
-			{
-				return this.FromOnlySupports(value, typeof(string));
-			}
-
-			var db = services.GetRequiredService<IAutoModDatabase>();
-			var phrases = await db.GetBannedPhrasesAsync(context.Guild.Id).CAF();
-			if (phrases.Any(x => IsMatch(x, input)))
-			{
-				return PreconditionResult.FromError(BannedPhraseAlreadyExists.Format(
-					input.WithBlock(),
-					BannedPhraseName.WithNoMarkdown()
-				));
-			}
-			return this.FromSuccess();
-		}
 	}
 
 	/// <summary>

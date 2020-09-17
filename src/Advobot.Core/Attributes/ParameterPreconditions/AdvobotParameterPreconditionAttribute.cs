@@ -50,7 +50,7 @@ namespace Advobot.Attributes.ParameterPreconditions
 			{
 				foreach (var item in enumerable)
 				{
-					var result = await SingularCheckPermissionsAsync(context, parameter, invoker!, item, services).CAF();
+					var result = await CheckPermissionsAsync(context, parameter, invoker!, item, services).CAF();
 					// Don't bother testing more if anything is a failure.
 					if (!result.IsSuccess)
 					{
@@ -62,7 +62,7 @@ namespace Advobot.Attributes.ParameterPreconditions
 				return this.FromSuccess();
 			}
 
-			return await SingularCheckPermissionsAsync(context, parameter, invoker!, value, services).CAF();
+			return await CheckPermissionsAsync(context, parameter, invoker!, value, services).CAF();
 		}
 
 		/// <summary>
@@ -74,7 +74,7 @@ namespace Advobot.Attributes.ParameterPreconditions
 		/// <param name="value"></param>
 		/// <param name="services"></param>
 		/// <returns></returns>
-		protected abstract Task<PreconditionResult> SingularCheckPermissionsAsync(
+		protected abstract Task<PreconditionResult> CheckPermissionsAsync(
 			ICommandContext context,
 			ParameterInfo parameter,
 			IGuildUser invoker,

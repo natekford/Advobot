@@ -17,7 +17,7 @@ namespace Advobot.Gacha.ParameterPreconditions
 	{
 		public override string Summary => "In the guild";
 
-		protected override async Task<PreconditionResult> SingularCheckPermissionsAsync(
+		protected override async Task<PreconditionResult> CheckPermissionsAsync(
 			ICommandContext context,
 			ParameterInfo parameter,
 			IGuildUser invoker,
