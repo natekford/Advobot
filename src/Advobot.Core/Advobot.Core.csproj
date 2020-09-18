@@ -24,7 +24,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Advobot.Resources\Advobot.Resources.csproj" />
-    <ProjectReference Include="..\Advobot.ParameterPreconditions\Advobot.ParameterPreconditions.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
+    <ProjectReference Include="..\Advobot.Generators\Advobot.Generators.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
   </ItemGroup>
 
   <ItemGroup>
