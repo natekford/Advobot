@@ -26,6 +26,7 @@ namespace Advobot.Tests.Fakes.Discord
 		public bool IsSuppressed => throw new NotImplementedException();
 		public bool IsTTS => throw new NotImplementedException();
 		public IReadOnlyCollection<ulong> MentionedChannelIds => Content.GetMentions(TryParseChannel);
+		public bool MentionedEveryone => throw new NotImplementedException();
 		public IReadOnlyCollection<ulong> MentionedRoleIds => Content.GetMentions(TryParseRole);
 		public IReadOnlyCollection<ulong> MentionedUserIds => Content.GetMentions(TryParseUser);
 		public IReadOnlyDictionary<IEmote, ReactionMetadata> Reactions => throw new NotImplementedException();

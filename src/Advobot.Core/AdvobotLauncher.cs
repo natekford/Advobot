@@ -126,6 +126,23 @@ namespace Advobot
 			CommandAssemblyCollection assemblies,
 			IConfig config)
 		{
+			const GatewayIntents ALL = 0
+				| GatewayIntents.DirectMessageReactions
+				| GatewayIntents.DirectMessages
+				| GatewayIntents.DirectMessageTyping
+				| GatewayIntents.GuildBans
+				| GatewayIntents.GuildEmojis
+				| GatewayIntents.GuildIntegrations
+				| GatewayIntents.GuildInvites
+				| GatewayIntents.GuildMembers
+				| GatewayIntents.GuildMessageReactions
+				| GatewayIntents.GuildMessages
+				| GatewayIntents.GuildMessageTyping
+				| GatewayIntents.GuildPresences
+				| GatewayIntents.Guilds
+				| GatewayIntents.GuildVoiceStates
+				| GatewayIntents.GuildWebhooks;
+
 			var botSettings = BotSettings.CreateOrLoad(config);
 			var commandConfig = new CommandServiceConfig
 			{
@@ -135,10 +152,11 @@ namespace Advobot
 			};
 			var discordClient = new DiscordShardedClient(new DiscordSocketConfig
 			{
-				AlwaysDownloadUsers = botSettings.AlwaysDownloadUsers,
 				MessageCacheSize = botSettings.MessageCacheSize,
 				LogLevel = botSettings.LogLevel,
 				ExclusiveBulkDelete = true,
+				AlwaysDownloadUsers = false,
+				GatewayIntents = ALL,
 			});
 			var httpClient = new HttpClient(new HttpClientHandler
 			{
