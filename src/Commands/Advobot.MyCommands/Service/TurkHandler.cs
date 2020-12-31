@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
 
@@ -78,13 +79,10 @@ namespace Advobot.MyCommands.Service
 			}
 
 			_Ids.Add(after.Id);
-			foreach (var language in languages)
+			if (languages.Any(x => x.confidence > config.ConfidenceLimit && x.language == "tr"))
 			{
-				if (language.confidence > config.ConfidenceLimit && language.language == "tr")
-				{
-					await after.BanAsync(reason: "turkish activity so probable spammer.").CAF();
-					return;
-				}
+				var reason = @$"turkish activity so probable spammer (""{status.State}"").";
+				await after.BanAsync(reason: reason).CAF();
 			}
 		}
 	}
