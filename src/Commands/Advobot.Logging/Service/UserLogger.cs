@@ -65,7 +65,7 @@ namespace Advobot.Logging.Service
 
 			foreach (var guild in _Client.Guilds)
 			{
-				if (!(guild.GetUser(before.Id) is IGuildUser user))
+				if (guild.GetUser(before.Id) is not IGuildUser user)
 				{
 					continue;
 				}

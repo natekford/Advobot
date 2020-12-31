@@ -14,7 +14,7 @@ namespace Advobot.Tests.Fakes.Discord.Users
 		public string Locale { get; set; }
 		public PremiumType PremiumType { get; set; }
 
-		public Task ModifyAsync(Action<SelfUserProperties> func, RequestOptions options = null)
+		public Task ModifyAsync(Action<SelfUserProperties> func, RequestOptions? options = null)
 			=> throw new NotImplementedException();
 	}
 }

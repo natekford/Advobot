@@ -5,6 +5,7 @@ using System.Runtime.InteropServices;
 
 using Advobot;
 using Advobot.CommandAssemblies;
+using Advobot.MyCommands;
 
 // General Information about an assembly is controlled through the following
 // set of attributes. Change these attribute values to modify the information
@@ -39,5 +40,5 @@ using Advobot.CommandAssemblies;
 [assembly: AssemblyInformationalVersion(Constants.BOT_VERSION)]
 
 // Indicates the assembly has commands in it for the bot to use
-[assembly: CommandAssembly("en-US")]
+[assembly: CommandAssembly("en-US", InstantiatorType = typeof(MyCommandsInstantiator))]
 [assembly: InternalsVisibleTo("Advobot.Tests")]

@@ -17,6 +17,7 @@ namespace Advobot.Tests.Fakes.Discord
 		public string Name { get; set; }
 		public GuildPermissions Permissions { get; set; }
 		public int Position { get; set; }
+		public RoleTags Tags { get; set; }
 
 		public FakeRole(FakeGuild guild)
 		{
@@ -26,13 +27,13 @@ namespace Advobot.Tests.Fakes.Discord
 
 		public int CompareTo(IRole? other) => throw new NotImplementedException();
 
-		public Task DeleteAsync(RequestOptions options = null)
+		public Task DeleteAsync(RequestOptions? options = null)
 		{
 			_Guild.FakeRoles.Remove(this);
 			return Task.CompletedTask;
 		}
 
-		public Task ModifyAsync(Action<RoleProperties> func, RequestOptions options = null)
+		public Task ModifyAsync(Action<RoleProperties> func, RequestOptions? options = null)
 		{
 			var args = new RoleProperties();
 			func(args);

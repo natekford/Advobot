@@ -27,7 +27,7 @@ namespace Advobot.Gacha.ParameterPreconditions
 			object value,
 			IServiceProvider services)
 		{
-			if (!(value is IReadOnlyCharacter character))
+			if (value is not IReadOnlyCharacter character)
 			{
 				return this.FromOnlySupports(value, typeof(IReadOnlyCharacter));
 			}

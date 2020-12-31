@@ -22,7 +22,7 @@ namespace Advobot.Gacha.ParameterPreconditions
 			object value,
 			IServiceProvider services)
 		{
-			if (!(value is IReadOnlyUser user))
+			if (value is not IReadOnlyUser user)
 			{
 				return this.FromOnlySupports(value, typeof(IReadOnlyUser)).AsTask();
 			}

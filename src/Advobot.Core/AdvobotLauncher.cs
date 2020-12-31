@@ -155,7 +155,7 @@ namespace Advobot
 				MessageCacheSize = botSettings.MessageCacheSize,
 				LogLevel = botSettings.LogLevel,
 				ExclusiveBulkDelete = true,
-				AlwaysDownloadUsers = false,
+				AlwaysDownloadUsers = true,
 				GatewayIntents = ALL,
 			});
 			var httpClient = new HttpClient(new HttpClientHandler

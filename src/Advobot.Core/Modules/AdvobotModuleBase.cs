@@ -149,7 +149,13 @@ namespace Advobot.Modules
 		}
 
 		/// <inheritdoc />
-		protected override Task<IUserMessage> ReplyAsync(string? message = null, bool isTTS = false, Embed? embed = null, RequestOptions? options = null, AllowedMentions? mentions = null)
+		protected override Task<IUserMessage> ReplyAsync(
+			string? message = null,
+			bool isTTS = false,
+			Embed? embed = null,
+			RequestOptions? options = null,
+			AllowedMentions? mentions = null,
+			MessageReference? messageReference = null)
 		{
 			return Context.Channel.SendMessageAsync(new SendMessageArgs
 			{

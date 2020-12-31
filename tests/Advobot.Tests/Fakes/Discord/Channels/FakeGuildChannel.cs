@@ -21,19 +21,19 @@ namespace Advobot.Tests.Fakes.Discord.Channels
 			FakeGuild = guild;
 		}
 
-		public Task AddPermissionOverwriteAsync(IRole role, OverwritePermissions permissions, RequestOptions options = null)
+		public Task AddPermissionOverwriteAsync(IRole role, OverwritePermissions permissions, RequestOptions? options = null)
 		{
 			_Permissions[role.Id] = new Overwrite(role.Id, PermissionTarget.Role, permissions);
 			return Task.CompletedTask;
 		}
 
-		public Task AddPermissionOverwriteAsync(IUser user, OverwritePermissions permissions, RequestOptions options = null)
+		public Task AddPermissionOverwriteAsync(IUser user, OverwritePermissions permissions, RequestOptions? options = null)
 		{
 			_Permissions[user.Id] = new Overwrite(user.Id, PermissionTarget.User, permissions);
 			return Task.CompletedTask;
 		}
 
-		public Task DeleteAsync(RequestOptions options = null)
+		public Task DeleteAsync(RequestOptions? options = null)
 			=> throw new NotImplementedException();
 
 		public OverwritePermissions? GetPermissionOverwrite(IRole role)
@@ -54,13 +54,13 @@ namespace Advobot.Tests.Fakes.Discord.Channels
 			return Task.CompletedTask;
 		}
 
-		public Task RemovePermissionOverwriteAsync(IRole role, RequestOptions options = null)
+		public Task RemovePermissionOverwriteAsync(IRole role, RequestOptions? options = null)
 		{
 			_Permissions.Remove(role.Id);
 			return Task.CompletedTask;
 		}
 
-		public Task RemovePermissionOverwriteAsync(IUser user, RequestOptions options = null)
+		public Task RemovePermissionOverwriteAsync(IUser user, RequestOptions? options = null)
 		{
 			_Permissions.Remove(user.Id);
 			return Task.CompletedTask;

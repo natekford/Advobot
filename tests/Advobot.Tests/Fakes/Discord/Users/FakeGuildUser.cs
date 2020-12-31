@@ -17,6 +17,7 @@ namespace Advobot.Tests.Fakes.Discord.Users
 		public GuildPermissions GuildPermissions => new GuildPermissions(PermissionUtils.ResolveGuild(Guild, this));
 		public bool IsDeafened { get; set; }
 		public bool IsMuted { get; set; }
+		public bool? IsPending { get; set; }
 		public bool IsSelfDeafened => false;
 		public bool IsSelfMuted => false;
 		public bool IsStreaming { get; set; }
@@ -36,13 +37,13 @@ namespace Advobot.Tests.Fakes.Discord.Users
 			_RoleIds.Add(guild.FakeEveryoneRole.Id);
 		}
 
-		public Task AddRoleAsync(IRole role, RequestOptions options = null)
+		public Task AddRoleAsync(IRole role, RequestOptions? options = null)
 		{
 			_RoleIds.Add(role.Id);
 			return Task.CompletedTask;
 		}
 
-		public Task AddRolesAsync(IEnumerable<IRole> roles, RequestOptions options = null)
+		public Task AddRolesAsync(IEnumerable<IRole> roles, RequestOptions? options = null)
 		{
 			foreach (var role in roles)
 			{
@@ -54,21 +55,21 @@ namespace Advobot.Tests.Fakes.Discord.Users
 		public ChannelPermissions GetPermissions(IGuildChannel channel)
 			=> new ChannelPermissions(PermissionUtils.ResolveChannel(Guild, this, channel, GuildPermissions.RawValue));
 
-		public Task KickAsync(string reason = null, RequestOptions options = null)
+		public Task KickAsync(string? reason = null, RequestOptions? options = null)
 		{
 			Guild.FakeUsers.Remove(this);
 			return Task.CompletedTask;
 		}
 
-		public Task ModifyAsync(Action<GuildUserProperties> func, RequestOptions options = null) => throw new NotImplementedException();
+		public Task ModifyAsync(Action<GuildUserProperties> func, RequestOptions? options = null) => throw new NotImplementedException();
 
-		public Task RemoveRoleAsync(IRole role, RequestOptions options = null)
+		public Task RemoveRoleAsync(IRole role, RequestOptions? options = null)
 		{
 			_RoleIds.Remove(role.Id);
 			return Task.CompletedTask;
 		}
 
-		public Task RemoveRolesAsync(IEnumerable<IRole> roles, RequestOptions options = null)
+		public Task RemoveRolesAsync(IEnumerable<IRole> roles, RequestOptions? options = null)
 		{
 			_RoleIds.RemoveWhere(r => roles.Select(x => x.Id).Contains(r));
 			return Task.CompletedTask;

@@ -65,7 +65,7 @@ namespace Advobot.Gacha.Counters
 				_Timer.Change(_Interval, _Period);
 				return;
 			}
-			if (!(state is StrongBox<ulong> i))
+			if (state is not StrongBox<ulong> i)
 			{
 				throw new ArgumentException(nameof(state));
 			}

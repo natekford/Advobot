@@ -28,13 +28,13 @@ namespace Advobot.Tests.Fakes.Discord.Users
 			FakeUser = user;
 		}
 
-		public Task DeleteAsync(RequestOptions options = null)
+		public Task DeleteAsync(RequestOptions? options = null)
 			=> throw new NotImplementedException();
 
 		public string GetAvatarUrl(ImageFormat format = ImageFormat.Auto, ushort size = 128)
 			=> throw new NotImplementedException();
 
-		public Task ModifyAsync(Action<WebhookProperties> func, RequestOptions options = null)
+		public Task ModifyAsync(Action<WebhookProperties> func, RequestOptions? options = null)
 		{
 			var args = new WebhookProperties();
 			func(args);

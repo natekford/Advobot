@@ -15,9 +15,9 @@ namespace Advobot.UI.ValidationAttributes
 		/// <param name="value"></param>
 		/// <param name="validationContext"></param>
 		/// <returns></returns>
-		protected override ValidationResult IsValid(object value, ValidationContext validationContext)
+		protected override ValidationResult? IsValid(object? value, ValidationContext validationContext)
 		{
-			return !string.IsNullOrWhiteSpace((string)value)
+			return !string.IsNullOrWhiteSpace(value as string)
 				? ValidationResult.Success
 				: new ValidationResult("Invalid prefix.");
 		}

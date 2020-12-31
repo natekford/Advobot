@@ -124,16 +124,17 @@ namespace Advobot.UI.Colors
 		private static void LoadSyntaxHighlighting(string loc, string name, string[] extensions)
 		{
 			using var s = Assembly.GetExecutingAssembly().GetManifestResourceStream(loc);
+			if (s is null)
+			{
+				return;
+			}
 			using var r = new XmlTextReader(s);
 
 			var highlighting = HighlightingLoader.Load(r, HighlightingManager.Instance);
 			HighlightingManager.Inst‌​ance.RegisterHighlighting(name, extensions, highlighting);
 		}
 
-		private static FileInfo StaticGetFile(IBotDirectoryAccessor accessor)
-			=> accessor.GetBaseBotDirectoryFile("UISettings.json");
-
-		private void SetSyntaxHighlightingColors(params string[] names)
+		private static void SetSyntaxHighlightingColors(params string[] names)
 		{
 			foreach (var name in names)
 			{
@@ -157,7 +158,10 @@ namespace Advobot.UI.Colors
 			}
 		}
 
-		private void UpdateSyntaxHighlightingColor(string target, ISolidColorBrush value)
+		private static FileInfo StaticGetFile(IBotDirectoryAccessor accessor)
+			=> accessor.GetBaseBotDirectoryFile("UISettings.json");
+
+		private static void UpdateSyntaxHighlightingColor(string target, ISolidColorBrush value)
 		{
 			foreach (var highlighting in HighlightingManager.Instance.HighlightingDefinitions)
 			{

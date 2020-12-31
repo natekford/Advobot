@@ -11,9 +11,9 @@ namespace Advobot.AutoMod.Context
 
 		public static IAutoModMessageContext? CreateContext(this IMessage message)
 		{
-			if (!(message is IUserMessage userMessage)
-				|| !(userMessage.Author is IGuildUser user)
-				|| !(userMessage.Channel is ITextChannel channel))
+			if (message is not IUserMessage userMessage
+				|| userMessage.Author is not IGuildUser user
+				|| userMessage.Channel is not ITextChannel channel)
 			{
 				return null;
 			}

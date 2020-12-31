@@ -28,7 +28,7 @@ namespace Advobot.Gacha.Interaction
 
 		private Task HandleAsync(IMessage message)
 		{
-			if (!(message is IUserMessage msg)
+			if (message is not IUserMessage msg
 				|| !TryGetMenuAction(msg, out var action)
 				|| action == null)
 			{

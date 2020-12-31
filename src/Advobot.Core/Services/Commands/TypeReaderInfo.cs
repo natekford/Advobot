@@ -33,7 +33,7 @@ namespace Advobot.Services.Commands
 					continue;
 				}
 
-				if (!(Activator.CreateInstance(type) is TypeReader instance))
+				if (Activator.CreateInstance(type) is not TypeReader instance)
 				{
 					throw new InvalidCastException($"{type} is not a {nameof(TypeReader)}.");
 				}

@@ -35,7 +35,7 @@ namespace Advobot.AutoMod.Models
 
 		public ValueTask<bool> ShouldScanMessageAsync(IMessage message, TimeSpan ts)
 		{
-			if (!(message.Author is IGuildUser user))
+			if (message.Author is not IGuildUser user)
 			{
 				return new ValueTask<bool>(false);
 			}

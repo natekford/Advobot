@@ -35,12 +35,14 @@ namespace Advobot.Tests.Fakes.Discord
 		public int? MaxUses { get; set; }
 		public int? MemberCount => FakeGuild.FakeUsers.Count;
 		public int? PresenceCount => FakeGuild.FakeUsers.Count(x => x.Status == UserStatus.Online);
+		public TargetUserType TargetUserType { get; set; }
 		public string Url => $"https://discord.gg/{Id}";
 		public int? Uses { get; set; }
 		IChannel IInvite.Channel => FakeChannel;
 		public FakeGuild FakeGuild => FakeChannel.FakeGuild;
 		IGuild IInvite.Guild => FakeGuild;
-		IUser IInviteMetadata.Inviter => FakeInviter;
+		IUser IInvite.Inviter => FakeInviter;
+		IUser IInvite.TargetUser => throw new NotImplementedException();
 
 		public FakeInviteMetadata(FakeGuildChannel channel, FakeGuildUser inviter)
 		{
@@ -50,7 +52,7 @@ namespace Advobot.Tests.Fakes.Discord
 			Code = Id = GenerateRandomInviteLink();
 		}
 
-		public Task DeleteAsync(RequestOptions options = null)
+		public Task DeleteAsync(RequestOptions? options = null)
 		{
 			FakeGuild.FakeInvites.Remove(this);
 			return Task.CompletedTask;

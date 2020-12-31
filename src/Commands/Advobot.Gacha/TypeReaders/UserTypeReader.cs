@@ -45,7 +45,7 @@ namespace Advobot.Gacha.TypeReaders
 				return TypeReaderResult.FromError(CommandError.ObjectNotFound,
 					$"{user.Format()} does not have a profile.");
 			}
-			else if (!(user is IGuildUser guildUser))
+			else if (user is not IGuildUser guildUser)
 			{
 				return TypeReaderResult.FromError(CommandError.ObjectNotFound,
 					$"{user.Format()} is not in the guild.");

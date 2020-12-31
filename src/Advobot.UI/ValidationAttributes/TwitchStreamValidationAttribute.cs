@@ -17,7 +17,7 @@ namespace Advobot.UI.ValidationAttributes
 		/// <param name="value"></param>
 		/// <param name="validationContext"></param>
 		/// <returns></returns>
-		protected override ValidationResult IsValid(object value, ValidationContext validationContext)
+		protected override ValidationResult? IsValid(object? value, ValidationContext validationContext)
 		{
 			return RegexUtils.IsValidTwitchName(value?.ToString())
 				? ValidationResult.Success

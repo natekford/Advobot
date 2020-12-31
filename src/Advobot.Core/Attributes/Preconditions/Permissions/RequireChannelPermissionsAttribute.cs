@@ -26,7 +26,7 @@ namespace Advobot.Attributes.Preconditions.Permissions
 			IGuildUser user,
 			IServiceProvider services)
 		{
-			if (!(context.Channel is ITextChannel channel))
+			if (context.Channel is not ITextChannel channel)
 			{
 				return Task.FromResult<Enum?>(null);
 			}

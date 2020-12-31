@@ -24,7 +24,7 @@ namespace Advobot.Gacha.Preconditions
 			CommandInfo command,
 			IServiceProvider services)
 		{
-			if (!(context.User is IGuildUser user))
+			if (context.User is not IGuildUser user)
 			{
 				return this.FromInvalidInvoker().AsTask();
 			}

@@ -295,7 +295,7 @@ namespace Advobot.Standard.Responses
 				special.Add(GetsTitleDefaultChannel, (await guild.GetDefaultChannelAsync().CAF()).Format());
 				special.Add(GetsTitleAfkChannel, (await guild.GetAFKChannelAsync().CAF()).Format());
 				special.Add(GetsTitleSystemChannel, (await guild.GetSystemChannelAsync().CAF()).Format());
-				special.Add(GetsTitleEmbedChannel, (await guild.GetEmbedChannelAsync().CAF()).Format());
+				special.Add(GetsTitleEmbedChannel, (await guild.GetWidgetChannelAsync().CAF()).Format());
 				embed.TryAddField(GetsTitleChannelInfo, channelInfo.ToString(), false, out _);
 			}
 			{
@@ -420,7 +420,7 @@ namespace Advobot.Standard.Responses
 					ConnectionState.Disconnecting => Constants.DENIED,
 					ConnectionState.Connected => Constants.ALLOWED,
 					ConnectionState.Connecting => Constants.ALLOWED,
-					_ => throw new ArgumentOutOfRangeException(nameof(shard.ConnectionState)),
+					_ => Constants.UNKNOWN,
 				};
 				return $"Shard `{shard.ShardId}`: `{statusEmoji} ({shard.Latency}ms)`";
 			}, "\n");
@@ -465,7 +465,7 @@ namespace Advobot.Standard.Responses
 			};
 
 			//User is not from a guild so we can't get any more information about them
-			if (!(user is IGuildUser guildUser))
+			if (user is not IGuildUser guildUser)
 			{
 				return Success(embed);
 			}

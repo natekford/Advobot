@@ -43,7 +43,7 @@ namespace Advobot.CommandAssemblies
 					throw new ArgumentException("Must have a parameterless constructor.", nameof(InstantiatorType));
 				}
 
-				if (!(i is ICommandAssemblyInstantiator instantiator))
+				if (i is not ICommandAssemblyInstantiator instantiator)
 				{
 					throw new ArgumentException($"Must implement {nameof(ICommandAssemblyInstantiator)}.", nameof(InstantiatorType));
 				}

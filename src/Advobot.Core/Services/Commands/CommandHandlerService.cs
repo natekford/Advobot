@@ -224,8 +224,8 @@ namespace Advobot.Services.Commands
 				|| message.Author.IsBot
 				|| string.IsNullOrWhiteSpace(message.Content)
 				|| _BotSettings.UsersIgnoredFromCommands.Contains(message.Author.Id)
-				|| !(message is SocketUserMessage msg)
-				|| !(msg.Author is SocketGuildUser user))
+				|| message is not SocketUserMessage msg
+				|| msg.Author is not SocketGuildUser user)
 			{
 				return;
 			}

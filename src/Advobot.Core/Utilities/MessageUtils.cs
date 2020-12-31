@@ -1,8 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
-using System.Security.Cryptography.X509Certificates;
 using System.Threading.Tasks;
 
 using Advobot.Classes;
@@ -121,7 +119,7 @@ namespace Advobot.Utilities
 		/// <param name="channel"></param>
 		/// <param name="args"></param>
 		/// <returns></returns>
-		public static Task<IUserMessage> SendMessageAsync(
+		public static async Task<IUserMessage> SendMessageAsync(
 			this IMessageChannel channel,
 			SendMessageArgs args)
 		{
@@ -133,7 +131,7 @@ namespace Advobot.Utilities
 			{
 				if (args.AllowNullChannel)
 				{
-					return Task.FromResult<IUserMessage>(null!);
+					return null!;
 				}
 				throw new ArgumentNullException(nameof(channel));
 			}
@@ -181,7 +179,7 @@ namespace Advobot.Utilities
 					writer.Flush();
 					stream.Seek(0, SeekOrigin.Begin);
 
-					return channel.SendFileAsync(
+					return await channel.SendFileAsync(
 						stream,
 						args.File.Name,
 						args.Content,
@@ -190,27 +188,27 @@ namespace Advobot.Utilities
 						args.Options,
 						args.IsSpoiler,
 						args.AllowedMentions
-					);
+					).CAF();
 				}
 
-				return channel.SendMessageAsync(
+				return await channel.SendMessageAsync(
 					args.Content,
 					args.IsTTS,
 					built,
 					args.Options,
 					args.AllowedMentions
-				);
+				).CAF();
 			}
 			// If the message fails to send, then return the error
 			catch (Exception e)
 			{
-				return channel.SendMessageAsync(
+				return await channel.SendMessageAsync(
 					e.Message.Sanitize(),
 					false,
 					null,
 					args.Options,
 					args.AllowedMentions
-				);
+				).CAF();
 			}
 		}
 

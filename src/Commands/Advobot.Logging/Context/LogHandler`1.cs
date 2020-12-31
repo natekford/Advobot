@@ -80,7 +80,7 @@ namespace Advobot.Logging.Context
 		private async Task<LogContext?> CreateContextAsync(T state)
 		{
 			// Invalid state or state somehow doesn't have a guild
-			if (!state.IsValid || !(state.Guild is IGuild guild))
+			if (!state.IsValid || state.Guild is not IGuild guild)
 			{
 				return null;
 			}

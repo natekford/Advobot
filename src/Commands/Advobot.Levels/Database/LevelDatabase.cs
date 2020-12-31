@@ -79,7 +79,7 @@ namespace Advobot.Levels.Database
 		{
 			if (args.UserId == null)
 			{
-				throw new ArgumentNullException(nameof(args.UserId));
+				throw new ArgumentException("UserId cannot be null", nameof(args));
 			}
 
 			using var connection = await GetConnectionAsync().CAF();

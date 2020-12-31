@@ -23,7 +23,7 @@ namespace Advobot.Tests.Fakes.Discord.Channels
 		public Task<IAudioClient> ConnectAsync(bool selfDeaf = false, bool selfMute = false, bool external = false)
 			=> throw new NotImplementedException();
 
-		public Task<IInviteMetadata> CreateInviteAsync(int? maxAge = 86400, int? maxUses = null, bool isTemporary = false, bool isUnique = false, RequestOptions options = null)
+		public Task<IInviteMetadata> CreateInviteAsync(int? maxAge = 86400, int? maxUses = null, bool isTemporary = false, bool isUnique = false, RequestOptions? options = null)
 		{
 			var invite = new FakeInviteMetadata(this, FakeGuild.FakeCurrentUser)
 			{
@@ -37,19 +37,19 @@ namespace Advobot.Tests.Fakes.Discord.Channels
 		public Task DisconnectAsync()
 			=> throw new NotImplementedException();
 
-		public Task<ICategoryChannel?> GetCategoryAsync(CacheMode mode = CacheMode.AllowDownload, RequestOptions options = null)
+		public Task<ICategoryChannel?> GetCategoryAsync(CacheMode mode = CacheMode.AllowDownload, RequestOptions? options = null)
 		{
 			var match = FakeGuild.FakeChannels.SingleOrDefault(x => x.Id == CategoryId);
 			return Task.FromResult(match as ICategoryChannel);
 		}
 
-		public Task<IReadOnlyCollection<IInviteMetadata>> GetInvitesAsync(RequestOptions options = null)
+		public Task<IReadOnlyCollection<IInviteMetadata>> GetInvitesAsync(RequestOptions? options = null)
 		{
 			var matches = FakeGuild.FakeInvites.Where(x => x.ChannelId == Id).ToArray();
 			return Task.FromResult<IReadOnlyCollection<IInviteMetadata>>(matches);
 		}
 
-		public Task ModifyAsync(Action<VoiceChannelProperties> func, RequestOptions options = null)
+		public Task ModifyAsync(Action<VoiceChannelProperties> func, RequestOptions? options = null)
 		{
 			ModifyAsync((Action<GuildChannelProperties>)func);
 
@@ -62,7 +62,7 @@ namespace Advobot.Tests.Fakes.Discord.Channels
 			return Task.CompletedTask;
 		}
 
-		public async Task SyncPermissionsAsync(RequestOptions options = null)
+		public async Task SyncPermissionsAsync(RequestOptions? options = null)
 		{
 			var category = await GetCategoryAsync().CAF();
 			if (category == null)

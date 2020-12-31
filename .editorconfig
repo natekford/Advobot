@@ -1,0 +1,7 @@
+﻿[*.cs]
+
+# RCS1197: Optimize StringBuilder.Append/AppendLine call.
+dotnet_diagnostic.RCS1197.severity = none
+
+# CA1822: Mark members as static
+dotnet_diagnostic.CA1822.severity = none

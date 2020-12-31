@@ -35,7 +35,7 @@ namespace Advobot.UI.AbstractUI.Converters
 		/// <returns></returns>
 		public object Convert(object value, Type _, object _2, CultureInfo _3)
 		{
-			if (!(value is double dVal))
+			if (value is not double dVal)
 			{
 				throw new InvalidOperationException("Unable to resize font if the passed in value is not a double.");
 			}

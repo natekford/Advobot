@@ -16,6 +16,7 @@
     <ProjectReference Include="..\..\src\Advobot.Core\Advobot.Core.csproj" />
     <ProjectReference Include="..\..\src\Advobot.SQLite\Advobot.SQLite.csproj" />
     <ProjectReference Include="..\..\src\Commands\Advobot.AllCommands\Advobot.AllCommands.csproj" />
+    <ProjectReference Include="..\..\src\Commands\Advobot.MyCommands\Advobot.MyCommands.csproj" />
   </ItemGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">

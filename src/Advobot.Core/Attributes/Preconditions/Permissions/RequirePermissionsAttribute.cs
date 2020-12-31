@@ -72,7 +72,7 @@ namespace Advobot.Attributes.Preconditions.Permissions
 
 			if (AppliesToInvoker)
 			{
-				if (!(context.User is IGuildUser user))
+				if (context.User is not IGuildUser user)
 				{
 					return this.FromInvalidInvoker();
 				}

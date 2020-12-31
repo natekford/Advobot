@@ -93,7 +93,7 @@ namespace Advobot.Levels.Service
 			var hashes = info.Messages;
 			var spamFactor = rng.Next(0, 2) != 0
 				? 1 - Math.Min((hashes.Count - hashes.Select(x => x.Hash).Distinct().Count()) * .1, .3)
-				: 1 - Math.Min((hashes.Count(x => x.Hash == hashes.Last().Hash) - 1) * .1, .6);
+				: 1 - Math.Min((hashes.Count(x => x.Hash == hashes[hashes.Count - 1].Hash) - 1) * .1, .6);
 			return (int)Math.Round(xp * lengthFactor * attachmentFactor * spamFactor);
 		}
 
@@ -236,11 +236,11 @@ namespace Advobot.Levels.Service
 				ILevelDatabase db,
 				IMessage message)
 			{
-				if (!(message is IUserMessage msg)
+				if (message is not IUserMessage msg
 					|| msg.Author.IsBot || msg.Author.IsWebhook
-					|| !(msg.Channel is ITextChannel channel)
-					|| !(channel.Guild is IGuild guild)
-					|| !(msg.Author is IGuildUser user))
+					|| msg.Channel is not ITextChannel channel
+					|| channel.Guild is not IGuild guild
+					|| msg.Author is not IGuildUser user)
 				{
 					return null;
 				}

@@ -39,7 +39,7 @@ namespace Advobot.Settings.Service
 
 			// If we can't get an id, return success since the command isn't designed to work with this
 			var attributes = command.Module.Attributes;
-			if (!(attributes.SingleOrDefault(x => x is MetaAttribute) is MetaAttribute meta))
+			if (attributes.SingleOrDefault(x => x is MetaAttribute) is not MetaAttribute meta)
 			{
 				return PreconditionResult.FromSuccess();
 			}

@@ -22,6 +22,7 @@ namespace Advobot.Tests.Fakes.Discord
 		public IReadOnlyCollection<IEmbed> Embeds => throw new NotImplementedException();
 		public FakeUser FakeAuthor { get; }
 		public FakeMessageChannel FakeChannel { get; }
+		public MessageFlags? Flags { get; set; }
 		public bool IsPinned => throw new NotImplementedException();
 		public bool IsSuppressed => throw new NotImplementedException();
 		public bool IsTTS => throw new NotImplementedException();
@@ -36,7 +37,6 @@ namespace Advobot.Tests.Fakes.Discord
 		public DateTimeOffset Timestamp => CreatedAt;
 		public MessageType Type => throw new NotImplementedException();
 		IUser IMessage.Author => FakeAuthor;
-
 		IMessageChannel IMessage.Channel => FakeChannel;
 
 		public FakeMessage(FakeMessageChannel channel, FakeUser author, string content)
@@ -46,25 +46,25 @@ namespace Advobot.Tests.Fakes.Discord
 			Content = content;
 		}
 
-		public Task AddReactionAsync(IEmote emote, RequestOptions options = null)
+		public Task AddReactionAsync(IEmote emote, RequestOptions? options = null)
 			=> throw new NotImplementedException();
 
-		public Task DeleteAsync(RequestOptions options = null)
+		public Task DeleteAsync(RequestOptions? options = null)
 			=> throw new NotImplementedException();
 
-		public IAsyncEnumerable<IReadOnlyCollection<IUser>> GetReactionUsersAsync(IEmote emoji, int limit, RequestOptions options = null)
+		public IAsyncEnumerable<IReadOnlyCollection<IUser>> GetReactionUsersAsync(IEmote emoji, int limit, RequestOptions? options = null)
 			=> throw new NotImplementedException();
 
-		public Task RemoveAllReactionsAsync(RequestOptions options = null)
+		public Task RemoveAllReactionsAsync(RequestOptions? options = null)
 			=> throw new NotImplementedException();
 
-		public Task RemoveAllReactionsForEmoteAsync(IEmote emote, RequestOptions options = null)
+		public Task RemoveAllReactionsForEmoteAsync(IEmote emote, RequestOptions? options = null)
 			=> throw new NotImplementedException();
 
-		public Task RemoveReactionAsync(IEmote emote, IUser user, RequestOptions options = null)
+		public Task RemoveReactionAsync(IEmote emote, IUser user, RequestOptions? options = null)
 					=> throw new NotImplementedException();
 
-		public Task RemoveReactionAsync(IEmote emote, ulong userId, RequestOptions options = null)
+		public Task RemoveReactionAsync(IEmote emote, ulong userId, RequestOptions? options = null)
 			=> throw new NotImplementedException();
 	}
 }

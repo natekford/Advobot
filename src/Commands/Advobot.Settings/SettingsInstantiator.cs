@@ -23,7 +23,8 @@ namespace Advobot.Settings
 			{
 				return x.ServiceType == typeof(IGuildSettingsProvider)
 					&& x.ImplementationType != null
-					&& x.ImplementationType.GetCustomAttributes(typeof(ReplacableAttribute), false).Length != 0;
+					&& x.ImplementationType
+						.GetCustomAttributes(typeof(ReplacableAttribute), false).Length != 0;
 			});
 
 			services

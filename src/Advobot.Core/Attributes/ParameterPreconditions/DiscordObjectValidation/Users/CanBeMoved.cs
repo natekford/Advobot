@@ -31,7 +31,7 @@ namespace Advobot.Attributes.ParameterPreconditions.DiscordObjectValidation.User
 			IGuildUser user,
 			IServiceProvider services)
 		{
-			if (!(user.VoiceChannel is IVoiceChannel voiceChannel))
+			if (user.VoiceChannel is not IVoiceChannel voiceChannel)
 			{
 				return PreconditionResult.FromError("The user is not in a voice channel.").AsTask();
 			}

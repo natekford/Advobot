@@ -39,6 +39,10 @@ namespace Advobot
 		/// </summary>
 		public const string REPO = "https://github.com/advorange/Advobot";
 		/// <summary>
+		/// The emoji to use for something unknown. ❔
+		/// </summary>
+		public const string UNKNOWN = "\u2754";
+		/// <summary>
 		/// The zero length character to put before every message.
 		/// </summary>
 		public const string ZERO_WIDTH_SPACE = "\u200b";
