@@ -1,11 +1,4 @@
-﻿using System.Threading.Tasks;
-
-using Advobot.Attributes;
-using Advobot.Attributes.Preconditions;
-using Advobot.Localization;
-using Advobot.Modules;
-using Advobot.Resources;
-using Advobot.Services.BotSettings;
+﻿using Advobot.Attributes;
 
 using Discord.Commands;
 
@@ -14,38 +7,6 @@ namespace Advobot.Settings.Commands
 	[Category(nameof(BotSettings))]
 	public sealed class BotSettings : ModuleBase
 	{
-		[LocalizedGroup(nameof(Groups.ShowBotSettings))]
-		[LocalizedAlias(nameof(Aliases.ShowBotSettings))]
-		[LocalizedSummary(nameof(Summaries.ShowBotSettings))]
-		[Meta("3a3a0bad-2124-4a4f-bbc8-60b1f684c2f7", IsEnabled = true)]
-		[RequireBotOwner]
-		public sealed class ShowBotSettings : ReadOnlySettingsModule<IBotSettings>
-		{
-			protected override IBotSettings Settings => BotSettings;
-
-			[LocalizedCommand(nameof(Groups.All))]
-			[LocalizedAlias(nameof(Aliases.All))]
-			[Priority(1)]
-			public Task<RuntimeResult> All()
-				=> Responses.GuildSettings.DisplaySettings(Context.Client, Context.Guild, Settings);
-
-			[Command]
-			public Task<RuntimeResult> Command([Remainder] string name)
-				=> Responses.GuildSettings.DisplaySetting(Context.Client, Context.Guild, Settings, name);
-
-			[LocalizedCommand(nameof(Groups.Json))]
-			[LocalizedAlias(nameof(Aliases.Json))]
-			[Priority(1)]
-			public Task<RuntimeResult> Json()
-				=> Responses.GuildSettings.DisplayJson(Settings);
-
-			[LocalizedCommand(nameof(Groups.Names))]
-			[LocalizedAlias(nameof(Aliases.Names))]
-			[Priority(1)]
-			public Task<RuntimeResult> Names()
-				=> Responses.GuildSettings.DisplayNames(Settings);
-		}
-
 #warning reenable
 		/*
 		[LocalizedGroup(nameof(Groups.ModifyPrefix))][LocalizedAlias(nameof(Aliases.ModifyPrefix))]

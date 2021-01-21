@@ -143,7 +143,7 @@ namespace Advobot
 				| GatewayIntents.GuildVoiceStates
 				| GatewayIntents.GuildWebhooks;
 
-			var botSettings = BotSettings.CreateOrLoad(config);
+			var botSettings = NaiveBotSettings.CreateOrLoad(config);
 			var commandConfig = new CommandServiceConfig
 			{
 				CaseSensitiveCommands = false,

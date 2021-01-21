@@ -9,7 +9,7 @@ namespace Advobot.Services.BotSettings
 	/// <summary>
 	/// Holds bot settings.
 	/// </summary>
-	public interface IBotSettings : ISettingsBase, IRestartArgumentProvider, IBotDirectoryAccessor
+	public interface IBotSettings : ISavable, IRestartArgumentProvider, IBotDirectoryAccessor
 	{
 		/// <summary>
 		/// Whether or not to always download users when joining a guild.
@@ -82,10 +82,10 @@ namespace Advobot.Services.BotSettings
 		/// <summary>
 		/// Users who are ignored from being able to use commands.
 		/// </summary>
-		IList<ulong> UsersIgnoredFromCommands { get; }
+		IList<ulong> UsersIgnoredFromCommands { get; set; }
 		/// <summary>
 		/// Users who are not allowed to dm the owner through the bot.
 		/// </summary>
-		IList<ulong> UsersUnableToDmOwner { get; }
+		IList<ulong> UsersUnableToDmOwner { get; set; }
 	}
 }
