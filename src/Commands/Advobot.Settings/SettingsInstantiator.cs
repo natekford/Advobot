@@ -8,10 +8,7 @@ using Advobot.Settings.Database;
 using Advobot.Settings.Service;
 using Advobot.SQLite;
 
-using AdvorangesUtils;
-
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.DependencyInjection.Extensions;
 
 namespace Advobot.Settings
 {
@@ -19,19 +16,11 @@ namespace Advobot.Settings
 	{
 		public Task AddServicesAsync(IServiceCollection services)
 		{
-			services.RemoveAll(x =>
-			{
-				return x.ServiceType == typeof(IGuildSettingsProvider)
-					&& x.ImplementationType != null
-					&& x.ImplementationType
-						.GetCustomAttributes(typeof(ReplacableAttribute), false).Length != 0;
-			});
-
 			services
 				.AddSingleton<ISettingsDatabase, SettingsDatabase>()
 				.AddSQLiteFileDatabaseConnectionStringFor<SettingsDatabase>("GuildSettings.db")
 				.AddSingleton<ICommandValidator, CommandValidator>()
-				.AddSingleton<IGuildSettingsProvider, GuildSettingsProvider>();
+				.ReplaceWithSingleton<IGuildSettingsProvider, GuildSettingsProvider>();
 
 			return Task.CompletedTask;
 		}

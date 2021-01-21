@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.IO;
 
-using Advobot.Formatting;
 using Advobot.Services.BotSettings;
 
 using Discord;

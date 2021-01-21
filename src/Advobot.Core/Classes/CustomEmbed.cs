@@ -1,9 +1,4 @@
-﻿using System.Collections.Generic;
-
-using Advobot.Formatting;
-using Advobot.TypeReaders;
-
-using AdvorangesUtils;
+﻿using Advobot.TypeReaders;
 
 using Discord;
 using Discord.Commands;
