@@ -14,7 +14,7 @@ namespace Advobot.Classes
 	/// Allows a user to make an embed.
 	/// </summary>
 	[NamedArgumentType]
-	public sealed class CustomEmbed : IGuildFormattable
+	public sealed class CustomEmbed
 	{
 		/// <summary>
 		/// The author's picture.
@@ -92,35 +92,6 @@ namespace Advobot.Classes
 				embed.TryAddField(field.Name, field.Text, field.Inline, out _);
 			}*/
 			return embed;
-		}
-
-		/// <inheritdoc />
-		public IDiscordFormattableString GetFormattableString()
-		{
-			var dict = new Dictionary<string, object?>
-			{
-				{ nameof(Title), Title },
-				{ nameof(Description), Description },
-				{ nameof(ImageUrl), ImageUrl },
-				{ nameof(Url), Url },
-				{ nameof(ThumbUrl), ThumbUrl },
-				{ nameof(AuthorName), AuthorName },
-				{ nameof(AuthorIconUrl), AuthorIconUrl },
-				{ nameof(AuthorUrl), AuthorUrl },
-				{ nameof(Footer), Footer },
-				{ nameof(FooterIconUrl), FooterIconUrl },
-			};
-			dict.RemoveAll(x => x.Value == null);
-			/*
-			for (var i = 0; i < FieldInfo.Count; ++i)
-			{
-				var field = FieldInfo[i];
-				if (field != null)
-				{
-					dict.Add($"Field {i}", field);
-				}
-			}*/
-			return dict.ToDiscordFormattableStringCollection();
 		}
 	}
 }

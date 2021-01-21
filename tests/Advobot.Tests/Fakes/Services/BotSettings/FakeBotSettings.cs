@@ -33,12 +33,6 @@ namespace Advobot.Tests.Fakes.Services.BotSettings
 		public IList<ulong> UsersIgnoredFromCommands { get; set; } = new List<ulong>();
 		public IList<ulong> UsersUnableToDmOwner { get; set; } = new List<ulong>();
 
-		public IDiscordFormattableString Format() => throw new NotImplementedException();
-
-		public IDiscordFormattableString FormatSetting(string name) => throw new NotImplementedException();
-
-		public IDiscordFormattableString FormatValue(object? value) => throw new NotImplementedException();
-
 		public IReadOnlyCollection<string> GetSettingNames() => throw new NotImplementedException();
 
 		public void ResetSetting(string name) => throw new NotImplementedException();
