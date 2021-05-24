@@ -126,6 +126,7 @@ namespace Advobot
 			CommandAssemblyCollection assemblies,
 			IConfig config)
 		{
+			// TODO: Change to GatewayIntents.All when added
 			const GatewayIntents ALL = 0
 				| GatewayIntents.DirectMessageReactions
 				| GatewayIntents.DirectMessages

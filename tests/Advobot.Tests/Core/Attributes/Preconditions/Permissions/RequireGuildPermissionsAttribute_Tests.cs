@@ -45,7 +45,7 @@ namespace Advobot.Tests.Core.Attributes.Preconditions.Permissions
 		[DataRow(GuildPermission.ManageRoles)]
 		[DataRow(GuildPermission.KickMembers | GuildPermission.ManageMessages)]
 		[DataTestMethod]
-		public async Task InvalidPermissions_Test(GuildPermission permission)
+		public async Task InvalidPermissions_Test(long permission)
 		{
 			var val = (ulong)permission;
 			var role = new FakeRole(Context.Guild)
@@ -66,7 +66,7 @@ namespace Advobot.Tests.Core.Attributes.Preconditions.Permissions
 		[DataRow(FLAGS1 | GuildPermission.ManageEmojis)]
 		[DataRow(FLAGS1 | FLAGS2 | FLAGS3)]
 		[DataTestMethod]
-		public async Task ValidPermissions_Test(GuildPermission permission)
+		public async Task ValidPermissions_Test(long permission)
 		{
 			var val = (ulong)permission;
 			var role = new FakeRole(Context.Guild)

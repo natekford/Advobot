@@ -43,6 +43,8 @@ namespace Advobot.Tests.Fakes.Discord.Users
 			return Task.CompletedTask;
 		}
 
+		public Task AddRoleAsync(ulong roleId, RequestOptions? options = null) => throw new NotImplementedException();
+
 		public Task AddRolesAsync(IEnumerable<IRole> roles, RequestOptions? options = null)
 		{
 			foreach (var role in roles)
@@ -52,8 +54,10 @@ namespace Advobot.Tests.Fakes.Discord.Users
 			return Task.CompletedTask;
 		}
 
+		public Task AddRolesAsync(IEnumerable<ulong> roleIds, RequestOptions? options = null) => throw new NotImplementedException();
+
 		public ChannelPermissions GetPermissions(IGuildChannel channel)
-			=> new ChannelPermissions(PermissionUtils.ResolveChannel(Guild, this, channel, GuildPermissions.RawValue));
+					=> new ChannelPermissions(PermissionUtils.ResolveChannel(Guild, this, channel, GuildPermissions.RawValue));
 
 		public Task KickAsync(string? reason = null, RequestOptions? options = null)
 		{
@@ -69,10 +73,14 @@ namespace Advobot.Tests.Fakes.Discord.Users
 			return Task.CompletedTask;
 		}
 
+		public Task RemoveRoleAsync(ulong roleId, RequestOptions? options = null) => throw new NotImplementedException();
+
 		public Task RemoveRolesAsync(IEnumerable<IRole> roles, RequestOptions? options = null)
 		{
 			_RoleIds.RemoveWhere(r => roles.Select(x => x.Id).Contains(r));
 			return Task.CompletedTask;
 		}
+
+		public Task RemoveRolesAsync(IEnumerable<ulong> roleIds, RequestOptions? options = null) => throw new NotImplementedException();
 	}
 }

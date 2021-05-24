@@ -218,6 +218,9 @@ namespace Advobot.Tests.Fakes.Discord
 
 		public Task<GuildEmote> GetEmoteAsync(ulong id, RequestOptions? options = null) => throw new NotImplementedException();
 
+		public Task<IReadOnlyCollection<GuildEmote>> GetEmotesAsync(RequestOptions? options = null)
+			=> Task.FromResult<IReadOnlyCollection<GuildEmote>>(Emotes);
+
 		public Task<IReadOnlyCollection<IGuildIntegration>> GetIntegrationsAsync(RequestOptions? options = null) => throw new NotImplementedException();
 
 		public Task<IReadOnlyCollection<IInviteMetadata>> GetInvitesAsync(RequestOptions? options = null)
@@ -229,7 +232,7 @@ namespace Advobot.Tests.Fakes.Discord
 		public Task<ITextChannel> GetPublicUpdatesChannelAsync(CacheMode mode = CacheMode.AllowDownload, RequestOptions? options = null) => throw new NotImplementedException();
 
 		public IRole? GetRole(ulong id)
-					=> FakeRoles.SingleOrDefault(x => x.Id == id);
+			=> FakeRoles.SingleOrDefault(x => x.Id == id);
 
 		public Task<ITextChannel> GetRulesChannelAsync(CacheMode mode = CacheMode.AllowDownload, RequestOptions? options = null) => throw new NotImplementedException();
 

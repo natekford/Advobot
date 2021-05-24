@@ -33,6 +33,7 @@ namespace Advobot.Tests.Fakes.Discord
 		public IReadOnlyDictionary<IEmote, ReactionMetadata> Reactions => throw new NotImplementedException();
 		public MessageReference Reference => throw new NotImplementedException();
 		public MessageSource Source => throw new NotImplementedException();
+		public IReadOnlyCollection<ISticker> Stickers => throw new NotImplementedException();
 		public IReadOnlyCollection<ITag> Tags => throw new NotImplementedException();
 		public DateTimeOffset Timestamp => CreatedAt;
 		public MessageType Type => throw new NotImplementedException();

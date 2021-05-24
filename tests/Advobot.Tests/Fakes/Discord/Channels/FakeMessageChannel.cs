@@ -33,6 +33,8 @@ namespace Advobot.Tests.Fakes.Discord.Channels
 		public Task<IReadOnlyCollection<IMessage>> GetPinnedMessagesAsync(RequestOptions? options = null)
 			=> throw new NotImplementedException();
 
+		public Task<IUserMessage> ModifyMessageAsync(ulong messageId, Action<MessageProperties> func, RequestOptions? options = null) => throw new NotImplementedException();
+
 		public Task<IUserMessage> SendFileAsync(string filePath, string? text = null, bool isTTS = false, Embed? embed = null, RequestOptions? options = null, bool isSpoiler = false, AllowedMentions? allowedMentions = null, MessageReference? messageReference = null)
 			=> throw new NotImplementedException();
 

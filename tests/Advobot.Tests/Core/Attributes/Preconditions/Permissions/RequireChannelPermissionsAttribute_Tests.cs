@@ -42,7 +42,7 @@ namespace Advobot.Tests.Core.Attributes.Preconditions.Permissions
 		[DataRow(ChannelPermission.ManageRoles)]
 		[DataRow(ChannelPermission.AttachFiles | ChannelPermission.ManageChannels)]
 		[DataTestMethod]
-		public async Task InvalidPermissions_Test(ChannelPermission permission)
+		public async Task InvalidPermissions_Test(long permission)
 		{
 			var val = (ulong)permission;
 			var permissions = new OverwritePermissions(allowValue: val, denyValue: 0);
@@ -59,7 +59,7 @@ namespace Advobot.Tests.Core.Attributes.Preconditions.Permissions
 		[DataRow(FLAGS0 | FLAGS1 | ChannelPermission.ManageWebhooks)]
 		[DataRow(FLAGS0 | FLAGS1 | FLAGS2 | FLAGS3)]
 		[DataTestMethod]
-		public async Task ValidPermissionsButChannelDenied_Test(ChannelPermission permission)
+		public async Task ValidPermissionsButChannelDenied_Test(long permission)
 		{
 			var val = (ulong)permission;
 			var permissions = new OverwritePermissions(allowValue: 0, denyValue: val);
@@ -83,7 +83,7 @@ namespace Advobot.Tests.Core.Attributes.Preconditions.Permissions
 		[DataRow(FLAGS0 | FLAGS1 | ChannelPermission.ManageWebhooks)]
 		[DataRow(FLAGS0 | FLAGS1 | FLAGS2 | FLAGS3)]
 		[DataTestMethod]
-		public async Task ValidPermissionsByChannel_Test(ChannelPermission permission)
+		public async Task ValidPermissionsByChannel_Test(long permission)
 		{
 			var val = (ulong)permission;
 			var permissions = new OverwritePermissions(allowValue: val, denyValue: 0);
@@ -100,7 +100,7 @@ namespace Advobot.Tests.Core.Attributes.Preconditions.Permissions
 		[DataRow(FLAGS0 | FLAGS1 | ChannelPermission.ManageWebhooks)]
 		[DataRow(FLAGS0 | FLAGS1 | FLAGS2 | FLAGS3)]
 		[DataTestMethod]
-		public async Task ValidPermissionsByGuild_Test(ChannelPermission permission)
+		public async Task ValidPermissionsByGuild_Test(long permission)
 		{
 			var val = (ulong)permission;
 			var role = new FakeRole(Context.Guild)

@@ -264,7 +264,7 @@ namespace Advobot.Services.Commands
 			var activityType = ActivityType.Playing;
 			if (!string.IsNullOrWhiteSpace(stream))
 			{
-				stream = $"https://www.twitch.tv/{stream.Substring(stream.LastIndexOf('/') + 1)}";
+				stream = $"https://www.twitch.tv/{stream[(stream.LastIndexOf('/') + 1)..]}";
 				activityType = ActivityType.Streaming;
 			}
 			await _Client.SetGameAsync(game, stream, activityType).CAF();
