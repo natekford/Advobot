@@ -12,10 +12,8 @@ namespace Advobot.Tests.Commands.AutoMod
 {
 	public sealed class FakeAutoModDatabase : IAutoModDatabase
 	{
-		private readonly ConcurrentDictionary<(ulong GuildId, string Phrase), IReadOnlyBannedPhrase> _BannedPhrases
-			= new ConcurrentDictionary<(ulong, string), IReadOnlyBannedPhrase>();
-		private readonly ConcurrentDictionary<ulong, IReadOnlySelfRole> _SelfRoles
-			= new ConcurrentDictionary<ulong, IReadOnlySelfRole>();
+		private readonly ConcurrentDictionary<(ulong GuildId, string Phrase), IReadOnlyBannedPhrase> _BannedPhrases = new();
+		private readonly ConcurrentDictionary<ulong, IReadOnlySelfRole> _SelfRoles = new();
 
 		public Task<int> AddPersistentRoleAsync(IReadOnlyPersistentRole role) => throw new NotImplementedException();
 
@@ -86,7 +84,7 @@ namespace Advobot.Tests.Commands.AutoMod
 
 		public Task<IReadOnlySelfRole?> GetSelfRoleAsync(ulong roleId)
 		{
-			var result = _SelfRoles.TryGetValue(roleId, out var item);
+			_ = _SelfRoles.TryGetValue(roleId, out var item);
 			return Task.FromResult(item);
 		}
 

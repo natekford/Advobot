@@ -19,7 +19,7 @@ namespace Advobot.Tests.Core.TypeReaders
 	[TestClass]
 	public sealed class CloseHelpEntryTypeReader_Tests : TypeReaderTestsBase
 	{
-		private readonly HelpEntryService _HelpEntries = new HelpEntryService();
+		private readonly HelpEntryService _HelpEntries = new();
 		protected override TypeReader Instance { get; } = new CloseHelpEntryTypeReader();
 
 		[TestMethod]

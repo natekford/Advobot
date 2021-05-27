@@ -38,8 +38,7 @@ namespace Advobot.Attributes.Preconditions
 	public sealed class RateLimitAttribute
 		: PreconditionAttribute, IPrecondition
 	{
-		private static readonly ConcurrentDictionary<(ulong, ulong), DateTimeOffset> _Times
-			= new ConcurrentDictionary<(ulong, ulong), DateTimeOffset>();
+		private static readonly ConcurrentDictionary<(ulong, ulong), DateTimeOffset> _Times = new();
 
 		/// <inheritdoc />
 		public string Summary

@@ -22,7 +22,7 @@ namespace Advobot.Logging.Service
 	{
 		private readonly BaseSocketClient _Client;
 		private readonly ConcurrentDictionary<ulong, InviteCache> _Invites =
-			new ConcurrentDictionary<ulong, InviteCache>();
+			new();
 		private readonly ITime _Time;
 
 		#region Handlers

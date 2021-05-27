@@ -17,13 +17,13 @@ namespace Advobot.UI.AbstractUI.Colors
 		where TBrushFactory : BrushFactory<TBrush>, new()
 	{
 		[JsonProperty("Brushes")]
-		private readonly Dictionary<string, string> _Brushes = new Dictionary<string, string>();
+		private readonly Dictionary<string, string> _Brushes = new();
 
 		[JsonIgnore]
-		private readonly TBrushFactory _BrushFactory = new TBrushFactory();
+		private readonly TBrushFactory _BrushFactory = new();
 
 		[JsonIgnore]
-		private readonly Dictionary<string, TBrush> _RuntimeBrushes = new Dictionary<string, TBrush>();
+		private readonly Dictionary<string, TBrush> _RuntimeBrushes = new();
 
 		[JsonIgnore]
 		private bool _Frozen;

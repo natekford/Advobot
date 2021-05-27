@@ -4,9 +4,7 @@ namespace Advobot.Gacha.Counters
 {
 	public sealed class Counter : ICounter<ulong>
 	{
-		private readonly ConcurrentDictionary<ulong, int> _AmountLeft
-			= new ConcurrentDictionary<ulong, int>();
-
+		private readonly ConcurrentDictionary<ulong, int> _AmountLeft = new();
 		private readonly int _DefaultAmount;
 
 		public Counter(int defaultAmount)

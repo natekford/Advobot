@@ -18,9 +18,7 @@ namespace Advobot.Gacha.Trading
 	public sealed class ExchangeManager
 	{
 		private readonly IGachaDatabase _Db;
-
-		private readonly ConcurrentDictionary<(ulong, ulong), Exchange> _Dictionary
-			= new ConcurrentDictionary<(ulong, ulong), Exchange>();
+		private readonly ConcurrentDictionary<(ulong, ulong), Exchange> _Dictionary = new();
 
 		public ExchangeManager(IGachaDatabase db)
 		{

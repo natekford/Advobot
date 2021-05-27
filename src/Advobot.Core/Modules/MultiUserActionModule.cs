@@ -19,8 +19,7 @@ namespace Advobot.Modules
 	/// </summary>
 	public abstract class MultiUserActionModule : AdvobotModuleBase
 	{
-		private static readonly ConcurrentDictionary<ulong, CancellationTokenSource> _CancelTokens
-			= new ConcurrentDictionary<ulong, CancellationTokenSource>();
+		private static readonly ConcurrentDictionary<ulong, CancellationTokenSource> _CancelTokens = new();
 
 		/// <summary>
 		/// Logs progress when a user is modified.
@@ -108,22 +107,18 @@ namespace Advobot.Modules
 			/// The amount of users left to modify.
 			/// </summary>
 			public int AmountLeft => TotalUsers - CurrentProgress;
-
 			/// <summary>
 			/// The amount of users this has already modified.
 			/// </summary>
 			public int CurrentProgress { get; }
-
 			/// <summary>
 			/// Whether this is the end of the multi user action.
 			/// </summary>
 			public bool IsEnd => CurrentProgress == TotalUsers;
-
 			/// <summary>
 			/// Whether this is the start of the multi user action.
 			/// </summary>
 			public bool IsStart => CurrentProgress == 0;
-
 			/// <summary>
 			/// The total amount of users this is currently targetting.
 			/// </summary>

@@ -171,11 +171,8 @@ namespace Advobot.Standard.Commands
 		[RequireGuildPermissions(GuildPermission.ManageWebhooks)]
 		public sealed class SpeakThroughWebhook : AdvobotModuleBase
 		{
-			private static readonly ConcurrentDictionary<ulong, DiscordWebhookClient> _Clients
-				= new ConcurrentDictionary<ulong, DiscordWebhookClient>();
-
-			private static readonly ConcurrentDictionary<ulong, ulong> _GuildsToWebhooks
-				= new ConcurrentDictionary<ulong, ulong>();
+			private static readonly ConcurrentDictionary<ulong, DiscordWebhookClient> _Clients = new();
+			private static readonly ConcurrentDictionary<ulong, ulong> _GuildsToWebhooks = new();
 
 			[Command(RunMode = RunMode.Async)]
 			public Task Command(

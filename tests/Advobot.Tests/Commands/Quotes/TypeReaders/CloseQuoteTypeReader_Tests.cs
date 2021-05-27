@@ -19,7 +19,7 @@ namespace Advobot.Tests.Commands.Quotes.TypeReaders
 	[TestClass]
 	public sealed class CloseQuoteTypeReader_Tests : TypeReaderTestsBase
 	{
-		private readonly FakeQuoteDatabase _Db = new FakeQuoteDatabase();
+		private readonly FakeQuoteDatabase _Db = new();
 		protected override TypeReader Instance { get; } = new CloseQuoteTypeReader();
 
 		[TestMethod]

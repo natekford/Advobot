@@ -7,7 +7,7 @@ namespace Advobot.AutoMod.Models
 	public class TimedPrevention : Punishment, IReadOnlyTimedPrevention
 	{
 		public bool Enabled { get; set; }
-		public TimeSpan Interval => new TimeSpan(IntervalTicks);
+		public TimeSpan Interval => new(IntervalTicks);
 		public long IntervalTicks { get; set; }
 		public int Size { get; set; }
 

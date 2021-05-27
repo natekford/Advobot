@@ -9,7 +9,7 @@ namespace Advobot.Formatting
 	/// </summary>
 	public sealed class InformationCollection
 	{
-		private readonly List<Information> _Information = new List<Information>();
+		private readonly List<Information> _Information = new();
 
 		/// <summary>
 		/// A row of an <see cref="InformationMatrix"/>.

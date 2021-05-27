@@ -14,7 +14,7 @@ namespace Advobot.Tests.Commands.AutoMod.ParameterPreconditions
 {
 	public abstract class NotAlreadyBannedPhraseAttribute_Tests : ParameterPreconditionTestsBase
 	{
-		private readonly FakeAutoModDatabase _Db = new FakeAutoModDatabase();
+		private readonly FakeAutoModDatabase _Db = new();
 
 		protected abstract bool IsName { get; }
 		protected abstract bool IsRegex { get; }

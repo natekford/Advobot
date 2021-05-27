@@ -106,7 +106,7 @@ namespace Advobot.Utilities
 		/// <param name="fileName">The name of the file without the bot directory.</param>
 		/// <returns></returns>
 		public static FileInfo GetBaseBotDirectoryFile(this IBotDirectoryAccessor accessor, string fileName)
-			=> new FileInfo(Path.Combine(accessor.BaseBotDirectory.FullName, fileName));
+			=> new(Path.Combine(accessor.BaseBotDirectory.FullName, fileName));
 
 		/// <summary>
 		/// Calls <see cref="ResourceManager.GetString(string)"/> and throws an exception if it does not exist.

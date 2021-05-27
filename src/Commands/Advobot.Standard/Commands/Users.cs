@@ -358,22 +358,25 @@ namespace Advobot.Standard.Commands
 			public IGuildSettingsProvider MuteRoleProvider { get; set; }
 #pragma warning restore CS8618 // Non-nullable field is uninitialized. Consider declaring as nullable.
 
-			private static readonly OverwritePermissions CategoryPerms
-				= new OverwritePermissions(0,
-					TextPerms.DenyValue | VoicePerms.DenyValue
-				);
-			private static readonly OverwritePermissions TextPerms
-				= new OverwritePermissions(0, (ulong)(0
+			private static readonly OverwritePermissions CategoryPerms = new(
+				0,
+				TextPerms.DenyValue | VoicePerms.DenyValue
+			);
+			private static readonly OverwritePermissions TextPerms = new(
+				0,
+				(ulong)(0
 					| CreateInstantInvite
 					| ManageChannels
 					| ManageRoles
 					| ManageWebhooks
 					| SendMessages
 					| ManageMessages
-					| AddReactions)
-				);
-			private static readonly OverwritePermissions VoicePerms
-				= new OverwritePermissions(0, (ulong)(0
+					| AddReactions
+				)
+			);
+			private static readonly OverwritePermissions VoicePerms = new(
+				0,
+				(ulong)(0
 					| CreateInstantInvite
 					| ManageChannels
 					| ManageRoles
@@ -381,8 +384,9 @@ namespace Advobot.Standard.Commands
 					| Speak
 					| MuteMembers
 					| DeafenMembers
-					| MoveMembers)
-				);
+					| MoveMembers
+				)
+			);
 
 			[Command]
 			public async Task<RuntimeResult> Command(
@@ -525,7 +529,7 @@ namespace Advobot.Standard.Commands
 						? Context.Message
 						: null,
 					Predicate = user is null
-						? default(Func<IMessage, bool>?)
+						? default
 						: x => x.Author.Id == user?.Id,
 				}).CAF();
 				return Responses.Users.RemovedMessages(channel, user, deleted);

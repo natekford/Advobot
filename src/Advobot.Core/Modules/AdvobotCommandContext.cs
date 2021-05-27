@@ -12,7 +12,7 @@ namespace Advobot.Modules
 	/// </summary>
 	public class AdvobotCommandContext : ShardedCommandContext, IAdvobotCommandContext
 	{
-		private readonly Stopwatch _Stopwatch = new Stopwatch();
+		private readonly Stopwatch _Stopwatch = new();
 
 		/// <summary>
 		/// The channel this command is executing from.

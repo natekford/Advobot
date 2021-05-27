@@ -16,12 +16,8 @@ namespace Advobot.Tests.Commands.Invites
 {
 	public sealed class FakeInviteListService : IInviteListService
 	{
-		private readonly Dictionary<ulong, IReadOnlyListedInvite> _Invites
-			= new Dictionary<ulong, IReadOnlyListedInvite>();
-
-		private readonly Dictionary<string, List<ulong>> _Keywords
-			= new Dictionary<string, List<ulong>>(StringComparer.OrdinalIgnoreCase);
-
+		private readonly Dictionary<ulong, IReadOnlyListedInvite> _Invites = new();
+		private readonly Dictionary<string, List<ulong>> _Keywords = new(StringComparer.OrdinalIgnoreCase);
 		private readonly ITime _Time;
 
 		public FakeInviteListService(ITime time)

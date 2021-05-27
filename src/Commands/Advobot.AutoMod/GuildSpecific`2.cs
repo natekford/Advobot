@@ -8,8 +8,7 @@ namespace Advobot.AutoMod
 		where TKey : notnull
 		where TValue : new()
 	{
-		private readonly ConcurrentDictionary<ulong, ConcurrentDictionary<TKey, TValue>> _Dict
-			= new ConcurrentDictionary<ulong, ConcurrentDictionary<TKey, TValue>>();
+		private readonly ConcurrentDictionary<ulong, ConcurrentDictionary<TKey, TValue>> _Dict = new();
 
 		public TValue Get(IGuild guild, TKey key)
 		{

@@ -21,10 +21,10 @@ namespace Advobot.Tests.Commands.AutoMod.Service
 	[TestClass]
 	public sealed class RemovablePunishment_Tests : TestsBase
 	{
-		private readonly FakeRemovablePunishmentDatabase _Db = new FakeRemovablePunishmentDatabase();
-		private readonly Punisher _Punisher = new Punisher();
+		private readonly FakeRemovablePunishmentDatabase _Db = new();
+		private readonly Punisher _Punisher = new();
 		private readonly RemovablePunishmentService _Service;
-		private readonly MutableTime _Time = new MutableTime();
+		private readonly MutableTime _Time = new();
 
 		public RemovablePunishment_Tests()
 		{

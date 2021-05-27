@@ -17,15 +17,15 @@ namespace Advobot.Tests.Core.Attributes.ParameterPreconditions.DiscordObjectVali
 	[TestClass]
 	public sealed class CanModifyChannelAttribute_Tests : ParameterPreconditionTestsBase
 	{
-		private static readonly OverwritePermissions _Allowed = new OverwritePermissions(
+		private static readonly OverwritePermissions _Allowed = new(
 			viewChannel: PermValue.Allow,
 			manageMessages: PermValue.Allow
 		);
-		private static readonly OverwritePermissions _Denied = new OverwritePermissions(
+		private static readonly OverwritePermissions _Denied = new(
 			viewChannel: PermValue.Allow,
 			manageMessages: PermValue.Deny
 		);
-		private static readonly GuildPermissions _ManageMessages = new GuildPermissions(manageMessages: true);
+		private static readonly GuildPermissions _ManageMessages = new(manageMessages: true);
 		private readonly FakeTextChannel _Channel;
 
 		protected override ParameterPreconditionAttribute Instance { get; }

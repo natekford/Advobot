@@ -43,7 +43,7 @@ namespace Advobot.Gacha.Interaction
 			var argPos = -1;
 			return Interactions != null
 				&& message.HasStringPrefix(Display.Id.ToString(), ref argPos)
-				&& Interactions.TryGetFirst(x => x?.Name == message.Content.Substring(argPos), out action);
+				&& Interactions.TryGetFirst(x => x?.Name == message.Content[argPos..], out action);
 		}
 	}
 }

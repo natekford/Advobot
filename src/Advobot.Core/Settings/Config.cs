@@ -25,7 +25,7 @@ namespace Advobot.Settings
 	public sealed class Config : IConfig
 	{
 		[JsonIgnore]
-		private readonly DiscordRestClient _TestClient = new DiscordRestClient();
+		private readonly DiscordRestClient _TestClient = new();
 		[JsonProperty("BotKey")]
 		private string? _BotKey;
 		[JsonIgnore]

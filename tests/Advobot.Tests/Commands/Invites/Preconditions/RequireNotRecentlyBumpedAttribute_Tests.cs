@@ -19,7 +19,7 @@ namespace Advobot.Tests.Commands.Invites.Preconditions
 	[TestClass]
 	public sealed class RequireNotRecentlyBumpedAttribute_Tests : PreconditionTestsBase
 	{
-		private readonly MutableTime _Time = new MutableTime();
+		private readonly MutableTime _Time = new();
 		protected override PreconditionAttribute Instance { get; }
 			= new RequireNotRecentlyBumpedAttribute();
 

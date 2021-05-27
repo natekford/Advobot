@@ -20,7 +20,7 @@ namespace Advobot.Gacha
 	public abstract class GachaExchangeModuleBase : AdvobotModuleBase
 	{
 		protected static readonly TimeSpan Timeout = TimeSpan.FromMinutes(3);
-		protected static readonly AcceptTryParser AcceptTryParser = new AcceptTryParser();
+		protected static readonly AcceptTryParser AcceptTryParser = new();
 
 		protected abstract ExchangeMethod Method { get; }
 

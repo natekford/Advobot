@@ -17,7 +17,7 @@ namespace Advobot.Tests.Core
 
 	public sealed class ClassWithIndexerName
 	{
-		public readonly ClassWithIndexerName Nest = new ClassWithIndexerName();
+		public readonly ClassWithIndexerName Nest = new();
 
 		[IndexerName("Dog")]
 		public int this[int val]
@@ -47,7 +47,9 @@ namespace Advobot.Tests.Core
 		[TestMethod]
 		public void ArrayAccessWithConstantPlusMethod_Test()
 		{
+#pragma warning disable IDE0057 // Use range operator
 			var expr = (Expression<Func<Nested, int>>)(x => x.Nest["abc".Substring(1)].Value);
+#pragma warning restore IDE0057 // Use range operator
 			var path = expr.GetPropertyPath();
 			Assert.AreEqual("Nest[\"abc\".Substring(1)].Value", path);
 		}
@@ -150,20 +152,20 @@ namespace Advobot.Tests.Core
 
 	public class Nested
 	{
-		public readonly Nested Nest = new Nested();
+		public readonly Nested Nest = new();
 		public readonly int Value;
 
 		public Nested this[Nested _]
-			=> new Nested();
+			=> new();
 
 		public Nested this[TestEnum _]
-			=> new Nested();
+			=> new();
 
 		public Nested this[string _]
-			=> new Nested();
+			=> new();
 
 		public static Nested Create()
-			=> new Nested();
+			=> new();
 
 		public int GetNum()
 			=> 1;
@@ -171,7 +173,7 @@ namespace Advobot.Tests.Core
 		public sealed class MegaNested : Nested
 		{
 			public static new MegaNested Create()
-				=> new MegaNested();
+				=> new();
 		}
 	}
 }

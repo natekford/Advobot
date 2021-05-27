@@ -13,9 +13,9 @@ namespace Advobot.Logging.Caches
 	/// </summary>
 	public sealed class DeletedMessageCache : IDisposable
 	{
-		private CancellationTokenSource _CancelTokenSource = new CancellationTokenSource();
+		private CancellationTokenSource _CancelTokenSource = new();
 
-		private ConcurrentBag<IMessage> _Messages = new ConcurrentBag<IMessage>();
+		private ConcurrentBag<IMessage> _Messages = new();
 
 		/// <summary>
 		/// The amount of messages currently cached.

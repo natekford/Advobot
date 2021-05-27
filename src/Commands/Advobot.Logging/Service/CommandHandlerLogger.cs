@@ -22,7 +22,7 @@ namespace Advobot.Logging.Service
 		private readonly IBotSettings _BotSettings;
 		private readonly ILoggingDatabase _Db;
 
-		private readonly InformationMatrixFormattingArgs _ResultFormattingArgs = new InformationMatrixFormattingArgs
+		private readonly InformationMatrixFormattingArgs _ResultFormattingArgs = new()
 		{
 			InformationSeparator = "\n\t",
 			TitleFormatter = x => x.FormatTitle() + ":",

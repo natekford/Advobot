@@ -22,8 +22,7 @@ namespace Advobot.UI.Controls
 		public static readonly AttachedProperty<double> OverrideDynamicFontSizeProperty =
 			AvaloniaProperty.RegisterAttached<DynamicFontSizeGrid, Control, double>("OverrideDynamicFontSize");
 
-		private static readonly ConcurrentDictionary<TemplatedControl, IDisposable> _Bindings
-			= new ConcurrentDictionary<TemplatedControl, IDisposable>();
+		private static readonly ConcurrentDictionary<TemplatedControl, IDisposable> _Bindings = new();
 
 		public double DynamicFontSize
 		{

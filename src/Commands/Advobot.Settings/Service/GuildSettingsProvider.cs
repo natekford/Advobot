@@ -15,8 +15,8 @@ namespace Advobot.Settings.Service
 	public class GuildSettingsProvider : IGuildSettingsProvider
 	{
 		private const string NAME = "Advobot_Mute";
-		private static readonly GuildPermissions Permissions = new GuildPermissions(0);
-		private static readonly RequestOptions RoleCreation = new RequestOptions
+		private static readonly GuildPermissions Permissions = new(0);
+		private static readonly RequestOptions RoleCreation = new()
 		{
 			AuditLogReason = "Role not found or is higher than my highest role.",
 		};

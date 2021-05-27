@@ -197,7 +197,7 @@ namespace Advobot.Tests.Utilities
 		}
 
 		public static ChannelPermissions ToChannelPerms(IGuildChannel channel, ulong guildPermissions)
-			=> new ChannelPermissions(guildPermissions & ChannelPermissions.All(channel).RawValue);
+			=> new(guildPermissions & ChannelPermissions.All(channel).RawValue);
 
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
 		public static void UnsetFlag(ref ulong value, ulong flag) => value &= ~flag;

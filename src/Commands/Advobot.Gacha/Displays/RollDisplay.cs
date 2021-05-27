@@ -23,7 +23,7 @@ namespace Advobot.Gacha.Displays
 	{
 		private readonly IReadOnlyCharacter _Character;
 		private readonly ICounter<ulong> _ClaimChecker;
-		private readonly TaskCompletionSource<object?> _Claimed = new TaskCompletionSource<object?>();
+		private readonly TaskCompletionSource<object?> _Claimed = new();
 		private readonly IReadOnlyList<IReadOnlyImage> _Images;
 		private readonly IReadOnlySource _Source;
 		private readonly IReadOnlyList<IReadOnlyWish> _Wishes;

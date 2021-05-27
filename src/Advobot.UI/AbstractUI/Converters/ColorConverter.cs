@@ -15,7 +15,7 @@ namespace Advobot.UI.AbstractUI.Converters
 	{
 #pragma warning disable RCS1163 // Unused parameter.
 
-		private static readonly TBrushFactory _Factory = new TBrushFactory();
+		private static readonly TBrushFactory _Factory = new();
 
 		/// <summary>
 		/// Converts a <typeparamref name="TBrush"/> to a string.

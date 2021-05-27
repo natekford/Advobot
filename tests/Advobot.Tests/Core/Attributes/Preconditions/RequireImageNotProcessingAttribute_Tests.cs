@@ -18,7 +18,7 @@ namespace Advobot.Tests.Core.Attributes.Preconditions
 	[TestClass]
 	public sealed class RequireImageNotProcessingAttribute_Tests : PreconditionTestsBase
 	{
-		private readonly ImageResizer _Resizer = new ImageResizer(new HttpClient(new FakeImageResizingHttpMessageHandler()));
+		private readonly ImageResizer _Resizer = new(new HttpClient(new FakeImageResizingHttpMessageHandler()));
 
 		protected override PreconditionAttribute Instance { get; }
 			= new RequireImageNotProcessingAttribute();

@@ -20,7 +20,7 @@ namespace Advobot.Tests.Commands.AutoMod.TypeReaders
 	[TestClass]
 	public sealed class SelfRoleStateTypeReader_Tests : TypeReaderTestsBase
 	{
-		private readonly FakeAutoModDatabase _Db = new FakeAutoModDatabase();
+		private readonly FakeAutoModDatabase _Db = new();
 		protected override TypeReader Instance { get; } = new SelfRoleStateTypeReader();
 
 		[TestMethod]

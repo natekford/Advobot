@@ -22,10 +22,7 @@ namespace Advobot.Levels.Service
 		private readonly BaseSocketClient _Client;
 		private readonly LevelServiceConfig _Config;
 		private readonly ILevelDatabase _Db;
-
-		private readonly ConcurrentDictionary<Key, RuntimeInfo> _RuntimeInfo
-			= new ConcurrentDictionary<Key, RuntimeInfo>();
-
+		private readonly ConcurrentDictionary<Key, RuntimeInfo> _RuntimeInfo = new();
 		private readonly ITime _Time;
 
 		public LevelService(
@@ -155,10 +152,7 @@ namespace Advobot.Levels.Service
 		private sealed class RuntimeInfo
 		{
 			private readonly LevelServiceConfig _Config;
-
-			private readonly ConcurrentQueue<MessageHash> _Messages
-				= new ConcurrentQueue<MessageHash>();
-
+			private readonly ConcurrentQueue<MessageHash> _Messages = new();
 			private readonly ITime _Time;
 
 			public IReadOnlyList<MessageHash> Messages => _Messages.ToArray();
@@ -216,7 +210,7 @@ namespace Advobot.Levels.Service
 		{
 			public ITextChannel Channel { get; }
 			public IGuild Guild { get; }
-			public Key Key => new Key(User);
+			public Key Key => new(User);
 			public IUserMessage Message { get; }
 			public IGuildUser User { get; }
 

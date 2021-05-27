@@ -9,8 +9,7 @@ namespace Advobot.Tests.Commands.Quotes
 {
 	public sealed class FakeQuoteDatabase : IQuoteDatabase
 	{
-		private readonly Dictionary<(ulong, string), IReadOnlyQuote> _Quotes
-			= new Dictionary<(ulong, string), IReadOnlyQuote>();
+		private readonly Dictionary<(ulong, string), IReadOnlyQuote> _Quotes = new();
 
 		public Task<int> AddQuoteAsync(IReadOnlyQuote quote)
 		{

@@ -7,7 +7,7 @@ namespace Advobot.AutoMod.Models
 {
 	public class RemovablePunishment : IReadOnlyRemovablePunishment
 	{
-		public DateTime EndTime => new DateTime(EndTimeTicks);
+		public DateTime EndTime => new(EndTimeTicks);
 		public long EndTimeTicks { get; set; }
 		public ulong GuildId { get; set; }
 		public PunishmentType PunishmentType { get; set; }

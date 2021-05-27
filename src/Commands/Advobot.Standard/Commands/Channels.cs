@@ -123,13 +123,10 @@ namespace Advobot.Standard.Commands
 		[RequireGuildPermissions(GuildPermission.ManageChannels | GuildPermission.ManageRoles)]
 		public sealed class CreateRoleRestrictedChannel : AdvobotModuleBase
 		{
-			private static readonly OverwritePermissions _CanJoin
-				= new OverwritePermissions(connect: PermValue.Allow);
+			private static readonly OverwritePermissions _Allow = new(connect: PermValue.Allow);
+			private static readonly OverwritePermissions _Deny = new(connect: PermValue.Deny);
 
-			private static readonly OverwritePermissions _CannotJoin
-				= new OverwritePermissions(connect: PermValue.Deny);
-
-			private static readonly GuildPermissions _None = new GuildPermissions(0);
+			private static readonly GuildPermissions _None = new(0);
 
 			[Command]
 			public async Task<RuntimeResult> Command(
@@ -140,8 +137,8 @@ namespace Advobot.Standard.Commands
 				var options = GenerateRequestOptions();
 				var role = await Context.Guild.CreateRoleAsync(name, _None, null, false, options).CAF();
 				var channel = await Context.Guild.CreateVoiceChannelAsync(name, null, options).CAF();
-				await channel.AddPermissionOverwriteAsync(Context.Guild.EveryoneRole, _CannotJoin).CAF();
-				await channel.AddPermissionOverwriteAsync(role, _CanJoin).CAF();
+				await channel.AddPermissionOverwriteAsync(Context.Guild.EveryoneRole, _Deny).CAF();
+				await channel.AddPermissionOverwriteAsync(role, _Allow).CAF();
 				return Responses.Channels.CreatededRoleRestrictedChannel(channel, role);
 			}
 		}

@@ -30,19 +30,15 @@ namespace Advobot.Services.Commands
 	{
 		private readonly IBotSettings _BotSettings;
 		private readonly DiscordShardedClient _Client;
-		private readonly AsyncEvent<Func<CommandInfo, ICommandContext, IResult, Task>> _CommandInvoked
-			= new AsyncEvent<Func<CommandInfo, ICommandContext, IResult, Task>>();
+		private readonly AsyncEvent<Func<CommandInfo, ICommandContext, IResult, Task>> _CommandInvoked = new();
 		private readonly Localized<CommandService> _CommandService;
 		private readonly CommandServiceConfig _Config;
-		private readonly ConcurrentDictionary<ulong, byte> _GatheringUsers
-			= new ConcurrentDictionary<ulong, byte>();
+		private readonly ConcurrentDictionary<ulong, byte> _GatheringUsers = new();
 		private readonly IGuildSettingsProvider _GuildSettings;
 		private readonly IHelpEntryService _Help;
-		private readonly AsyncEvent<Func<LogMessage, Task>> _Log
-			= new AsyncEvent<Func<LogMessage, Task>>();
+		private readonly AsyncEvent<Func<LogMessage, Task>> _Log = new();
 		private readonly IServiceProvider _Provider;
-		private readonly AsyncEvent<Func<Task>> _Ready
-			= new AsyncEvent<Func<Task>>();
+		private readonly AsyncEvent<Func<Task>> _Ready = new();
 		private int _ShardsReady;
 
 		/// <inheritdoc />

@@ -11,10 +11,8 @@ namespace Advobot.Punishments
 {
 	internal sealed class Punisher : IPunisher
 	{
-		private readonly AsyncEvent<Func<IPunishmentContext, Task>> _PunishmentGiven
-			= new AsyncEvent<Func<IPunishmentContext, Task>>();
-		private readonly AsyncEvent<Func<IPunishmentContext, Task>> _PunishmentRemoved
-			= new AsyncEvent<Func<IPunishmentContext, Task>>();
+		private readonly AsyncEvent<Func<IPunishmentContext, Task>> _PunishmentGiven = new();
+		private readonly AsyncEvent<Func<IPunishmentContext, Task>> _PunishmentRemoved = new();
 
 		/// <inheritdoc />
 		public event Func<IPunishmentContext, Task> PunishmentGiven

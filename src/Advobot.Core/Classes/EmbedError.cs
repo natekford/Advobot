@@ -34,7 +34,7 @@ namespace Advobot.Classes
 
 	internal static class EmbedUtils
 	{
-		//make into class
+		//TODO: make into class
 		//options: no param expression names or yes param expression names
 		//options: use closure variable names or attempt to get value
 
@@ -87,7 +87,7 @@ namespace Advobot.Classes
 				}
 
 				var fn = call.Method.DeclaringType.FullName;
-				var nestedClasses = fn.Substring(fn.LastIndexOf('.') + 1);
+				var nestedClasses = fn[(fn.LastIndexOf('.') + 1)..];
 				var withPeriods = nestedClasses.Replace('+', '.');
 				return $"{withPeriods}.{nameAndArgs}";
 			}

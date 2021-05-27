@@ -24,7 +24,7 @@ namespace Advobot.Tests.Commands.AutoMod.Service
 	{
 		private readonly FakeTextChannel _Channel;
 		private readonly FakeGuild _Guild;
-		private readonly SpamPrevention _Prevention = new SpamPrevention
+		private readonly SpamPrevention _Prevention = new()
 		{
 			SpamType = SpamType.Mention,
 			Size = 2,
@@ -33,7 +33,7 @@ namespace Advobot.Tests.Commands.AutoMod.Service
 			IntervalTicks = TimeSpan.FromSeconds(15).Ticks,
 			Enabled = true,
 		};
-		private readonly SnowflakeGenerator _Snowflakes = new SnowflakeGenerator(TimeSpan.FromMilliseconds(200));
+		private readonly SnowflakeGenerator _Snowflakes = new(TimeSpan.FromMilliseconds(200));
 		private readonly FakeGuildUser _User;
 
 		public SpamPrevention_Tests()

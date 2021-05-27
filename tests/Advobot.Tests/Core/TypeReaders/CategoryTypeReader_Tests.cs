@@ -18,7 +18,7 @@ namespace Advobot.Tests.Core.TypeReaders
 	[TestClass]
 	public sealed class CommandCategoryAttribute_Tests : TypeReaderTestsBase
 	{
-		private readonly HelpEntryService _Service = new HelpEntryService();
+		private readonly HelpEntryService _Service = new();
 		protected override TypeReader Instance { get; }
 			= new CategoryTypeReader();
 

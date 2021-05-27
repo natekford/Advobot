@@ -20,9 +20,7 @@ namespace Advobot.Gacha.Displays
 		private readonly ICounterService _Counters;
 		private readonly IGachaDatabase _Db;
 
-		private readonly ConcurrentDictionary<ulong, int> _Ids
-			= new ConcurrentDictionary<ulong, int>();
-
+		private readonly ConcurrentDictionary<ulong, int> _Ids = new();
 		private readonly IInteractionManager _Interaction;
 		private readonly ITime _Time;
 

@@ -28,7 +28,7 @@ namespace Advobot.AutoMod.Service
 		// the event from it still fires back into this class
 		// To prevent removing the punishment by itself then again in the batch removal
 		// this hashset prevents that
-		private readonly HashSet<IPunishmentContext> _WillBeBatchRemoved = new HashSet<IPunishmentContext>();
+		private readonly HashSet<IPunishmentContext> _WillBeBatchRemoved = new();
 
 		public RemovablePunishmentService(
 			IRemovablePunishmentDatabase db,

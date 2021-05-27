@@ -64,7 +64,7 @@ namespace Advobot.Modules
 		/// <param name="error"></param>
 		/// <returns></returns>
 		public static AdvobotResult Failure(string? reason, CommandError? error = CommandError.Unsuccessful)
-			=> new AdvobotResult(error, reason);
+			=> new(error, reason);
 
 		/// <summary>
 		/// Converts the result into a task returning the result.

@@ -67,7 +67,7 @@ namespace Advobot.Utilities
 
 	internal class AsyncEvent<T> where T : class
 	{
-		private readonly object _SubLock = new object();
+		private readonly object _SubLock = new();
 		private ImmutableArray<T> _Subscriptions;
 		public bool HasSubscribers => _Subscriptions.Length != 0;
 		public IReadOnlyList<T> Subscriptions => _Subscriptions;

@@ -29,8 +29,8 @@ namespace Advobot.Services.ImageResizing
 		private static readonly string? _FfmpegLocation = FindFfmpeg();
 		private const long _MaxDownloadLengthInBytes = 10000000;
 
-		private readonly ConcurrentQueue<IImageContext> _Args = new ConcurrentQueue<IImageContext>();
-		private readonly ConcurrentDictionary<ulong, byte> _CurrentlyProcessing = new ConcurrentDictionary<ulong, byte>();
+		private readonly ConcurrentQueue<IImageContext> _Args = new();
+		private readonly ConcurrentDictionary<ulong, byte> _CurrentlyProcessing = new();
 		private readonly SemaphoreSlim _SemaphoreSlim;
 		private readonly HttpClient _Client;
 

@@ -11,10 +11,10 @@ namespace Advobot.Tests.Fakes.Discord.Users
 {
 	public class FakeGuildUser : FakeUser, IGuildUser
 	{
-		private readonly HashSet<ulong> _RoleIds = new HashSet<ulong>();
+		private readonly HashSet<ulong> _RoleIds = new();
 		public FakeGuild Guild { get; }
 		public ulong GuildId => Guild.Id;
-		public GuildPermissions GuildPermissions => new GuildPermissions(PermissionUtils.ResolveGuild(Guild, this));
+		public GuildPermissions GuildPermissions => new(PermissionUtils.ResolveGuild(Guild, this));
 		public bool IsDeafened { get; set; }
 		public bool IsMuted { get; set; }
 		public bool? IsPending { get; set; }
@@ -57,7 +57,7 @@ namespace Advobot.Tests.Fakes.Discord.Users
 		public Task AddRolesAsync(IEnumerable<ulong> roleIds, RequestOptions? options = null) => throw new NotImplementedException();
 
 		public ChannelPermissions GetPermissions(IGuildChannel channel)
-					=> new ChannelPermissions(PermissionUtils.ResolveChannel(Guild, this, channel, GuildPermissions.RawValue));
+			=> new(PermissionUtils.ResolveChannel(Guild, this, channel, GuildPermissions.RawValue));
 
 		public Task KickAsync(string? reason = null, RequestOptions? options = null)
 		{

@@ -16,8 +16,8 @@ namespace Advobot.Tests.Core
 		private const string VALID_STRING = "Valid length string";
 		private const string VALID_STRING_2 = "Second valid length string";
 		private const string VALID_URL = "https://www.google.com";
-		private readonly string LONG_ASS_STRING = new string('A', 50000);
-		private readonly string STRING_WITH_MANY_LINES = new string('\n', 50);
+		private readonly string LONG_ASS_STRING = new('A', 50000);
+		private readonly string STRING_WITH_MANY_LINES = new('\n', 50);
 
 		[TestMethod]
 		public void Author_Test()

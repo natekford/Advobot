@@ -11,7 +11,7 @@ namespace Advobot.Tests
 		public Action Function;
 		public int Iterations = 10;
 		public int Times = 100000;
-		private readonly List<Stopwatch> _Watches = new List<Stopwatch>();
+		private readonly List<Stopwatch> _Watches = new();
 
 		public double Average => _Watches.Average(s => s.ElapsedMilliseconds);
 

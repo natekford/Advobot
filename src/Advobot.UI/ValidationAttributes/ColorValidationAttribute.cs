@@ -11,7 +11,7 @@ namespace Advobot.UI.ValidationAttributes
 	[AttributeUsage(AttributeTargets.Property, AllowMultiple = false, Inherited = false)]
 	public sealed class ColorValidationAttribute : ValidationAttribute
 	{
-		private static readonly NetCoreBrushFactory _Factory = new NetCoreBrushFactory();
+		private static readonly NetCoreBrushFactory _Factory = new();
 
 		/// <summary>
 		/// Determines whether the passed in object is a valid color.

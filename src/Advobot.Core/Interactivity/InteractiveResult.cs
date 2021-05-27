@@ -13,24 +13,18 @@ namespace Advobot.Interactivity
 		/// <summary>
 		/// A canceled result.
 		/// </summary>
-		public static InteractiveResult<T> Canceled { get; }
-			= new InteractiveResult<T>(cancel: true);
-
+		public static InteractiveResult<T> Canceled { get; } = new(cancel: true);
 		/// <summary>
 		/// A timed out result.
 		/// </summary>
-		public static InteractiveResult<T> TimedOut { get; }
-			= new InteractiveResult<T>(timeout: true);
+		public static InteractiveResult<T> TimedOut { get; } = new(timeout: true);
 
 		/// <inheritdoc />
 		public bool HasBeenCanceled { get; }
-
 		/// <inheritdoc />
 		public bool HasTimedOut { get; }
-
 		/// <inheritdoc />
 		public bool HasValue { get; }
-
 		/// <summary>
 		/// The parsed value.
 		/// </summary>
@@ -46,7 +40,6 @@ namespace Advobot.Interactivity
 				throw new InvalidOperationException();
 			}
 		}
-
 		object IInteractiveResult.Value => Value!;
 
 		/// <summary>
@@ -71,15 +64,13 @@ namespace Advobot.Interactivity
 		/// Retrieves the value.
 		/// </summary>
 		/// <param name="value"></param>
-		public static explicit operator T(InteractiveResult<T> value)
-			=> value.Value;
+		public static explicit operator T(InteractiveResult<T> value) => value.Value;
 
 		/// <summary>
 		/// Creates an instance of <see cref="InteractiveResult{T}"/> from <paramref name="value"/>.
 		/// </summary>
 		/// <param name="value"></param>
-		public static implicit operator InteractiveResult<T>(T value)
-			=> new InteractiveResult<T>(value);
+		public static implicit operator InteractiveResult<T>(T value) => new(value);
 
 		/// <summary>
 		/// Creates a generic instance of <see cref="InteractiveResult{T}"/> which is either timed out or canceled depending on the passed in value.

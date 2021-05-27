@@ -36,100 +36,63 @@ namespace Advobot.UI.ViewModels
 			.GetCustomAttribute<AssemblyProductAttribute>()?.Product ?? "";
 
 		private readonly IBotSettings _BotSettings;
-
 		private readonly BaseSocketClient _Client;
-
 		private readonly IColorSettings<ISolidColorBrush> _Colors;
-
 		private readonly ILogCounterService _LogService;
-
-		private readonly ConcurrentDictionary<string, bool> _MenuStatuses = new ConcurrentDictionary<string, bool>();
-
+		private readonly ConcurrentDictionary<string, bool> _MenuStatuses = new();
 		private string _Input = "";
-
 		private string _Output = "";
-
 		private int _OutputColumnSpan = 2;
-
 		private string _PauseButtonContent = "";
-
 		public BotSettingsViewModel BotSettingsViewModel { get; }
-
 		public ICommand ClearOutputCommand { get; }
-
 		public ColorsViewModel ColorsViewModel { get; }
-
 		public ICommand DisconnectCommand { get; }
-
 		public string Input
 		{
 			get => _Input;
 			set => this.RaiseAndSetIfChanged(ref _Input, value);
 		}
-
 		public IObservable<string> Latency { get; }
-
 		public LogServiceViewModel LogServiceViewModel { get; }
-
-		public string MainMenuText { get; } =
-																																					"Latency: Time it takes for a command to reach the bot.\n\n" +
+		public string MainMenuText { get; } = "Latency: Time it takes for a command to reach the bot.\n\n" +
 			"Memory: Amount of RAM the program is using.\n\n" +
 			"Threads: Where all the actions in the bot happen.\n\n" +
 			$"API wrapper version: {Constants.API_VERSION}\n" +
 			$"Bot version: {Constants.BOT_VERSION}\n\n" +
 			$"Github repository for Advobot: {Constants.REPO}\n" +
 			$"Join the Discord server for additional help: {Constants.DISCORD_INV}";
-
 		public IObservable<string> Memory { get; }
-
 		public bool OpenColorsMenu => GetMenuStatus();
-
 		public ICommand OpenFileSearchWindowCommand { get; }
-
 		public bool OpenInfoMenu => GetMenuStatus();
-
 		public bool OpenMainMenu => GetMenuStatus();
-
 		public ICommand OpenMenuCommand { get; }
-
 		public ICommand OpenOutputSearchWindowCommand { get; }
-
 		public bool OpenSettingsMenu => GetMenuStatus();
-
 		public string Output
 		{
 			get => _Output;
 			set => this.RaiseAndSetIfChanged(ref _Output, value);
 		}
-
 		public int OutputColumnSpan
 		{
 			get => _OutputColumnSpan;
 			private set => this.RaiseAndSetIfChanged(ref _OutputColumnSpan, value);
 		}
-
 		public string PauseButtonContent
 		{
 			get => _PauseButtonContent;
 			set => this.RaiseAndSetIfChanged(ref _PauseButtonContent, value);
 		}
-
 		public ICommand PauseCommand { get; }
-
 		public ICommand PrintOutputCommand { get; }
-
 		public ICommand RestartCommand { get; }
-
 		public ICommand SaveBotSettingsCommand { get; }
-
 		public ICommand SaveColorsCommand { get; }
-
 		public ICommand SaveOutputCommand { get; }
-
 		public ICommand TakeInputCommand { get; }
-
 		public IObservable<string> ThreadCount { get; }
-
 		public IObservable<string> Uptime { get; }
 
 		public AdvobotNetCoreWindowViewModel(IServiceProvider provider)

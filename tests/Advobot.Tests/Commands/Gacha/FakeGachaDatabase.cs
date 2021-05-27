@@ -14,8 +14,8 @@ namespace Advobot.Tests.Commands.Gacha
 {
 	public sealed class FakeGachaDatabase : IGachaDatabase
 	{
-		private readonly List<IReadOnlyCharacter> _Characters = new List<IReadOnlyCharacter>();
-		private readonly List<IReadOnlySource> _Sources = new List<IReadOnlySource>();
+		private readonly List<IReadOnlyCharacter> _Characters = new();
+		private readonly List<IReadOnlySource> _Sources = new();
 		public CloseIds CharacterIds { get; } = new CloseIds
 		{
 			IncludeWhenContains = false,

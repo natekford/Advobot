@@ -18,7 +18,7 @@ namespace Advobot.Tests.Commands.Logging.ParameterPreconditions
 	[TestClass]
 	public sealed class NotModLogAttribute_Tests : ParameterPreconditionTestsBase
 	{
-		private readonly LogChannels _Channels = new LogChannels();
+		private readonly LogChannels _Channels = new();
 
 		protected override ParameterPreconditionAttribute Instance { get; }
 			= new NotModLogAttribute();

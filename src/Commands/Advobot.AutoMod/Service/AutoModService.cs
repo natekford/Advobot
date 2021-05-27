@@ -20,7 +20,7 @@ namespace Advobot.AutoMod.Service
 {
 	public sealed class AutoModService
 	{
-		private static readonly Punishment _Ban = new Punishment
+		private static readonly Punishment _Ban = new()
 		{
 			PunishmentType = PunishmentType.Ban,
 		};
@@ -38,13 +38,10 @@ namespace Advobot.AutoMod.Service
 			= DiscordUtils.GenerateRequestOptions("Spam prevention.");
 
 		private readonly IAutoModDatabase _Db;
-		private readonly GuildSpecific<ulong, EnumMapped<PunishmentType, int>> _Phrases
-			= new GuildSpecific<ulong, EnumMapped<PunishmentType, int>>();
+		private readonly GuildSpecific<ulong, EnumMapped<PunishmentType, int>> _Phrases = new();
 		private readonly IPunisher _Punisher;
-		private readonly GuildSpecific<RaidType, HashSet<ulong>> _Raid
-			= new GuildSpecific<RaidType, HashSet<ulong>>();
-		private readonly GuildSpecific<ulong, EnumMapped<SpamType, SortedSet<ulong>>> _Spam
-			= new GuildSpecific<ulong, EnumMapped<SpamType, SortedSet<ulong>>>();
+		private readonly GuildSpecific<RaidType, HashSet<ulong>> _Raid = new();
+		private readonly GuildSpecific<ulong, EnumMapped<SpamType, SortedSet<ulong>>> _Spam = new();
 		private readonly ITime _Time;
 
 		public AutoModService(

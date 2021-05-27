@@ -15,14 +15,10 @@ namespace Advobot.Settings.TypeReaders
 	[TypeReaderTargetType(typeof(CommandOverrideEntity))]
 	public class EntityTypeReader : TypeReader
 	{
-		private readonly static ChannelTypeReader<ITextChannel> _ChannelTypeReader
-			= new ChannelTypeReader<ITextChannel>();
-		private readonly static GuildTypeReader _GuildTypeReader
-			= new GuildTypeReader();
-		private readonly static RoleTypeReader<IRole> _RoleTypeReader
-			= new RoleTypeReader<IRole>();
-		private readonly static UserTypeReader<IGuildUser> _UserTypeReader
-			= new UserTypeReader<IGuildUser>();
+		private readonly static ChannelTypeReader<ITextChannel> _ChannelTypeReader = new();
+		private readonly static GuildTypeReader _GuildTypeReader = new();
+		private readonly static RoleTypeReader<IRole> _RoleTypeReader = new();
+		private readonly static UserTypeReader<IGuildUser> _UserTypeReader = new();
 
 		public override async Task<TypeReaderResult> ReadAsync(
 			ICommandContext context,

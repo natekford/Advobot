@@ -18,7 +18,7 @@ namespace Advobot.Tests.Commands.Logging.Preconditions
 	[TestClass]
 	public sealed class RequireImageLogAttribute_Tests : PreconditionTestsBase
 	{
-		private readonly LogChannels _Channels = new LogChannels();
+		private readonly LogChannels _Channels = new();
 
 		protected override PreconditionAttribute Instance { get; }
 			= new RequireImageLogAttribute();

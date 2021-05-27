@@ -24,12 +24,13 @@ namespace Advobot.Classes
 		/// The maximum length in lines a field can be before it won't render on mobile.
 		/// </summary>
 		public const int MAX_FIELD_LINES = 5;
-		private readonly EmbedBuilder _Builder = new EmbedBuilder
+
+		private readonly EmbedBuilder _Builder = new()
 		{
 			Color = Base,
 			Timestamp = DateTimeOffset.UtcNow
 		};
-		private readonly List<IEmbedError> _Errors = new List<IEmbedError>();
+		private readonly List<IEmbedError> _Errors = new();
 
 		/// <summary>
 		/// The color to use for attachments on a message.
@@ -59,7 +60,6 @@ namespace Advobot.Classes
 		/// The color to use for users being modified.
 		/// </summary>
 		public static Color UserEdit { get; } = new Color(051, 051, 255);
-
 		/// <summary>
 		/// The author of the embed.
 		/// </summary>
@@ -555,7 +555,7 @@ namespace Advobot.Classes
 
 		private sealed class RuleHandler
 		{
-			private readonly List<IEmbedError> _Errors = new List<IEmbedError>();
+			private readonly List<IEmbedError> _Errors = new();
 			private readonly List<IEmbedError> _GlobalErrors;
 
 			public RuleHandler(List<IEmbedError> globalErrors)
@@ -566,7 +566,7 @@ namespace Advobot.Classes
 			public PropertyHandler<TEmbed, T> Property<TEmbed, T>(
 				Expression<Func<TEmbed, T>> p,
 				T v)
-				=> new PropertyHandler<TEmbed, T>(this, _GlobalErrors, _Errors, v, p);
+				=> new(this, _GlobalErrors, _Errors, v, p);
 		}
 	}
 }

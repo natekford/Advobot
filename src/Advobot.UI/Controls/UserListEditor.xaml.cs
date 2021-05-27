@@ -48,7 +48,7 @@ namespace Advobot.UI.Controls
 					{
 						NotifyCollectionChangedAction.Add => (() =>
 						{
-							foreach (var item in e.NewItems)
+							foreach (var item in e.NewItems ?? Array.Empty<object>())
 							{
 								if (item is ulong id)
 								{
@@ -58,7 +58,7 @@ namespace Advobot.UI.Controls
 						}),
 						NotifyCollectionChangedAction.Remove => (() =>
 						{
-							foreach (var item in e.OldItems)
+							foreach (var item in e.OldItems ?? Array.Empty<object>())
 							{
 								if (item is ulong id)
 								{
@@ -67,15 +67,14 @@ namespace Advobot.UI.Controls
 							}
 						}),
 						NotifyCollectionChangedAction.Reset => (Action)displayList.Clear,
-						_ => throw new ArgumentOutOfRangeException(nameof(e.Action)),
+						_ => throw new ArgumentOutOfRangeException(nameof(e), "Invalid collection changed action."),
 					};
 					Dispatcher.UIThread.InvokeAsync(action);
 				};
 				SetAndRaise(UserListProperty, ref _DisplayList, displayList);
 			}
 		}
-
-		private ObservableCollection<ulong> _DisplayList = new ObservableCollection<ulong>();
+		private ObservableCollection<ulong> _DisplayList = new();
 #else
 		public ObservableCollection<ulong> UserList
 		{
@@ -83,7 +82,7 @@ namespace Advobot.UI.Controls
 			set => SetAndRaise(UserListProperty, ref _UserList, value);
 		}
 #endif
-		private ObservableCollection<ulong> _UserList = new ObservableCollection<ulong>();
+		private ObservableCollection<ulong> _UserList = new();
 
 		public static readonly DirectProperty<NumberBox, string> TextProperty =
 			AvaloniaProperty.RegisterDirect<NumberBox, string>(
@@ -102,7 +101,6 @@ namespace Advobot.UI.Controls
 				CurrentId = ulong.Parse(value);
 			}
 		}
-
 		private string _Text;
 
 		public static readonly DirectProperty<UserListEditor, ulong> CurrentIdProperty =
@@ -125,7 +123,6 @@ namespace Advobot.UI.Controls
 				SetAndRaise(CurrentIdProperty, ref _CurrentId, value);
 			}
 		}
-
 		private ulong _CurrentId;
 
 		public static readonly DirectProperty<UserListEditor, bool> HasErrorProperty =
@@ -140,7 +137,6 @@ namespace Advobot.UI.Controls
 			get => _HasError;
 			private set => SetAndRaise(HasErrorProperty, ref _HasError, value);
 		}
-
 		private bool _HasError;
 
 		public ICommand ModifyListCommand { get; }

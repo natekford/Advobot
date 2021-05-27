@@ -9,8 +9,7 @@ namespace Advobot.Gacha.ActionLimits
 {
 	public sealed class TokenHolderService : ITokenHolderService
 	{
-		private readonly ConcurrentDictionary<(ulong, ulong), CancellationTokenSource> _Tokens
-			= new ConcurrentDictionary<(ulong, ulong), CancellationTokenSource>();
+		private readonly ConcurrentDictionary<(ulong, ulong), CancellationTokenSource> _Tokens = new();
 
 		public CancellationToken Get(IGuildUser user)
 		{

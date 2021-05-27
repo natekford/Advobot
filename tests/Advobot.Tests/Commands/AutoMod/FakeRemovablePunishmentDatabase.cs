@@ -12,8 +12,7 @@ namespace Advobot.Tests.Commands.AutoMod
 {
 	public sealed class FakeRemovablePunishmentDatabase : IRemovablePunishmentDatabase
 	{
-		private readonly ConcurrentDictionary<Key, IReadOnlyRemovablePunishment> _Punishments
-			= new ConcurrentDictionary<Key, IReadOnlyRemovablePunishment>();
+		private readonly ConcurrentDictionary<Key, IReadOnlyRemovablePunishment> _Punishments = new();
 
 		public event Action<bool, IEnumerable<IReadOnlyRemovablePunishment>> PunishmentsModified;
 

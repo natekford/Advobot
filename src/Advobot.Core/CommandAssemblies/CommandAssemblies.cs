@@ -10,7 +10,7 @@ namespace Advobot.CommandAssemblies
 	/// </summary>
 	public sealed class CommandAssemblyCollection
 	{
-		private readonly Dictionary<string, CommandAssembly> _Assemblies = new Dictionary<string, CommandAssembly>();
+		private readonly Dictionary<string, CommandAssembly> _Assemblies = new();
 
 		/// <summary>
 		/// The assemblies to be used as command assemblies.

@@ -53,7 +53,7 @@ namespace Advobot.UI.ViewModels
 
 		public sealed class ValidationErrors : INotifyPropertyChanged
 		{
-			private readonly ConcurrentDictionary<string, bool> _ValidationErrors = new ConcurrentDictionary<string, bool>();
+			private readonly ConcurrentDictionary<string, bool> _ValidationErrors = new();
 
 			public event PropertyChangedEventHandler? PropertyChanged;
 

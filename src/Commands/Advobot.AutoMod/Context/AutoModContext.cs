@@ -44,7 +44,7 @@ namespace Advobot.AutoMod.Context
 			}
 
 			private InvalidOperationException InvalidContext<T>()
-				=> new InvalidOperationException($"Invalid {typeof(T).Name}.");
+				=> new($"Invalid {typeof(T).Name}.");
 		}
 	}
 }

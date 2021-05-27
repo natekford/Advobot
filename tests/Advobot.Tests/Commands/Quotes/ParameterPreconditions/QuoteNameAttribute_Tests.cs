@@ -17,7 +17,7 @@ namespace Advobot.Tests.Commands.Quotes.ParameterPreconditions
 	[TestClass]
 	public sealed class QuoteNameAttribute_Tests : ParameterPreconditionTestsBase
 	{
-		private readonly FakeQuoteDatabase _Db = new FakeQuoteDatabase();
+		private readonly FakeQuoteDatabase _Db = new();
 		protected override ParameterPreconditionAttribute Instance { get; }
 			= new QuoteNameAttribute();
 

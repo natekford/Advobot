@@ -15,9 +15,7 @@ namespace Advobot.Gacha.Counters
 		private static readonly TimeSpan _Period = Timeout.InfiniteTimeSpan;
 		private static readonly TimeSpan _StaggerInterval = TimeSpan.FromHours(1);
 
-		private readonly ConcurrentDictionary<ulong, ICounter<ulong>> _Counters
-			= new ConcurrentDictionary<ulong, ICounter<ulong>>();
-
+		private readonly ConcurrentDictionary<ulong, ICounter<ulong>> _Counters = new();
 		private readonly int _DefaultAmount;
 		private readonly TimeSpan _Interval;
 		private readonly bool _IsStaggered;
@@ -28,7 +26,7 @@ namespace Advobot.Gacha.Counters
 		{
 			if (resetMinute < -1 || resetMinute > 59)
 			{
-				var msg = $"{nameof(resetMinute)} must be between -1 and 59 inclusive.";
+				const string msg = $"{nameof(resetMinute)} must be between -1 and 59 inclusive.";
 				throw new ArgumentException(msg, nameof(resetMinute));
 			}
 			if (interval < _StaggerInterval)
@@ -67,7 +65,7 @@ namespace Advobot.Gacha.Counters
 			}
 			if (state is not StrongBox<ulong> i)
 			{
-				throw new ArgumentException(nameof(state));
+				throw new ArgumentException($"State is not a {nameof(StrongBox<ulong>)}.", nameof(state));
 			}
 
 			//Remove guilds where their id % time is the current minute state

@@ -6,27 +6,26 @@ namespace Advobot.Services.Localization
 {
 	internal sealed class TypeLocalizer : ITypeLocalizer
 	{
-		private readonly Dictionary<(CultureInfo, Type), string> _Map
-			= new Dictionary<(CultureInfo, Type), string>();
+		private readonly Dictionary<(CultureInfo, Type), string> _Dict = new();
 
 		public void Add<T>(string value, bool overwrite = false)
 		{
 			var culture = CultureInfo.CurrentUICulture;
 			var key = (culture, typeof(T));
-			if (!_Map.TryGetValue(key, out _))
+			if (!_Dict.TryGetValue(key, out _))
 			{
-				_Map.Add(key, value);
+				_Dict.Add(key, value);
 			}
 			else if (overwrite)
 			{
-				_Map[key] = value;
+				_Dict[key] = value;
 			}
 		}
 
 		public bool TryGet<T>(out string output)
 		{
 			var culture = CultureInfo.CurrentUICulture;
-			return _Map.TryGetValue((culture, typeof(T)), out output);
+			return _Dict.TryGetValue((culture, typeof(T)), out output);
 		}
 	}
 }

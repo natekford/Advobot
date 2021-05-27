@@ -18,18 +18,18 @@ namespace Advobot.Tests.Core.Attributes.ParameterPreconditions.DiscordObjectVali
 	[TestClass]
 	public sealed class CanBeMovedAttribute_Tests : ParameterPreconditionTestsBase
 	{
-		private static readonly GuildPermissions _Admin = new GuildPermissions(
+		private static readonly GuildPermissions _Admin = new(
 			administrator: true
 		);
-		private static readonly OverwritePermissions _Allowed = new OverwritePermissions(
+		private static readonly OverwritePermissions _Allowed = new(
 			viewChannel: PermValue.Allow,
 			moveMembers: PermValue.Allow
 		);
-		private static readonly OverwritePermissions _Denied = new OverwritePermissions(
+		private static readonly OverwritePermissions _Denied = new(
 			viewChannel: PermValue.Allow,
 			moveMembers: PermValue.Deny
 		);
-		private static readonly GuildPermissions _MoveMembers = new GuildPermissions(
+		private static readonly GuildPermissions _MoveMembers = new(
 			moveMembers: true
 		);
 		private readonly FakeVoiceChannel _Channel;

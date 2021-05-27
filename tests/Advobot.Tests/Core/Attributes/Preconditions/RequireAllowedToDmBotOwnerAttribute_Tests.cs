@@ -17,7 +17,7 @@ namespace Advobot.Tests.Core.Attributes.Preconditions
 	[TestClass]
 	public sealed class RequireAllowedToDmBotOwnerAttribute_Tests : PreconditionTestsBase
 	{
-		private readonly FakeBotSettings _BotSettings = new FakeBotSettings();
+		private readonly FakeBotSettings _BotSettings = new();
 
 		protected override PreconditionAttribute Instance { get; }
 			= new RequireAllowedToDmBotOwnerAttribute();

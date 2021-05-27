@@ -30,7 +30,7 @@ namespace Advobot.UI.Colors
 		private static readonly string _AssemblyName = Assembly.GetExecutingAssembly()
 			.GetName().Name ?? "";
 
-		private static readonly Dictionary<string, string[]> _ColorNameMappings = new Dictionary<string, string[]>
+		private static readonly Dictionary<string, string[]> _ColorNameMappings = new()
 		{
 			{ ColorTargets.BaseBackground, new[] { "ThemeBackgroundBrush" } },
 			//{ BaseForeground, "ThemeAccentBrush" },
@@ -41,7 +41,7 @@ namespace Advobot.UI.Colors
 			{ ColorTargets.ButtonMouseOverBackground, new[] { "ThemeBorderMidBrush" } },
 		};
 
-		private static readonly Lazy<IResourceDictionary> _Resources = new Lazy<IResourceDictionary>(() =>
+		private static readonly Lazy<IResourceDictionary> _Resources = new(() =>
 		{
 			var styles = Application.Current.Styles.OfType<StyleInclude>();
 			var colors = styles.Single(x =>

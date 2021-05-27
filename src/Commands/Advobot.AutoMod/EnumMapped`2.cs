@@ -14,8 +14,7 @@ namespace Advobot.AutoMod
 		private static readonly TEnum[] _Values
 			= Enum.GetValues(typeof(TEnum)).Cast<TEnum>().ToArray();
 
-		private readonly Dictionary<TEnum, TValue> _Dict
-			= new Dictionary<TEnum, TValue>();
+		private readonly Dictionary<TEnum, TValue> _Dict = new();
 
 		public int Count => _Dict.Count;
 		public IEnumerable<TEnum> Keys

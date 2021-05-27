@@ -8,7 +8,7 @@ namespace Advobot.UI.Controls
 	public sealed class TextBoxStreamWriter : TextWriter
 	{
 		private readonly ICommand _Command;
-		private readonly StringBuilder _CurrentLineText = new StringBuilder();
+		private readonly StringBuilder _CurrentLineText = new();
 
 		public override Encoding Encoding => Encoding.UTF32;
 

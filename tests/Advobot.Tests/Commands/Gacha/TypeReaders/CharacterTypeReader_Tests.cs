@@ -20,7 +20,7 @@ namespace Advobot.Tests.Commands.Gacha.TypeReaders
 	[TestClass]
 	public sealed class CharacterTypeReader_Tests : TypeReaderTestsBase
 	{
-		private readonly FakeGachaDatabase _Db = new FakeGachaDatabase();
+		private readonly FakeGachaDatabase _Db = new();
 		protected override TypeReader Instance { get; } = new CharacterTypeReader();
 
 		[TestMethod]

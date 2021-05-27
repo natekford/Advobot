@@ -19,7 +19,7 @@ namespace Advobot.MyCommands.Service
 	{
 		private static readonly TimeSpan _MaxAge = TimeSpan.FromDays(7);
 		private readonly IMyCommandsDatabase _Db;
-		private readonly HashSet<ulong> _Ids = new HashSet<ulong>();
+		private readonly HashSet<ulong> _Ids = new();
 		private string? _APIKey;
 		private DetectLanguageClient? _DetectLanguage;
 
@@ -30,7 +30,7 @@ namespace Advobot.MyCommands.Service
 			client.GuildMemberUpdated += OnGuildMemberUpdated;
 		}
 
-		private async Task OnGuildMemberUpdated(SocketGuildUser before, SocketGuildUser after)
+		private async Task OnGuildMemberUpdated(SocketGuildUser _, SocketGuildUser after)
 		{
 			if (after.Guild.Id != 199339772118827008
 				|| after.Activity is not CustomStatusGame status // Need a custom status

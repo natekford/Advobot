@@ -17,7 +17,7 @@ namespace Advobot.Services.BotSettings
 	internal sealed class NaiveBotSettings : IBotSettings
 	{
 		public bool AlwaysDownloadUsers { get; set; }
-		public DirectoryInfo BaseBotDirectory { get; private set; } = new DirectoryInfo(Directory.GetCurrentDirectory());
+		public DirectoryInfo BaseBotDirectory { get; private set; } = new(Directory.GetCurrentDirectory());
 		public string? Game { get; set; }
 		public LogSeverity LogLevel { get; set; } = LogSeverity.Warning;
 		public int MaxBannedNames { get; set; } = 25;

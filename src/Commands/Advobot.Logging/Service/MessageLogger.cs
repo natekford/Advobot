@@ -27,7 +27,7 @@ namespace Advobot.Logging.Service
 		private const int MAX_FIELD_LINES = MAX_DESCRIPTION_LENGTH / 2;
 
 		private readonly ConcurrentDictionary<ulong, DeletedMessageCache> _Caches =
-			new ConcurrentDictionary<ulong, DeletedMessageCache>();
+			new();
 		private readonly TimeSpan _MessageDeleteDelay = TimeSpan.FromSeconds(3);
 
 		#region Handlers

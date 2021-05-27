@@ -315,7 +315,7 @@ namespace Advobot.Utilities
 		/// <param name="value"></param>
 		/// <returns></returns>
 		public static MarkdownFormattedArg WithBigBlock(this string value)
-			=> new MarkdownFormattedArg(value, value.AddMarkdown("```"));
+			=> new(value, value.AddMarkdown("```"));
 
 		/// <summary>
 		/// Formats the string inside a standard code block.
@@ -323,7 +323,7 @@ namespace Advobot.Utilities
 		/// <param name="value"></param>
 		/// <returns></returns>
 		public static MarkdownFormattedArg WithBlock(this string value)
-			=> new MarkdownFormattedArg(value, value.AddMarkdown("`"));
+			=> new(value, value.AddMarkdown("`"));
 
 		/// <summary>
 		/// Returns the string as itself.
@@ -331,7 +331,7 @@ namespace Advobot.Utilities
 		/// <param name="value"></param>
 		/// <returns></returns>
 		public static MarkdownFormattedArg WithNoMarkdown(this string value)
-			=> new MarkdownFormattedArg(value, value);
+			=> new(value, value);
 
 		/// <summary>
 		/// Returns the string in title case.
@@ -339,7 +339,7 @@ namespace Advobot.Utilities
 		/// <param name="value"></param>
 		/// <returns></returns>
 		public static MarkdownFormattedArg WithTitleCase(this string value)
-			=> new MarkdownFormattedArg(value, value.FormatTitle());
+			=> new(value, value.FormatTitle());
 
 		/// <summary>
 		/// Formats the string as a title (in title case, with a colon at the end, and in bold).

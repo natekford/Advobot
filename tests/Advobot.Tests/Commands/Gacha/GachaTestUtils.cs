@@ -15,7 +15,7 @@ namespace Advobot.Tests.Commands.Gacha.Utilities
 {
 	public static class GachaTestUtils
 	{
-		public static readonly Random Rng = new Random();
+		public static readonly Random Rng = new();
 
 		public static async Task<(List<IReadOnlySource>, List<IReadOnlyCharacter>)> AddSourcesAndCharacters(
 			this GachaDatabase db,
