@@ -1,18 +1,9 @@
-﻿using Advobot.AutoMod.ReadOnlyModels;
-
-namespace Advobot.AutoMod.Models
+﻿namespace Advobot.AutoMod.Models
 {
-	public sealed class SpamPrevention : TimedPrevention, IReadOnlySpamPrevention
+	public sealed record SpamPrevention(
+		SpamType SpamType
+	) : TimedPrevention
 	{
-		public SpamType SpamType { get; set; }
-
-		public SpamPrevention()
-		{
-		}
-
-		public SpamPrevention(IReadOnlySpamPrevention other) : base(other)
-		{
-			SpamType = other.SpamType;
-		}
+		public SpamPrevention() : this(default(SpamType)) { }
 	}
 }

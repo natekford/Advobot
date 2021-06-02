@@ -6,7 +6,6 @@ using Advobot.Attributes.ParameterPreconditions.Strings;
 using Advobot.Attributes.Preconditions.Permissions;
 using Advobot.AutoMod.Attributes.ParameterPreconditions;
 using Advobot.AutoMod.Models;
-using Advobot.AutoMod.ReadOnlyModels;
 using Advobot.AutoMod.TypeReaders;
 using Advobot.Localization;
 using Advobot.Punishments;
@@ -77,14 +76,14 @@ namespace Advobot.AutoMod.Commands
 				PunishmentType punishment = default)
 			{
 				await Db.UpsertBannedPhraseAsync(new BannedPhrase
-				{
-					GuildId = Context.Guild.Id,
-					IsContains = true,
-					IsName = true,
-					IsRegex = false,
-					Phrase = name,
-					PunishmentType = punishment
-				}).CAF();
+				(
+					GuildId: Context.Guild.Id,
+					IsContains: true,
+					IsName: true,
+					IsRegex: false,
+					Phrase: name,
+					PunishmentType: punishment
+				)).CAF();
 				return Added(VariableName, name);
 			}
 
@@ -92,10 +91,10 @@ namespace Advobot.AutoMod.Commands
 			[LocalizedAlias(nameof(Aliases.ChangePunishment))]
 			public async Task<RuntimeResult> ChangePunishment(
 				[OverrideTypeReader(typeof(BannedNameTypeReader))]
-				IReadOnlyBannedPhrase name,
+				BannedPhrase name,
 				PunishmentType punishment)
 			{
-				await Db.UpsertBannedPhraseAsync(new BannedPhrase(name)
+				await Db.UpsertBannedPhraseAsync(name with
 				{
 					PunishmentType = punishment
 				}).CAF();
@@ -106,7 +105,7 @@ namespace Advobot.AutoMod.Commands
 			[LocalizedAlias(nameof(Aliases.Remove))]
 			public async Task<RuntimeResult> Remove(
 				[OverrideTypeReader(typeof(BannedNameTypeReader))]
-				IReadOnlyBannedPhrase name)
+				BannedPhrase name)
 			{
 				await Db.DeletedBannedPhraseAsync(name).CAF();
 				return Removed(VariableName, name.Phrase);
@@ -128,14 +127,14 @@ namespace Advobot.AutoMod.Commands
 				PunishmentType punishment = default)
 			{
 				await Db.UpsertBannedPhraseAsync(new BannedPhrase
-				{
-					GuildId = Context.Guild.Id,
-					IsContains = false,
-					IsName = false,
-					IsRegex = true,
-					Phrase = regex,
-					PunishmentType = punishment
-				}).CAF();
+				(
+					GuildId: Context.Guild.Id,
+					IsContains: false,
+					IsName: false,
+					IsRegex: true,
+					Phrase: regex,
+					PunishmentType: punishment
+				)).CAF();
 				return Added(VariableRegex, regex);
 			}
 
@@ -143,10 +142,10 @@ namespace Advobot.AutoMod.Commands
 			[LocalizedAlias(nameof(Aliases.ChangePunishment))]
 			public async Task<RuntimeResult> ChangePunishment(
 				[OverrideTypeReader(typeof(BannedRegexTypeReader))]
-				IReadOnlyBannedPhrase regex,
+				BannedPhrase regex,
 				PunishmentType punishment)
 			{
-				await Db.UpsertBannedPhraseAsync(new BannedPhrase(regex)
+				await Db.UpsertBannedPhraseAsync(regex with
 				{
 					PunishmentType = punishment
 				}).CAF();
@@ -157,7 +156,7 @@ namespace Advobot.AutoMod.Commands
 			[LocalizedAlias(nameof(Aliases.Remove))]
 			public async Task<RuntimeResult> Remove(
 				[OverrideTypeReader(typeof(BannedRegexTypeReader))]
-				IReadOnlyBannedPhrase regex)
+				BannedPhrase regex)
 			{
 				await Db.DeletedBannedPhraseAsync(regex).CAF();
 				return Removed(VariableRegex, regex.Phrase);
@@ -179,14 +178,14 @@ namespace Advobot.AutoMod.Commands
 				PunishmentType punishment = default)
 			{
 				await Db.UpsertBannedPhraseAsync(new BannedPhrase
-				{
-					GuildId = Context.Guild.Id,
-					IsContains = true,
-					IsName = false,
-					IsRegex = false,
-					Phrase = phrase,
-					PunishmentType = punishment
-				}).CAF();
+				(
+					GuildId: Context.Guild.Id,
+					IsContains: true,
+					IsName: false,
+					IsRegex: false,
+					Phrase: phrase,
+					PunishmentType: punishment
+				)).CAF();
 				return Added(VariableString, phrase);
 			}
 
@@ -194,10 +193,10 @@ namespace Advobot.AutoMod.Commands
 			[LocalizedAlias(nameof(Aliases.ChangePunishment))]
 			public async Task<RuntimeResult> ChangePunishment(
 				[OverrideTypeReader(typeof(BannedStringTypeReader))]
-				IReadOnlyBannedPhrase phrase,
+				BannedPhrase phrase,
 				PunishmentType punishment)
 			{
-				await Db.UpsertBannedPhraseAsync(new BannedPhrase(phrase)
+				await Db.UpsertBannedPhraseAsync(phrase with
 				{
 					PunishmentType = punishment
 				}).CAF();
@@ -208,7 +207,7 @@ namespace Advobot.AutoMod.Commands
 			[LocalizedAlias(nameof(Aliases.Remove))]
 			public async Task<RuntimeResult> Remove(
 				[OverrideTypeReader(typeof(BannedStringTypeReader))]
-				IReadOnlyBannedPhrase phrase)
+				BannedPhrase phrase)
 			{
 				await Db.DeletedBannedPhraseAsync(phrase).CAF();
 				return Removed(VariableString, phrase.Phrase);

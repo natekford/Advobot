@@ -8,7 +8,6 @@ using Advobot.Attributes.Preconditions;
 using Advobot.Attributes.Preconditions.Permissions;
 using Advobot.AutoMod;
 using Advobot.AutoMod.Models;
-using Advobot.AutoMod.ReadOnlyModels;
 using Advobot.Modules;
 using Advobot.Utilities;
 
@@ -75,7 +74,7 @@ namespace Advobot.MyCommands.Commands
 			return AdvobotResult.Success("they have been unspanitched");
 		}
 
-		private IReadOnlyPersistentRole[] CreatePersistentRoles(IGuildUser user)
+		private PersistentRole[] CreatePersistentRoles(IGuildUser user)
 		{
 			return Array.ConvertAll(Roles, x =>
 			{

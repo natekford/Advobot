@@ -1,11 +1,13 @@
-﻿using Advobot.AutoMod.ReadOnlyModels;
+﻿using Advobot.SQLite.Relationships;
 
 namespace Advobot.AutoMod.Models
 {
-	public sealed class PersistentRole : IReadOnlyPersistentRole
+	public record PersistentRole(
+		ulong GuildId,
+		ulong RoleId,
+		ulong UserId
+	) : IGuildChild, IUserChild
 	{
-		public ulong GuildId { get; set; }
-		public ulong RoleId { get; set; }
-		public ulong UserId { get; set; }
+		public PersistentRole() : this(default, default, default) { }
 	}
 }

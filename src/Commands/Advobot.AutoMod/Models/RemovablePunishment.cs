@@ -1,17 +1,20 @@
 ﻿using System;
 
-using Advobot.AutoMod.ReadOnlyModels;
 using Advobot.Punishments;
+using Advobot.SQLite.Relationships;
 
 namespace Advobot.AutoMod.Models
 {
-	public class RemovablePunishment : IReadOnlyRemovablePunishment
+	public record RemovablePunishment(
+		long EndTimeTicks,
+		ulong GuildId,
+		PunishmentType PunishmentType,
+		ulong RoleId,
+		ulong UserId
+	) : IGuildChild, IUserChild
 	{
 		public DateTime EndTime => new(EndTimeTicks);
-		public long EndTimeTicks { get; set; }
-		public ulong GuildId { get; set; }
-		public PunishmentType PunishmentType { get; set; }
-		public ulong RoleId { get; set; }
-		public ulong UserId { get; set; }
+
+		public RemovablePunishment() : this(default, default, default, default, default) { }
 	}
 }

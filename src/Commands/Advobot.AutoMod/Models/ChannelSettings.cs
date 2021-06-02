@@ -1,17 +1,13 @@
-﻿using Advobot.AutoMod.ReadOnlyModels;
-using Advobot.AutoMod.Utils;
-
-using Discord;
+﻿using Advobot.SQLite.Relationships;
 
 namespace Advobot.AutoMod.Models
 {
-	public sealed class ChannelSettings : IReadOnlyChannelSettings
+	public record ChannelSettings(
+		ulong GuildId,
+		ulong ChannelId,
+		bool IsImageOnly
+	) : IGuildChild, IChannelChild
 	{
-		public ulong ChannelId { get; set; }
-		public ulong GuildId { get; set; }
-		public bool IsImageOnly { get; set; }
-
-		public bool IsAllowed(IMessage message)
-			=> !IsImageOnly || message.GetImageCount() > 0;
+		public ChannelSettings() : this(default, default, default) { }
 	}
 }

@@ -6,7 +6,6 @@ using Advobot.Attributes;
 using Advobot.Attributes.ParameterPreconditions.DiscordObjectValidation.Roles;
 using Advobot.Attributes.Preconditions.Permissions;
 using Advobot.AutoMod.Models;
-using Advobot.AutoMod.ReadOnlyModels;
 using Advobot.Localization;
 using Advobot.Resources;
 using Advobot.Utilities;
@@ -44,7 +43,7 @@ namespace Advobot.AutoMod.Commands
 				return Display(roles);
 			}
 
-			private RuntimeResult Display(IEnumerable<IReadOnlyPersistentRole> roles)
+			private RuntimeResult Display(IEnumerable<PersistentRole> roles)
 			{
 				var grouped = roles
 					.Select(x =>

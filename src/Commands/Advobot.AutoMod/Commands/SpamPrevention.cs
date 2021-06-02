@@ -29,9 +29,11 @@ namespace Advobot.AutoMod.Commands
 			public async Task<RuntimeResult> Create(RaidType raidType, TimedPunishmentArgs args)
 			{
 				var current = await Db.GetRaidPreventionAsync(Context.Guild.Id, raidType).CAF();
-				var @new = args.Create<RaidPrevention>(current);
-				@new.GuildId = Context.Guild.Id;
-				@new.RaidType = raidType;
+				var @new = args.Create<RaidPrevention>(current) with
+				{
+					GuildId = Context.Guild.Id,
+					RaidType = raidType,
+				};
 
 				await Db.UpsertRaidPreventionAsync(@new).CAF();
 				return CreatedPrevention(raidType);
@@ -59,7 +61,7 @@ namespace Advobot.AutoMod.Commands
 					return AlreadyToggledPrevention(raidType, enable);
 				}
 
-				await Db.UpsertRaidPreventionAsync(new RaidPrevention(current)
+				await Db.UpsertRaidPreventionAsync(current with
 				{
 					Enabled = !current.Enabled,
 				}).CAF();
@@ -79,9 +81,11 @@ namespace Advobot.AutoMod.Commands
 			public async Task<RuntimeResult> Create(SpamType spamType, TimedPunishmentArgs args)
 			{
 				var current = await Db.GetSpamPreventionAsync(Context.Guild.Id, spamType).CAF();
-				var @new = args.Create<Models.SpamPrevention>(current);
-				@new.GuildId = Context.Guild.Id;
-				@new.SpamType = spamType;
+				var @new = args.Create<Models.SpamPrevention>(current) with
+				{
+					GuildId = Context.Guild.Id,
+					SpamType = spamType,
+				};
 
 				await Db.UpsertSpamPreventionAsync(@new).CAF();
 				return CreatedPrevention(spamType);
@@ -109,7 +113,7 @@ namespace Advobot.AutoMod.Commands
 					return AlreadyToggledPrevention(spamType, enable);
 				}
 
-				await Db.UpsertSpamPreventionAsync(new Models.SpamPrevention(current)
+				await Db.UpsertSpamPreventionAsync(current with
 				{
 					Enabled = !current.Enabled,
 				}).CAF();

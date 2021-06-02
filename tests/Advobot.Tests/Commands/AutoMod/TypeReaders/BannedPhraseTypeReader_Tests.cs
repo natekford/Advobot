@@ -28,14 +28,14 @@ namespace Advobot.Tests.Core.TypeReaders.BannedPhraseTypeReaders
 			const string PHRASE = "asdf";
 
 			await _Db.UpsertBannedPhraseAsync(new BannedPhrase
-			{
-				GuildId = Context.Guild.Id,
-				Phrase = PHRASE,
-				PunishmentType = PunishmentType.Nothing,
-				IsRegex = IsRegex,
-				IsName = IsName,
-				IsContains = IsName || IsString,
-			}).CAF();
+			(
+				GuildId: Context.Guild.Id,
+				IsContains: IsName || IsString,
+				IsName: IsName,
+				IsRegex: IsRegex,
+				Phrase: PHRASE,
+				PunishmentType: PunishmentType.Nothing
+			)).CAF();
 
 			var result = await ReadAsync(PHRASE).CAF();
 			Assert.IsTrue(result.IsSuccess);
@@ -48,14 +48,14 @@ namespace Advobot.Tests.Core.TypeReaders.BannedPhraseTypeReaders
 			const string PHRASE = "asdf";
 
 			await _Db.UpsertBannedPhraseAsync(new BannedPhrase
-			{
-				GuildId = Context.Guild.Id,
-				Phrase = PHRASE,
-				PunishmentType = PunishmentType.Nothing,
-				IsRegex = !IsRegex,
-				IsName = !IsName,
-				IsContains = !(IsName || IsString),
-			}).CAF();
+			(
+				GuildId: Context.Guild.Id,
+				IsContains: !(IsName || IsString),
+				IsName: !IsName,
+				IsRegex: !IsRegex,
+				Phrase: PHRASE,
+				PunishmentType: PunishmentType.Nothing
+			)).CAF();
 
 			var result = await ReadAsync(PHRASE).CAF();
 			Assert.IsFalse(result.IsSuccess);

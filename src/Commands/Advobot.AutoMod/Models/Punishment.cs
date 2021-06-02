@@ -1,40 +1,20 @@
 ﻿using System;
 
-using Advobot.AutoMod.ReadOnlyModels;
 using Advobot.Punishments;
+using Advobot.SQLite.Relationships;
 
 namespace Advobot.AutoMod.Models
 {
-	public class Punishment : IReadOnlyPunishment
+	public record Punishment(
+		ulong GuildId,
+		int Instances,
+		long? LengthTicks,
+		PunishmentType PunishmentType,
+		ulong RoleId
+	) : IGuildChild
 	{
-		public ulong GuildId { get; set; }
-		public int Instances { get; set; }
-		public TimeSpan? Length
-		{
-			get
-			{
-				if (LengthTicks.HasValue)
-				{
-					return new TimeSpan(LengthTicks.Value);
-				}
-				return null;
-			}
-		}
-		public long? LengthTicks { get; set; }
-		public PunishmentType PunishmentType { get; set; }
-		public ulong RoleId { get; set; }
+		public TimeSpan? Length => LengthTicks.HasValue ? new(LengthTicks.Value) : null;
 
-		public Punishment()
-		{
-		}
-
-		public Punishment(IReadOnlyPunishment other)
-		{
-			GuildId = other.GuildId;
-			Instances = other.Instances;
-			LengthTicks = other.Length?.Ticks;
-			PunishmentType = other.PunishmentType;
-			RoleId = other.RoleId;
-		}
+		public Punishment() : this(default, default, default, default, default) { }
 	}
 }

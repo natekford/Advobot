@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 
-using Advobot.AutoMod.ReadOnlyModels;
+using Advobot.AutoMod.Models;
 using Advobot.Modules;
 using Advobot.Punishments;
 using Advobot.Utilities;
@@ -21,7 +21,7 @@ namespace Advobot.AutoMod.Responses
 		public static AdvobotResult Added(string type, string phrase)
 			=> Modified(type, true, phrase);
 
-		public static AdvobotResult Display(IEnumerable<IReadOnlyBannedPhrase> phrases)
+		public static AdvobotResult Display(IEnumerable<BannedPhrase> phrases)
 		{
 			var joined = phrases.Join(x => x.Phrase);
 			if (string.IsNullOrWhiteSpace(joined))

@@ -6,7 +6,6 @@ using System.Threading.Tasks;
 using Advobot.AutoMod;
 using Advobot.AutoMod.Database;
 using Advobot.AutoMod.Models;
-using Advobot.AutoMod.ReadOnlyModels;
 using Advobot.Punishments;
 using Advobot.Tests.Fakes.Database;
 using Advobot.Tests.TestBases;
@@ -30,13 +29,13 @@ namespace Advobot.Tests.Commands.AutoMod.Database
 		{
 			var db = await GetDatabaseAsync().CAF();
 
-			var editable = new AutoModSettings(GUILD_ID)
-			{
-				Duration = TimeSpan.FromSeconds(73),
-				IgnoreAdmins = true,
-				IgnoreHigherHierarchy = true,
-			};
-			IReadOnlyAutoModSettings settings = editable;
+			var settings = new AutoModSettings
+			(
+				GuildId: GUILD_ID,
+				Ticks: TimeSpan.FromSeconds(73).Ticks,
+				IgnoreAdmins: true,
+				IgnoreHigherHierarchy: true
+			);
 
 			async Task AssertEqualAsync()
 			{
@@ -53,8 +52,11 @@ namespace Advobot.Tests.Commands.AutoMod.Database
 
 			await AssertEqualAsync().CAF();
 
-			editable.Duration = TimeSpan.FromSeconds(42);
-			editable.IgnoreAdmins = false;
+			settings = settings with
+			{
+				Ticks = TimeSpan.FromSeconds(42).Ticks,
+				IgnoreAdmins = false,
+			};
 
 			await AssertEqualAsync().CAF();
 		}
@@ -64,38 +66,44 @@ namespace Advobot.Tests.Commands.AutoMod.Database
 		{
 			var db = await GetDatabaseAsync().CAF();
 
-			var editable = new BannedPhrase
-			{
-				GuildId = GUILD_ID,
-				Phrase = "joe",
-				IsRegex = true,
-				IsName = true,
-				PunishmentType = PunishmentType.Ban,
-			};
-			IReadOnlyBannedPhrase name = editable;
+			var phrase = new BannedPhrase
+			(
+				GuildId: GUILD_ID,
+				IsContains: false,
+				IsName: true,
+				IsRegex: true,
+				Phrase: "joe",
+				PunishmentType: PunishmentType.Ban
+			);
 
 			async Task AssertEqualAsync()
 			{
-				await db.UpsertBannedPhraseAsync(name).CAF();
+				await db.UpsertBannedPhraseAsync(phrase).CAF();
 
-				var retrieved = (await db.GetBannedNamesAsync(name.GuildId).CAF()).Single();
+				var retrieved = (await db.GetBannedNamesAsync(phrase.GuildId).CAF()).Single();
 				Assert.IsNotNull(retrieved);
-				Assert.AreEqual(name.GuildId, retrieved.GuildId);
-				Assert.AreEqual(name.IsContains, retrieved.IsContains);
-				Assert.AreEqual(name.IsRegex, retrieved.IsRegex);
-				Assert.AreEqual(name.Phrase, retrieved.Phrase);
-				Assert.AreEqual(name.PunishmentType, retrieved.PunishmentType);
+				Assert.AreEqual(phrase.GuildId, retrieved.GuildId);
+				Assert.AreEqual(phrase.IsContains, retrieved.IsContains);
+				Assert.AreEqual(phrase.IsRegex, retrieved.IsRegex);
+				Assert.AreEqual(phrase.Phrase, retrieved.Phrase);
+				Assert.AreEqual(phrase.PunishmentType, retrieved.PunishmentType);
 			}
 
 			await AssertEqualAsync().CAF();
 
-			editable.IsContains = false;
-			editable.PunishmentType = PunishmentType.Kick;
+			phrase = phrase with
+			{
+				IsContains = false,
+				PunishmentType = PunishmentType.Kick,
+			};
 
 			await AssertEqualAsync().CAF();
 
-			editable.Phrase = "not joe";
-			await db.UpsertBannedPhraseAsync(name).CAF();
+			phrase = phrase with
+			{
+				Phrase = "not joe",
+			};
+			await db.UpsertBannedPhraseAsync(phrase).CAF();
 			var retrieved = await db.GetBannedNamesAsync(GUILD_ID).CAF();
 			Assert.AreEqual(2, retrieved.Count);
 		}
@@ -105,14 +113,15 @@ namespace Advobot.Tests.Commands.AutoMod.Database
 		{
 			var db = await GetDatabaseAsync().CAF();
 
-			var editable = new BannedPhrase
-			{
-				GuildId = GUILD_ID,
-				Phrase = "joe",
-				IsRegex = true,
-				PunishmentType = PunishmentType.Ban,
-			};
-			IReadOnlyBannedPhrase phrase = editable;
+			var phrase = new BannedPhrase
+			(
+				GuildId: GUILD_ID,
+				IsContains: false,
+				IsName: false,
+				IsRegex: true,
+				Phrase: "joe",
+				PunishmentType: PunishmentType.Ban
+			);
 
 			async Task AssertEqualAsync()
 			{
@@ -129,12 +138,18 @@ namespace Advobot.Tests.Commands.AutoMod.Database
 
 			await AssertEqualAsync().CAF();
 
-			editable.IsContains = false;
-			editable.PunishmentType = PunishmentType.Kick;
+			phrase = phrase with
+			{
+				IsContains = false,
+				PunishmentType = PunishmentType.Kick,
+			};
 
 			await AssertEqualAsync().CAF();
 
-			editable.Phrase = "not joe";
+			phrase = phrase with
+			{
+				Phrase = "not joe",
+			};
 			await db.UpsertBannedPhraseAsync(phrase).CAF();
 			var retrieved = await db.GetBannedPhrasesAsync(GUILD_ID).CAF();
 			Assert.AreEqual(2, retrieved.Count);
@@ -145,13 +160,12 @@ namespace Advobot.Tests.Commands.AutoMod.Database
 		{
 			var db = await GetDatabaseAsync().CAF();
 
-			var editable = new ChannelSettings
+			var settings = new ChannelSettings
 			{
 				GuildId = GUILD_ID,
 				ChannelId = ROLE_ID,
 				IsImageOnly = true,
 			};
-			IReadOnlyChannelSettings settings = editable;
 
 			async Task AssertEqualAsync()
 			{
@@ -166,7 +180,10 @@ namespace Advobot.Tests.Commands.AutoMod.Database
 
 			await AssertEqualAsync().CAF();
 
-			editable.IsImageOnly = false;
+			settings = settings with
+			{
+				IsImageOnly = false,
+			};
 
 			await AssertEqualAsync().CAF();
 		}
@@ -176,7 +193,7 @@ namespace Advobot.Tests.Commands.AutoMod.Database
 		{
 			var db = await GetDatabaseAsync().CAF();
 
-			IReadOnlyPersistentRole role = new PersistentRole
+			var role = new PersistentRole
 			{
 				GuildId = GUILD_ID,
 				RoleId = ROLE_ID,
@@ -184,7 +201,7 @@ namespace Advobot.Tests.Commands.AutoMod.Database
 			};
 			await db.AddPersistentRoleAsync(role).CAF();
 
-			var list = new List<IReadOnlyPersistentRole>();
+			var list = new List<PersistentRole>();
 			{
 				var retrieved = await db.GetPersistentRolesAsync(role.GuildId, role.UserId).CAF();
 				Assert.AreEqual(1, retrieved.Count);
@@ -214,7 +231,7 @@ namespace Advobot.Tests.Commands.AutoMod.Database
 		{
 			var db = await GetDatabaseAsync().CAF();
 
-			var editable = new RaidPrevention
+			var prevention = new RaidPrevention
 			{
 				GuildId = GUILD_ID,
 				Enabled = true,
@@ -226,7 +243,6 @@ namespace Advobot.Tests.Commands.AutoMod.Database
 				Size = 24,
 				RaidType = RaidType.Regular,
 			};
-			IReadOnlyRaidPrevention prevention = editable;
 
 			async Task AssertEqualAsync()
 			{
@@ -251,13 +267,16 @@ namespace Advobot.Tests.Commands.AutoMod.Database
 
 			await AssertEqualAsync().CAF();
 
-			editable.Enabled = false;
-			editable.Instances = 24;
-			editable.IntervalTicks = 2341234444;
-			editable.LengthTicks = 28888883838383;
-			editable.PunishmentType = PunishmentType.Ban;
-			editable.RoleId = 87;
-			editable.Size = 42;
+			prevention = prevention with
+			{
+				Enabled = false,
+				Instances = 24,
+				IntervalTicks = 2341234444,
+				LengthTicks = 28888883838383,
+				PunishmentType = PunishmentType.Ban,
+				RoleId = 87,
+				Size = 42,
+			};
 
 			await AssertEqualAsync().CAF();
 		}
@@ -267,13 +286,12 @@ namespace Advobot.Tests.Commands.AutoMod.Database
 		{
 			var db = await GetDatabaseAsync().CAF();
 
-			var editable = new SelfRole
+			var selfRole = new SelfRole
 			{
 				GuildId = Context.Guild.Id,
 				RoleId = 73,
 				GroupId = 4,
 			};
-			IReadOnlySelfRole selfRole = editable;
 
 			async Task AssertEqualAsync()
 			{
@@ -292,17 +310,20 @@ namespace Advobot.Tests.Commands.AutoMod.Database
 
 			await AssertEqualAsync().CAF();
 
-			editable.GroupId = 2;
+			selfRole = selfRole with
+			{
+				GroupId = 2
+			};
 
 			await AssertEqualAsync().CAF();
 
 			await db.UpsertSelfRolesAsync(new[]
 			{
-				new SelfRole(selfRole)
+				selfRole with
 				{
 					RoleId = 4,
 				},
-				new SelfRole(selfRole)
+				selfRole with
 				{
 					RoleId = 5,
 				},
@@ -321,7 +342,7 @@ namespace Advobot.Tests.Commands.AutoMod.Database
 		{
 			var db = await GetDatabaseAsync().CAF();
 
-			var editable = new SpamPrevention
+			var prevention = new SpamPrevention
 			{
 				GuildId = GUILD_ID,
 				Enabled = true,
@@ -333,7 +354,6 @@ namespace Advobot.Tests.Commands.AutoMod.Database
 				Size = 24,
 				SpamType = SpamType.Image,
 			};
-			IReadOnlySpamPrevention prevention = editable;
 
 			async Task AssertEqualAsync()
 			{
@@ -358,13 +378,16 @@ namespace Advobot.Tests.Commands.AutoMod.Database
 
 			await AssertEqualAsync().CAF();
 
-			editable.Enabled = false;
-			editable.Instances = 24;
-			editable.IntervalTicks = 2341234444;
-			editable.LengthTicks = 28888883838383;
-			editable.PunishmentType = PunishmentType.Ban;
-			editable.RoleId = 87;
-			editable.Size = 42;
+			prevention = prevention with
+			{
+				Enabled = false,
+				Instances = 24,
+				IntervalTicks = 2341234444,
+				LengthTicks = 28888883838383,
+				PunishmentType = PunishmentType.Ban,
+				RoleId = 87,
+				Size = 42,
+			};
 
 			await AssertEqualAsync().CAF();
 		}

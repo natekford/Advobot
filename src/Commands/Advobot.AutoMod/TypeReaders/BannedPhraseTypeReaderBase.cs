@@ -3,7 +3,7 @@ using System.Linq;
 using System.Threading.Tasks;
 
 using Advobot.AutoMod.Database;
-using Advobot.AutoMod.ReadOnlyModels;
+using Advobot.AutoMod.Models;
 using Advobot.Utilities;
 
 using AdvorangesUtils;
@@ -25,7 +25,7 @@ namespace Advobot.AutoMod.TypeReaders
 		protected override string BannedPhraseName => VariableName;
 
 		/// <inheritdoc />
-		protected override bool IsValid(IReadOnlyBannedPhrase phrase, string input)
+		protected override bool IsValid(BannedPhrase phrase, string input)
 			=> phrase.IsName && phrase.Phrase == input;
 	}
 
@@ -59,7 +59,7 @@ namespace Advobot.AutoMod.TypeReaders
 		/// <param name="phrase"></param>
 		/// <param name="input"></param>
 		/// <returns></returns>
-		protected abstract bool IsValid(IReadOnlyBannedPhrase phrase, string input);
+		protected abstract bool IsValid(BannedPhrase phrase, string input);
 	}
 
 	/// <summary>
@@ -71,7 +71,7 @@ namespace Advobot.AutoMod.TypeReaders
 		protected override string BannedPhraseName => VariableRegex;
 
 		/// <inheritdoc />
-		protected override bool IsValid(IReadOnlyBannedPhrase phrase, string input)
+		protected override bool IsValid(BannedPhrase phrase, string input)
 			=> !phrase.IsName && phrase.IsRegex && phrase.Phrase == input;
 	}
 
@@ -84,7 +84,7 @@ namespace Advobot.AutoMod.TypeReaders
 		protected override string BannedPhraseName => VariableString;
 
 		/// <inheritdoc />
-		protected override bool IsValid(IReadOnlyBannedPhrase phrase, string input)
+		protected override bool IsValid(BannedPhrase phrase, string input)
 			=> !phrase.IsName && !phrase.IsRegex && phrase.Phrase == input;
 	}
 }

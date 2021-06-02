@@ -5,7 +5,6 @@ using System.Threading.Tasks;
 using Advobot.Attributes;
 using Advobot.AutoMod.Database;
 using Advobot.AutoMod.Models;
-using Advobot.AutoMod.ReadOnlyModels;
 using Advobot.Utilities;
 
 using AdvorangesUtils;
@@ -53,7 +52,7 @@ namespace Advobot.AutoMod.TypeReaders
 		private async Task<List<IRole>> GetConflictingRoles(
 			IAutoModDatabase db,
 			ICommandContext context,
-			IReadOnlySelfRole item)
+			SelfRole item)
 		{
 			var selfRoles = await db.GetSelfRolesAsync(context.Guild.Id, item.GroupId).CAF();
 			var conflicating = new List<IRole>(selfRoles.Count);

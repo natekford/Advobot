@@ -3,7 +3,6 @@ using System.Data.SQLite;
 using System.Threading.Tasks;
 
 using Advobot.AutoMod.Models;
-using Advobot.AutoMod.ReadOnlyModels;
 using Advobot.SQLite;
 
 using AdvorangesUtils;
@@ -21,7 +20,7 @@ namespace Advobot.AutoMod.Database
 		{
 		}
 
-		public Task<int> AddRemovablePunishmentAsync(IReadOnlyRemovablePunishment punishment)
+		public Task<int> AddRemovablePunishmentAsync(RemovablePunishment punishment)
 		{
 			return ModifyAsync(@"
 				INSERT OR IGNORE INTO RemovablePunishment
@@ -31,13 +30,13 @@ namespace Advobot.AutoMod.Database
 			", punishment);
 		}
 
-		public Task<int> DeleteRemovablePunishmentAsync(IReadOnlyRemovablePunishment punishment)
+		public Task<int> DeleteRemovablePunishmentAsync(RemovablePunishment punishment)
 			=> ModifyAsync(DELETE_REMOVABLE_PUNISHMENT_SQL, punishment);
 
-		public Task<int> DeleteRemovablePunishmentsAsync(IEnumerable<IReadOnlyRemovablePunishment> punishments)
+		public Task<int> DeleteRemovablePunishmentsAsync(IEnumerable<RemovablePunishment> punishments)
 			=> BulkModifyAsync(DELETE_REMOVABLE_PUNISHMENT_SQL, punishments);
 
-		public async Task<IReadOnlyList<IReadOnlyRemovablePunishment>> GetOldPunishmentsAsync(long ticks)
+		public async Task<IReadOnlyList<RemovablePunishment>> GetOldPunishmentsAsync(long ticks)
 		{
 			var param = new { Ticks = ticks };
 			return await GetManyAsync<RemovablePunishment>(@"

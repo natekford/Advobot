@@ -6,24 +6,24 @@ using System.Threading.Tasks;
 
 using Advobot.AutoMod;
 using Advobot.AutoMod.Database;
-using Advobot.AutoMod.ReadOnlyModels;
+using Advobot.AutoMod.Models;
 
 namespace Advobot.Tests.Commands.AutoMod
 {
 	public sealed class FakeAutoModDatabase : IAutoModDatabase
 	{
-		private readonly ConcurrentDictionary<(ulong GuildId, string Phrase), IReadOnlyBannedPhrase> _BannedPhrases = new();
-		private readonly ConcurrentDictionary<ulong, IReadOnlySelfRole> _SelfRoles = new();
+		private readonly ConcurrentDictionary<(ulong GuildId, string Phrase), BannedPhrase> _BannedPhrases = new();
+		private readonly ConcurrentDictionary<ulong, SelfRole> _SelfRoles = new();
 
-		public Task<int> AddPersistentRoleAsync(IReadOnlyPersistentRole role) => throw new NotImplementedException();
+		public Task<int> AddPersistentRoleAsync(PersistentRole role) => throw new NotImplementedException();
 
-		public Task<int> DeletedBannedPhraseAsync(IReadOnlyBannedPhrase phrase)
+		public Task<int> DeletedBannedPhraseAsync(BannedPhrase phrase)
 		{
 			var existed = _BannedPhrases.TryRemove((phrase.GuildId, phrase.Phrase), out _);
 			return Task.FromResult(existed ? 1 : 0);
 		}
 
-		public Task<int> DeletePersistentRoleAsync(IReadOnlyPersistentRole role) => throw new NotImplementedException();
+		public Task<int> DeletePersistentRoleAsync(PersistentRole role) => throw new NotImplementedException();
 
 		public Task<int> DeleteSelfRolesAsync(IEnumerable<ulong> roles)
 		{
@@ -55,76 +55,76 @@ namespace Advobot.Tests.Commands.AutoMod
 			return Task.FromResult(count);
 		}
 
-		public Task<IReadOnlyAutoModSettings> GetAutoModSettingsAsync(ulong guildId) => throw new NotImplementedException();
+		public Task<AutoModSettings> GetAutoModSettingsAsync(ulong guildId) => throw new NotImplementedException();
 
-		public Task<IReadOnlyList<IReadOnlyBannedPhrase>> GetBannedNamesAsync(ulong guildId) => throw new NotImplementedException();
+		public Task<IReadOnlyList<BannedPhrase>> GetBannedNamesAsync(ulong guildId) => throw new NotImplementedException();
 
-		public Task<IReadOnlyList<IReadOnlyBannedPhrase>> GetBannedPhrasesAsync(ulong guildId)
+		public Task<IReadOnlyList<BannedPhrase>> GetBannedPhrasesAsync(ulong guildId)
 		{
 			var list = _BannedPhrases
 				.Where(x => x.Key.GuildId == guildId)
 				.Select(x => x.Value)
 				.ToList();
-			return Task.FromResult<IReadOnlyList<IReadOnlyBannedPhrase>>(list);
+			return Task.FromResult<IReadOnlyList<BannedPhrase>>(list);
 		}
 
-		public Task<IReadOnlyChannelSettings?> GetChannelSettingsAsync(ulong channelId) => throw new NotImplementedException();
+		public Task<ChannelSettings?> GetChannelSettingsAsync(ulong channelId) => throw new NotImplementedException();
 
-		public Task<IReadOnlyList<IReadOnlyChannelSettings>> GetChannelSettingsListAsync(ulong guildId) => throw new NotImplementedException();
+		public Task<IReadOnlyList<ChannelSettings>> GetChannelSettingsListAsync(ulong guildId) => throw new NotImplementedException();
 
-		public Task<IReadOnlyList<IReadOnlyPersistentRole>> GetPersistentRolesAsync(ulong guildId) => throw new NotImplementedException();
+		public Task<IReadOnlyList<PersistentRole>> GetPersistentRolesAsync(ulong guildId) => throw new NotImplementedException();
 
-		public Task<IReadOnlyList<IReadOnlyPersistentRole>> GetPersistentRolesAsync(ulong guildId, ulong userId) => throw new NotImplementedException();
+		public Task<IReadOnlyList<PersistentRole>> GetPersistentRolesAsync(ulong guildId, ulong userId) => throw new NotImplementedException();
 
-		public Task<IReadOnlyList<IReadOnlyPunishment>> GetPunishmentsAsync(ulong guildId) => throw new NotImplementedException();
+		public Task<IReadOnlyList<Punishment>> GetPunishmentsAsync(ulong guildId) => throw new NotImplementedException();
 
-		public Task<IReadOnlyList<IReadOnlyRaidPrevention>> GetRaidPreventionAsync(ulong guildId) => throw new NotImplementedException();
+		public Task<IReadOnlyList<RaidPrevention>> GetRaidPreventionAsync(ulong guildId) => throw new NotImplementedException();
 
-		public Task<IReadOnlyRaidPrevention?> GetRaidPreventionAsync(ulong guildId, RaidType raidType) => throw new NotImplementedException();
+		public Task<RaidPrevention?> GetRaidPreventionAsync(ulong guildId, RaidType raidType) => throw new NotImplementedException();
 
-		public Task<IReadOnlySelfRole?> GetSelfRoleAsync(ulong roleId)
+		public Task<SelfRole?> GetSelfRoleAsync(ulong roleId)
 		{
 			_ = _SelfRoles.TryGetValue(roleId, out var item);
 			return Task.FromResult(item);
 		}
 
-		public Task<IReadOnlyList<IReadOnlySelfRole>> GetSelfRolesAsync(ulong guildId)
+		public Task<IReadOnlyList<SelfRole>> GetSelfRolesAsync(ulong guildId)
 		{
 			var list = _SelfRoles
 				.Select(x => x.Value)
 				.Where(x => x.GuildId == guildId)
 				.ToList();
-			return Task.FromResult<IReadOnlyList<IReadOnlySelfRole>>(list);
+			return Task.FromResult<IReadOnlyList<SelfRole>>(list);
 		}
 
-		public Task<IReadOnlyList<IReadOnlySelfRole>> GetSelfRolesAsync(ulong guildId, int group)
+		public Task<IReadOnlyList<SelfRole>> GetSelfRolesAsync(ulong guildId, int group)
 		{
 			var list = _SelfRoles
 				.Select(x => x.Value)
 				.Where(x => x.GuildId == guildId && x.GroupId == group)
 				.ToList();
-			return Task.FromResult<IReadOnlyList<IReadOnlySelfRole>>(list);
+			return Task.FromResult<IReadOnlyList<SelfRole>>(list);
 		}
 
-		public Task<IReadOnlyList<IReadOnlySpamPrevention>> GetSpamPreventionAsync(ulong guildId) => throw new NotImplementedException();
+		public Task<IReadOnlyList<SpamPrevention>> GetSpamPreventionAsync(ulong guildId) => throw new NotImplementedException();
 
-		public Task<IReadOnlySpamPrevention?> GetSpamPreventionAsync(ulong guildId, SpamType spamType) => throw new NotImplementedException();
+		public Task<SpamPrevention?> GetSpamPreventionAsync(ulong guildId, SpamType spamType) => throw new NotImplementedException();
 
-		public Task<int> UpsertAutoModSettingsAsync(IReadOnlyAutoModSettings settings) => throw new NotImplementedException();
+		public Task<int> UpsertAutoModSettingsAsync(AutoModSettings settings) => throw new NotImplementedException();
 
-		public Task<int> UpsertBannedPhraseAsync(IReadOnlyBannedPhrase phrase)
+		public Task<int> UpsertBannedPhraseAsync(BannedPhrase phrase)
 		{
 			_BannedPhrases.AddOrUpdate((phrase.GuildId, phrase.Phrase), phrase, (_, _) => phrase);
 			return Task.FromResult(1);
 		}
 
-		public Task<int> UpsertChannelSettings(IReadOnlyChannelSettings settings) => throw new NotImplementedException();
+		public Task<int> UpsertChannelSettings(ChannelSettings settings) => throw new NotImplementedException();
 
-		public Task<int> UpsertRaidPreventionAsync(IReadOnlyRaidPrevention prevention) => throw new NotImplementedException();
+		public Task<int> UpsertRaidPreventionAsync(RaidPrevention prevention) => throw new NotImplementedException();
 
-		public Task<int> UpsertSelfRolesAsync(IEnumerable<IReadOnlySelfRole> roles)
+		public Task<int> UpsertSelfRolesAsync(IEnumerable<SelfRole> roles)
 		{
-			var updates = new List<IReadOnlySelfRole>();
+			var updates = new List<SelfRole>();
 			foreach (var role in roles)
 			{
 				if (!_SelfRoles.TryGetValue(role.RoleId, out var value)
@@ -140,6 +140,6 @@ namespace Advobot.Tests.Commands.AutoMod
 			return Task.FromResult(updates.Count);
 		}
 
-		public Task<int> UpsertSpamPreventionAsync(IReadOnlySpamPrevention prevention) => throw new NotImplementedException();
+		public Task<int> UpsertSpamPreventionAsync(SpamPrevention prevention) => throw new NotImplementedException();
 	}
 }

@@ -4,7 +4,6 @@ using System.Linq;
 using System.Threading.Tasks;
 
 using Advobot.AutoMod.Models;
-using Advobot.AutoMod.ReadOnlyModels;
 using Advobot.SQLite;
 
 using AdvorangesUtils;
@@ -17,7 +16,7 @@ namespace Advobot.AutoMod.Database
 		{
 		}
 
-		public Task<int> AddPersistentRoleAsync(IReadOnlyPersistentRole role)
+		public Task<int> AddPersistentRoleAsync(PersistentRole role)
 		{
 			return ModifyAsync(@"
 				INSERT OR IGNORE INTO PersistentRole
@@ -27,7 +26,7 @@ namespace Advobot.AutoMod.Database
 			", role);
 		}
 
-		public Task<int> DeletedBannedPhraseAsync(IReadOnlyBannedPhrase phrase)
+		public Task<int> DeletedBannedPhraseAsync(BannedPhrase phrase)
 		{
 			return ModifyAsync(@"
 				DELETE FROM BannedPhrase
@@ -35,7 +34,7 @@ namespace Advobot.AutoMod.Database
 			", phrase);
 		}
 
-		public Task<int> DeletePersistentRoleAsync(IReadOnlyPersistentRole role)
+		public Task<int> DeletePersistentRoleAsync(PersistentRole role)
 		{
 			return ModifyAsync(@"
 				DELETE FROM PersistentRole
@@ -64,7 +63,7 @@ namespace Advobot.AutoMod.Database
 			", param);
 		}
 
-		public async Task<IReadOnlyAutoModSettings> GetAutoModSettingsAsync(ulong guildId)
+		public async Task<AutoModSettings> GetAutoModSettingsAsync(ulong guildId)
 		{
 			var param = new { GuildId = guildId.ToString(), };
 			return await GetOneAsync<AutoModSettings?>(@"
@@ -74,7 +73,7 @@ namespace Advobot.AutoMod.Database
 			", param).CAF() ?? new AutoModSettings(guildId);
 		}
 
-		public async Task<IReadOnlyList<IReadOnlyBannedPhrase>> GetBannedNamesAsync(ulong guildId)
+		public async Task<IReadOnlyList<BannedPhrase>> GetBannedNamesAsync(ulong guildId)
 		{
 			var param = new { GuildId = guildId.ToString(), };
 			return await GetManyAsync<BannedPhrase>(@"
@@ -84,7 +83,7 @@ namespace Advobot.AutoMod.Database
 			", param).CAF();
 		}
 
-		public async Task<IReadOnlyList<IReadOnlyBannedPhrase>> GetBannedPhrasesAsync(ulong guildId)
+		public async Task<IReadOnlyList<BannedPhrase>> GetBannedPhrasesAsync(ulong guildId)
 		{
 			var param = new { GuildId = guildId.ToString(), };
 			return await GetManyAsync<BannedPhrase>(@"
@@ -94,7 +93,7 @@ namespace Advobot.AutoMod.Database
 			", param).CAF();
 		}
 
-		public async Task<IReadOnlyChannelSettings?> GetChannelSettingsAsync(ulong channelId)
+		public async Task<ChannelSettings?> GetChannelSettingsAsync(ulong channelId)
 		{
 			var param = new { ChannelId = channelId.ToString(), };
 			return await GetOneAsync<ChannelSettings>(@"
@@ -104,7 +103,7 @@ namespace Advobot.AutoMod.Database
 			", param).CAF();
 		}
 
-		public async Task<IReadOnlyList<IReadOnlyChannelSettings>> GetChannelSettingsListAsync(
+		public async Task<IReadOnlyList<ChannelSettings>> GetChannelSettingsListAsync(
 			ulong guildId)
 		{
 			var param = new { GuildId = guildId.ToString(), };
@@ -115,7 +114,7 @@ namespace Advobot.AutoMod.Database
 			", param).CAF();
 		}
 
-		public async Task<IReadOnlyList<IReadOnlyPersistentRole>> GetPersistentRolesAsync(
+		public async Task<IReadOnlyList<PersistentRole>> GetPersistentRolesAsync(
 			ulong guildId)
 		{
 			var param = new { GuildId = guildId.ToString(), };
@@ -126,7 +125,7 @@ namespace Advobot.AutoMod.Database
 			", param).CAF();
 		}
 
-		public async Task<IReadOnlyList<IReadOnlyPersistentRole>> GetPersistentRolesAsync(
+		public async Task<IReadOnlyList<PersistentRole>> GetPersistentRolesAsync(
 			ulong guildId,
 			ulong userId)
 		{
@@ -142,7 +141,7 @@ namespace Advobot.AutoMod.Database
 			", param).CAF();
 		}
 
-		public async Task<IReadOnlyList<IReadOnlyPunishment>> GetPunishmentsAsync(ulong guildId)
+		public async Task<IReadOnlyList<Punishment>> GetPunishmentsAsync(ulong guildId)
 		{
 			var param = new { GuildId = guildId.ToString(), };
 			return await GetManyAsync<Punishment>(@"
@@ -152,7 +151,7 @@ namespace Advobot.AutoMod.Database
 			", param).CAF();
 		}
 
-		public async Task<IReadOnlyList<IReadOnlyRaidPrevention>> GetRaidPreventionAsync(ulong guildId)
+		public async Task<IReadOnlyList<RaidPrevention>> GetRaidPreventionAsync(ulong guildId)
 		{
 			var param = new { GuildId = guildId.ToString(), };
 			return await GetManyAsync<RaidPrevention>(@"
@@ -162,7 +161,7 @@ namespace Advobot.AutoMod.Database
 			", param).CAF();
 		}
 
-		public async Task<IReadOnlyRaidPrevention?> GetRaidPreventionAsync(
+		public async Task<RaidPrevention?> GetRaidPreventionAsync(
 			ulong guildId,
 			RaidType raidType)
 		{
@@ -178,7 +177,7 @@ namespace Advobot.AutoMod.Database
 			", param).CAF();
 		}
 
-		public async Task<IReadOnlySelfRole?> GetSelfRoleAsync(ulong roleId)
+		public async Task<SelfRole?> GetSelfRoleAsync(ulong roleId)
 		{
 			var param = new { RoleId = roleId.ToString() };
 			return await GetOneAsync<SelfRole>(@"
@@ -188,7 +187,7 @@ namespace Advobot.AutoMod.Database
 			", param).CAF();
 		}
 
-		public async Task<IReadOnlyList<IReadOnlySelfRole>> GetSelfRolesAsync(ulong guildId)
+		public async Task<IReadOnlyList<SelfRole>> GetSelfRolesAsync(ulong guildId)
 		{
 			var param = new { GuildId = guildId.ToString() };
 			return await GetManyAsync<SelfRole>(@"
@@ -198,7 +197,7 @@ namespace Advobot.AutoMod.Database
 			", param).CAF();
 		}
 
-		public async Task<IReadOnlyList<IReadOnlySelfRole>> GetSelfRolesAsync(ulong guildId, int groupId)
+		public async Task<IReadOnlyList<SelfRole>> GetSelfRolesAsync(ulong guildId, int groupId)
 		{
 			var param = new
 			{
@@ -212,7 +211,7 @@ namespace Advobot.AutoMod.Database
 			", param).CAF();
 		}
 
-		public async Task<IReadOnlyList<IReadOnlySpamPrevention>> GetSpamPreventionAsync(ulong guildId)
+		public async Task<IReadOnlyList<SpamPrevention>> GetSpamPreventionAsync(ulong guildId)
 		{
 			var param = new { GuildId = guildId.ToString(), };
 			return await GetManyAsync<SpamPrevention>(@"
@@ -222,7 +221,7 @@ namespace Advobot.AutoMod.Database
 			", param).CAF();
 		}
 
-		public async Task<IReadOnlySpamPrevention?> GetSpamPreventionAsync(
+		public async Task<SpamPrevention?> GetSpamPreventionAsync(
 			ulong guildId,
 			SpamType spamType)
 		{
@@ -238,7 +237,7 @@ namespace Advobot.AutoMod.Database
 			", param).CAF();
 		}
 
-		public Task<int> UpsertAutoModSettingsAsync(IReadOnlyAutoModSettings settings)
+		public Task<int> UpsertAutoModSettingsAsync(AutoModSettings settings)
 		{
 			return ModifyAsync(@"
 				INSERT OR IGNORE INTO GuildSetting
@@ -254,7 +253,7 @@ namespace Advobot.AutoMod.Database
 			", settings);
 		}
 
-		public Task<int> UpsertBannedPhraseAsync(IReadOnlyBannedPhrase phrase)
+		public Task<int> UpsertBannedPhraseAsync(BannedPhrase phrase)
 		{
 			return ModifyAsync(@"
 				INSERT OR IGNORE INTO BannedPhrase
@@ -271,7 +270,7 @@ namespace Advobot.AutoMod.Database
 			", phrase);
 		}
 
-		public Task<int> UpsertChannelSettings(IReadOnlyChannelSettings settings)
+		public Task<int> UpsertChannelSettings(ChannelSettings settings)
 		{
 			return ModifyAsync(@"
 				INSERT OR IGNORE INTO ChannelSetting
@@ -285,7 +284,7 @@ namespace Advobot.AutoMod.Database
 			", settings);
 		}
 
-		public Task<int> UpsertRaidPreventionAsync(IReadOnlyRaidPrevention prevention)
+		public Task<int> UpsertRaidPreventionAsync(RaidPrevention prevention)
 		{
 			return ModifyAsync(@"
 				INSERT OR IGNORE INTO RaidPrevention
@@ -305,7 +304,7 @@ namespace Advobot.AutoMod.Database
 			", prevention);
 		}
 
-		public Task<int> UpsertSelfRolesAsync(IEnumerable<IReadOnlySelfRole> roles)
+		public Task<int> UpsertSelfRolesAsync(IEnumerable<SelfRole> roles)
 		{
 			return BulkModifyAsync(@"
 				INSERT OR IGNORE INTO SelfRole
@@ -319,7 +318,7 @@ namespace Advobot.AutoMod.Database
 			", roles);
 		}
 
-		public Task<int> UpsertSpamPreventionAsync(IReadOnlySpamPrevention prevention)
+		public Task<int> UpsertSpamPreventionAsync(SpamPrevention prevention)
 		{
 			return ModifyAsync(@"
 				INSERT OR IGNORE INTO SpamPrevention

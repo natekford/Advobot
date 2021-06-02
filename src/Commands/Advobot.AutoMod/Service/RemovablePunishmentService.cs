@@ -5,7 +5,6 @@ using System.Threading.Tasks;
 
 using Advobot.AutoMod.Database;
 using Advobot.AutoMod.Models;
-using Advobot.AutoMod.ReadOnlyModels;
 using Advobot.Punishments;
 using Advobot.Services.Time;
 
@@ -54,7 +53,7 @@ namespace Advobot.AutoMod.Service
 					var now = _Time.UtcNow.Ticks;
 					var values = await _Db.GetOldPunishmentsAsync(now).CAF();
 
-					var handled = new List<IReadOnlyRemovablePunishment>();
+					var handled = new List<RemovablePunishment>();
 					try
 					{
 						foreach (var p in values)
@@ -95,7 +94,7 @@ namespace Advobot.AutoMod.Service
 			return _Db.DeleteRemovablePunishmentAsync(ToDbModel(context));
 		}
 
-		private async Task<bool> RemovePunishmentAsync(IReadOnlyRemovablePunishment punishment)
+		private async Task<bool> RemovePunishmentAsync(RemovablePunishment punishment)
 		{
 			// Older than a week should be ignored and removed
 			if (_Time.UtcNow - punishment.EndTime > TimeSpan.FromDays(7))
@@ -132,7 +131,7 @@ namespace Advobot.AutoMod.Service
 			return true;
 		}
 
-		private IReadOnlyRemovablePunishment ToDbModel(IPunishmentContext context)
+		private RemovablePunishment ToDbModel(IPunishmentContext context)
 		{
 			return new RemovablePunishment
 			{

@@ -5,7 +5,6 @@ using System.Threading.Tasks;
 using Advobot.AutoMod.Context;
 using Advobot.AutoMod.Database;
 using Advobot.AutoMod.Models;
-using Advobot.AutoMod.ReadOnlyModels;
 using Advobot.AutoMod.Utils;
 using Advobot.Punishments;
 using Advobot.Services.Time;
@@ -126,10 +125,10 @@ namespace Advobot.AutoMod.Service
 #warning make this work eventually
 #pragma warning disable RCS1163 // Unused parameter.
 #pragma warning disable IDE0060 // Remove unused parameter
-			static bool IsRaid(IReadOnlyRaidPrevention prev, IGuildUser user)
+			static bool IsRaid(RaidPrevention prev, IGuildUser user)
 				=> false;
 
-			static bool ShouldPunish(IReadOnlyRaidPrevention prev, IEnumerable<ulong> users)
+			static bool ShouldPunish(RaidPrevention prev, IEnumerable<ulong> users)
 				=> false;
 #pragma warning restore IDE0060 // Remove unused parameter
 #pragma warning restore RCS1163 // Unused parameter.
@@ -219,7 +218,12 @@ namespace Advobot.AutoMod.Service
 		private async Task<bool> ProcessChannelSettings(IAutoModMessageContext context)
 		{
 			var settings = await _Db.GetChannelSettingsAsync(context.Channel.Id).CAF();
-			return settings?.IsAllowed(context.Message) != false;
+			if (settings is null)
+			{
+				return true;
+			}
+
+			return !settings.IsImageOnly || context.Message.GetImageCount() > 0;
 		}
 
 		private async Task<bool> ProcessPersistentRolesAsync(IAutoModContext context)
@@ -269,7 +273,7 @@ namespace Advobot.AutoMod.Service
 		private Task PunishAsync(
 			IGuild guild,
 			ulong userId,
-			IReadOnlyPunishment punishment,
+			Punishment punishment,
 			RequestOptions options)
 		{
 			var context = new DynamicPunishmentContext(guild, userId, true, punishment.PunishmentType)

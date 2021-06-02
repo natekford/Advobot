@@ -5,32 +5,32 @@ using System.Linq;
 using System.Threading.Tasks;
 
 using Advobot.AutoMod.Database;
-using Advobot.AutoMod.ReadOnlyModels;
+using Advobot.AutoMod.Models;
 using Advobot.Punishments;
 
 namespace Advobot.Tests.Commands.AutoMod
 {
 	public sealed class FakeRemovablePunishmentDatabase : IRemovablePunishmentDatabase
 	{
-		private readonly ConcurrentDictionary<Key, IReadOnlyRemovablePunishment> _Punishments = new();
+		private readonly ConcurrentDictionary<Key, RemovablePunishment> _Punishments = new();
 
-		public event Action<bool, IEnumerable<IReadOnlyRemovablePunishment>> PunishmentsModified;
+		public event Action<bool, IEnumerable<RemovablePunishment>> PunishmentsModified;
 
-		public Task<int> AddRemovablePunishmentAsync(IReadOnlyRemovablePunishment punishment)
+		public Task<int> AddRemovablePunishmentAsync(RemovablePunishment punishment)
 		{
 			_Punishments.AddOrUpdate(new Key(punishment), punishment, (_, _) => punishment);
 			PunishmentsModified?.Invoke(true, new[] { punishment });
 			return Task.FromResult(1);
 		}
 
-		public Task<int> DeleteRemovablePunishmentAsync(IReadOnlyRemovablePunishment punishment)
+		public Task<int> DeleteRemovablePunishmentAsync(RemovablePunishment punishment)
 		{
 			var existed = _Punishments.TryRemove(new Key(punishment), out _);
 			PunishmentsModified?.Invoke(false, new[] { punishment });
 			return Task.FromResult(existed ? 1 : 0);
 		}
 
-		public Task<int> DeleteRemovablePunishmentsAsync(IEnumerable<IReadOnlyRemovablePunishment> punishments)
+		public Task<int> DeleteRemovablePunishmentsAsync(IEnumerable<RemovablePunishment> punishments)
 		{
 			var count = 0;
 			foreach (var punishment in punishments)
@@ -44,12 +44,12 @@ namespace Advobot.Tests.Commands.AutoMod
 			return Task.FromResult(count);
 		}
 
-		public Task<IReadOnlyList<IReadOnlyRemovablePunishment>> GetOldPunishmentsAsync(long ticks)
+		public Task<IReadOnlyList<RemovablePunishment>> GetOldPunishmentsAsync(long ticks)
 		{
 			var list = _Punishments.Values
 				.Where(x => x.EndTime.Ticks < ticks)
 				.ToList();
-			return Task.FromResult<IReadOnlyList<IReadOnlyRemovablePunishment>>(list);
+			return Task.FromResult<IReadOnlyList<RemovablePunishment>>(list);
 		}
 
 		private readonly struct Key
@@ -58,7 +58,7 @@ namespace Advobot.Tests.Commands.AutoMod
 			public PunishmentType PunishmentType { get; }
 			public ulong UserId { get; }
 
-			public Key(IReadOnlyRemovablePunishment punishment)
+			public Key(RemovablePunishment punishment)
 			{
 				GuildId = punishment.GuildId;
 				UserId = punishment.UserId;

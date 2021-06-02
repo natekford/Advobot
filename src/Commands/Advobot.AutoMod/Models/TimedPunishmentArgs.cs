@@ -1,6 +1,5 @@
 ﻿using System;
 
-using Advobot.AutoMod.ReadOnlyModels;
 using Advobot.Punishments;
 using Advobot.TypeReaders;
 
@@ -20,7 +19,7 @@ namespace Advobot.AutoMod.Models
 		[OverrideTypeReader(typeof(PositiveNullableIntTypeReader))]
 		public int? Size { get; set; }
 
-		public T Create<T>(IReadOnlyTimedPrevention? original) where T : TimedPrevention, new()
+		public T Create<T>(TimedPrevention? original) where T : TimedPrevention, new()
 		{
 			original ??= new T();
 

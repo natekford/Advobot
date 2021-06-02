@@ -7,7 +7,6 @@ using Advobot.Attributes.ParameterPreconditions.DiscordObjectValidation.Roles;
 using Advobot.Attributes.ParameterPreconditions.Numbers;
 using Advobot.Attributes.Preconditions.Permissions;
 using Advobot.AutoMod.Models;
-using Advobot.AutoMod.ReadOnlyModels;
 using Advobot.Localization;
 using Advobot.Resources;
 using Advobot.Utilities;
@@ -72,7 +71,7 @@ namespace Advobot.AutoMod.Commands
 			public async Task<RuntimeResult> Command([NotNegative] int group)
 				=> Display(await Db.GetSelfRolesAsync(Context.Guild.Id, group).CAF());
 
-			private RuntimeResult Display(IEnumerable<IReadOnlySelfRole> roles)
+			private RuntimeResult Display(IEnumerable<SelfRole> roles)
 			{
 				var grouped = roles
 					.Select(x => (x.GroupId, Role: Context.Guild.GetRole(x.RoleId)))

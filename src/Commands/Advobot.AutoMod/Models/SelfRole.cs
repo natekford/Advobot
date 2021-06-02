@@ -1,22 +1,13 @@
-﻿using Advobot.AutoMod.ReadOnlyModels;
+﻿using Advobot.SQLite.Relationships;
 
 namespace Advobot.AutoMod.Models
 {
-	public sealed class SelfRole : IReadOnlySelfRole
+	public sealed record SelfRole(
+		int GroupId,
+		ulong GuildId,
+		ulong RoleId
+	) : IGuildChild
 	{
-		public int GroupId { get; set; }
-		public ulong GuildId { get; set; }
-		public ulong RoleId { get; set; }
-
-		public SelfRole()
-		{
-		}
-
-		public SelfRole(IReadOnlySelfRole other)
-		{
-			GuildId = other.GuildId;
-			RoleId = other.RoleId;
-			GroupId = other.GroupId;
-		}
+		public SelfRole() : this(default, default, default) { }
 	}
 }

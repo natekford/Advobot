@@ -3,7 +3,7 @@ using System.Linq;
 using System.Threading.Tasks;
 
 using Advobot.AutoMod.Database;
-using Advobot.AutoMod.ReadOnlyModels;
+using Advobot.AutoMod.Models;
 using Advobot.GeneratedParameterPreconditions;
 using Advobot.Utilities;
 
@@ -29,7 +29,7 @@ namespace Advobot.AutoMod.Attributes.ParameterPreconditions
 		protected override string BannedPhraseName => VariableName;
 
 		/// <inheritdoc />
-		protected override bool IsMatch(IReadOnlyBannedPhrase phrase, string input)
+		protected override bool IsMatch(BannedPhrase phrase, string input)
 			=> phrase.IsName && phrase.Phrase == input;
 	}
 
@@ -73,7 +73,7 @@ namespace Advobot.AutoMod.Attributes.ParameterPreconditions
 		/// <param name="phrase"></param>
 		/// <param name="input"></param>
 		/// <returns></returns>
-		protected abstract bool IsMatch(IReadOnlyBannedPhrase phrase, string input);
+		protected abstract bool IsMatch(BannedPhrase phrase, string input);
 	}
 
 	/// <summary>
@@ -87,7 +87,7 @@ namespace Advobot.AutoMod.Attributes.ParameterPreconditions
 		protected override string BannedPhraseName => VariableRegex;
 
 		/// <inheritdoc />
-		protected override bool IsMatch(IReadOnlyBannedPhrase phrase, string input)
+		protected override bool IsMatch(BannedPhrase phrase, string input)
 			=> phrase.IsRegex && phrase.Phrase == input;
 	}
 
@@ -102,7 +102,7 @@ namespace Advobot.AutoMod.Attributes.ParameterPreconditions
 		protected override string BannedPhraseName => VariableString;
 
 		/// <inheritdoc />
-		protected override bool IsMatch(IReadOnlyBannedPhrase phrase, string input)
+		protected override bool IsMatch(BannedPhrase phrase, string input)
 			=> !phrase.IsRegex && phrase.Phrase == input;
 	}
 }
