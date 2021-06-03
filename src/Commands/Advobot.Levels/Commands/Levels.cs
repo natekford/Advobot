@@ -77,7 +77,7 @@ namespace Advobot.Levels.Commands
 			public Task<RuntimeResult> Guild([Positive] int page = 1)
 				=> Command(new SearchArgs(guildId: GuildId), page);
 
-			private async Task<RuntimeResult> Command(ISearchArgs args, int page)
+			private async Task<RuntimeResult> Command(SearchArgs args, int page)
 			{
 				var offset = PAGE_LENGTH * (page - 1);
 				var ranks = await Db.GetRanksAsync(args, offset, PAGE_LENGTH).CAF();

@@ -1,7 +1,7 @@
 ﻿using System.Threading.Tasks;
 
+using Advobot.Logging;
 using Advobot.Logging.Database;
-using Advobot.Logging.Models;
 using Advobot.Logging.ParameterPreconditions;
 using Advobot.Tests.Fakes.Services.Logging;
 using Advobot.Tests.TestBases;
@@ -18,7 +18,7 @@ namespace Advobot.Tests.Commands.Logging.ParameterPreconditions
 	[TestClass]
 	public sealed class NotServerLogAttribute_Tests : ParameterPreconditionTestsBase
 	{
-		private readonly LogChannels _Channels = new();
+		private readonly FakeLoggingDatabase _Db = new();
 
 		protected override ParameterPreconditionAttribute Instance { get; }
 			= new NotServerLogAttribute();
@@ -26,8 +26,7 @@ namespace Advobot.Tests.Commands.Logging.ParameterPreconditions
 		[TestMethod]
 		public async Task LogExisting_Test()
 		{
-			Context.Channel.Id = _Channels.ServerLogId = 73;
-
+			await _Db.UpsertLogChannelAsync(Log.Server, Context.Guild.Id, Context.Channel.Id).CAF();
 			var result = await CheckPermissionsAsync(Context.Channel).CAF();
 			Assert.IsFalse(result.IsSuccess);
 		}
@@ -42,8 +41,7 @@ namespace Advobot.Tests.Commands.Logging.ParameterPreconditions
 		protected override void ModifyServices(IServiceCollection services)
 		{
 			services
-				.AddSingleton(_Channels)
-				.AddSingleton<ILoggingDatabase, FakeLoggingDatabase>();
+				.AddSingleton<ILoggingDatabase>(_Db);
 		}
 	}
 }

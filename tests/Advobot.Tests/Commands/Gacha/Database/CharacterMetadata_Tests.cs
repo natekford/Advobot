@@ -2,7 +2,7 @@
 using System.Threading.Tasks;
 
 using Advobot.Gacha.Database;
-using Advobot.Gacha.ReadOnlyModels;
+using Advobot.Gacha.Models;
 using Advobot.Gacha.Utilities;
 using Advobot.Tests.Commands.Gacha.Utilities;
 using Advobot.Tests.Fakes.Database;
@@ -30,9 +30,9 @@ namespace Advobot.Tests.Commands.Gacha.Database
 			var (_, characters) = await db.AddSourcesAndCharacters(SOURCE_COUNT, CHARACTERS_PER_SOURCE).CAF();
 
 			//Set up a random number of claims on each character
-			var dict = new Dictionary<IReadOnlyCharacter, int>();
-			var users = new List<IReadOnlyUser>();
-			var claims = new List<IReadOnlyClaim>();
+			var dict = new Dictionary<Character, int>();
+			var users = new List<User>();
+			var claims = new List<Claim>();
 			foreach (var character in characters)
 			{
 				var claimCount = Rng.Next(MIN_CLAIMS, MAX_CLAIMS);

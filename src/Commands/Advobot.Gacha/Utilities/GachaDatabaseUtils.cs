@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 using Advobot.Gacha.Database;
 using Advobot.Gacha.Metadata;
-using Advobot.Gacha.ReadOnlyModels;
+using Advobot.Gacha.Models;
 using Advobot.Gacha.Relationships;
 
 using AdvorangesUtils;
@@ -19,7 +19,7 @@ namespace Advobot.Gacha.Utilities
 {
 	public static class RankUtils
 	{
-		public static Task<IReadOnlyList<IReadOnlyCharacter>> GetCharactersAsync(this IGachaDatabase db, string input)
+		public static Task<IReadOnlyList<Character>> GetCharactersAsync(this IGachaDatabase db, string input)
 		{
 			var matches = db.CharacterIds.FindMatches(input);
 			return db.GetCharactersAsync(matches.Select(x => x.Value.Id));
@@ -73,7 +73,7 @@ namespace Advobot.Gacha.Utilities
 			return new AmountAndRank(tableName, amount, rank, normalizedAmount, normalizedRank);
 		}
 
-		public static Task<IReadOnlyList<IReadOnlySource>> GetSourcesAsync(this IGachaDatabase db, string input)
+		public static Task<IReadOnlyList<Source>> GetSourcesAsync(this IGachaDatabase db, string input)
 		{
 			var matches = db.SourceIds.FindMatches(input);
 			return db.GetSourcesAsync(matches.Select(x => x.Value.Id));

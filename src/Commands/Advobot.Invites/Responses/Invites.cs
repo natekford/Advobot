@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 
-using Advobot.Invites.ReadOnlyModels;
+using Advobot.Invites.Models;
 using Advobot.Invites.Utilities;
 using Advobot.Modules;
 using Advobot.Utilities;
@@ -34,7 +34,7 @@ namespace Advobot.Invites.Responses
 		public static AdvobotResult DeletedListing()
 			=> Success(ListedInviteDeleted);
 
-		public static AdvobotResult InviteMatches(IEnumerable<IReadOnlyListedInvite> invites)
+		public static AdvobotResult InviteMatches(IEnumerable<ListedInvite> invites)
 		{
 			const string GHEADER = "Guild Name";
 			const string MHEADER = "Member Count";

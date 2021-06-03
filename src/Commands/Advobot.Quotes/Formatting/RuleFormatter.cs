@@ -2,7 +2,7 @@
 using System.Collections.Immutable;
 using System.Text;
 
-using Advobot.Quotes.ReadOnlyModels;
+using Advobot.Quotes.Models;
 
 using AdvorangesUtils;
 
@@ -164,14 +164,14 @@ namespace Advobot.Quotes.Formatting
 		/// </summary>
 		public IEnumerable<MarkDownFormat>? TitleMarkDownFormat { get; set; }
 
-		public string Format(IReadOnlyRuleCategory category, IReadOnlyList<IReadOnlyRule> rules)
+		public string Format(RuleCategory category, IReadOnlyList<Rule> rules)
 		{
 			var sb = new StringBuilder();
 			AppendCategory(sb, category, rules);
 			return sb.ToString();
 		}
 
-		public string Format(IReadOnlyDictionary<IReadOnlyRuleCategory, IReadOnlyList<IReadOnlyRule>> rules)
+		public string Format(IReadOnlyDictionary<RuleCategory, IReadOnlyList<Rule>> rules)
 		{
 			var sb = new StringBuilder();
 			foreach (var kvp in rules)
@@ -181,7 +181,7 @@ namespace Advobot.Quotes.Formatting
 			return sb.ToString();
 		}
 
-		private void AppendCategory(StringBuilder sb, IReadOnlyRuleCategory category, IReadOnlyList<IReadOnlyRule> rules)
+		private void AppendCategory(StringBuilder sb, RuleCategory category, IReadOnlyList<Rule> rules)
 		{
 			FormatName(sb, category.Value);
 			for (var i = 0; i < rules.Count; ++i)

@@ -1,11 +1,13 @@
-﻿using Advobot.Logging.ReadOnlyModels;
+﻿using Advobot.SQLite.Relationships;
 
 namespace Advobot.Logging.Models
 {
-	public class CustomNotification : CustomEmbed, IReadOnlyCustomNotification
+	public record CustomNotification(
+		ulong ChannelId,
+		string? Content,
+		ulong GuildId
+	) : CustomEmbed, IChannelChild
 	{
-		public ulong ChannelId { get; set; }
-		public string? Content { get; set; }
-		public ulong GuildId { get; set; }
+		public CustomNotification() : this(default, default, default) { }
 	}
 }

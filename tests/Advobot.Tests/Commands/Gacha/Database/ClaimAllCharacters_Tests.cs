@@ -4,7 +4,6 @@ using System.Threading.Tasks;
 
 using Advobot.Gacha.Database;
 using Advobot.Gacha.Models;
-using Advobot.Gacha.ReadOnlyModels;
 using Advobot.Tests.Commands.Gacha.Utilities;
 using Advobot.Tests.Fakes.Database;
 using Advobot.Tests.TestBases;
@@ -34,8 +33,8 @@ namespace Advobot.Tests.Commands.Gacha.Database
 
 			//Claim the specified percentage of the created characters
 			var ids = new HashSet<long>();
-			var users = new List<IReadOnlyUser>();
-			var claims = new List<IReadOnlyClaim>();
+			var users = new List<User>();
+			var claims = new List<Claim>();
 			foreach (var character in characters.Take(CLAIM_COUNT))
 			{
 				var user = GachaTestUtils.GenerateFakeUser(guildId: GUILD_ID);

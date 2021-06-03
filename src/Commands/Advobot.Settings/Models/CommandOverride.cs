@@ -1,56 +1,36 @@
-﻿using Advobot.Settings.ReadOnlyModels;
+﻿using Advobot.SQLite.Relationships;
 
 using Discord;
 
 namespace Advobot.Settings.Models
 {
-	public sealed class CommandOverride : IReadOnlyCommandOverride
+	public sealed record CommandOverride(
+		string CommandId,
+		bool Enabled,
+		ulong GuildId,
+		int Priority,
+		ulong TargetId,
+		CommandOverrideType TargetType
+	) : IGuildChild
 	{
-		public string CommandId { get; set; }
-		public bool Enabled { get; set; }
-		public ulong GuildId { get; set; }
-		public int Priority { get; set; }
-		public ulong TargetId { get; set; }
-		public CommandOverrideType TargetType { get; set; }
+		public CommandOverride() : this("", default, default, default, default, default) { }
 
-		public CommandOverride()
-		{
-			CommandId = "";
-		}
+		public CommandOverride(ulong guildId, ulong targetId, CommandOverrideType targetType)
+			: this("", default, guildId, default, targetId, targetType) { }
 
-		public CommandOverride(CommandOverrideEntity entity) : this()
-		{
-			GuildId = entity.GuildId;
-			TargetId = entity.Entity.Id;
-			TargetType = entity.EntityType;
-		}
+		public CommandOverride(CommandOverrideEntity entity)
+			: this(entity.GuildId, entity.Entity.Id, entity.EntityType) { }
 
-		public CommandOverride(IGuild guild) : this()
-		{
-			GuildId = guild.Id;
-			TargetId = guild.Id;
-			TargetType = CommandOverrideType.Guild;
-		}
+		public CommandOverride(IGuild guild)
+			: this(guild.Id, guild.Id, CommandOverrideType.Guild) { }
 
-		public CommandOverride(IRole role) : this()
-		{
-			GuildId = role.Guild.Id;
-			TargetId = role.Id;
-			TargetType = CommandOverrideType.Role;
-		}
+		public CommandOverride(IRole role)
+			: this(role.Guild.Id, role.Id, CommandOverrideType.Role) { }
 
-		public CommandOverride(IGuildUser user) : this()
-		{
-			GuildId = user.Guild.Id;
-			TargetId = user.Id;
-			TargetType = CommandOverrideType.User;
-		}
+		public CommandOverride(IGuildUser user)
+			: this(user.Guild.Id, user.Id, CommandOverrideType.User) { }
 
-		public CommandOverride(ITextChannel channel) : this()
-		{
-			GuildId = channel.Guild.Id;
-			TargetId = channel.Id;
-			TargetType = CommandOverrideType.Channel;
-		}
+		public CommandOverride(ITextChannel channel)
+			: this(channel.Guild.Id, channel.Id, CommandOverrideType.Channel) { }
 	}
 }

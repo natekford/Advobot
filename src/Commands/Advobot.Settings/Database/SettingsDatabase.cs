@@ -3,7 +3,6 @@ using System.Data.SQLite;
 using System.Threading.Tasks;
 
 using Advobot.Settings.Models;
-using Advobot.Settings.ReadOnlyModels;
 using Advobot.SQLite;
 
 using AdvorangesUtils;
@@ -16,7 +15,7 @@ namespace Advobot.Settings.Database
 		{
 		}
 
-		public Task<int> DeleteCommandOverridesAsync(IEnumerable<IReadOnlyCommandOverride> overrides)
+		public Task<int> DeleteCommandOverridesAsync(IEnumerable<CommandOverride> overrides)
 		{
 			return BulkModifyAsync(@"
 				DELETE FROM CommandOverride
@@ -24,7 +23,7 @@ namespace Advobot.Settings.Database
 			", overrides);
 		}
 
-		public async Task<IReadOnlyList<IReadOnlyCommandOverride>> GetCommandOverridesAsync(
+		public async Task<IReadOnlyList<CommandOverride>> GetCommandOverridesAsync(
 			ulong guildId,
 			string commandId)
 		{
@@ -40,7 +39,7 @@ namespace Advobot.Settings.Database
 			", param).CAF();
 		}
 
-		public async Task<IReadOnlyList<IReadOnlyCommandOverride>> GetCommandOverridesAsync(
+		public async Task<IReadOnlyList<CommandOverride>> GetCommandOverridesAsync(
 			ulong guildId)
 		{
 			var param = new { GuildId = guildId.ToString() };
@@ -51,7 +50,7 @@ namespace Advobot.Settings.Database
 			", param).CAF();
 		}
 
-		public async Task<IReadOnlyGuildSettings> GetGuildSettingsAsync(ulong guildId)
+		public async Task<GuildSettings> GetGuildSettingsAsync(ulong guildId)
 		{
 			var param = new { GuildId = guildId.ToString() };
 			return await GetOneAsync<GuildSettings>(@"
@@ -60,7 +59,7 @@ namespace Advobot.Settings.Database
 			", param).CAF() ?? new GuildSettings { GuildId = guildId };
 		}
 
-		public Task<int> UpsertCommandOverridesAsync(IEnumerable<IReadOnlyCommandOverride> overrides)
+		public Task<int> UpsertCommandOverridesAsync(IEnumerable<CommandOverride> overrides)
 		{
 			return BulkModifyAsync(@"
 				INSERT OR IGNORE INTO CommandOverride
@@ -75,7 +74,7 @@ namespace Advobot.Settings.Database
 			", overrides);
 		}
 
-		public Task<int> UpsertGuildSettingsAsync(IReadOnlyGuildSettings settings)
+		public Task<int> UpsertGuildSettingsAsync(GuildSettings settings)
 		{
 			return ModifyAsync(@"
 				INSERT OR IGNORE INTO GuildSetting

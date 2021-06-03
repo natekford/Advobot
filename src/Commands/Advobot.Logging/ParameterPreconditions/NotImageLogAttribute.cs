@@ -1,6 +1,6 @@
 ﻿using System;
 
-using Advobot.Logging.ReadOnlyModels;
+using Advobot.Logging.Models;
 
 using Discord;
 
@@ -16,7 +16,7 @@ namespace Advobot.Logging.ParameterPreconditions
 		protected override string LogName => Resources.Responses.VariableImageLog;
 
 		/// <inheritdoc />
-		protected override ulong GetId(IReadOnlyLogChannels channels)
+		protected override ulong GetId(LogChannels channels)
 			=> channels.ImageLogId;
 	}
 }

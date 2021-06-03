@@ -7,7 +7,6 @@ using Advobot.Localization;
 using Advobot.Modules;
 using Advobot.Quotes.Models;
 using Advobot.Quotes.ParameterPreconditions;
-using Advobot.Quotes.ReadOnlyModels;
 using Advobot.Resources;
 
 using AdvorangesUtils;
@@ -48,7 +47,7 @@ namespace Advobot.Quotes.Commands
 
 			[LocalizedCommand(nameof(Groups.Remove))]
 			[LocalizedAlias(nameof(Aliases.Remove))]
-			public async Task<RuntimeResult> Remove([Remainder] IReadOnlyQuote quote)
+			public async Task<RuntimeResult> Remove([Remainder] Quote quote)
 			{
 				await Db.DeleteQuoteAsync(quote).CAF();
 				return RemovedQuote(quote);
@@ -69,14 +68,14 @@ namespace Advobot.Quotes.Commands
 			}
 
 			[Command, Priority(1)]
-			public Task<RuntimeResult> Command([Remainder] IReadOnlyQuote quote)
+			public Task<RuntimeResult> Command([Remainder] Quote quote)
 				=> Quote(quote);
 
 			[Command(RunMode = RunMode.Async), Priority(0)]
 			[Hidden]
 			public async Task<RuntimeResult> Command(
 				[Remainder]
-				IReadOnlyList<IReadOnlyQuote> quote)
+				IReadOnlyList<Quote> quote)
 			{
 				var entry = await NextItemAtIndexAsync(quote, x => x.Name).CAF();
 				if (entry.HasValue)

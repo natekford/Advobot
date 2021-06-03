@@ -2,7 +2,7 @@
 
 using Advobot.Levels.Database;
 using Advobot.Levels.Models;
-using Advobot.Levels.ReadOnlyModels;
+using Advobot.Levels.Utilities;
 using Advobot.Tests.Fakes.Database;
 using Advobot.Tests.TestBases;
 
@@ -29,7 +29,7 @@ namespace Advobot.Tests.Commands.Levels.Database
 			await AssertRetrievedUserAsync(db, args, modified).CAF();
 		}
 
-		private async Task AssertRetrievedUserAsync(LevelDatabase db, ISearchArgs args, IReadOnlyUser expected)
+		private async Task AssertRetrievedUserAsync(LevelDatabase db, SearchArgs args, User expected)
 		{
 			await db.UpsertUserAsync(expected).CAF();
 

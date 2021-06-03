@@ -7,14 +7,14 @@ namespace Advobot.AutoMod.Models
 {
 	public record AutoModSettings(
 		ulong GuildId,
-		long Ticks = 0,
-		bool IgnoreAdmins = true,
-		bool IgnoreHigherHierarchy = true
+		long Ticks,
+		bool IgnoreAdmins,
+		bool IgnoreHigherHierarchy
 	) : IGuildChild
 	{
 		public bool CheckDuration => Duration != Timeout.InfiniteTimeSpan;
 		public TimeSpan Duration => new(Ticks);
 
-		public AutoModSettings() : this(0) { }
+		public AutoModSettings() : this(default, default, IgnoreAdmins: true, IgnoreHigherHierarchy: true) { }
 	}
 }

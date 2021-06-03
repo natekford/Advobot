@@ -66,7 +66,7 @@ namespace Advobot.Tests.Commands.Invites.Database
 				counts.Add(word, current = new HashSet<ulong>());
 			}
 			current.Add(guild.Id);
-			keywords.Add(new Keyword(guild, word));
+			keywords.Add(new Keyword(guild.Id, word));
 		}
 	}
 }

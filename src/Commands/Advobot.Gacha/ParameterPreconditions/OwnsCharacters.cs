@@ -3,7 +3,7 @@ using System.Threading.Tasks;
 
 using Advobot.Attributes.ParameterPreconditions;
 using Advobot.Gacha.Database;
-using Advobot.Gacha.ReadOnlyModels;
+using Advobot.Gacha.Models;
 using Advobot.Utilities;
 
 using AdvorangesUtils;
@@ -27,9 +27,9 @@ namespace Advobot.Gacha.ParameterPreconditions
 			object value,
 			IServiceProvider services)
 		{
-			if (value is not IReadOnlyCharacter character)
+			if (value is not Character character)
 			{
-				return this.FromOnlySupports(value, typeof(IReadOnlyCharacter));
+				return this.FromOnlySupports(value, typeof(Character));
 			}
 
 			var db = services.GetRequiredService<IGachaDatabase>();

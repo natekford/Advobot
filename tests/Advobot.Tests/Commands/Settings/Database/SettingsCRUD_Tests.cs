@@ -3,7 +3,6 @@ using System.Threading.Tasks;
 
 using Advobot.Settings.Database;
 using Advobot.Settings.Models;
-using Advobot.Settings.ReadOnlyModels;
 using Advobot.Tests.Fakes.Database;
 using Advobot.Tests.TestBases;
 
@@ -24,7 +23,7 @@ namespace Advobot.Tests.Commands.Settings.Database
 
 			var db = await GetDatabaseAsync().CAF();
 
-			var editable = new[]
+			var overrides = new[]
 			{
 				new CommandOverride(Context.Guild)
 				{
@@ -46,11 +45,11 @@ namespace Advobot.Tests.Commands.Settings.Database
 				},
 			};
 
-			await db.UpsertCommandOverridesAsync(editable).CAF();
+			await db.UpsertCommandOverridesAsync(overrides).CAF();
 
 			{
 				var retrieved = await db.GetCommandOverridesAsync(Context.Guild.Id).CAF();
-				var expected = editable
+				var expected = overrides
 					.OrderBy(x => x.CommandId)
 					.ThenByDescending(x => x.Priority)
 					.ThenBy(x => x.TargetType)
@@ -58,7 +57,7 @@ namespace Advobot.Tests.Commands.Settings.Database
 				Assert.AreEqual(expected.Length, retrieved.Count);
 				for (var i = 0; i < expected.Length; ++i)
 				{
-					IReadOnlyCommandOverride e = expected[i], r = retrieved[i];
+					CommandOverride e = expected[i], r = retrieved[i];
 					Assert.AreEqual(e.CommandId, r.CommandId);
 					Assert.AreEqual(e.Enabled, r.Enabled);
 					Assert.AreEqual(e.GuildId, r.GuildId);
@@ -70,7 +69,7 @@ namespace Advobot.Tests.Commands.Settings.Database
 
 			{
 				var retrieved = await db.GetCommandOverridesAsync(Context.Guild.Id, COMMAND_ID).CAF();
-				var expected = editable
+				var expected = overrides
 					.Where(x => x.CommandId == COMMAND_ID)
 					.OrderBy(x => x.CommandId)
 					.ThenByDescending(x => x.Priority)
@@ -79,7 +78,7 @@ namespace Advobot.Tests.Commands.Settings.Database
 				Assert.AreEqual(expected.Length, retrieved.Count);
 				for (var i = 0; i < expected.Length; ++i)
 				{
-					IReadOnlyCommandOverride e = expected[i], r = retrieved[i];
+					CommandOverride e = expected[i], r = retrieved[i];
 					Assert.AreEqual(e.CommandId, r.CommandId);
 					Assert.AreEqual(e.Enabled, r.Enabled);
 					Assert.AreEqual(e.GuildId, r.GuildId);
@@ -89,15 +88,18 @@ namespace Advobot.Tests.Commands.Settings.Database
 				}
 			}
 
-			foreach (var e in editable)
+			for (var i = 0; i < overrides.Length; ++i)
 			{
-				e.Enabled = false;
+				overrides[i] = overrides[i] with
+				{
+					Enabled = false,
+				};
 			}
-			await db.UpsertCommandOverridesAsync(editable).CAF();
+			await db.UpsertCommandOverridesAsync(overrides).CAF();
 
 			{
 				var retrieved = await db.GetCommandOverridesAsync(Context.Guild.Id).CAF();
-				var expected = editable
+				var expected = overrides
 					.OrderBy(x => x.CommandId)
 					.ThenByDescending(x => x.Priority)
 					.ThenBy(x => x.TargetType)
@@ -105,7 +107,7 @@ namespace Advobot.Tests.Commands.Settings.Database
 				Assert.AreEqual(expected.Length, retrieved.Count);
 				for (var i = 0; i < expected.Length; ++i)
 				{
-					IReadOnlyCommandOverride e = expected[i], r = retrieved[i];
+					CommandOverride e = expected[i], r = retrieved[i];
 					Assert.AreEqual(e.CommandId, r.CommandId);
 					Assert.AreEqual(e.Enabled, r.Enabled);
 					Assert.AreEqual(e.GuildId, r.GuildId);
@@ -115,12 +117,12 @@ namespace Advobot.Tests.Commands.Settings.Database
 				}
 			}
 
-			var toDelete = editable.Where(x => x.CommandId != COMMAND_ID);
+			var toDelete = overrides.Where(x => x.CommandId != COMMAND_ID);
 			await db.DeleteCommandOverridesAsync(toDelete).CAF();
 
 			{
 				var retrieved = await db.GetCommandOverridesAsync(Context.Guild.Id).CAF();
-				var expected = editable
+				var expected = overrides
 					.Where(x => x.CommandId == COMMAND_ID)
 					.OrderBy(x => x.CommandId)
 					.ThenByDescending(x => x.Priority)
@@ -129,7 +131,7 @@ namespace Advobot.Tests.Commands.Settings.Database
 				Assert.AreEqual(expected.Length, retrieved.Count);
 				for (var i = 0; i < expected.Length; ++i)
 				{
-					IReadOnlyCommandOverride e = expected[i], r = retrieved[i];
+					CommandOverride e = expected[i], r = retrieved[i];
 					Assert.AreEqual(e.CommandId, r.CommandId);
 					Assert.AreEqual(e.Enabled, r.Enabled);
 					Assert.AreEqual(e.GuildId, r.GuildId);

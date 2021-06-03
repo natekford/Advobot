@@ -3,7 +3,7 @@ using System.Threading.Tasks;
 
 using Advobot.GeneratedParameterPreconditions;
 using Advobot.Logging.Database;
-using Advobot.Logging.ReadOnlyModels;
+using Advobot.Logging.Models;
 using Advobot.Utilities;
 
 using AdvorangesUtils;
@@ -57,6 +57,6 @@ namespace Advobot.Logging.ParameterPreconditions
 		/// </summary>
 		/// <param name="channels"></param>
 		/// <returns></returns>
-		protected abstract ulong GetId(IReadOnlyLogChannels channels);
+		protected abstract ulong GetId(LogChannels channels);
 	}
 }

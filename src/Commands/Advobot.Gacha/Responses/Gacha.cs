@@ -1,4 +1,4 @@
-﻿using Advobot.Gacha.ReadOnlyModels;
+﻿using Advobot.Gacha.Models;
 using Advobot.Gacha.Trading;
 using Advobot.Modules;
 using Advobot.Utilities;
@@ -24,7 +24,7 @@ namespace Advobot.Gacha.Responses
 			return Success($"{user.Format()}, {receiver.Format()} {action} your {type}.");
 		}
 
-		public static AdvobotResult OtherSideTrade(IReadOnlyUser user)
+		public static AdvobotResult OtherSideTrade(User user)
 		{
 			var mention = MentionUtils.MentionUser(user.UserId);
 			return Success($"{mention}, use the trade command to offer up your side of the trade.");

@@ -4,7 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 
 using Advobot.Gacha.Database;
-using Advobot.Gacha.ReadOnlyModels;
+using Advobot.Gacha.Models;
 using Advobot.Gacha.Trading;
 using Advobot.Tests.Commands.Gacha.Utilities;
 using Advobot.Tests.Fakes.Database;
@@ -107,7 +107,7 @@ namespace Advobot.Tests.Commands.Gacha.Database
 			}
 		}
 
-		private async Task<(IGachaDatabase, IReadOnlyUser[], List<IReadOnlyCharacter>[])> AddClaimsAsync()
+		private async Task<(IGachaDatabase, User[], List<Character>[])> AddClaimsAsync()
 		{
 			var db = await GetDatabaseAsync().CAF();
 			var (_, characters) = await db.AddSourcesAndCharacters(SOURCE_COUNT, CHARACTERS_PER_SOURCE).CAF();
@@ -122,10 +122,10 @@ namespace Advobot.Tests.Commands.Gacha.Database
 
 			var userChars = new[]
 			{
-				new List<IReadOnlyCharacter>(),
-				new List<IReadOnlyCharacter>(),
+				new List<Character>(),
+				new List<Character>(),
 			};
-			var claims = new List<IReadOnlyClaim>();
+			var claims = new List<Claim>();
 			var c = 0;
 			for (var i = 0; i < users.Length; ++i)
 			{

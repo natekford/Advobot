@@ -1,23 +1,13 @@
-﻿using Advobot.Quotes.ReadOnlyModels;
+﻿using Advobot.SQLite.Relationships;
 
 namespace Advobot.Quotes.Models
 {
-	public sealed class RuleCategory : IReadOnlyRuleCategory
+	public sealed record RuleCategory(
+		int Category,
+		ulong GuildId,
+		string Value
+	) : IGuildChild
 	{
-		public int Category { get; set; }
-		public ulong GuildId { get; set; }
-		public string Value { get; set; }
-
-		public RuleCategory()
-		{
-			Value = "";
-		}
-
-		public RuleCategory(IReadOnlyRuleCategory other)
-		{
-			Category = other.Category;
-			GuildId = other.GuildId;
-			Value = other.Value;
-		}
+		public RuleCategory() : this(default, default, "") { }
 	}
 }

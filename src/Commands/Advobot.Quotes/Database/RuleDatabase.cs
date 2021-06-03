@@ -3,7 +3,6 @@ using System.Data.SQLite;
 using System.Threading.Tasks;
 
 using Advobot.Quotes.Models;
-using Advobot.Quotes.ReadOnlyModels;
 using Advobot.SQLite;
 
 using AdvorangesUtils;
@@ -12,17 +11,17 @@ namespace Advobot.Quotes.Database
 {
 	public static class RuleDatabaseUtils
 	{
-		public static async Task<IReadOnlyDictionary<IReadOnlyRuleCategory, IReadOnlyList<IReadOnlyRule>>> GetRuleDictionaryAsync(
+		public static async Task<IReadOnlyDictionary<RuleCategory, IReadOnlyList<Rule>>> GetRuleDictionaryAsync(
 			this RuleDatabase db,
 			ulong guildId)
 		{
 			var categories = await db.GetCategoriesAsync(guildId).CAF();
 			var rules = await db.GetRulesAsync(guildId).CAF();
 
-			var dict = new Dictionary<IReadOnlyRuleCategory, IReadOnlyList<IReadOnlyRule>>();
+			var dict = new Dictionary<RuleCategory, IReadOnlyList<Rule>>();
 			foreach (var category in categories)
 			{
-				var list = new List<IReadOnlyRule>();
+				var list = new List<Rule>();
 				dict.Add(category, list);
 
 				foreach (var rule in rules)
@@ -60,10 +59,10 @@ namespace Advobot.Quotes.Database
 		{
 		}
 
-		public Task<int> DeleteRuleAsync(IReadOnlyRule rule)
+		public Task<int> DeleteRuleAsync(Rule rule)
 			=> ModifyAsync(DELETE_RULE, rule);
 
-		public Task<int> DeleteRuleCategoryAsync(IReadOnlyRuleCategory category)
+		public Task<int> DeleteRuleCategoryAsync(RuleCategory category)
 		{
 			return ModifyAsync(@"
 				DELETE FROM RuleCategory
@@ -73,10 +72,10 @@ namespace Advobot.Quotes.Database
 			", category);
 		}
 
-		public Task<int> DeleteRulesAsync(IEnumerable<IReadOnlyRule> rules)
+		public Task<int> DeleteRulesAsync(IEnumerable<Rule> rules)
 			=> BulkModifyAsync(DELETE_RULE, rules);
 
-		public async Task<IReadOnlyList<IReadOnlyRuleCategory>> GetCategoriesAsync(ulong guildId)
+		public async Task<IReadOnlyList<RuleCategory>> GetCategoriesAsync(ulong guildId)
 		{
 			var param = new { GuildId = guildId.ToString(), };
 			return await GetManyAsync<RuleCategory>(@"
@@ -87,7 +86,7 @@ namespace Advobot.Quotes.Database
 			", param).CAF();
 		}
 
-		public async Task<IReadOnlyRuleCategory> GetCategoryAsync(ulong guildId, int category)
+		public async Task<RuleCategory> GetCategoryAsync(ulong guildId, int category)
 		{
 			var param = new
 			{
@@ -101,7 +100,7 @@ namespace Advobot.Quotes.Database
 			", param).CAF();
 		}
 
-		public async Task<IReadOnlyRule?> GetRuleAsync(ulong guildId, int category, int position)
+		public async Task<Rule?> GetRuleAsync(ulong guildId, int category, int position)
 		{
 			var param = new
 			{
@@ -116,7 +115,7 @@ namespace Advobot.Quotes.Database
 			", param).CAF();
 		}
 
-		public async Task<IReadOnlyList<IReadOnlyRule>> GetRulesAsync(ulong guildId)
+		public async Task<IReadOnlyList<Rule>> GetRulesAsync(ulong guildId)
 		{
 			var param = new { GuildId = guildId.ToString(), };
 			return await GetManyAsync<Rule>(@"
@@ -127,7 +126,7 @@ namespace Advobot.Quotes.Database
 			", param).CAF();
 		}
 
-		public async Task<IReadOnlyList<IReadOnlyRule>> GetRulesAsync(IReadOnlyRuleCategory category)
+		public async Task<IReadOnlyList<Rule>> GetRulesAsync(RuleCategory category)
 		{
 			return await GetManyAsync<Rule>(@"
 				SELECT *
@@ -137,10 +136,10 @@ namespace Advobot.Quotes.Database
 			", category).CAF();
 		}
 
-		public Task<int> UpsertRuleAsync(IReadOnlyRule rule)
+		public Task<int> UpsertRuleAsync(Rule rule)
 			=> ModifyAsync(UPSERT_RULE, rule);
 
-		public Task<int> UpsertRuleCategoryAsync(IReadOnlyRuleCategory category)
+		public Task<int> UpsertRuleCategoryAsync(RuleCategory category)
 		{
 			return ModifyAsync(@"
 				INSERT OR IGNORE INTO RuleCategory
@@ -154,7 +153,7 @@ namespace Advobot.Quotes.Database
 			", category);
 		}
 
-		public Task<int> UpsertRulesAsync(IEnumerable<IReadOnlyRule> rules)
+		public Task<int> UpsertRulesAsync(IEnumerable<Rule> rules)
 			=> BulkModifyAsync(UPSERT_RULE, rules);
 	}
 }

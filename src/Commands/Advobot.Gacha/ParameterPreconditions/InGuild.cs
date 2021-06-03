@@ -2,7 +2,7 @@
 using System.Threading.Tasks;
 
 using Advobot.Attributes.ParameterPreconditions;
-using Advobot.Gacha.ReadOnlyModels;
+using Advobot.Gacha.Models;
 using Advobot.Utilities;
 
 using AdvorangesUtils;
@@ -24,9 +24,9 @@ namespace Advobot.Gacha.ParameterPreconditions
 			object value,
 			IServiceProvider services)
 		{
-			if (value is not IReadOnlyUser user)
+			if (value is not User user)
 			{
-				return this.FromOnlySupports(value, typeof(IReadOnlyUser));
+				return this.FromOnlySupports(value, typeof(User));
 			}
 			if (await context.Guild.GetUserAsync(user.UserId).CAF() != null)
 			{

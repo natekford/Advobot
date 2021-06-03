@@ -1,4 +1,4 @@
-﻿using Advobot.Logging.ReadOnlyModels;
+﻿using Advobot.Logging.Models;
 using Advobot.Logging.Utilities;
 using Advobot.Modules;
 using Advobot.Utilities;
@@ -45,7 +45,7 @@ namespace Advobot.Logging.Responses
 			));
 		}
 
-		public static AdvobotResult ModifiedEmbed(Notification notif, IReadOnlyCustomEmbed? embed)
+		public static AdvobotResult ModifiedEmbed(Notification notif, CustomEmbed? embed)
 		{
 			var response = Success(NotificationModifiedEmbed.Format(
 				notif.ToString().WithBlock()
@@ -59,7 +59,7 @@ namespace Advobot.Logging.Responses
 
 		public static AdvobotResult SendNotification(
 			Notification notif,
-			IReadOnlyCustomNotification? notification)
+			CustomNotification? notification)
 		{
 			if (notification == null)
 			{

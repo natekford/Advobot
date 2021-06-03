@@ -8,7 +8,6 @@ using System.Threading.Tasks;
 
 using Advobot.Levels.Metadata;
 using Advobot.Levels.Models;
-using Advobot.Levels.ReadOnlyModels;
 using Advobot.SQLite;
 
 using AdvorangesUtils;
@@ -51,7 +50,7 @@ namespace Advobot.Levels.Database
 			", @params).CAF();
 		}
 
-		public async Task<int> GetDistinctUserCountAsync(ISearchArgs args)
+		public async Task<int> GetDistinctUserCountAsync(SearchArgs args)
 		{
 			using var connection = await GetConnectionAsync().CAF();
 
@@ -75,7 +74,7 @@ namespace Advobot.Levels.Database
 			return result.Select(ulong.Parse).ToArray();
 		}
 
-		public async Task<IRank> GetRankAsync(ISearchArgs args)
+		public async Task<IRank> GetRankAsync(SearchArgs args)
 		{
 			if (args.UserId == null)
 			{
@@ -105,7 +104,7 @@ namespace Advobot.Levels.Database
 			return new Rank(args.UserId.Value, xp, rank, total);
 		}
 
-		public async Task<IReadOnlyList<IRank>> GetRanksAsync(ISearchArgs args, int offset, int limit)
+		public async Task<IReadOnlyList<IRank>> GetRanksAsync(SearchArgs args, int offset, int limit)
 		{
 			using var connection = await GetConnectionAsync().CAF();
 
@@ -129,7 +128,7 @@ namespace Advobot.Levels.Database
 			return results.Select((x, i) => new Rank(x.UserId, x.Xp, offset + i, count)).ToArray();
 		}
 
-		public async Task<IReadOnlyUser> GetUserAsync(ISearchArgs args)
+		public async Task<User> GetUserAsync(SearchArgs args)
 		{
 			return await GetOneAsync<User?>($@"
 				SELECT *
@@ -138,7 +137,7 @@ namespace Advobot.Levels.Database
 			", args).CAF() ?? new User(args);
 		}
 
-		public async Task<int> GetXpAsync(ISearchArgs args)
+		public async Task<int> GetXpAsync(SearchArgs args)
 		{
 			return await GetOneAsync<int?>($@"
 				SELECT SUM(Experience)
@@ -147,7 +146,7 @@ namespace Advobot.Levels.Database
 			", args).CAF() ?? 0;
 		}
 
-		public Task<int> UpsertUserAsync(IReadOnlyUser user)
+		public Task<int> UpsertUserAsync(User user)
 		{
 			return ModifyAsync(@"
 				INSERT OR IGNORE INTO User
@@ -173,7 +172,7 @@ namespace Advobot.Levels.Database
 			sb.Append(statement).Append(name).Append(" = @").Append(name);
 		}
 
-		private string GenerateSingleUserWhereStatement(ISearchArgs args)
+		private string GenerateSingleUserWhereStatement(SearchArgs args)
 		{
 			var where = new StringBuilder();
 			AppendWhereStatement(where, args.UserId, nameof(args.UserId));
@@ -182,7 +181,7 @@ namespace Advobot.Levels.Database
 			return where.ToString();
 		}
 
-		private string GenerateWhereStatement(ISearchArgs args)
+		private string GenerateWhereStatement(SearchArgs args)
 		{
 			var where = new StringBuilder();
 			AppendWhereStatement(where, args.GuildId, nameof(args.GuildId));

@@ -4,7 +4,6 @@ using System.Threading.Tasks;
 using Advobot.Attributes;
 using Advobot.Gacha.Database;
 using Advobot.Gacha.Models;
-using Advobot.Gacha.ReadOnlyModels;
 using Advobot.Utilities;
 
 using AdvorangesUtils;
@@ -16,7 +15,7 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace Advobot.Gacha.TypeReaders
 {
-	[TypeReaderTargetType(typeof(IReadOnlyUser))]
+	[TypeReaderTargetType(typeof(User))]
 	public sealed class UserTypeReader : UserTypeReader<IUser>
 	{
 		public bool CreateIfNotFound { get; set; }

@@ -13,7 +13,7 @@ namespace Advobot.AutoMod.Models
 		ulong RoleId
 	) : IGuildChild
 	{
-		public TimeSpan? Length => LengthTicks.HasValue ? new(LengthTicks.Value) : null;
+		public TimeSpan? Length => LengthTicks is long temp ? new(temp) : null;
 
 		public Punishment() : this(default, default, default, default, default) { }
 	}

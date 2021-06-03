@@ -17,7 +17,7 @@ namespace Advobot.Gacha.Displays
 	{
 		private readonly IGuildUser _Giver;
 		private readonly IGuildUser _Receiver;
-		private readonly IReadOnlyList<ITrade> _Trades;
+		private readonly IReadOnlyList<Trade> _Trades;
 
 		public GiveDisplay(
 			GachaDatabase db,
@@ -26,7 +26,7 @@ namespace Advobot.Gacha.Displays
 			int id,
 			IGuildUser giver,
 			IGuildUser receiver,
-			IReadOnlyList<ITrade> trades)
+			IReadOnlyList<Trade> trades)
 			: base(db, time, interaction, id, trades.Count, GachaConstants.CharactersPerPage)
 		{
 			_Giver = giver;

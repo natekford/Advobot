@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Threading.Tasks;
 
-using Advobot.Logging.ReadOnlyModels;
+using Advobot.Logging.Models;
 
 namespace Advobot.Logging.Database
 {
@@ -19,7 +19,7 @@ namespace Advobot.Logging.Database
 
 		Task<IReadOnlyList<LogAction>> GetLogActionsAsync(ulong guildId);
 
-		Task<IReadOnlyLogChannels> GetLogChannelsAsync(ulong guildId);
+		Task<LogChannels> GetLogChannelsAsync(ulong guildId);
 
 		Task<int> UpsertLogChannelAsync(Log log, ulong guildId, ulong? channelId);
 	}

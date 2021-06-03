@@ -1,5 +1,4 @@
-﻿using Advobot.Logging.ReadOnlyModels;
-using Advobot.TypeReaders;
+﻿using Advobot.TypeReaders;
 
 using Discord.Commands;
 
@@ -7,25 +6,27 @@ namespace Advobot.Logging.Models
 {
 	//TODO: validate lengths when parsing
 	[NamedArgumentType]
-	public class CustomEmbed : IReadOnlyCustomEmbed
-	{
+	public record CustomEmbed(
 		[OverrideTypeReader(typeof(UriTypeReader))]
-		public string? AuthorIconUrl { get; set; }
-		public string? AuthorName { get; set; }
+		string? AuthorIconUrl,
+		string? AuthorName,
 		[OverrideTypeReader(typeof(UriTypeReader))]
-		public string? AuthorUrl { get; set; }
+		string? AuthorUrl,
 		[OverrideTypeReader(typeof(ColorTypeReader))]
-		public uint Color { get; set; }
-		public string? Description { get; set; }
-		public string? Footer { get; set; }
+		uint Color,
+		string? Description,
+		string? Footer,
 		[OverrideTypeReader(typeof(UriTypeReader))]
-		public string? FooterIconUrl { get; set; }
+		string? FooterIconUrl,
 		[OverrideTypeReader(typeof(UriTypeReader))]
-		public string? ImageUrl { get; set; }
+		string? ImageUrl,
 		[OverrideTypeReader(typeof(UriTypeReader))]
-		public string? ThumbnailUrl { get; set; }
-		public string? Title { get; set; }
+		string? ThumbnailUrl,
+		string? Title,
 		[OverrideTypeReader(typeof(UriTypeReader))]
-		public string? Url { get; set; }
+		string? Url
+	)
+	{
+		public CustomEmbed() : this(default, default, default, default, default, default, default, default, default, default, default) { }
 	}
 }

@@ -54,7 +54,7 @@ namespace Advobot.Settings.Service
 			}
 
 			var newRole = await guild.CreateRoleAsync(NAME, Permissions, null, false, false, RoleCreation).CAF();
-			await _Db.UpsertGuildSettingsAsync(new GuildSettings(settings)
+			await _Db.UpsertGuildSettingsAsync(settings with
 			{
 				MuteRoleId = newRole.Id,
 			}).CAF();

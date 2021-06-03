@@ -4,7 +4,6 @@ using System.Linq;
 using System.Threading.Tasks;
 
 using Advobot.Invites.Models;
-using Advobot.Invites.ReadOnlyModels;
 using Advobot.Invites.Service;
 using Advobot.Services.Time;
 
@@ -16,7 +15,7 @@ namespace Advobot.Tests.Commands.Invites
 {
 	public sealed class FakeInviteListService : IInviteListService
 	{
-		private readonly Dictionary<ulong, IReadOnlyListedInvite> _Invites = new();
+		private readonly Dictionary<ulong, ListedInvite> _Invites = new();
 		private readonly Dictionary<string, List<ulong>> _Keywords = new(StringComparer.OrdinalIgnoreCase);
 		private readonly ITime _Time;
 
@@ -57,13 +56,13 @@ namespace Advobot.Tests.Commands.Invites
 			return false;
 		}
 
-		public Task<IReadOnlyList<IReadOnlyListedInvite>> GetAllAsync()
-			=> Task.FromResult<IReadOnlyList<IReadOnlyListedInvite>>(_Invites.Values.ToArray());
+		public Task<IReadOnlyList<ListedInvite>> GetAllAsync()
+			=> Task.FromResult<IReadOnlyList<ListedInvite>>(_Invites.Values.ToArray());
 
-		public Task<IReadOnlyList<IReadOnlyListedInvite>> GetAllAsync(IEnumerable<string> keywords)
+		public Task<IReadOnlyList<ListedInvite>> GetAllAsync(IEnumerable<string> keywords)
 			=> throw new NotImplementedException();
 
-		public Task<IReadOnlyListedInvite?> GetAsync(ulong guildId)
+		public Task<ListedInvite?> GetAsync(ulong guildId)
 		{
 			_Invites.TryGetValue(guildId, out var invite);
 			return Task.FromResult(invite);

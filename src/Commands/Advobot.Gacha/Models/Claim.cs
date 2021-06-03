@@ -1,24 +1,25 @@
 ﻿using System;
 
-using Advobot.Gacha.ReadOnlyModels;
+using Advobot.Gacha.Relationships;
 using Advobot.Gacha.Utilities;
+using Advobot.SQLite.Relationships;
 
 namespace Advobot.Gacha.Models
 {
-	public class Claim : IReadOnlyClaim
+	public record Claim(
+		long CharacterId,
+		long ClaimId,
+		ulong GuildId,
+		string? ImageUrl,
+		bool IsPrimaryClaim,
+		ulong UserId
+	) : ITimeCreated, IGuildChild, IUserChild, ICharacterChild
 	{
-		public long CharacterId { get; set; }
-		public long ClaimId { get; set; } = TimeUtils.UtcNowTicks;
-		public ulong GuildId { get; set; }
-		public string? ImageUrl { get; set; }
-		public bool IsPrimaryClaim { get; set; }
-		public ulong UserId { get; set; }
-
-		public Claim()
+		public Claim() : this(default, ClaimId: TimeUtils.UtcNowTicks, default, default, default, default)
 		{
 		}
 
-		public Claim(IReadOnlyUser user, IReadOnlyCharacter character)
+		public Claim(User user, Character character) : this()
 		{
 			GuildId = user.GuildId;
 			UserId = user.UserId;

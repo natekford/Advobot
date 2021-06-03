@@ -2,7 +2,6 @@
 
 using Advobot.Gacha.Database;
 using Advobot.Gacha.Models;
-using Advobot.Gacha.ReadOnlyModels;
 using Advobot.Gacha.TypeReaders;
 using Advobot.Gacha.Utilities;
 using Advobot.Tests.TestBases;
@@ -56,7 +55,7 @@ namespace Advobot.Tests.Commands.Gacha.TypeReaders
 				.AddSingleton<IGachaDatabase>(_Db);
 		}
 
-		private IReadOnlySource GenerateStaticSource(string name)
+		private Source GenerateStaticSource(string name)
 		{
 			return new Source
 			{

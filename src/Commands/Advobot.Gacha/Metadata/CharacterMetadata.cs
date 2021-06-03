@@ -1,22 +1,18 @@
-﻿using Advobot.Gacha.ReadOnlyModels;
+﻿using Advobot.Gacha.Models;
 
 namespace Advobot.Gacha.Metadata
 {
-	public readonly struct CharacterMetadata : IMetadata<IReadOnlyCharacter>
+	public readonly struct CharacterMetadata : IMetadata<Character>
 	{
 		public AmountAndRank Claims { get; }
-
-		public IReadOnlyCharacter Data { get; }
-
+		public Character Data { get; }
 		public AmountAndRank Likes { get; }
-
-		public IReadOnlySource Source { get; }
-
+		public Source Source { get; }
 		public AmountAndRank Wishes { get; }
 
 		public CharacterMetadata(
-													IReadOnlySource source,
-			IReadOnlyCharacter character,
+			Source source,
+			Character character,
 			AmountAndRank claims,
 			AmountAndRank likes,
 			AmountAndRank wishes)

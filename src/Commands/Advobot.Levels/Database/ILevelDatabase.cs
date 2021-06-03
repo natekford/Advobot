@@ -2,7 +2,7 @@
 using System.Threading.Tasks;
 
 using Advobot.Levels.Metadata;
-using Advobot.Levels.ReadOnlyModels;
+using Advobot.Levels.Models;
 
 namespace Advobot.Levels.Database
 {
@@ -12,18 +12,18 @@ namespace Advobot.Levels.Database
 
 		Task<int> DeleteIgnoredChannelsAsync(ulong guildId, IEnumerable<ulong> channels);
 
-		Task<int> GetDistinctUserCountAsync(ISearchArgs args);
+		Task<int> GetDistinctUserCountAsync(SearchArgs args);
 
 		Task<IReadOnlyList<ulong>> GetIgnoredChannelsAsync(ulong guildId);
 
-		Task<IRank> GetRankAsync(ISearchArgs args);
+		Task<IRank> GetRankAsync(SearchArgs args);
 
-		Task<IReadOnlyList<IRank>> GetRanksAsync(ISearchArgs args, int offset, int limit);
+		Task<IReadOnlyList<IRank>> GetRanksAsync(SearchArgs args, int offset, int limit);
 
-		Task<IReadOnlyUser> GetUserAsync(ISearchArgs args);
+		Task<User> GetUserAsync(SearchArgs args);
 
-		Task<int> GetXpAsync(ISearchArgs args);
+		Task<int> GetXpAsync(SearchArgs args);
 
-		Task<int> UpsertUserAsync(IReadOnlyUser user);
+		Task<int> UpsertUserAsync(User user);
 	}
 }

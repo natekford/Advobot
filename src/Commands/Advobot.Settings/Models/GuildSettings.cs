@@ -1,24 +1,14 @@
-﻿using Advobot.Settings.ReadOnlyModels;
+﻿using Advobot.SQLite.Relationships;
 
 namespace Advobot.Settings.Models
 {
-	public sealed class GuildSettings : IReadOnlyGuildSettings
+	public sealed record GuildSettings(
+		string? Culture,
+		ulong GuildId,
+		ulong MuteRoleId,
+		string? Prefix
+	) : IGuildChild
 	{
-		public string? Culture { get; set; }
-		public ulong GuildId { get; set; }
-		public ulong MuteRoleId { get; set; }
-		public string? Prefix { get; set; }
-
-		public GuildSettings()
-		{
-		}
-
-		public GuildSettings(IReadOnlyGuildSettings other)
-		{
-			Culture = other.Culture;
-			GuildId = other.GuildId;
-			MuteRoleId = other.MuteRoleId;
-			Prefix = other.Prefix;
-		}
+		public GuildSettings() : this(default, default, default, default) { }
 	}
 }

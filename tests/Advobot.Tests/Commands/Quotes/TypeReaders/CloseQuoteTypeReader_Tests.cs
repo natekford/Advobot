@@ -3,7 +3,6 @@ using System.Threading.Tasks;
 
 using Advobot.Quotes.Database;
 using Advobot.Quotes.Models;
-using Advobot.Quotes.ReadOnlyModels;
 using Advobot.Tests.TestBases;
 using Advobot.TypeReaders;
 
@@ -35,7 +34,7 @@ namespace Advobot.Tests.Commands.Quotes.TypeReaders
 
 			var result = await ReadAsync(quote.Name).CAF();
 			Assert.IsTrue(result.IsSuccess);
-			Assert.IsInstanceOfType(result.BestMatch, typeof(IEnumerable<IReadOnlyQuote>));
+			Assert.IsInstanceOfType(result.BestMatch, typeof(IEnumerable<Quote>));
 		}
 
 		protected override void ModifyServices(IServiceCollection services)

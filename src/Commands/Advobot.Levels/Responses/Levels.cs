@@ -22,7 +22,7 @@ namespace Advobot.Levels.Responses
 		{
 		}
 
-		public static AdvobotResult Level(ISearchArgs args, IRank rank, int level, IUser? user)
+		public static AdvobotResult Level(SearchArgs args, IRank rank, int level, IUser? user)
 		{
 			var title = LevelsLevelTitle.Format(
 				GetSearchType(args).WithTitleCase(),
@@ -44,7 +44,7 @@ namespace Advobot.Levels.Responses
 			});
 		}
 
-		public static AdvobotResult NoXp(ISearchArgs args, IRank rank, IUser? user)
+		public static AdvobotResult NoXp(SearchArgs args, IRank rank, IUser? user)
 		{
 			return Success(LevelsNoXp.Format(
 				FormatUser(rank, user).WithBlock(),
@@ -53,7 +53,7 @@ namespace Advobot.Levels.Responses
 		}
 
 		public static AdvobotResult Top(
-			ISearchArgs args,
+			SearchArgs args,
 			IReadOnlyList<IRank> ranks,
 			Func<IRank, (int Level, IUser? User)> getInfo)
 		{
@@ -81,7 +81,7 @@ namespace Advobot.Levels.Responses
 		private static string FormatUser(IRank rank, IUser? user)
 			=> user?.Format() ?? rank.UserId.ToString();
 
-		private static string GetSearchType(ISearchArgs args)
+		private static string GetSearchType(SearchArgs args)
 		{
 			if (args.ChannelId != null)
 			{

@@ -1,34 +1,32 @@
 ﻿using System;
 using System.Linq;
 
-using Advobot.Invites.ReadOnlyModels;
+using Advobot.SQLite.Relationships;
 
 using Discord;
 
 namespace Advobot.Invites.Models
 {
-	public sealed class ListedInvite : IReadOnlyListedInvite
+	public sealed record ListedInvite(
+		string Code,
+		ulong GuildId,
+		bool HasGlobalEmotes,
+		long LastBumped,
+		int MemberCount,
+		string Name
+	) : IGuildChild
 	{
-		public string Code { get; set; }
-		public ulong GuildId { get; set; }
-		public bool HasGlobalEmotes { get; set; }
-		public long LastBumped { get; set; }
-		public int MemberCount { get; set; }
-		public string Name { get; set; }
-
-		public ListedInvite()
+		public ListedInvite() : this("", default, default, default, default, "")
 		{
-			Name = "";
-			Code = "";
 		}
 
 		public ListedInvite(
 			IInviteMetadata invite,
-			DateTimeOffset now)
+			DateTimeOffset now) : this()
 		{
 			LastBumped = now.Ticks;
 			Code = invite.Code;
-			GuildId = invite.GuildId ?? throw new ArgumentException(nameof(invite));
+			GuildId = invite.GuildId ?? throw new ArgumentException($"Invalid guild id for invite {invite.Code}.", nameof(invite));
 			MemberCount = invite.MemberCount ?? 1;
 			Name = invite.GuildName;
 

@@ -1,11 +1,13 @@
-﻿using Advobot.Quotes.ReadOnlyModels;
+﻿using Advobot.SQLite.Relationships;
 
 namespace Advobot.Quotes.Models
 {
-	public sealed class Quote : IReadOnlyQuote
+	public sealed record Quote(
+		string Description,
+		ulong GuildId,
+		string Name
+	) : IGuildChild
 	{
-		public string Description { get; set; } = "";
-		public ulong GuildId { get; set; }
-		public string Name { get; set; } = "";
+		public Quote() : this("", default, "") { }
 	}
 }

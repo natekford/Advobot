@@ -6,7 +6,6 @@ using System.Linq;
 using System.Threading.Tasks;
 
 using Advobot.Logging.Models;
-using Advobot.Logging.ReadOnlyModels;
 using Advobot.SQLite;
 
 using AdvorangesUtils;
@@ -103,7 +102,7 @@ namespace Advobot.Logging.Database
 			return result.SelectWhere(x => x != null, Enum.Parse<LogAction>).ToArray();
 		}
 
-		public async Task<IReadOnlyLogChannels> GetLogChannelsAsync(ulong guildId)
+		public async Task<LogChannels> GetLogChannelsAsync(ulong guildId)
 		{
 			var param = new { GuildId = guildId.ToString() };
 			return await GetOneAsync<LogChannels>(@"

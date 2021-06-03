@@ -3,39 +3,39 @@ using System.Linq;
 using System.Threading.Tasks;
 
 using Advobot.Quotes.Database;
-using Advobot.Quotes.ReadOnlyModels;
+using Advobot.Quotes.Models;
 
 namespace Advobot.Tests.Commands.Quotes
 {
 	public sealed class FakeQuoteDatabase : IQuoteDatabase
 	{
-		private readonly Dictionary<(ulong, string), IReadOnlyQuote> _Quotes = new();
+		private readonly Dictionary<(ulong, string), Quote> _Quotes = new();
 
-		public Task<int> AddQuoteAsync(IReadOnlyQuote quote)
+		public Task<int> AddQuoteAsync(Quote quote)
 		{
 			var result = _Quotes.TryAdd(ToKey(quote), quote);
 			return Task.FromResult(result ? 1 : 0);
 		}
 
-		public Task<int> DeleteQuoteAsync(IReadOnlyQuote quote)
+		public Task<int> DeleteQuoteAsync(Quote quote)
 		{
 			var result = _Quotes.Remove(ToKey(quote));
 			return Task.FromResult(result ? 1 : 0);
 		}
 
-		public Task<IReadOnlyQuote?> GetQuoteAsync(ulong guildId, string name)
+		public Task<Quote?> GetQuoteAsync(ulong guildId, string name)
 		{
 			var result = _Quotes.TryGetValue((guildId, name), out var val) ? val : null;
 			return Task.FromResult(result);
 		}
 
-		public Task<IReadOnlyList<IReadOnlyQuote>> GetQuotesAsync(ulong guildId)
+		public Task<IReadOnlyList<Quote>> GetQuotesAsync(ulong guildId)
 		{
 			var result = _Quotes.Values.Where(x => x.GuildId == guildId).ToArray();
-			return Task.FromResult<IReadOnlyList<IReadOnlyQuote>>(result);
+			return Task.FromResult<IReadOnlyList<Quote>>(result);
 		}
 
-		private (ulong, string) ToKey(IReadOnlyQuote quote)
+		private (ulong, string) ToKey(Quote quote)
 			=> (quote.GuildId, quote.Name);
 	}
 }

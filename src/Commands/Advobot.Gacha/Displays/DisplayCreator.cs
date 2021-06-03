@@ -4,7 +4,7 @@ using System.Threading.Tasks;
 using Advobot.Gacha.Counters;
 using Advobot.Gacha.Database;
 using Advobot.Gacha.Interaction;
-using Advobot.Gacha.ReadOnlyModels;
+using Advobot.Gacha.Models;
 using Advobot.Services.Time;
 
 using AdvorangesUtils;
@@ -38,7 +38,7 @@ namespace Advobot.Gacha.Displays
 			_Time = time;
 		}
 
-		public async Task<Display> CreateCharacterDisplayAsync(IGuild guild, IReadOnlyCharacter character)
+		public async Task<Display> CreateCharacterDisplayAsync(IGuild guild, Character character)
 		{
 			var id = GetDisplayId(guild);
 			var metadata = await _Db.GetCharacterMetadataAsync(character).CAF();
@@ -47,7 +47,7 @@ namespace Advobot.Gacha.Displays
 			return new CharacterDisplay(_Db, _Time, _Interaction, _Client, id, metadata, images, claim);
 		}
 
-		public async Task<Display> CreateHaremDisplayAsync(IGuild guild, IReadOnlyUser user)
+		public async Task<Display> CreateHaremDisplayAsync(IGuild guild, User user)
 		{
 			var id = GetDisplayId(guild);
 			var marriages = await _Db.GetClaimsAsync(user).CAF();
@@ -65,7 +65,7 @@ namespace Advobot.Gacha.Displays
 			return new RollDisplay(_Db, _Time, _Interaction, id, checker, character, source, wishes, images);
 		}
 
-		public async Task<Display> CreateSourceDisplayAsync(IGuild guild, IReadOnlySource source)
+		public async Task<Display> CreateSourceDisplayAsync(IGuild guild, Source source)
 		{
 			var id = GetDisplayId(guild);
 			var characters = await _Db.GetCharactersAsync(source).CAF();

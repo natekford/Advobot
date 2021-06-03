@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
 
 using Advobot.Modules;
-using Advobot.Quotes.ReadOnlyModels;
+using Advobot.Quotes.Models;
 using Advobot.Utilities;
 
 using static Advobot.Resources.Responses;
@@ -14,21 +14,21 @@ namespace Advobot.Quotes.Responses
 		{
 		}
 
-		public static AdvobotResult AddedRule(IReadOnlyRuleCategory category)
+		public static AdvobotResult AddedRule(RuleCategory category)
 		{
 			return Success(RulesAddedRule.Format(
 				category.Category.ToString().WithBlock()
 			));
 		}
 
-		public static AdvobotResult CreatedCategory(IReadOnlyRuleCategory category)
+		public static AdvobotResult CreatedCategory(RuleCategory category)
 		{
 			return Success(RulesCreatedCategory.Format(
 				category.Category.ToString().WithBlock()
 			));
 		}
 
-		public static AdvobotResult DeletedCategory(IReadOnlyRuleCategory category)
+		public static AdvobotResult DeletedCategory(RuleCategory category)
 		{
 			return Success(RulesDeletedCategory.Format(
 				category.Category.ToString().WithBlock()
@@ -49,7 +49,7 @@ namespace Advobot.Quotes.Responses
 			));
 		}
 
-		public static AdvobotResult ModifiedCategoryValue(IReadOnlyRuleCategory category)
+		public static AdvobotResult ModifiedCategoryValue(RuleCategory category)
 		{
 			return Success(RulesModifiedCategoryValue.Format(
 				category.Category.ToString().WithBlock(),
@@ -57,7 +57,7 @@ namespace Advobot.Quotes.Responses
 			));
 		}
 
-		public static AdvobotResult ModifiedRuleValue(IReadOnlyRule rule)
+		public static AdvobotResult ModifiedRuleValue(Rule rule)
 		{
 			return Success(RulesModifiedRuleValue.Format(
 				$"{rule.Category}.{rule.Position}".WithBlock(),
@@ -65,7 +65,7 @@ namespace Advobot.Quotes.Responses
 			));
 		}
 
-		public static AdvobotResult RemovedRule(IReadOnlyRule rule)
+		public static AdvobotResult RemovedRule(Rule rule)
 		{
 			return Success(RulesRemovedRule.Format(
 				rule.Position.ToString().WithBlock(),
@@ -77,10 +77,10 @@ namespace Advobot.Quotes.Responses
 			=> Success(RulesRuleAlreadyExists);
 
 		public static AdvobotResult SwappedRuleCategories(
-			IReadOnlyRuleCategory categoryA,
-			IReadOnlyList<IReadOnlyRule> rulesA,
-			IReadOnlyRuleCategory categoryB,
-			IReadOnlyList<IReadOnlyRule> rulesB)
+			RuleCategory categoryA,
+			IReadOnlyList<Rule> rulesA,
+			RuleCategory categoryB,
+			IReadOnlyList<Rule> rulesB)
 		{
 			return Success(RulesSwappedRuleCategories.Format(
 				categoryA.Category.ToString().WithBlock(),
@@ -90,7 +90,7 @@ namespace Advobot.Quotes.Responses
 			));
 		}
 
-		public static AdvobotResult SwappedRules(IReadOnlyRule ruleA, IReadOnlyRule ruleB)
+		public static AdvobotResult SwappedRules(Rule ruleA, Rule ruleB)
 		{
 			return Success(RulesSwappedRules.Format(
 				ruleA.Position.ToString().WithBlock(),

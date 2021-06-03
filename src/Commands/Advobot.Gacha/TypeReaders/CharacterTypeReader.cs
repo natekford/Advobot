@@ -3,7 +3,7 @@ using System.Threading.Tasks;
 
 using Advobot.Attributes;
 using Advobot.Gacha.Database;
-using Advobot.Gacha.ReadOnlyModels;
+using Advobot.Gacha.Models;
 using Advobot.Gacha.Utilities;
 using Advobot.Utilities;
 
@@ -15,7 +15,7 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace Advobot.Gacha.TypeReaders
 {
-	[TypeReaderTargetType(typeof(IReadOnlyCharacter))]
+	[TypeReaderTargetType(typeof(Character))]
 	public sealed class CharacterTypeReader : TypeReader
 	{
 		public override async Task<TypeReaderResult> ReadAsync(

@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 using Advobot.Attributes;
 using Advobot.Classes.CloseWords;
 using Advobot.Quotes.Database;
-using Advobot.Quotes.ReadOnlyModels;
+using Advobot.Quotes.Models;
 using Advobot.Utilities;
 
 using AdvorangesUtils;
@@ -17,7 +17,7 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace Advobot.TypeReaders
 {
-	[TypeReaderTargetType(typeof(IReadOnlyList<IReadOnlyQuote>))]
+	[TypeReaderTargetType(typeof(IReadOnlyList<Quote>))]
 	public sealed class CloseQuoteTypeReader : TypeReader
 	{
 		public override async Task<TypeReaderResult> ReadAsync(
@@ -27,7 +27,7 @@ namespace Advobot.TypeReaders
 		{
 			var db = services.GetRequiredService<IQuoteDatabase>();
 			var quotes = await db.GetQuotesAsync(context.Guild.Id).CAF();
-			var matches = new CloseWords<IReadOnlyQuote>(quotes, x => x.Name)
+			var matches = new CloseWords<Quote>(quotes, x => x.Name)
 				.FindMatches(input)
 				.Select(x => x.Value)
 				.ToArray();

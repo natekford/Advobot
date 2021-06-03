@@ -1,7 +1,7 @@
 ﻿using System.Threading.Tasks;
 
+using Advobot.Logging;
 using Advobot.Logging.Database;
-using Advobot.Logging.Models;
 using Advobot.Logging.Preconditions;
 using Advobot.Tests.Fakes.Services.Logging;
 using Advobot.Tests.TestBases;
@@ -18,7 +18,7 @@ namespace Advobot.Tests.Commands.Logging.Preconditions
 	[TestClass]
 	public sealed class RequireImageLogAttribute_Tests : PreconditionTestsBase
 	{
-		private readonly LogChannels _Channels = new();
+		private readonly FakeLoggingDatabase _Db = new();
 
 		protected override PreconditionAttribute Instance { get; }
 			= new RequireImageLogAttribute();
@@ -26,8 +26,7 @@ namespace Advobot.Tests.Commands.Logging.Preconditions
 		[TestMethod]
 		public async Task DoesNotHaveLog_Test()
 		{
-			_Channels.ImageLogId = 0;
-
+			await _Db.UpsertLogChannelAsync(Log.Image, Context.Guild.Id, null).CAF();
 			var result = await CheckPermissionsAsync().CAF();
 			Assert.IsFalse(result.IsSuccess);
 		}
@@ -35,8 +34,7 @@ namespace Advobot.Tests.Commands.Logging.Preconditions
 		[TestMethod]
 		public async Task HasLog_Test()
 		{
-			_Channels.ImageLogId = 73;
-
+			await _Db.UpsertLogChannelAsync(Log.Image, Context.Guild.Id, 73).CAF();
 			var result = await CheckPermissionsAsync().CAF();
 			Assert.IsTrue(result.IsSuccess);
 		}
@@ -44,8 +42,7 @@ namespace Advobot.Tests.Commands.Logging.Preconditions
 		protected override void ModifyServices(IServiceCollection services)
 		{
 			services
-				.AddSingleton(_Channels)
-				.AddSingleton<ILoggingDatabase, FakeLoggingDatabase>();
+				.AddSingleton<ILoggingDatabase>(_Db);
 		}
 	}
 }

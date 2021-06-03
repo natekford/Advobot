@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 using Advobot.Levels.Database;
 using Advobot.Levels.Metadata;
 using Advobot.Levels.Models;
-using Advobot.Levels.ReadOnlyModels;
+using Advobot.Levels.Utilities;
 using Advobot.Tests.Fakes.Database;
 using Advobot.Tests.TestBases;
 
@@ -80,7 +80,7 @@ namespace Advobot.Tests.Commands.Levels.Database
 			Assert.AreEqual(expected.UserId, retrieved.UserId);
 		}
 
-		private async Task<IReadOnlyList<IReadOnlyUser>> SeedDataAsync(LevelDatabase db)
+		private async Task<IReadOnlyList<User>> SeedDataAsync(LevelDatabase db)
 		{
 			var data = new[]
 			{

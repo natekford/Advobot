@@ -1,17 +1,17 @@
-﻿using Advobot.Gacha.ReadOnlyModels;
+﻿using Advobot.Gacha.Relationships;
 
 namespace Advobot.Gacha.Models
 {
-	public class Image : IReadOnlyImage
+	public record Image(
+		long CharacterId,
+		string Url
+	) : ICharacterChild
 	{
-		public long CharacterId { get; set; }
-		public string? Url { get; set; }
-
-		public Image()
+		public Image() : this(default, "")
 		{
 		}
 
-		public Image(IReadOnlyCharacter character)
+		public Image(Character character) : this()
 		{
 			CharacterId = character.CharacterId;
 		}

@@ -1,5 +1,4 @@
 ﻿using Advobot.Invites.Models;
-using Advobot.Invites.ReadOnlyModels;
 using Advobot.Services.Time;
 using Advobot.Tests.Fakes.Discord;
 using Advobot.Tests.Fakes.Discord.Channels;
@@ -9,7 +8,7 @@ namespace Advobot.Tests.Commands.Invites
 {
 	public static class InviteTestUtils
 	{
-		public static (FakeGuild Guild, IReadOnlyListedInvite Invite) CreateFakeInvite(
+		public static (FakeGuild Guild, ListedInvite Invite) CreateFakeInvite(
 			this FakeClient client,
 			ITime time)
 		{

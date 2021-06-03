@@ -2,7 +2,7 @@
 using System.Threading.Tasks;
 
 using Advobot.Gacha.Metadata;
-using Advobot.Gacha.ReadOnlyModels;
+using Advobot.Gacha.Models;
 using Advobot.Gacha.Trading;
 
 namespace Advobot.Gacha.Database
@@ -12,62 +12,62 @@ namespace Advobot.Gacha.Database
 		CloseIds CharacterIds { get; }
 		CloseIds SourceIds { get; }
 
-		Task<int> AddCharacterAsync(IReadOnlyCharacter character);
+		Task<int> AddCharacterAsync(Character character);
 
-		Task<int> AddCharactersAsync(IEnumerable<IReadOnlyCharacter> characters);
+		Task<int> AddCharactersAsync(IEnumerable<Character> characters);
 
-		Task<int> AddClaimAsync(IReadOnlyClaim claim);
+		Task<int> AddClaimAsync(Claim claim);
 
-		Task<int> AddClaimsAsync(IEnumerable<IReadOnlyClaim> claims);
+		Task<int> AddClaimsAsync(IEnumerable<Claim> claims);
 
-		Task<int> AddImageAsync(IReadOnlyImage image);
+		Task<int> AddImageAsync(Image image);
 
-		Task<int> AddSourceAsync(IReadOnlySource source);
+		Task<int> AddSourceAsync(Source source);
 
-		Task<int> AddSourcesAsync(IEnumerable<IReadOnlySource> sources);
+		Task<int> AddSourcesAsync(IEnumerable<Source> sources);
 
-		Task<int> AddUserAsync(IReadOnlyUser user);
+		Task<int> AddUserAsync(User user);
 
-		Task<int> AddUsersAsync(IEnumerable<IReadOnlyUser> users);
+		Task<int> AddUsersAsync(IEnumerable<User> users);
 
-		Task<int> AddWishAsync(IReadOnlyWish wish);
+		Task<int> AddWishAsync(Wish wish);
 
-		Task<IReadOnlyCharacter> GetCharacterAsync(long id);
+		Task<Character> GetCharacterAsync(long id);
 
-		Task<CharacterMetadata> GetCharacterMetadataAsync(IReadOnlyCharacter character);
+		Task<CharacterMetadata> GetCharacterMetadataAsync(Character character);
 
-		Task<IReadOnlyList<IReadOnlyCharacter>> GetCharactersAsync();
+		Task<IReadOnlyList<Character>> GetCharactersAsync();
 
-		Task<IReadOnlyList<IReadOnlyCharacter>> GetCharactersAsync(IEnumerable<long> ids);
+		Task<IReadOnlyList<Character>> GetCharactersAsync(IEnumerable<long> ids);
 
-		Task<IReadOnlyList<IReadOnlyCharacter>> GetCharactersAsync(IReadOnlySource source);
+		Task<IReadOnlyList<Character>> GetCharactersAsync(Source source);
 
-		Task<IReadOnlyClaim> GetClaimAsync(IReadOnlyUser user, IReadOnlyCharacter character);
+		Task<Claim> GetClaimAsync(User user, Character character);
 
-		Task<IReadOnlyClaim> GetClaimAsync(ulong guildId, IReadOnlyCharacter character);
+		Task<Claim> GetClaimAsync(ulong guildId, Character character);
 
-		Task<IReadOnlyList<IReadOnlyClaim>> GetClaimsAsync(IReadOnlyUser user);
+		Task<IReadOnlyList<Claim>> GetClaimsAsync(User user);
 
-		Task<IReadOnlyList<IReadOnlyClaim>> GetClaimsAsync(ulong guildId);
+		Task<IReadOnlyList<Claim>> GetClaimsAsync(ulong guildId);
 
-		Task<IReadOnlyList<IReadOnlyImage>> GetImagesAsync(IReadOnlyCharacter character);
+		Task<IReadOnlyList<Image>> GetImagesAsync(Character character);
 
-		Task<IReadOnlySource> GetSourceAsync(long sourceId);
+		Task<Source> GetSourceAsync(long sourceId);
 
-		Task<IReadOnlyList<IReadOnlySource>> GetSourcesAsync(IEnumerable<long> ids);
+		Task<IReadOnlyList<Source>> GetSourcesAsync(IEnumerable<long> ids);
 
-		Task<IReadOnlyCharacter> GetUnclaimedCharacter(ulong guildId);
+		Task<Character> GetUnclaimedCharacter(ulong guildId);
 
-		Task<IReadOnlyUser> GetUserAsync(ulong guildId, ulong userId);
+		Task<User> GetUserAsync(ulong guildId, ulong userId);
 
-		Task<IReadOnlyList<IReadOnlyWish>> GetWishesAsync(IReadOnlyUser user);
+		Task<IReadOnlyList<Wish>> GetWishesAsync(User user);
 
-		Task<IReadOnlyList<IReadOnlyWish>> GetWishesAsync(ulong guildId);
+		Task<IReadOnlyList<Wish>> GetWishesAsync(ulong guildId);
 
-		Task<IReadOnlyList<IReadOnlyWish>> GetWishesAsync(ulong guildId, IReadOnlyCharacter character);
+		Task<IReadOnlyList<Wish>> GetWishesAsync(ulong guildId, Character character);
 
-		Task<int> TradeAsync(IEnumerable<ITrade> trades);
+		Task<int> TradeAsync(IEnumerable<Trade> trades);
 
-		Task UpdateClaimImageUrlAsync(IReadOnlyClaim claim, string? url);
+		Task UpdateClaimImageUrlAsync(Claim claim, string? url);
 	}
 }

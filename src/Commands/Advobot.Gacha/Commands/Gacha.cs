@@ -1,9 +1,9 @@
 ﻿using System.Threading.Tasks;
 
 using Advobot.Attributes;
+using Advobot.Gacha.Models;
 using Advobot.Gacha.ParameterPreconditions;
 using Advobot.Gacha.Preconditions;
-using Advobot.Gacha.ReadOnlyModels;
 using Advobot.Gacha.Trading;
 using Advobot.Localization;
 using Advobot.Resources;
@@ -28,7 +28,7 @@ namespace Advobot.Gacha.Commands
 		public sealed class Character : GachaModuleBase
 		{
 			[Command(RunMode = RunMode.Async)]
-			public async Task<RuntimeResult> Command(IReadOnlyCharacter character)
+			public async Task<RuntimeResult> Command(Models.Character character)
 			{
 				var display = await Displays.CreateCharacterDisplayAsync(Context.Guild, character).CAF();
 				return await display.SendAsync(Context.Channel).CAF();
@@ -47,9 +47,9 @@ namespace Advobot.Gacha.Commands
 			[Command(RunMode = RunMode.Async)]
 			public Task<RuntimeResult> Command(
 				[NotSelf, InGuild]
-				IReadOnlyUser user,
+				User user,
 				[OwnsCharacters]
-				params IReadOnlyCharacter[] characters)
+				params Models.Character[] characters)
 			{
 				AddExchange(user, characters);
 				return HandleExchange(user);
@@ -63,7 +63,7 @@ namespace Advobot.Gacha.Commands
 		public sealed class Harem : GachaModuleBase
 		{
 			[Command(RunMode = RunMode.Async)]
-			public async Task<RuntimeResult> Command(IReadOnlyUser user)
+			public async Task<RuntimeResult> Command(User user)
 			{
 				var display = await Displays.CreateHaremDisplayAsync(Context.Guild, user).CAF();
 				return await display.SendAsync(Context.Channel).CAF();
@@ -91,7 +91,7 @@ namespace Advobot.Gacha.Commands
 		public sealed class Source : GachaModuleBase
 		{
 			[Command(RunMode = RunMode.Async)]
-			public async Task<RuntimeResult> Command(IReadOnlySource source)
+			public async Task<RuntimeResult> Command(Models.Source source)
 			{
 				var display = await Displays.CreateSourceDisplayAsync(Context.Guild, source).CAF();
 				return await display.SendAsync(Context.Channel).CAF();
@@ -110,9 +110,9 @@ namespace Advobot.Gacha.Commands
 			[Command(RunMode = RunMode.Async)]
 			public Task<RuntimeResult> Command(
 				[NotSelf, InGuild]
-				IReadOnlyUser user,
+				User user,
 				[OwnsCharacters]
-				params IReadOnlyCharacter[] characters
+				params Models.Character[] characters
 			)
 			{
 				var valid = AddExchange(user, characters);

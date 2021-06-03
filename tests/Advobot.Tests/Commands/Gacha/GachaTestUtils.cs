@@ -4,7 +4,6 @@ using System.Threading.Tasks;
 
 using Advobot.Gacha.Database;
 using Advobot.Gacha.Models;
-using Advobot.Gacha.ReadOnlyModels;
 using Advobot.Gacha.Utilities;
 
 using AdvorangesUtils;
@@ -17,13 +16,13 @@ namespace Advobot.Tests.Commands.Gacha.Utilities
 	{
 		public static readonly Random Rng = new();
 
-		public static async Task<(List<IReadOnlySource>, List<IReadOnlyCharacter>)> AddSourcesAndCharacters(
+		public static async Task<(List<Source>, List<Character>)> AddSourcesAndCharacters(
 			this GachaDatabase db,
 			int sourceCount,
 			int charactersPerSource)
 		{
-			var sources = new List<IReadOnlySource>();
-			var characters = new List<IReadOnlyCharacter>();
+			var sources = new List<Source>();
+			var characters = new List<Character>();
 			for (var i = 0; i < sourceCount; ++i)
 			{
 				var source = GenerateFakeSource();
@@ -41,12 +40,13 @@ namespace Advobot.Tests.Commands.Gacha.Utilities
 			return (sources, characters);
 		}
 
-		public static IReadOnlyCharacter GenerateFakeCharacter(
-					IReadOnlySource fakeSource,
+		public static Character GenerateFakeCharacter(
+			Source fakeSource,
 			long? characterId = null)
 		{
-			return new Character(fakeSource)
+			return new Character
 			{
+				SourceId = fakeSource.SourceId,
 				CharacterId = characterId ?? TimeUtils.UtcNowTicks,
 				Name = Guid.NewGuid().ToString(),
 				GenderIcon = "\uD83D\uDE39",
@@ -56,9 +56,9 @@ namespace Advobot.Tests.Commands.Gacha.Utilities
 			};
 		}
 
-		public static IReadOnlyClaim GenerateFakeClaim(
-			IReadOnlyUser user,
-			IReadOnlyCharacter character)
+		public static Claim GenerateFakeClaim(
+			User user,
+			Character character)
 		{
 			return new Claim(user, character)
 			{
@@ -66,7 +66,7 @@ namespace Advobot.Tests.Commands.Gacha.Utilities
 			};
 		}
 
-		public static IReadOnlyImage GenerateFakeImage(IReadOnlyCharacter character)
+		public static Image GenerateFakeImage(Character character)
 		{
 			var width = Rng.Next(1, 500);
 			var height = Rng.Next(1, 500);
@@ -77,7 +77,7 @@ namespace Advobot.Tests.Commands.Gacha.Utilities
 			};
 		}
 
-		public static IReadOnlySource GenerateFakeSource(long? sourceId = null)
+		public static Source GenerateFakeSource(long? sourceId = null)
 		{
 			return new Source
 			{
@@ -86,7 +86,7 @@ namespace Advobot.Tests.Commands.Gacha.Utilities
 			};
 		}
 
-		public static IReadOnlyUser GenerateFakeUser(
+		public static User GenerateFakeUser(
 			ulong? userId = null,
 			ulong? guildId = null)
 		{
@@ -97,10 +97,8 @@ namespace Advobot.Tests.Commands.Gacha.Utilities
 			};
 		}
 
-		public static IReadOnlyWish GenerateFakeWish(
-			IReadOnlyUser user,
-			IReadOnlyCharacter character)
-			=> new Wish(user, character);
+		public static Wish GenerateFakeWish(User user, Character character)
+			=> new(user, character);
 
 		public static bool NextBool(this Random rng)
 			=> rng.NextDouble() >= 0.5;

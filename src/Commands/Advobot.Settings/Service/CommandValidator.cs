@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 using Advobot.Attributes;
 using Advobot.Services;
 using Advobot.Settings.Database;
-using Advobot.Settings.ReadOnlyModels;
+using Advobot.Settings.Models;
 using Advobot.Utilities;
 
 using AdvorangesUtils;
@@ -71,16 +71,16 @@ namespace Advobot.Settings.Service
 
 		private static IEntity<ulong>? GetEntity(
 			ICommandContext context,
-			IReadOnlyCommandOverride @override)
+			CommandOverride @override)
 		{
 			static IEntity<ulong>? IsMatch(
 				IEntity<ulong> entity,
-				IReadOnlyCommandOverride @override)
+				CommandOverride @override)
 				=> entity.Id == @override.TargetId ? entity : null;
 
 			static IEntity<ulong>? IsRoleMatch(
 				ICommandContext context,
-				IReadOnlyCommandOverride @override)
+				CommandOverride @override)
 			{
 				if (context.User is IGuildUser user && user.RoleIds.Contains(@override.TargetId))
 				{

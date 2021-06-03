@@ -3,7 +3,7 @@ using System.Linq;
 
 using Advobot.Classes;
 using Advobot.Modules;
-using Advobot.Quotes.ReadOnlyModels;
+using Advobot.Quotes.Models;
 using Advobot.Utilities;
 
 using AdvorangesUtils;
@@ -18,14 +18,14 @@ namespace Advobot.Quotes.Responses
 		{
 		}
 
-		public static AdvobotResult AddedQuote(IReadOnlyQuote quote)
+		public static AdvobotResult AddedQuote(Quote quote)
 		{
 			return Success(QuotesAddedQuote.Format(
 				quote.Name.WithBlock()
 			));
 		}
 
-		public static AdvobotResult Quote(IReadOnlyQuote quote)
+		public static AdvobotResult Quote(Quote quote)
 		{
 			if (quote.Description != null)
 			{
@@ -36,14 +36,14 @@ namespace Advobot.Quotes.Responses
 			));
 		}
 
-		public static AdvobotResult RemovedQuote(IReadOnlyQuote quote)
+		public static AdvobotResult RemovedQuote(Quote quote)
 		{
 			return Success(QuotesRemovedQuote.Format(
 				quote.Name.WithBlock()
 			));
 		}
 
-		public static AdvobotResult ShowQuotes(IEnumerable<IReadOnlyQuote> quotes)
+		public static AdvobotResult ShowQuotes(IEnumerable<Quote> quotes)
 		{
 			return Success(new EmbedWrapper
 			{

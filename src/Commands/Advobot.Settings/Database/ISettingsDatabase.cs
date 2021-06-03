@@ -1,24 +1,24 @@
 ﻿using System.Collections.Generic;
 using System.Threading.Tasks;
 
-using Advobot.Settings.ReadOnlyModels;
+using Advobot.Settings.Models;
 
 namespace Advobot.Settings.Database
 {
 	public interface ISettingsDatabase
 	{
-		Task<int> DeleteCommandOverridesAsync(IEnumerable<IReadOnlyCommandOverride> overrides);
+		Task<int> DeleteCommandOverridesAsync(IEnumerable<CommandOverride> overrides);
 
-		Task<IReadOnlyList<IReadOnlyCommandOverride>> GetCommandOverridesAsync(
+		Task<IReadOnlyList<CommandOverride>> GetCommandOverridesAsync(
 			ulong guildId,
 			string commandId);
 
-		Task<IReadOnlyList<IReadOnlyCommandOverride>> GetCommandOverridesAsync(ulong guildId);
+		Task<IReadOnlyList<CommandOverride>> GetCommandOverridesAsync(ulong guildId);
 
-		Task<IReadOnlyGuildSettings> GetGuildSettingsAsync(ulong guildId);
+		Task<GuildSettings> GetGuildSettingsAsync(ulong guildId);
 
-		Task<int> UpsertCommandOverridesAsync(IEnumerable<IReadOnlyCommandOverride> overrides);
+		Task<int> UpsertCommandOverridesAsync(IEnumerable<CommandOverride> overrides);
 
-		Task<int> UpsertGuildSettingsAsync(IReadOnlyGuildSettings settings);
+		Task<int> UpsertGuildSettingsAsync(GuildSettings settings);
 	}
 }

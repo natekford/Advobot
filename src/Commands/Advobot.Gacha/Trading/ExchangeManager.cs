@@ -6,7 +6,7 @@ using System.Linq;
 using System.Threading.Tasks;
 
 using Advobot.Gacha.Database;
-using Advobot.Gacha.ReadOnlyModels;
+using Advobot.Gacha.Models;
 using Advobot.Gacha.Utilities;
 
 using AdvorangesUtils;
@@ -25,7 +25,7 @@ namespace Advobot.Gacha.Trading
 			_Db = db;
 		}
 
-		public bool AddExchange(ExchangeMethod method, IReadOnlyUser receiver, IEnumerable<IReadOnlyCharacter> characters)
+		public bool AddExchange(ExchangeMethod method, User receiver, IEnumerable<Character> characters)
 		{
 			var exchange = new Exchange(method);
 			exchange.AddRange(characters.Select(x => new Trade(receiver, x)));

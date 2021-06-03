@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Threading.Tasks;
 
-using Advobot.Invites.ReadOnlyModels;
+using Advobot.Invites.Models;
 
 using Discord;
 
@@ -38,21 +38,21 @@ namespace Advobot.Invites.Service
 		/// Get every invite from the list.
 		/// </summary>
 		/// <returns></returns>
-		Task<IReadOnlyList<IReadOnlyListedInvite>> GetAllAsync();
+		Task<IReadOnlyList<ListedInvite>> GetAllAsync();
 
 		/// <summary>
 		/// Get every invite from the list with specific keywords.
 		/// </summary>
 		/// <param name="keywords"></param>
 		/// <returns></returns>
-		Task<IReadOnlyList<IReadOnlyListedInvite>> GetAllAsync(IEnumerable<string> keywords);
+		Task<IReadOnlyList<ListedInvite>> GetAllAsync(IEnumerable<string> keywords);
 
 		/// <summary>
 		/// Gets the invite listed for this guild.
 		/// </summary>
 		/// <param name="guildId"></param>
 		/// <returns></returns>
-		Task<IReadOnlyListedInvite?> GetAsync(ulong guildId);
+		Task<ListedInvite?> GetAsync(ulong guildId);
 
 		/// <summary>
 		/// Removes an invite from the list.

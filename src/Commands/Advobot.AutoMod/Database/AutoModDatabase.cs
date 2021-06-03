@@ -70,7 +70,7 @@ namespace Advobot.AutoMod.Database
 				SELECT *
 				FROM GuildSetting
 				WHERE GuildId = @GuildId
-			", param).CAF() ?? new AutoModSettings(guildId);
+			", param).CAF() ?? new AutoModSettings { GuildId = guildId };
 		}
 
 		public async Task<IReadOnlyList<BannedPhrase>> GetBannedNamesAsync(ulong guildId)

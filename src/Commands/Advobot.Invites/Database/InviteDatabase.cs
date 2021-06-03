@@ -3,7 +3,6 @@ using System.Data.SQLite;
 using System.Threading.Tasks;
 
 using Advobot.Invites.Models;
-using Advobot.Invites.ReadOnlyModels;
 using Advobot.SQLite;
 
 using AdvorangesUtils;
@@ -16,7 +15,7 @@ namespace Advobot.Invites.Database
 		{
 		}
 
-		public Task AddInviteAsync(IReadOnlyListedInvite invite)
+		public Task AddInviteAsync(ListedInvite invite)
 		{
 			return ModifyAsync(@"
 				INSERT INTO Invite
@@ -26,7 +25,7 @@ namespace Advobot.Invites.Database
 			", invite);
 		}
 
-		public Task AddKeywordAsync(IReadOnlyKeyword keyword)
+		public Task AddKeywordAsync(Keyword keyword)
 		{
 			return ModifyAsync(@"
 				INSERT INTO Keyword
@@ -36,7 +35,7 @@ namespace Advobot.Invites.Database
 			", keyword);
 		}
 
-		public Task<int> AddKeywordsAsync(IEnumerable<IReadOnlyKeyword> keywords)
+		public Task<int> AddKeywordsAsync(IEnumerable<Keyword> keywords)
 		{
 			const string SQL = @"
 				INSERT INTO Keyword
@@ -65,7 +64,7 @@ namespace Advobot.Invites.Database
 			", param);
 		}
 
-		public async Task<IReadOnlyListedInvite?> GetInviteAsync(ulong guildId)
+		public async Task<ListedInvite?> GetInviteAsync(ulong guildId)
 		{
 			var param = new { GuildId = guildId.ToString() };
 			return await GetOneAsync<ListedInvite?>(@"
@@ -75,7 +74,7 @@ namespace Advobot.Invites.Database
 			", param).CAF();
 		}
 
-		public async Task<IReadOnlyList<IReadOnlyListedInvite>> GetInvitesAsync()
+		public async Task<IReadOnlyList<ListedInvite>> GetInvitesAsync()
 		{
 			return await GetManyAsync<ListedInvite>(@"
 				SELECT *
@@ -83,7 +82,7 @@ namespace Advobot.Invites.Database
 			", null).CAF();
 		}
 
-		public async Task<IReadOnlyList<IReadOnlyListedInvite>> GetInvitesAsync(
+		public async Task<IReadOnlyList<ListedInvite>> GetInvitesAsync(
 			IEnumerable<string> keywords)
 		{
 			var param = new { Words = keywords };
@@ -96,7 +95,7 @@ namespace Advobot.Invites.Database
 			", param).CAF();
 		}
 
-		public async Task<IReadOnlyList<IReadOnlyKeyword>> GetKeywords(ulong guildId)
+		public async Task<IReadOnlyList<Keyword>> GetKeywords(ulong guildId)
 		{
 			var param = new { GuildId = guildId.ToString() };
 			return await GetManyAsync<Keyword>(@"
@@ -106,7 +105,7 @@ namespace Advobot.Invites.Database
 			", param).CAF();
 		}
 
-		public Task UpdateInviteAsync(IReadOnlyListedInvite invite)
+		public Task UpdateInviteAsync(ListedInvite invite)
 		{
 			return ModifyAsync(@"
 				UPDATE Invite

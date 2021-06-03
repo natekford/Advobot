@@ -1,20 +1,17 @@
 ﻿using System;
 
-using Advobot.Gacha.ReadOnlyModels;
+using Advobot.Gacha.Relationships;
 using Advobot.Gacha.Utilities;
 
 namespace Advobot.Gacha.Models
 {
-	public class Source : IReadOnlySource
+	public record Source(
+		string Name,
+		long SourceId,
+		string? ThumbnailUrl
+	) : ITimeCreated
 	{
-		public string Name { get; set; }
-		public long SourceId { get; set; } = TimeUtils.UtcNowTicks;
-		public string? ThumbnailUrl { get; set; }
-
-		public Source()
-		{
-			Name = "";
-		}
+		public Source() : this("", SourceId: TimeUtils.UtcNowTicks, default) { }
 
 		public DateTimeOffset GetTimeCreated()
 			=> SourceId.ToTime();

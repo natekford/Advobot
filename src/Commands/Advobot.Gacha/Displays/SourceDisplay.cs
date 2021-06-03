@@ -4,7 +4,7 @@ using System.Threading.Tasks;
 
 using Advobot.Gacha.Database;
 using Advobot.Gacha.Interaction;
-using Advobot.Gacha.ReadOnlyModels;
+using Advobot.Gacha.Models;
 using Advobot.Services.Time;
 
 using AdvorangesUtils;
@@ -15,16 +15,16 @@ namespace Advobot.Gacha.Displays
 {
 	public class SourceDisplay : PaginatedDisplay
 	{
-		private readonly IReadOnlyList<IReadOnlyCharacter> _Characters;
-		private readonly IReadOnlySource _Source;
+		private readonly IReadOnlyList<Character> _Characters;
+		private readonly Source _Source;
 
 		public SourceDisplay(
 			IGachaDatabase db,
 			ITime time,
 			IInteractionManager interaction,
 			int id,
-			IReadOnlySource source,
-			IReadOnlyList<IReadOnlyCharacter> characters)
+			Source source,
+			IReadOnlyList<Character> characters)
 			: base(db, time, interaction, id, characters.Count, GachaConstants.CharactersPerPage)
 		{
 			_Source = source;

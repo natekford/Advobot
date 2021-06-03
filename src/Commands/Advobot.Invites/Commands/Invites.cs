@@ -7,8 +7,8 @@ using Advobot.Attributes;
 using Advobot.Attributes.ParameterPreconditions.DiscordObjectValidation.Invites;
 using Advobot.Attributes.Preconditions.Permissions;
 using Advobot.Classes;
+using Advobot.Invites.Models;
 using Advobot.Invites.Preconditions;
-using Advobot.Invites.ReadOnlyModels;
 using Advobot.Localization;
 using Advobot.Resources;
 
@@ -67,7 +67,7 @@ namespace Advobot.Invites.Commands
 			}
 
 			[NamedArgumentType]
-			public sealed class ListedInviteFilterer : Filterer<IReadOnlyListedInvite>
+			public sealed class ListedInviteFilterer : Filterer<ListedInvite>
 			{
 				public string? Code { get; set; }
 				public bool? HasGlobalEmotes { get; set; }
@@ -76,8 +76,7 @@ namespace Advobot.Invites.Commands
 				public int? Users { get; set; }
 				public CountTarget UsersMethod { get; set; }
 
-				public override IReadOnlyList<IReadOnlyListedInvite> Filter(
-					IEnumerable<IReadOnlyListedInvite> source)
+				public override IReadOnlyList<ListedInvite> Filter(IEnumerable<ListedInvite> source)
 				{
 					if (Code != null)
 					{
@@ -95,7 +94,7 @@ namespace Advobot.Invites.Commands
 					{
 						source = source.GetFromCount(UsersMethod, Users, x => x.MemberCount);
 					}
-					return source?.ToArray() ?? Array.Empty<IReadOnlyListedInvite>();
+					return source?.ToArray() ?? Array.Empty<ListedInvite>();
 				}
 			}
 		}

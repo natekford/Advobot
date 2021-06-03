@@ -1,23 +1,12 @@
-﻿using Advobot.Invites.ReadOnlyModels;
-
-using Discord;
+﻿using Advobot.SQLite.Relationships;
 
 namespace Advobot.Invites.Models
 {
-	public sealed class Keyword : IReadOnlyKeyword
+	public sealed record Keyword(
+		ulong GuildId,
+		string Word
+	) : IGuildChild
 	{
-		public ulong GuildId { get; set; }
-		public string Word { get; set; }
-
-		public Keyword()
-		{
-			Word = "";
-		}
-
-		public Keyword(IGuild guild, string word)
-		{
-			GuildId = guild.Id;
-			Word = word;
-		}
+		public Keyword() : this(default, "") { }
 	}
 }

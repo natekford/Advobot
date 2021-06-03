@@ -1,6 +1,6 @@
 ﻿using System;
 
-using Advobot.Logging.ReadOnlyModels;
+using Advobot.Logging.Models;
 
 namespace Advobot.Logging.Preconditions
 {
@@ -14,7 +14,7 @@ namespace Advobot.Logging.Preconditions
 		protected override string LogName => Resources.Responses.VariableModLog;
 
 		/// <inheritdoc />
-		protected override ulong GetId(IReadOnlyLogChannels channels)
+		protected override ulong GetId(LogChannels channels)
 			=> channels.ModLogId;
 	}
 }

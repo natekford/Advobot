@@ -7,6 +7,7 @@ using System.Text;
 using System.Threading.Tasks;
 
 using Advobot.Levels.Database;
+using Advobot.Levels.Utilities;
 using Advobot.Services.Time;
 using Advobot.Utilities;
 
@@ -248,8 +249,8 @@ namespace Advobot.Levels.Service
 				return new XpContext(guild, channel, user, msg);
 			}
 
-			public ISearchArgs CreateArgs()
-				=> new SearchArgs(User.Id, Guild.Id, Channel.Id);
+			public SearchArgs CreateArgs()
+				=> new(User.Id, Guild.Id, Channel.Id);
 		}
 	}
 }

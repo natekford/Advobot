@@ -3,7 +3,7 @@
 namespace Advobot.Levels.Database
 {
 	[NamedArgumentType]
-	public sealed class SearchArgs : ISearchArgs
+	public sealed class SearchArgs
 	{
 		public ulong? ChannelId { get; set; }
 		public ulong? GuildId { get; set; }

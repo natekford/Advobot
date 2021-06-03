@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 
 using Advobot.Gacha.ActionLimits;
-using Advobot.Gacha.ReadOnlyModels;
+using Advobot.Gacha.Models;
 using Advobot.Gacha.Trading;
 using Advobot.Gacha.TryParsers;
 using Advobot.Interactivity;
@@ -29,7 +29,7 @@ namespace Advobot.Gacha
 		public ITokenHolderService TokenHolder { get; set; }
 #pragma warning restore CS8618 // Non-nullable field is uninitialized.
 
-		protected bool AddExchange(IReadOnlyUser user, IEnumerable<IReadOnlyCharacter> characters)
+		protected bool AddExchange(User user, IEnumerable<Character> characters)
 			=> Exchanges.AddExchange(Method, user, characters);
 
 		protected IReadOnlyList<ICriterion<IMessage>> GetUserCriteria(ulong id)
@@ -41,7 +41,7 @@ namespace Advobot.Gacha
 			};
 		}
 
-		protected async Task<RuntimeResult> HandleExchange(IReadOnlyUser user)
+		protected async Task<RuntimeResult> HandleExchange(User user)
 		{
 			var type = Method.ToString();
 			var mention = MentionUtils.MentionUser(user.UserId);

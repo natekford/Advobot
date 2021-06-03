@@ -9,7 +9,6 @@ using Advobot.Quotes.Database;
 using Advobot.Quotes.Formatting;
 using Advobot.Quotes.Models;
 using Advobot.Quotes.ParameterPreconditions;
-using Advobot.Quotes.ReadOnlyModels;
 using Advobot.Resources;
 
 using AdvorangesUtils;
@@ -50,7 +49,7 @@ namespace Advobot.Quotes.Commands
 
 			[LocalizedCommand(nameof(Groups.Delete))]
 			[LocalizedAlias(nameof(Aliases.Delete))]
-			public async Task<RuntimeResult> Delete(IReadOnlyRuleCategory category)
+			public async Task<RuntimeResult> Delete(RuleCategory category)
 			{
 				await Db.DeleteRuleCategoryAsync(category).CAF();
 				return DeletedCategory(category);
@@ -59,11 +58,11 @@ namespace Advobot.Quotes.Commands
 			[LocalizedCommand(nameof(Groups.ModifyValue))]
 			[LocalizedAlias(nameof(Aliases.ModifyValue))]
 			public async Task<RuntimeResult> ModifyValue(
-				IReadOnlyRuleCategory category,
+				RuleCategory category,
 				[Remainder, Rule]
 				string value)
 			{
-				var copy = new RuleCategory(category)
+				var copy = category with
 				{
 					Value = value,
 				};
@@ -74,25 +73,25 @@ namespace Advobot.Quotes.Commands
 			[LocalizedCommand(nameof(Groups.Swap))]
 			[LocalizedAlias(nameof(Aliases.Swap))]
 			public async Task<RuntimeResult> Swap(
-				IReadOnlyRuleCategory categoryA,
-				IReadOnlyRuleCategory categoryB)
+				RuleCategory categoryA,
+				RuleCategory categoryB)
 			{
-				var copyA = new RuleCategory(categoryA)
+				var copyA = categoryA with
 				{
 					Category = categoryB.Category,
 				};
 				var rulesA = await Db.GetRulesAsync(categoryA).CAF();
-				var copyRulesA = rulesA.Select(x => new Rule(x)
+				var copyRulesA = rulesA.Select(x => x with
 				{
 					Category = copyA.Category,
 				});
 
-				var copyB = new RuleCategory(categoryB)
+				var copyB = categoryB with
 				{
 					Category = categoryA.Category,
 				};
 				var rulesB = await Db.GetRulesAsync(categoryB).CAF();
-				var copyRulesB = rulesB.Select(x => new Rule(x)
+				var copyRulesB = rulesB.Select(x => x with
 				{
 					Category = copyB.Category,
 				});
@@ -129,13 +128,13 @@ namespace Advobot.Quotes.Commands
 			[LocalizedCommand(nameof(Groups.Create))]
 			[LocalizedAlias(nameof(Aliases.Create))]
 			public async Task<RuntimeResult> Create(
-				IReadOnlyRuleCategory category,
+				RuleCategory category,
 				[Remainder, Rule]
 				string value)
 			{
 				var rules = await Db.GetRulesAsync(category).CAF();
 
-				var rule = new Rule()
+				var rule = new Rule
 				{
 					GuildId = Context.Guild.Id,
 					Category = category.Category,
@@ -148,7 +147,7 @@ namespace Advobot.Quotes.Commands
 
 			[LocalizedCommand(nameof(Groups.Delete))]
 			[LocalizedAlias(nameof(Aliases.Delete))]
-			public async Task<RuntimeResult> Delete(IReadOnlyRule rule)
+			public async Task<RuntimeResult> Delete(Rule rule)
 			{
 				await Db.DeleteRuleAsync(rule).CAF();
 				return RemovedRule(rule);
@@ -157,11 +156,11 @@ namespace Advobot.Quotes.Commands
 			[LocalizedCommand(nameof(Groups.ModifyValue))]
 			[LocalizedAlias(nameof(Aliases.ModifyValue))]
 			public async Task<RuntimeResult> ModifyValue(
-				IReadOnlyRule rule,
+				Rule rule,
 				[Remainder, Rule]
 				string value)
 			{
-				var copy = new Rule(rule)
+				var copy = rule with
 				{
 					Value = value,
 				};
@@ -171,13 +170,13 @@ namespace Advobot.Quotes.Commands
 
 			[LocalizedCommand(nameof(Groups.Swap))]
 			[LocalizedAlias(nameof(Aliases.Swap))]
-			public async Task<RuntimeResult> Swap(IReadOnlyRule ruleA, IReadOnlyRule ruleB)
+			public async Task<RuntimeResult> Swap(Rule ruleA, Rule ruleB)
 			{
-				var copyA = new Rule(ruleA)
+				var copyA = ruleA with
 				{
 					Position = ruleB.Position,
 				};
-				var copyB = new Rule(ruleB)
+				var copyB = ruleB with
 				{
 					Position = ruleA.Position,
 				};
@@ -205,7 +204,7 @@ namespace Advobot.Quotes.Commands
 
 			[Command]
 			public async Task<RuntimeResult> Command(
-				IReadOnlyRuleCategory category,
+				RuleCategory category,
 				RuleFormatter? args = null)
 			{
 				args ??= new RuleFormatter();

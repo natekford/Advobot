@@ -1,22 +1,21 @@
 ﻿using System;
 
-using Advobot.Gacha.ReadOnlyModels;
+using Advobot.Gacha.Relationships;
 using Advobot.Gacha.Utilities;
+using Advobot.SQLite.Relationships;
 
 namespace Advobot.Gacha.Models
 {
-	public class Wish : IReadOnlyWish
+	public record Wish(
+		long CharacterId,
+		ulong GuildId,
+		ulong UserId,
+		long WishId
+	) : ITimeCreated, IGuildChild, IUserChild, ICharacterChild
 	{
-		public long CharacterId { get; set; }
-		public ulong GuildId { get; set; }
-		public ulong UserId { get; set; }
-		public long WishId { get; set; } = TimeUtils.UtcNowTicks;
+		public Wish() : this(default, default, default, WishId: TimeUtils.UtcNowTicks) { }
 
-		public Wish()
-		{
-		}
-
-		public Wish(IReadOnlyUser user, IReadOnlyCharacter character)
+		public Wish(User user, Character character) : this()
 		{
 			GuildId = user.GuildId;
 			UserId = user.UserId;

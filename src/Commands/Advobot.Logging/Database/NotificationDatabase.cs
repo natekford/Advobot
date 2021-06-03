@@ -3,7 +3,6 @@ using System.Data.SQLite;
 using System.Threading.Tasks;
 
 using Advobot.Logging.Models;
-using Advobot.Logging.ReadOnlyModels;
 using Advobot.SQLite;
 
 using AdvorangesUtils;
@@ -16,7 +15,7 @@ namespace Advobot.Logging.Database
 		{
 		}
 
-		public async Task<IReadOnlyCustomNotification?> GetAsync(
+		public async Task<CustomNotification?> GetAsync(
 			Notification notification,
 			ulong guildId)
 		{
@@ -79,7 +78,7 @@ namespace Advobot.Logging.Database
 		public Task<int> UpsertNotificationEmbedAsync(
 			Notification notification,
 			ulong guildId,
-			IReadOnlyCustomEmbed? embed)
+			CustomEmbed? embed)
 		{
 			var param = new
 			{

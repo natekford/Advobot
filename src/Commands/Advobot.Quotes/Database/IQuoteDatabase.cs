@@ -1,18 +1,18 @@
 ﻿using System.Collections.Generic;
 using System.Threading.Tasks;
 
-using Advobot.Quotes.ReadOnlyModels;
+using Advobot.Quotes.Models;
 
 namespace Advobot.Quotes.Database
 {
 	public interface IQuoteDatabase
 	{
-		Task<int> AddQuoteAsync(IReadOnlyQuote quote);
+		Task<int> AddQuoteAsync(Quote quote);
 
-		Task<int> DeleteQuoteAsync(IReadOnlyQuote quote);
+		Task<int> DeleteQuoteAsync(Quote quote);
 
-		Task<IReadOnlyQuote?> GetQuoteAsync(ulong guildId, string name);
+		Task<Quote?> GetQuoteAsync(ulong guildId, string name);
 
-		Task<IReadOnlyList<IReadOnlyQuote>> GetQuotesAsync(ulong guildId);
+		Task<IReadOnlyList<Quote>> GetQuotesAsync(ulong guildId);
 	}
 }

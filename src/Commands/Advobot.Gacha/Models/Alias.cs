@@ -1,20 +1,13 @@
-﻿using Advobot.Gacha.ReadOnlyModels;
+﻿using Advobot.Gacha.Relationships;
 
 namespace Advobot.Gacha.Models
 {
-	public class Alias : IReadOnlyAlias
+	public record Alias(
+		long CharacterId,
+		bool IsSpoiler,
+		string Name
+	) : ICharacterChild
 	{
-		public long CharacterId { get; set; }
-		public bool IsSpoiler { get; set; }
-		public string? Name { get; set; }
-
-		public Alias()
-		{
-		}
-
-		public Alias(IReadOnlyCharacter character)
-		{
-			CharacterId = character.CharacterId;
-		}
+		public Alias() : this(default, default, "") { }
 	}
 }

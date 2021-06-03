@@ -4,7 +4,7 @@ using System.Threading.Tasks;
 
 using Advobot.Attributes;
 using Advobot.Quotes.Database;
-using Advobot.Quotes.ReadOnlyModels;
+using Advobot.Quotes.Models;
 using Advobot.Utilities;
 
 using AdvorangesUtils;
@@ -15,7 +15,7 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace Advobot.TypeReaders
 {
-	[TypeReaderTargetType(typeof(IReadOnlyRuleCategory))]
+	[TypeReaderTargetType(typeof(RuleCategory))]
 	public sealed class RuleCategoryTypeReader : TypeReader
 	{
 		public override async Task<TypeReaderResult> ReadAsync(
@@ -25,7 +25,7 @@ namespace Advobot.TypeReaders
 		{
 			if (!int.TryParse(input, out var category))
 			{
-				return TypeReaderUtils.ParseFailedResult<IReadOnlyRuleCategory>();
+				return TypeReaderUtils.ParseFailedResult<RuleCategory>();
 			}
 
 			var db = services.GetRequiredService<RuleDatabase>();

@@ -7,12 +7,13 @@ using Advobot.Gacha.Counters;
 using Advobot.Gacha.Database;
 using Advobot.Gacha.Interaction;
 using Advobot.Gacha.Models;
-using Advobot.Gacha.ReadOnlyModels;
 using Advobot.Services.Time;
 
 using AdvorangesUtils;
 
 using Discord;
+
+using Image = Advobot.Gacha.Models.Image;
 
 namespace Advobot.Gacha.Displays
 {
@@ -21,12 +22,12 @@ namespace Advobot.Gacha.Displays
 	/// </summary>
 	public class RollDisplay : Display
 	{
-		private readonly IReadOnlyCharacter _Character;
+		private readonly Character _Character;
 		private readonly ICounter<ulong> _ClaimChecker;
 		private readonly TaskCompletionSource<object?> _Claimed = new();
-		private readonly IReadOnlyList<IReadOnlyImage> _Images;
-		private readonly IReadOnlySource _Source;
-		private readonly IReadOnlyList<IReadOnlyWish> _Wishes;
+		private readonly IReadOnlyList<Image> _Images;
+		private readonly Source _Source;
+		private readonly IReadOnlyList<Wish> _Wishes;
 
 		public RollDisplay(
 			IGachaDatabase db,
@@ -34,10 +35,10 @@ namespace Advobot.Gacha.Displays
 			IInteractionManager interaction,
 			int id,
 			ICounter<ulong> claimChecker,
-			IReadOnlyCharacter character,
-			IReadOnlySource source,
-			IReadOnlyList<IReadOnlyWish> wishes,
-			IReadOnlyList<IReadOnlyImage> images)
+			Character character,
+			Source source,
+			IReadOnlyList<Wish> wishes,
+			IReadOnlyList<Image> images)
 			: base(db, time, interaction, id)
 		{
 			_ClaimChecker = claimChecker;

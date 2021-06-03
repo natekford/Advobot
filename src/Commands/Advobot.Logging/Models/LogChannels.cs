@@ -1,11 +1,11 @@
-﻿using Advobot.Logging.ReadOnlyModels;
-
-namespace Advobot.Logging.Models
+﻿namespace Advobot.Logging.Models
 {
-	public sealed class LogChannels : IReadOnlyLogChannels
+	public sealed record LogChannels(
+		ulong ImageLogId,
+		ulong ModLogId,
+		ulong ServerLogId
+	)
 	{
-		public ulong ImageLogId { get; set; }
-		public ulong ModLogId { get; set; }
-		public ulong ServerLogId { get; set; }
+		public LogChannels() : this(default, default, default) { }
 	}
 }

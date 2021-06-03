@@ -3,7 +3,6 @@ using System.Data.SQLite;
 using System.Threading.Tasks;
 
 using Advobot.Quotes.Models;
-using Advobot.Quotes.ReadOnlyModels;
 using Advobot.SQLite;
 
 using AdvorangesUtils;
@@ -16,7 +15,7 @@ namespace Advobot.Quotes.Database
 		{
 		}
 
-		public Task<int> AddQuoteAsync(IReadOnlyQuote quote)
+		public Task<int> AddQuoteAsync(Quote quote)
 		{
 			return ModifyAsync(@"
 				INSERT OR IGNORE INTO Quote
@@ -26,7 +25,7 @@ namespace Advobot.Quotes.Database
 			", quote);
 		}
 
-		public Task<int> DeleteQuoteAsync(IReadOnlyQuote quote)
+		public Task<int> DeleteQuoteAsync(Quote quote)
 		{
 			return ModifyAsync(@"
 				DELETE FROM Quote
@@ -34,7 +33,7 @@ namespace Advobot.Quotes.Database
 			", quote);
 		}
 
-		public async Task<IReadOnlyQuote?> GetQuoteAsync(ulong guildId, string name)
+		public async Task<Quote?> GetQuoteAsync(ulong guildId, string name)
 		{
 			var param = new
 			{
@@ -48,7 +47,7 @@ namespace Advobot.Quotes.Database
 			", param).CAF();
 		}
 
-		public async Task<IReadOnlyList<IReadOnlyQuote>> GetQuotesAsync(ulong guildId)
+		public async Task<IReadOnlyList<Quote>> GetQuotesAsync(ulong guildId)
 		{
 			var param = new { GuildId = guildId.ToString(), };
 			return await GetManyAsync<Quote>(@"

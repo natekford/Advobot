@@ -1,7 +1,7 @@
 ﻿using System.Threading.Tasks;
 
 using Advobot.Classes;
-using Advobot.Logging.ReadOnlyModels;
+using Advobot.Logging.Models;
 using Advobot.Utilities;
 
 using AdvorangesUtils;
@@ -17,7 +17,7 @@ namespace Advobot.Logging.Utilities
 		public const string USER_MENTION = "%USERMENTION%";
 		public const string USER_STRING = "%USER%";
 
-		public static EmbedWrapper BuildWrapper(this IReadOnlyCustomEmbed custom)
+		public static EmbedWrapper BuildWrapper(this Models.CustomEmbed custom)
 		{
 			var embed = new EmbedWrapper
 			{
@@ -39,7 +39,7 @@ namespace Advobot.Logging.Utilities
 			return embed;
 		}
 
-		public static bool EmbedEmpty(this IReadOnlyCustomEmbed custom)
+		public static bool EmbedEmpty(this Models.CustomEmbed custom)
 		{
 			return custom.AuthorIconUrl == null
 				&& custom.AuthorName == null
@@ -55,7 +55,7 @@ namespace Advobot.Logging.Utilities
 		}
 
 		public static async Task<IUserMessage?> SendAsync(
-			this IReadOnlyCustomNotification notification,
+			this CustomNotification notification,
 			IGuild guild,
 			IUser? user)
 		{

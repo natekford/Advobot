@@ -6,7 +6,6 @@ using System.Threading.Tasks;
 
 using Advobot.Gacha.Metadata;
 using Advobot.Gacha.Models;
-using Advobot.Gacha.ReadOnlyModels;
 using Advobot.Gacha.Trading;
 using Advobot.Gacha.Utilities;
 using Advobot.Services.Time;
@@ -76,13 +75,13 @@ namespace Advobot.Gacha.Database
 			_Time = time;
 		}
 
-		public Task<int> AddCharacterAsync(IReadOnlyCharacter character)
+		public Task<int> AddCharacterAsync(Character character)
 		{
 			CharacterIds.Add(character.CharacterId, character.Name);
 			return ModifyAsync(INSERT_CHAR, character);
 		}
 
-		public Task<int> AddCharactersAsync(IEnumerable<IReadOnlyCharacter> characters)
+		public Task<int> AddCharactersAsync(IEnumerable<Character> characters)
 		{
 			foreach (var character in characters)
 			{
@@ -91,22 +90,22 @@ namespace Advobot.Gacha.Database
 			return BulkModifyAsync(INSERT_CHAR, characters);
 		}
 
-		public Task<int> AddClaimAsync(IReadOnlyClaim claim)
+		public Task<int> AddClaimAsync(Claim claim)
 			=> ModifyAsync(INSERT_CLAIM, claim);
 
-		public Task<int> AddClaimsAsync(IEnumerable<IReadOnlyClaim> claims)
+		public Task<int> AddClaimsAsync(IEnumerable<Claim> claims)
 			=> BulkModifyAsync(INSERT_CLAIM, claims);
 
-		public Task<int> AddImageAsync(IReadOnlyImage image)
+		public Task<int> AddImageAsync(Image image)
 			=> ModifyAsync(INSERT_IMG, image);
 
-		public Task<int> AddSourceAsync(IReadOnlySource source)
+		public Task<int> AddSourceAsync(Source source)
 		{
 			SourceIds.Add(source.SourceId, source.Name);
 			return ModifyAsync(INSERT_SRC, source);
 		}
 
-		public Task<int> AddSourcesAsync(IEnumerable<IReadOnlySource> sources)
+		public Task<int> AddSourcesAsync(IEnumerable<Source> sources)
 		{
 			foreach (var source in sources)
 			{
@@ -115,13 +114,13 @@ namespace Advobot.Gacha.Database
 			return BulkModifyAsync(INSERT_SRC, sources);
 		}
 
-		public Task<int> AddUserAsync(IReadOnlyUser user)
+		public Task<int> AddUserAsync(User user)
 			=> ModifyAsync(INSERT_USER, user);
 
-		public Task<int> AddUsersAsync(IEnumerable<IReadOnlyUser> users)
+		public Task<int> AddUsersAsync(IEnumerable<User> users)
 			=> BulkModifyAsync(INSERT_USER, users);
 
-		public Task<int> AddWishAsync(IReadOnlyWish wish)
+		public Task<int> AddWishAsync(Wish wish)
 			=> ModifyAsync(INSERT_WISH, wish);
 
 		public async Task CacheNamesAsync()
@@ -145,7 +144,7 @@ namespace Advobot.Gacha.Database
 			}
 		}
 
-		public async Task<IReadOnlyCharacter> GetCharacterAsync(long id)
+		public async Task<Character> GetCharacterAsync(long id)
 		{
 			var param = new { CharacterId = id };
 			return await GetOneAsync<Character>(@"
@@ -155,7 +154,7 @@ namespace Advobot.Gacha.Database
 			", param).CAF();
 		}
 
-		public async Task<CharacterMetadata> GetCharacterMetadataAsync(IReadOnlyCharacter character)
+		public async Task<CharacterMetadata> GetCharacterMetadataAsync(Character character)
 		{
 			using var connection = await GetConnectionAsync().CAF();
 
@@ -168,7 +167,7 @@ namespace Advobot.Gacha.Database
 			return new CharacterMetadata(source, character, claims, likes, wishes);
 		}
 
-		public async Task<IReadOnlyList<IReadOnlyCharacter>> GetCharactersAsync()
+		public async Task<IReadOnlyList<Character>> GetCharactersAsync()
 		{
 			return await GetManyAsync<Character>(@"
 				SELECT *
@@ -176,7 +175,7 @@ namespace Advobot.Gacha.Database
 			", null).CAF();
 		}
 
-		public async Task<IReadOnlyList<IReadOnlyCharacter>> GetCharactersAsync(IReadOnlySource source)
+		public async Task<IReadOnlyList<Character>> GetCharactersAsync(Source source)
 		{
 			var param = new { source.SourceId };
 			return await GetManyAsync<Character>(@"
@@ -186,7 +185,7 @@ namespace Advobot.Gacha.Database
 			", param).CAF();
 		}
 
-		public async Task<IReadOnlyList<IReadOnlyCharacter>> GetCharactersAsync(IEnumerable<long> ids)
+		public async Task<IReadOnlyList<Character>> GetCharactersAsync(IEnumerable<long> ids)
 		{
 			var param = new { Ids = ids };
 			return await GetManyAsync<Character>(@"
@@ -196,7 +195,7 @@ namespace Advobot.Gacha.Database
 			", param).CAF();
 		}
 
-		public async Task<IReadOnlyClaim> GetClaimAsync(ulong guildId, IReadOnlyCharacter character)
+		public async Task<Claim> GetClaimAsync(ulong guildId, Character character)
 		{
 			var param = new { GuildId = guildId.ToString(), character.CharacterId };
 			return await GetOneAsync<Claim>(@"
@@ -206,7 +205,7 @@ namespace Advobot.Gacha.Database
 			", param).CAF();
 		}
 
-		public async Task<IReadOnlyClaim> GetClaimAsync(IReadOnlyUser user, IReadOnlyCharacter character)
+		public async Task<Claim> GetClaimAsync(User user, Character character)
 		{
 			var param = new
 			{
@@ -221,7 +220,7 @@ namespace Advobot.Gacha.Database
 			", param).CAF();
 		}
 
-		public async Task<IReadOnlyList<IReadOnlyClaim>> GetClaimsAsync(ulong guildId)
+		public async Task<IReadOnlyList<Claim>> GetClaimsAsync(ulong guildId)
 		{
 			var param = new { GuildId = guildId.ToString() };
 			return await GetManyAsync<Claim>(@"
@@ -231,7 +230,7 @@ namespace Advobot.Gacha.Database
 			", param).CAF();
 		}
 
-		public async Task<IReadOnlyList<IReadOnlyClaim>> GetClaimsAsync(IReadOnlyUser user)
+		public async Task<IReadOnlyList<Claim>> GetClaimsAsync(User user)
 		{
 			var param = new
 			{
@@ -245,7 +244,7 @@ namespace Advobot.Gacha.Database
 			", param).CAF();
 		}
 
-		public async Task<IReadOnlyList<IReadOnlyImage>> GetImagesAsync(IReadOnlyCharacter character)
+		public async Task<IReadOnlyList<Image>> GetImagesAsync(Character character)
 		{
 			var param = new { character.CharacterId };
 			return await GetManyAsync<Image>(@"
@@ -255,7 +254,7 @@ namespace Advobot.Gacha.Database
 			", param).CAF();
 		}
 
-		public async Task<IReadOnlySource> GetSourceAsync(long sourceId)
+		public async Task<Source> GetSourceAsync(long sourceId)
 		{
 			var param = new { SourceId = sourceId };
 			return await GetOneAsync<Source>(@"
@@ -265,7 +264,7 @@ namespace Advobot.Gacha.Database
 			", param).CAF();
 		}
 
-		public async Task<IReadOnlyList<IReadOnlySource>> GetSourcesAsync(IEnumerable<long> ids)
+		public async Task<IReadOnlyList<Source>> GetSourcesAsync(IEnumerable<long> ids)
 		{
 			var param = new { Ids = ids };
 			return await GetManyAsync<Source>(@"
@@ -275,7 +274,7 @@ namespace Advobot.Gacha.Database
 			", param).CAF();
 		}
 
-		public async Task<IReadOnlyCharacter> GetUnclaimedCharacter(ulong guildId)
+		public async Task<Character> GetUnclaimedCharacter(ulong guildId)
 		{
 			//Time for 500,000 records in both Character and Claim:
 			//NOT IN = 3796ms
@@ -294,7 +293,7 @@ namespace Advobot.Gacha.Database
 			", param).CAF();
 		}
 
-		public async Task<IReadOnlyUser> GetUserAsync(ulong guildId, ulong userId)
+		public async Task<User> GetUserAsync(ulong guildId, ulong userId)
 		{
 			var param = new { GuildId = guildId.ToString(), UserId = userId.ToString() };
 			return await GetOneAsync<User>(@"
@@ -304,7 +303,7 @@ namespace Advobot.Gacha.Database
 			", param).CAF();
 		}
 
-		public async Task<IReadOnlyList<IReadOnlyWish>> GetWishesAsync(ulong guildId)
+		public async Task<IReadOnlyList<Wish>> GetWishesAsync(ulong guildId)
 		{
 			var param = new { GuildId = guildId.ToString() };
 			return await GetManyAsync<Wish>(@"
@@ -314,7 +313,7 @@ namespace Advobot.Gacha.Database
 			", param).CAF();
 		}
 
-		public async Task<IReadOnlyList<IReadOnlyWish>> GetWishesAsync(ulong guildId, IReadOnlyCharacter character)
+		public async Task<IReadOnlyList<Wish>> GetWishesAsync(ulong guildId, Character character)
 		{
 			var param = new { GuildId = guildId.ToString(), character.CharacterId };
 			return await GetManyAsync<Wish>(@"
@@ -324,7 +323,7 @@ namespace Advobot.Gacha.Database
 			", param).CAF();
 		}
 
-		public async Task<IReadOnlyList<IReadOnlyWish>> GetWishesAsync(IReadOnlyUser user)
+		public async Task<IReadOnlyList<Wish>> GetWishesAsync(User user)
 		{
 			var param = new
 			{
@@ -338,7 +337,7 @@ namespace Advobot.Gacha.Database
 			", param).CAF();
 		}
 
-		public async Task<int> TradeAsync(IEnumerable<ITrade> trades)
+		public async Task<int> TradeAsync(IEnumerable<Trade> trades)
 		{
 			var @params = trades.Select(x => new
 			{
@@ -353,7 +352,7 @@ namespace Advobot.Gacha.Database
 			", @params).CAF();
 		}
 
-		public async Task UpdateClaimImageUrlAsync(IReadOnlyClaim claim, string? url)
+		public async Task UpdateClaimImageUrlAsync(Claim claim, string? url)
 		{
 			using var connection = await GetConnectionAsync().CAF();
 

@@ -3,7 +3,6 @@ using System.Threading.Tasks;
 
 using Advobot.Invites.Database;
 using Advobot.Invites.Models;
-using Advobot.Invites.ReadOnlyModels;
 using Advobot.Services.Time;
 
 using AdvorangesUtils;
@@ -33,7 +32,7 @@ namespace Advobot.Invites.Service
 
 		public Task AddKeywordAsync(IGuild guild, string word)
 		{
-			var keyword = new Keyword(guild, word);
+			var keyword = new Keyword(guild.Id, word);
 			return _Db.AddKeywordAsync(keyword);
 		}
 
@@ -57,14 +56,14 @@ namespace Advobot.Invites.Service
 			return false;
 		}
 
-		public Task<IReadOnlyList<IReadOnlyListedInvite>> GetAllAsync()
+		public Task<IReadOnlyList<ListedInvite>> GetAllAsync()
 			=> _Db.GetInvitesAsync();
 
-		public Task<IReadOnlyList<IReadOnlyListedInvite>> GetAllAsync(
+		public Task<IReadOnlyList<ListedInvite>> GetAllAsync(
 			IEnumerable<string> keywords)
 			=> _Db.GetInvitesAsync(keywords);
 
-		public Task<IReadOnlyListedInvite?> GetAsync(ulong guildId)
+		public Task<ListedInvite?> GetAsync(ulong guildId)
 			=> _Db.GetInviteAsync(guildId);
 
 		public Task RemoveInviteAsync(ulong guildId)

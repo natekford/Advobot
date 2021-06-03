@@ -4,7 +4,7 @@ using System.Threading.Tasks;
 
 using Advobot.Attributes;
 using Advobot.Quotes.Database;
-using Advobot.Quotes.ReadOnlyModels;
+using Advobot.Quotes.Models;
 using Advobot.Utilities;
 
 using AdvorangesUtils;
@@ -15,7 +15,7 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace Advobot.TypeReaders
 {
-	[TypeReaderTargetType(typeof(IReadOnlyQuote))]
+	[TypeReaderTargetType(typeof(Quote))]
 	public sealed class QuoteTypeReader : TypeReader
 	{
 		public override async Task<TypeReaderResult> ReadAsync(

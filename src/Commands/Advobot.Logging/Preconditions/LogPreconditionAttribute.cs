@@ -2,7 +2,7 @@
 using System.Threading.Tasks;
 
 using Advobot.Logging.Database;
-using Advobot.Logging.ReadOnlyModels;
+using Advobot.Logging.Models;
 using Advobot.Services.HelpEntries;
 using Advobot.Utilities;
 
@@ -52,6 +52,6 @@ namespace Advobot.Logging.Preconditions
 		/// </summary>
 		/// <param name="channels"></param>
 		/// <returns></returns>
-		protected abstract ulong GetId(IReadOnlyLogChannels channels);
+		protected abstract ulong GetId(LogChannels channels);
 	}
 }

@@ -4,12 +4,14 @@ using System.Threading.Tasks;
 using Advobot.Gacha.Database;
 using Advobot.Gacha.Interaction;
 using Advobot.Gacha.Metadata;
-using Advobot.Gacha.ReadOnlyModels;
+using Advobot.Gacha.Models;
 using Advobot.Services.Time;
 
 using AdvorangesUtils;
 
 using Discord;
+
+using Image = Advobot.Gacha.Models.Image;
 
 namespace Advobot.Gacha.Displays
 {
@@ -19,9 +21,9 @@ namespace Advobot.Gacha.Displays
 	public class CharacterDisplay : PaginatedDisplay
 	{
 		private readonly CharacterMetadata _Character;
-		private readonly IReadOnlyClaim? _Claim;
+		private readonly Claim? _Claim;
 		private readonly IDiscordClient _Client;
-		private readonly IReadOnlyList<IReadOnlyImage> _Images;
+		private readonly IReadOnlyList<Image> _Images;
 
 		/// <summary>
 		/// Creates an instance of <see cref="CharacterDisplay"/>.
@@ -41,8 +43,8 @@ namespace Advobot.Gacha.Displays
 			IDiscordClient client,
 			int id,
 			CharacterMetadata character,
-			IReadOnlyList<IReadOnlyImage> images,
-			IReadOnlyClaim? claim)
+			IReadOnlyList<Image> images,
+			Claim? claim)
 			: base(db, time, interaction, id, images.Count, 1)
 		{
 			_Client = client;

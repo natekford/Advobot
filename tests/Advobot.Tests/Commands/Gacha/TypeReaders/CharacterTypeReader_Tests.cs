@@ -2,7 +2,6 @@
 
 using Advobot.Gacha.Database;
 using Advobot.Gacha.Models;
-using Advobot.Gacha.ReadOnlyModels;
 using Advobot.Gacha.TypeReaders;
 using Advobot.Gacha.Utilities;
 using Advobot.Tests.Commands.Gacha.Utilities;
@@ -61,10 +60,11 @@ namespace Advobot.Tests.Commands.Gacha.TypeReaders
 				.AddSingleton<IGachaDatabase>(_Db);
 		}
 
-		private IReadOnlyCharacter GenerateStaticCharacter(IReadOnlySource fakeSource, string name)
+		private Character GenerateStaticCharacter(Source fakeSource, string name)
 		{
-			return new Character(fakeSource)
+			return new Character
 			{
+				SourceId = fakeSource.SourceId,
 				CharacterId = TimeUtils.UtcNowTicks,
 				Name = name,
 				GenderIcon = "\uD83D\uDE39",
