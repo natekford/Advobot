@@ -4,7 +4,6 @@ using System.Threading.Tasks;
 using Advobot.Services.BotSettings;
 using Advobot.Services.GuildSettingsProvider;
 using Advobot.Settings.Database;
-using Advobot.Settings.Models;
 
 using AdvorangesUtils;
 

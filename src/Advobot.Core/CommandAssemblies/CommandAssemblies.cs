@@ -29,12 +29,6 @@ namespace Advobot.CommandAssemblies
 		public static CommandAssemblyCollection Find()
 		{
 			var assemblies = new CommandAssemblyCollection();
-			foreach (var assembly in AppDomain.CurrentDomain.GetAssemblies())
-			{
-				assemblies.Add(assembly);
-			}
-			//TODO: fix this so it doesn't load completely random dlls
-			//Probably should pass in a json file with the command assembly locations tbh
 			foreach (var file in Directory.EnumerateFiles(AppDomain.CurrentDomain.BaseDirectory, "*.dll", SearchOption.TopDirectoryOnly))
 			{
 				assemblies.Add(Assembly.LoadFrom(file));
@@ -49,15 +43,16 @@ namespace Advobot.CommandAssemblies
 		private void Add(Assembly assembly)
 		{
 			var attr = assembly.GetCustomAttribute<CommandAssemblyAttribute>();
-			if (attr != null)
+			if (attr is null)
 			{
-				var name = assembly.FullName;
-				if (_Assemblies.TryGetValue(name, out _))
-				{
-					throw new InvalidOperationException($"Duplicate assembly name: {name}");
-				}
-				_Assemblies[name] = new CommandAssembly(assembly, attr);
+				return;
 			}
+			var name = assembly.FullName;
+			if (_Assemblies.TryGetValue(name, out _))
+			{
+				throw new InvalidOperationException($"Duplicate assembly name: {name}");
+			}
+			_Assemblies[name] = new CommandAssembly(assembly, attr);
 		}
 	}
 }
