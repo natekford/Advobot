@@ -15,6 +15,6 @@ namespace Advobot.AutoMod.Models
 		public bool CheckDuration => Duration != Timeout.InfiniteTimeSpan;
 		public TimeSpan Duration => new(Ticks);
 
-		public AutoModSettings() : this(default, default, IgnoreAdmins: true, IgnoreHigherHierarchy: true) { }
+		public AutoModSettings() : this(default, Ticks: TimeSpan.TicksPerHour, IgnoreAdmins: true, IgnoreHigherHierarchy: true) { }
 	}
 }
