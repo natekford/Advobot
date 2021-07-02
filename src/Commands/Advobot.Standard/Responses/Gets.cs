@@ -45,7 +45,10 @@ namespace Advobot.Standard.Responses
 			foreach (var user in users)
 			{
 				++statuses[user.Status];
-				if (user.Activity != null) { ++activities[user.Activity.Type]; }
+				foreach (var activity in user.Activities)
+				{
+					++activities[activity.Type];
+				}
 				if (user.IsWebhook) { ++webhooks; }
 				if (user.IsBot) { ++bots; }
 				if (user.Nickname != null) { ++nickname; }
@@ -449,7 +452,7 @@ namespace Advobot.Standard.Responses
 			var info = new InformationMatrix();
 			info.AddTimeCreatedCollection(user);
 			var status = info.CreateCollection();
-			status.Add(GetsTitleActivity, user.Activity.Format());
+			status.Add(GetsTitleActivity, user.Activities.Select(x => x.Format()).Join("\n"));
 			status.Add(GetsTitleStatus, user.Status.ToString());
 
 			var embed = new EmbedWrapper

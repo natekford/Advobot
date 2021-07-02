@@ -30,10 +30,13 @@ namespace Advobot.MyCommands.Service
 			client.GuildMemberUpdated += OnGuildMemberUpdated;
 		}
 
-		private async Task OnGuildMemberUpdated(SocketGuildUser _, SocketGuildUser after)
+		private async Task OnGuildMemberUpdated(
+			Cacheable<SocketGuildUser, ulong> _,
+			SocketGuildUser after)
 		{
 			if (after.Guild.Id != 199339772118827008
-				|| after.Activity is not CustomStatusGame status // Need a custom status
+				|| after.Activities.OfType<CustomStatusGame>().SingleOrDefault()
+					is not CustomStatusGame status // Need a custom status
 				|| status.State is null // Need custom text
 				|| !after.JoinedAt.HasValue // If no join date then assume old user
 				|| DateTime.UtcNow - after.JoinedAt.Value > _MaxAge

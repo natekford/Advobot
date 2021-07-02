@@ -35,7 +35,7 @@ namespace Advobot.Gacha.Interaction
 
 		private Task HandleAsync(
 			Cacheable<IUserMessage, ulong> cached,
-			ISocketMessageChannel _,
+			Cacheable<IMessageChannel, ulong> _,
 			SocketReaction reaction)
 		{
 			if (!TryGetMenuAction(cached.Id, reaction, out var action) || action == null)

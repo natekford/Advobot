@@ -42,10 +42,9 @@ namespace Advobot.Tests.Core.Attributes.Preconditions.Permissions
 		[DataRow(ChannelPermission.ManageRoles)]
 		[DataRow(ChannelPermission.AttachFiles | ChannelPermission.ManageChannels)]
 		[DataTestMethod]
-		public async Task InvalidPermissions_Test(long permission)
+		public async Task InvalidPermissions_Test(ulong permission)
 		{
-			var val = (ulong)permission;
-			var permissions = new OverwritePermissions(allowValue: val, denyValue: 0);
+			var permissions = new OverwritePermissions(allowValue: permission, denyValue: 0);
 			await Context.Channel.AddPermissionOverwriteAsync(Context.User, permissions).CAF();
 			await Context.Channel.AddPermissionOverwriteAsync(Context.Guild.FakeCurrentUser, permissions).CAF();
 
@@ -59,16 +58,15 @@ namespace Advobot.Tests.Core.Attributes.Preconditions.Permissions
 		[DataRow(FLAGS0 | FLAGS1 | ChannelPermission.ManageWebhooks)]
 		[DataRow(FLAGS0 | FLAGS1 | FLAGS2 | FLAGS3)]
 		[DataTestMethod]
-		public async Task ValidPermissionsButChannelDenied_Test(long permission)
+		public async Task ValidPermissionsButChannelDenied_Test(ulong permission)
 		{
-			var val = (ulong)permission;
-			var permissions = new OverwritePermissions(allowValue: 0, denyValue: val);
+			var permissions = new OverwritePermissions(allowValue: 0, denyValue: permission);
 			await Context.Channel.AddPermissionOverwriteAsync(Context.User, permissions).CAF();
 			await Context.Channel.AddPermissionOverwriteAsync(Context.Guild.FakeCurrentUser, permissions).CAF();
 
 			var role = new FakeRole(Context.Guild)
 			{
-				Permissions = new GuildPermissions(val),
+				Permissions = new GuildPermissions(permission),
 			};
 			await Context.User.AddRoleAsync(role).CAF();
 			await Context.Guild.FakeCurrentUser.AddRoleAsync(role).CAF();
@@ -83,10 +81,9 @@ namespace Advobot.Tests.Core.Attributes.Preconditions.Permissions
 		[DataRow(FLAGS0 | FLAGS1 | ChannelPermission.ManageWebhooks)]
 		[DataRow(FLAGS0 | FLAGS1 | FLAGS2 | FLAGS3)]
 		[DataTestMethod]
-		public async Task ValidPermissionsByChannel_Test(long permission)
+		public async Task ValidPermissionsByChannel_Test(ulong permission)
 		{
-			var val = (ulong)permission;
-			var permissions = new OverwritePermissions(allowValue: val, denyValue: 0);
+			var permissions = new OverwritePermissions(allowValue: permission, denyValue: 0);
 			await Context.Channel.AddPermissionOverwriteAsync(Context.User, permissions).CAF();
 			await Context.Channel.AddPermissionOverwriteAsync(Context.Guild.FakeCurrentUser, permissions).CAF();
 
@@ -100,12 +97,11 @@ namespace Advobot.Tests.Core.Attributes.Preconditions.Permissions
 		[DataRow(FLAGS0 | FLAGS1 | ChannelPermission.ManageWebhooks)]
 		[DataRow(FLAGS0 | FLAGS1 | FLAGS2 | FLAGS3)]
 		[DataTestMethod]
-		public async Task ValidPermissionsByGuild_Test(long permission)
+		public async Task ValidPermissionsByGuild_Test(ulong permission)
 		{
-			var val = (ulong)permission;
 			var role = new FakeRole(Context.Guild)
 			{
-				Permissions = new GuildPermissions(val),
+				Permissions = new GuildPermissions(permission),
 			};
 			await Context.User.AddRoleAsync(role).CAF();
 			await Context.Guild.FakeCurrentUser.AddRoleAsync(role).CAF();

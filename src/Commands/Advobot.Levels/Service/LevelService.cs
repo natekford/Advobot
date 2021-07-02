@@ -97,7 +97,7 @@ namespace Advobot.Levels.Service
 
 		private async Task RemoveExperienceAsync(
 			Cacheable<IMessage, ulong> cached,
-			ISocketMessageChannel channel)
+			Cacheable<IMessageChannel, ulong> _)
 		{
 			var context = await XpContext.CreateAsync(_Db, cached.Value).CAF();
 			if (context == null

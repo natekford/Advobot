@@ -162,11 +162,11 @@ namespace Advobot.Standard.Commands
 					}
 					if (Game != null)
 					{
-						source = source.Where(x => x.Activity is Game g && g.Name.CaseInsContains(Game));
+						source = source.Where(x => x.Activities.Any(a => a is Game g && g.Name.CaseInsContains(Game)));
 					}
 					if (IsStreaming != null)
 					{
-						source = source.Where(x => (x.Activity is StreamingGame) == IsStreaming);
+						source = source.Where(x => x.Activities.OfType<StreamingGame>().Any() == IsStreaming);
 					}
 					return source?.ToArray() ?? Array.Empty<IGuildUser>();
 				}

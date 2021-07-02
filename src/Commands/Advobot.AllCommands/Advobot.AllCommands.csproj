@@ -7,12 +7,12 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\Advobot.Core\Advobot.Core.csproj" />
     <ProjectReference Include="..\Advobot.AutoMod\Advobot.AutoMod.csproj" />
     <ProjectReference Include="..\Advobot.Gacha\Advobot.Gacha.csproj" />
     <ProjectReference Include="..\Advobot.Invites\Advobot.Invites.csproj" />
     <ProjectReference Include="..\Advobot.Levels\Advobot.Levels.csproj" />
     <ProjectReference Include="..\Advobot.Logging\Advobot.Logging.csproj" />
+    <ProjectReference Include="..\Advobot.MyCommands\Advobot.MyCommands.csproj" />
     <ProjectReference Include="..\Advobot.Quotes\Advobot.Quotes.csproj" />
     <ProjectReference Include="..\Advobot.Settings\Advobot.Settings.csproj" />
     <ProjectReference Include="..\Advobot.Standard\Advobot.Standard.csproj" />

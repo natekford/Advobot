@@ -29,7 +29,7 @@ namespace Advobot.Gacha.Interaction
 			remove => _Client.MessageReceived -= value;
 		}
 
-		public event Func<Cacheable<IUserMessage, ulong>, ISocketMessageChannel, SocketReaction, Task> ReactionReceived
+		public event Func<Cacheable<IUserMessage, ulong>, Cacheable<IMessageChannel, ulong>, SocketReaction, Task> ReactionReceived
 		{
 			add
 			{

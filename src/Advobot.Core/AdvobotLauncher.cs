@@ -126,23 +126,7 @@ namespace Advobot
 			CommandAssemblyCollection assemblies,
 			IConfig config)
 		{
-			// TODO: Change to GatewayIntents.All when added
-			const GatewayIntents ALL = 0
-				| GatewayIntents.DirectMessageReactions
-				| GatewayIntents.DirectMessages
-				| GatewayIntents.DirectMessageTyping
-				| GatewayIntents.GuildBans
-				| GatewayIntents.GuildEmojis
-				| GatewayIntents.GuildIntegrations
-				| GatewayIntents.GuildInvites
-				| GatewayIntents.GuildMembers
-				| GatewayIntents.GuildMessageReactions
-				| GatewayIntents.GuildMessages
-				| GatewayIntents.GuildMessageTyping
-				| GatewayIntents.GuildPresences
-				| GatewayIntents.Guilds
-				| GatewayIntents.GuildVoiceStates
-				| GatewayIntents.GuildWebhooks;
+			const GatewayIntents INTENTS = GatewayIntents.All;
 
 			var botSettings = NaiveBotSettings.CreateOrLoad(config);
 			var commandConfig = new CommandServiceConfig
@@ -155,9 +139,8 @@ namespace Advobot
 			{
 				MessageCacheSize = botSettings.MessageCacheSize,
 				LogLevel = botSettings.LogLevel,
-				ExclusiveBulkDelete = true,
 				AlwaysDownloadUsers = true,
-				GatewayIntents = ALL,
+				GatewayIntents = INTENTS,
 			});
 			var httpClient = new HttpClient(new HttpClientHandler
 			{

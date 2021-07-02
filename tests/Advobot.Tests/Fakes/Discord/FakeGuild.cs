@@ -214,8 +214,6 @@ namespace Advobot.Tests.Fakes.Discord
 
 		public Task<ITextChannel> GetDefaultChannelAsync(CacheMode mode = CacheMode.AllowDownload, RequestOptions? options = null) => throw new NotImplementedException();
 
-		public Task<IGuildChannel> GetEmbedChannelAsync(CacheMode mode = CacheMode.AllowDownload, RequestOptions? options = null) => throw new NotImplementedException();
-
 		public Task<GuildEmote> GetEmoteAsync(ulong id, RequestOptions? options = null) => throw new NotImplementedException();
 
 		public Task<IReadOnlyCollection<GuildEmote>> GetEmotesAsync(RequestOptions? options = null)
@@ -268,8 +266,6 @@ namespace Advobot.Tests.Fakes.Discord
 		public Task LeaveAsync(RequestOptions? options = null) => throw new NotImplementedException();
 
 		public Task ModifyAsync(Action<GuildProperties> func, RequestOptions? options = null) => throw new NotImplementedException();
-
-		public Task ModifyEmbedAsync(Action<GuildEmbedProperties> func, RequestOptions? options = null) => throw new NotImplementedException();
 
 		public Task<GuildEmote> ModifyEmoteAsync(GuildEmote emote, Action<EmoteProperties> func, RequestOptions? options = null) => throw new NotImplementedException();
 

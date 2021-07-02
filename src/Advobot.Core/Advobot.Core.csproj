@@ -17,8 +17,8 @@
     <PackageReference Include="AdvorangesUtils" Version="1.1.0">
       <NoWarn>NU1701</NoWarn>
     </PackageReference>
-    <PackageReference Include="Discord.Net" Version="3.0.0-dev-20210523.2" />
-    <PackageReference Include="Magick.NET-Q8-AnyCPU" Version="7.24.0" />
+    <PackageReference Include="Discord.Net" Version="3.0.0-dev-20210617.3" />
+    <PackageReference Include="Magick.NET-Q8-AnyCPU" Version="8.0.1" />
     <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="6.0.0-preview.3.21201.4" />
   </ItemGroup>
 

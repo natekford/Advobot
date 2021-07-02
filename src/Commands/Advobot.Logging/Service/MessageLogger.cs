@@ -60,7 +60,7 @@ namespace Advobot.Logging.Service
 
 		public Task OnMessageDeleted(
 			Cacheable<IMessage, ulong> cached,
-			ISocketMessageChannel _)
+			Cacheable<IMessageChannel, ulong> _)
 			=> _MessageDeleted.HandleAsync(new MessageDeletedState(cached));
 
 		public Task OnMessageReceived(SocketMessage message)
@@ -68,7 +68,7 @@ namespace Advobot.Logging.Service
 
 		public Task OnMessagesBulkDeleted(
 			IReadOnlyCollection<Cacheable<IMessage, ulong>> cached,
-			ISocketMessageChannel _)
+			Cacheable<IMessageChannel, ulong> _)
 			=> _MessagesBulkDeleted.HandleAsync(new MessagesBulkDeletedState(cached));
 
 		public Task OnMessageUpdated(

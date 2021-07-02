@@ -21,13 +21,13 @@ namespace Advobot.Tests.Fakes.Discord.Users
 		public UserStatus Status => throw new NotImplementedException();
 		public string Username { get; set; } = "Fake User";
 
+		public Task<IDMChannel> CreateDMChannelAsync(RequestOptions options = null)
+			=> throw new NotImplementedException();
+
 		public string GetAvatarUrl(ImageFormat format = ImageFormat.Auto, ushort size = 128)
 			=> CDN.GetUserAvatarUrl(Id, AvatarId, size, format);
 
 		public string GetDefaultAvatarUrl()
 			=> CDN.GetDefaultUserAvatarUrl(DiscriminatorValue);
-
-		public Task<IDMChannel> GetOrCreateDMChannelAsync(RequestOptions? options = null)
-			=> throw new NotImplementedException();
 	}
 }
