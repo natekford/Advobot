@@ -100,15 +100,16 @@ namespace Advobot.Services.Commands
 		public async Task AddCommandsAsync(IEnumerable<CommandAssembly> assemblies)
 		{
 			var currentCulture = CultureInfo.CurrentUICulture;
-			var defaultTypeReaders = Assembly.GetExecutingAssembly().CreateTypeReaders();
+
+			AddTypeReaders(assemblies);
 			foreach (var assembly in assemblies)
 			{
-				var typeReaders = assembly.Assembly.CreateTypeReaders().Concat(defaultTypeReaders);
 				foreach (var culture in assembly.SupportedCultures)
 				{
-					await AddCommandsAsync(culture, assembly.Assembly, typeReaders).CAF();
+					await AddCommandsAsync(culture, assembly.Assembly).CAF();
 				}
 			}
+
 			CultureInfo.CurrentUICulture = currentCulture;
 		}
 
@@ -139,21 +140,10 @@ namespace Advobot.Services.Commands
 			}
 		}
 
-		private async Task AddCommandsAsync(
-			CultureInfo culture,
-			Assembly assembly,
-			IEnumerable<TypeReaderInfo> typeReaders)
+		private async Task AddCommandsAsync(CultureInfo culture, Assembly assembly)
 		{
 			CultureInfo.CurrentUICulture = culture;
-
 			var commandService = _CommandService.Get();
-			foreach (var typeReader in typeReaders)
-			{
-				foreach (var type in typeReader.TargetTypes)
-				{
-					commandService.AddTypeReader(type, typeReader.Instance, true);
-				}
-			}
 
 			var modules = await commandService.AddModulesAsync(assembly, _Provider).CAF();
 
@@ -196,6 +186,35 @@ namespace Advobot.Services.Commands
 				$"containing {commandCount} commands " +
 				$"({helpEntryCount} were given help entries) " +
 				$"from {assembly.GetName().Name} in the {culture} culture.");
+		}
+
+		private void AddTypeReaders(IEnumerable<CommandAssembly> assemblies)
+		{
+			var cultures = new HashSet<CultureInfo>();
+			var typeReaders = Assembly.GetExecutingAssembly().CreateTypeReaders();
+			foreach (var assembly in assemblies)
+			{
+				typeReaders.AddRange(assembly.Assembly.CreateTypeReaders());
+
+				foreach (var culture in assembly.SupportedCultures)
+				{
+					cultures.Add(culture);
+				}
+			}
+
+			foreach (var culture in cultures)
+			{
+				CultureInfo.CurrentUICulture = culture;
+				var commandService = _CommandService.Get();
+
+				foreach (var typeReader in typeReaders)
+				{
+					foreach (var type in typeReader.TargetTypes)
+					{
+						commandService.AddTypeReader(type, typeReader.Instance, true);
+					}
+				}
+			}
 		}
 
 		private Task OnCommandExecuted(
@@ -241,9 +260,11 @@ namespace Advobot.Services.Commands
 				}
 			}
 
-			CultureInfo.CurrentUICulture = await _GuildSettings.GetCultureAsync(user.Guild).CAF();
-			var context = new AdvobotCommandContext(_Client, msg);
+			var culture = await _GuildSettings.GetCultureAsync(user.Guild).CAF();
+			CultureInfo.CurrentUICulture = culture;
+			CultureInfo.CurrentCulture = culture;
 			var commands = _CommandService.Get();
+			var context = new AdvobotCommandContext(_Client, msg);
 			await commands.ExecuteAsync(context, argPos, _Provider).CAF();
 		}
 

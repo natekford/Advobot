@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Threading.Tasks;
 
 using Advobot.Attributes;
@@ -165,10 +166,10 @@ namespace Advobot.Standard.Commands
 		public sealed class Test : AdvobotModuleBase
 		{
 			[Command]
-			public Task<RuntimeResult> Command(string response = "joe")
+			public Task<RuntimeResult> Command(double number)
 			{
-				var response2 = response + "ba";
-				return AdvobotResult.Success(response2);
+				var output = number.ToString();
+				return AdvobotResult.Success(output);
 			}
 		}
 	}

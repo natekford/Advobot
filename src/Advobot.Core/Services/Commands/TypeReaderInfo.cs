@@ -1,17 +1,22 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Reflection;
 
 using Advobot.Attributes;
+
+using AdvorangesUtils;
 
 using Discord.Commands;
 
 namespace Advobot.Services.Commands
 {
+	[DebuggerDisplay("{DebuggerDisplay,nq}")]
 	internal readonly struct TypeReaderInfo
 	{
 		public TypeReader Instance { get; }
 		public IReadOnlyList<Type> TargetTypes { get; }
+		private string DebuggerDisplay => TargetTypes.Join(x => x.FullName, ", ");
 
 		public TypeReaderInfo(TypeReader instance, TypeReaderTargetTypeAttribute attribute)
 		{
@@ -22,7 +27,7 @@ namespace Advobot.Services.Commands
 
 	internal static class TypeReaderInfoUtils
 	{
-		public static IReadOnlyList<TypeReaderInfo> CreateTypeReaders(this Assembly assembly)
+		public static List<TypeReaderInfo> CreateTypeReaders(this Assembly assembly)
 		{
 			var list = new List<TypeReaderInfo>();
 			foreach (var type in assembly.GetTypes())
