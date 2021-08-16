@@ -1,5 +1,6 @@
 ﻿using System.Threading.Tasks;
 
+using Advobot.AutoMod.Attributes.ParameterPreconditions;
 using Advobot.AutoMod.Database;
 using Advobot.AutoMod.Models;
 using Advobot.Punishments;
@@ -12,7 +13,9 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace Advobot.Tests.Commands.AutoMod.ParameterPreconditions
 {
-	public abstract class NotAlreadyBannedPhraseAttribute_Tests : ParameterPreconditionTestsBase
+	public abstract class NotAlreadyBannedPhraseAttribute_Tests<T>
+		: ParameterPreconditionTestsBase<T>
+		where T : NotAlreadyBannedPhraseParameterPreconditionAttribute
 	{
 		private readonly FakeAutoModDatabase _Db = new();
 

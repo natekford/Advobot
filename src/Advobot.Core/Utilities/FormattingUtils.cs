@@ -21,7 +21,7 @@ namespace Advobot.Utilities
 		/// <returns></returns>
 		public static EmbedAuthorBuilder CreateAuthor(this IUser author)
 		{
-			return new EmbedAuthorBuilder
+			return new()
 			{
 				IconUrl = author?.GetAvatarUrl(),
 				Name = author?.Format(),
@@ -270,7 +270,7 @@ namespace Advobot.Utilities
 					}
 					else if (x.HasFlag(e))
 					{
-						perms ??= new List<string>();
+						perms ??= new();
 						perms.Add(e.ToString());
 					}
 				}
@@ -353,7 +353,7 @@ namespace Advobot.Utilities
 			{
 				title += ":";
 			}
-			return new MarkdownFormattedArg(value, title.AddMarkdown("**"));
+			return new(value, title.AddMarkdown("**"));
 		}
 
 		private static string AddMarkdown(this string value, string markdown)

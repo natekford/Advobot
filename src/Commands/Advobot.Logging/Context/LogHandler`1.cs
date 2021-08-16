@@ -58,17 +58,21 @@ namespace Advobot.Logging.Context
 				return;
 			}
 
-			foreach (var action in this)
+			// Run logging in background since the results do not matter
+			_ = Task.Run(async () =>
 			{
-				try
+				foreach (var action in this)
 				{
-					await action.Invoke(context).CAF();
+					try
+					{
+						await action.Invoke(context).CAF();
+					}
+					catch (Exception e)
+					{
+						e.Write();
+					}
 				}
-				catch (Exception e)
-				{
-					e.Write();
-				}
-			}
+			});
 		}
 
 		public bool Remove(Func<ILogContext<T>, Task> item)
@@ -103,9 +107,7 @@ namespace Advobot.Logging.Context
 			}
 
 			var bot = await guild.GetCurrentUserAsync().CAF();
-			return new LogContext(
-				state, guild, bot,
-				imageLog, modLog, serverLog);
+			return new(state, guild, bot, imageLog, modLog, serverLog);
 		}
 
 		private sealed class LogContext : ILogContext<T>

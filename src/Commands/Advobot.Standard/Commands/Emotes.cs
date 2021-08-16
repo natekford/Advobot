@@ -44,7 +44,7 @@ namespace Advobot.Standard.Commands
 				UserProvidedImageArgs? args = null
 			)
 			{
-				args ??= new UserProvidedImageArgs();
+				args ??= new();
 				var position = Enqueue(new EmoteCreationContext(Context, url, args, name));
 				return Responses.Emotes.EnqueuedCreation(name, position);
 			}

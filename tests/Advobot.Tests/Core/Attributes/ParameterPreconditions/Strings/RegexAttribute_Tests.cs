@@ -6,17 +6,15 @@ using Advobot.Tests.TestBases;
 
 using AdvorangesUtils;
 
-using Discord.Commands;
-
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace Advobot.Tests.Core.Attributes.ParameterPreconditions.Strings
 {
 	[TestClass]
-	public sealed class RegexAttribute_Tests : ParameterPreconditionTestsBase
+	public sealed class RegexAttribute_Tests
+		: ParameterPreconditionTestsBase<RegexAttribute>
 	{
-		protected override ParameterPreconditionAttribute Instance { get; }
-			= new RegexAttribute();
+		protected override RegexAttribute Instance { get; } = new();
 
 		[TestMethod]
 		public async Task InvalidRegex_Test()

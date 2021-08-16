@@ -7,19 +7,18 @@ using Advobot.Tests.TestBases;
 
 using AdvorangesUtils;
 
-using Discord.Commands;
-
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace Advobot.Tests.Commands.Quotes.ParameterPreconditions
 {
 	[TestClass]
-	public sealed class QuoteNameAttribute_Tests : ParameterPreconditionTestsBase
+	public sealed class QuoteNameAttribute_Tests
+		: ParameterPreconditionTestsBase<QuoteNameAttribute>
 	{
 		private readonly FakeQuoteDatabase _Db = new();
-		protected override ParameterPreconditionAttribute Instance { get; }
-			= new QuoteNameAttribute();
+
+		protected override QuoteNameAttribute Instance { get; } = new();
 
 		[TestMethod]
 		public async Task QuoteExisting_Test()

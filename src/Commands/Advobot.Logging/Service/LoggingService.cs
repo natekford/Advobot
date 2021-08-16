@@ -30,25 +30,25 @@ namespace Advobot.Logging.Service
 		{
 			_Db = db;
 
-			_ClientLogger = new ClientLogger(client);
+			_ClientLogger = new(client);
 			client.GuildAvailable += _ClientLogger.OnGuildAvailable;
 			client.GuildUnavailable += _ClientLogger.OnGuildUnavailable;
 			client.JoinedGuild += _ClientLogger.OnJoinedGuild;
 			client.LeftGuild += _ClientLogger.OnLeftGuild;
 			client.Log += OnLogMessageSent;
 
-			_CommandHandlerLogger = new CommandHandlerLogger(_Db, botSettings);
+			_CommandHandlerLogger = new(_Db, botSettings);
 			commandHandler.CommandInvoked += _CommandHandlerLogger.OnCommandInvoked;
 			commandHandler.Ready += _CommandHandlerLogger.OnReady;
 			commandHandler.Log += OnLogMessageSent;
 
-			_MessageLogger = new MessageLogger(_Db);
+			_MessageLogger = new(_Db);
 			client.MessageDeleted += _MessageLogger.OnMessageDeleted;
 			client.MessagesBulkDeleted += _MessageLogger.OnMessagesBulkDeleted;
 			client.MessageReceived += _MessageLogger.OnMessageReceived;
 			client.MessageUpdated += _MessageLogger.OnMessageUpdated;
 
-			_UserLogger = new UserLogger(_Db, client, time);
+			_UserLogger = new(_Db, client, time);
 			client.UserJoined += _UserLogger.OnUserJoined;
 			client.UserLeft += _UserLogger.OnUserLeft;
 			client.UserUpdated += _UserLogger.OnUserUpdated;

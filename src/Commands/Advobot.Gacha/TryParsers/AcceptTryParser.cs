@@ -14,13 +14,13 @@ namespace Advobot.Gacha.TryParsers
 		{
 			if (message.Content.CaseInsEquals("y"))
 			{
-				return new ValueTask<Optional<bool>>(true);
+				return new(true);
 			}
 			else if (message.Content.CaseInsEquals("n"))
 			{
-				return new ValueTask<Optional<bool>>(false);
+				return new(false);
 			}
-			return new ValueTask<Optional<bool>>(Optional<bool>.Unspecified);
+			return new(Optional<bool>.Unspecified);
 		}
 	}
 }

@@ -11,7 +11,6 @@ using Advobot.Utilities;
 
 using AdvorangesUtils;
 
-using Discord;
 using Discord.Commands;
 
 using static Advobot.Resources.Responses;
@@ -76,22 +75,22 @@ namespace Advobot.Standard.Responses
 			{
 				Title = MiscTitleGeneralHelp,
 				Description = description,
-				Footer = new EmbedFooterBuilder { Text = MiscFooterHelp },
-				Fields = new List<EmbedFieldBuilder>
+				Footer = new() { Text = MiscFooterHelp },
+				Fields = new()
 				{
-					new EmbedFieldBuilder
+					new()
 					{
 						Name = MiscTitleBasicSyntax,
 						Value = syntaxFieldValue,
 						IsInline = true,
 					},
-					new EmbedFieldBuilder
+					new()
 					{
 						Name = MiscTitleMentionSyntax,
 						Value = MiscMentionSyntax,
 						IsInline = true,
 					},
-					new EmbedFieldBuilder
+					new()
 					{
 						Name = MiscTitleLinks,
 						Value = MiscLinks.Format(
@@ -186,11 +185,11 @@ namespace Advobot.Standard.Responses
 
 		private static EmbedWrapper CreateHelpEmbed(string name, string entry)
 		{
-			return new EmbedWrapper
+			return new()
 			{
 				Title = name,
 				Description = entry,
-				Footer = new EmbedFooterBuilder { Text = MiscFooterHelp, },
+				Footer = new() { Text = MiscFooterHelp, },
 			};
 		}
 
@@ -240,7 +239,7 @@ namespace Advobot.Standard.Responses
 			var attr = command.GetCustomAttribute<GroupAttribute>();
 			if (attr == null)
 			{
-				throw new ArgumentException(nameof(command));
+				throw new ArgumentException("Group is null.", nameof(command));
 			}
 
 			return $"{prefix}{attr.Prefix} {args}".WithBlock();

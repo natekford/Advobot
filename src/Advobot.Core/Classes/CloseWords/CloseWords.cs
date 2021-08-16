@@ -185,7 +185,7 @@ namespace Advobot.Classes.CloseWords
 		{
 			var name = GetName(obj);
 			var distance = FindCloseness(name, search);
-			return new CloseWord<T>(name, search, distance, obj);
+			return new(name, search, distance, obj);
 		}
 
 		/// <summary>

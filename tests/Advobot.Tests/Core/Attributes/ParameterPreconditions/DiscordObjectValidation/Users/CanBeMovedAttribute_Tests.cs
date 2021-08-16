@@ -9,14 +9,14 @@ using Advobot.Tests.TestBases;
 using AdvorangesUtils;
 
 using Discord;
-using Discord.Commands;
 
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace Advobot.Tests.Core.Attributes.ParameterPreconditions.DiscordObjectValidation.Users
 {
 	[TestClass]
-	public sealed class CanBeMovedAttribute_Tests : ParameterPreconditionTestsBase
+	public sealed class CanBeMovedAttribute_Tests
+		: ParameterPreconditionTestsBase<CanBeMovedAttribute>
 	{
 		private static readonly GuildPermissions _Admin = new(
 			administrator: true
@@ -35,14 +35,13 @@ namespace Advobot.Tests.Core.Attributes.ParameterPreconditions.DiscordObjectVali
 		private readonly FakeVoiceChannel _Channel;
 		private readonly FakeGuildUser _User;
 
-		protected override ParameterPreconditionAttribute Instance { get; }
-			= new CanBeMovedAttribute();
+		protected override CanBeMovedAttribute Instance { get; } = new();
 
 		public CanBeMovedAttribute_Tests()
 		{
-			_Channel = new FakeVoiceChannel(Context.Guild);
-			_User = new FakeGuildUser(Context.Guild) { VoiceChannel = _Channel, };
-			Context.Guild.FakeEveryoneRole.Permissions = new GuildPermissions(viewChannel: true);
+			_Channel = new(Context.Guild);
+			_User = new(Context.Guild) { VoiceChannel = _Channel, };
+			Context.Guild.FakeEveryoneRole.Permissions = new(viewChannel: true);
 		}
 
 		[TestMethod]

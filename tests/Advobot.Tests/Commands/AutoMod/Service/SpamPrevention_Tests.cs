@@ -38,9 +38,9 @@ namespace Advobot.Tests.Commands.AutoMod.Service
 
 		public SpamPrevention_Tests()
 		{
-			_Guild = new FakeGuild(new FakeClient());
-			_Channel = new FakeTextChannel(_Guild);
-			_User = new FakeGuildUser(_Guild)
+			_Guild = new(new());
+			_Channel = new(_Guild);
+			_User = new(_Guild)
 			{
 				Id = 172138437246320640,
 			};

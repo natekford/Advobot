@@ -16,7 +16,7 @@ namespace Advobot.Tests.Utilities
 			var channel = new FakeTextChannel(guild);
 			var user = new FakeGuildUser(guild);
 			var message = new FakeUserMessage(channel, user, "nothing");
-			return new FakeCommandContext(client, message);
+			return new(client, message);
 		}
 
 		public static IReadOnlyCollection<ulong> GetMentions(

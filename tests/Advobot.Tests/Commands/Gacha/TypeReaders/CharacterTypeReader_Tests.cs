@@ -62,7 +62,7 @@ namespace Advobot.Tests.Commands.Gacha.TypeReaders
 
 		private Character GenerateStaticCharacter(Source fakeSource, string name)
 		{
-			return new Character
+			return new()
 			{
 				SourceId = fakeSource.SourceId,
 				CharacterId = TimeUtils.UtcNowTicks,

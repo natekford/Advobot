@@ -9,7 +9,7 @@ using AdvorangesUtils;
 using Discord;
 using Discord.Net;
 
-namespace Advobot.Logging.Caches
+namespace Advobot.Logging.Service
 {
 	/// <summary>
 	/// Caches invites and attempts to figure out which invite a user joined from.

@@ -34,7 +34,7 @@ namespace Advobot.Attributes.ParameterPreconditions.Strings
 		/// <param name="max"></param>
 		protected StringRangeParameterPreconditionAttribute(int min, int max)
 		{
-			Range = new NumberRange<int>(min, max);
+			Range = new(min, max);
 		}
 
 		/// <inheritdoc />

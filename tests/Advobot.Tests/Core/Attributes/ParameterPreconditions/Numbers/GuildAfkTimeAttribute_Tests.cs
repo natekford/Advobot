@@ -6,17 +6,15 @@ using Advobot.Tests.TestBases;
 
 using AdvorangesUtils;
 
-using Discord.Commands;
-
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace Advobot.Tests.Core.Attributes.ParameterPreconditions.Numbers
 {
 	[TestClass]
-	public sealed class GuildAfkTimeAttribute_Tests : ParameterPreconditionTestsBase
+	public sealed class GuildAfkTimeAttribute_Tests
+		: ParameterPreconditionTestsBase<GuildAfkTimeAttribute>
 	{
-		protected override ParameterPreconditionAttribute Instance { get; }
-			= new GuildAfkTimeAttribute();
+		protected override GuildAfkTimeAttribute Instance { get; } = new();
 
 		[TestMethod]
 		public async Task Standard_Test()

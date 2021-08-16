@@ -212,7 +212,7 @@ namespace Advobot.Utilities
 					deny |= permissions;
 					break;
 			}
-			return new OverwritePermissions(allow, deny);
+			return new(allow, deny);
 		}
 
 		/// <summary>

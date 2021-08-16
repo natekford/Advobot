@@ -69,7 +69,7 @@ namespace Advobot.Tests.Fakes.Discord
 			{
 				stringChars[i] = CHARS[random.Next(CHARS.Length)];
 			}
-			return new string(stringChars);
+			return new(stringChars);
 		}
 	}
 }

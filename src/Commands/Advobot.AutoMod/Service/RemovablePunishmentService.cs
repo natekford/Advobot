@@ -46,34 +46,33 @@ namespace Advobot.AutoMod.Service
 
 		public void Start()
 		{
-			new AsyncProcessor(1, async () =>
+			_ = Task.Run(async () =>
 			{
 				while (true)
 				{
-					var now = _Time.UtcNow.Ticks;
-					var values = await _Db.GetOldPunishmentsAsync(now).CAF();
+					var values = await _Db.GetOldPunishmentsAsync(_Time.UtcNow.Ticks).CAF();
 
 					var handled = new List<RemovablePunishment>();
-					try
+					foreach (var punishment in values)
 					{
-						foreach (var p in values)
+						try
 						{
-							var isHandled = await RemovePunishmentAsync(p).CAF();
-							if (isHandled)
+							if (await RemovePunishmentAsync(punishment).CAF())
 							{
-								handled.Add(p);
+								handled.Add(punishment);
 							}
 						}
+						catch (Exception e)
+						{
+							e.Write();
+						}
 					}
-					finally
-					{
-						await _Db.DeleteRemovablePunishmentsAsync(handled).CAF();
-						_WillBeBatchRemoved.Clear();
-					}
+					await _Db.DeleteRemovablePunishmentsAsync(handled).CAF();
+					_WillBeBatchRemoved.Clear();
 
 					await Task.Delay(TimeSpan.FromMinutes(1)).CAF();
 				}
-			}).Start();
+			});
 		}
 
 		private Task OnPunishmentGiven(IPunishmentContext context)
@@ -133,7 +132,7 @@ namespace Advobot.AutoMod.Service
 
 		private RemovablePunishment ToDbModel(IPunishmentContext context)
 		{
-			return new RemovablePunishment
+			return new()
 			{
 				GuildId = context.Guild.Id,
 				UserId = context.UserId,

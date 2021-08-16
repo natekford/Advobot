@@ -5,18 +5,16 @@ using Advobot.Tests.TestBases;
 
 using AdvorangesUtils;
 
-using Discord.Commands;
-
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace Advobot.Tests.Core.Attributes.ParameterPreconditions.DiscordObjectValidation
 {
 	[TestClass]
-	public sealed class NotBannedAttribute_Tests : ParameterPreconditionTestsBase
+	public sealed class NotBannedAttribute_Tests
+		: ParameterPreconditionTestsBase<NotBannedAttribute>
 	{
 		private const ulong ID = 1;
-		protected override ParameterPreconditionAttribute Instance { get; }
-			= new NotBannedAttribute();
+		protected override NotBannedAttribute Instance { get; } = new();
 
 		[TestMethod]
 		public async Task BanExisting_Test()

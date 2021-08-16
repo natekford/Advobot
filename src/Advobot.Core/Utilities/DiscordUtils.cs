@@ -52,7 +52,7 @@ namespace Advobot.Utilities
 		/// <returns></returns>
 		public static RequestOptions GenerateRequestOptions(string? reason = null)
 		{
-			return new RequestOptions
+			return new()
 			{
 				AuditLogReason = reason,
 				RetryMode = RetryMode.RetryRatelimit,
@@ -68,9 +68,9 @@ namespace Advobot.Utilities
 		{
 			return user.RoleIds
 				.Select(x => user.Guild.GetRole(x))
-				.OrderBy(x => x.Position)
 				.Where(x => x.Id != user.GuildId)
-				.ToArray();
+				.OrderBy(x => x.Position)
+				.ToList();
 		}
 
 		/// <summary>
@@ -146,7 +146,7 @@ namespace Advobot.Utilities
 				set.AddRange(user.RoleIds);
 				set.AddRange(roles.Select(x => x.Id));
 				set.Remove(user.Guild.EveryoneRole.Id);
-				x.RoleIds = new Optional<IEnumerable<ulong>>(set);
+				x.RoleIds = new(set);
 			}, options);
 		}
 
@@ -176,15 +176,15 @@ namespace Advobot.Utilities
 			{
 				if (i > position)
 				{
-					reorderProperties[i] = new ReorderRoleProperties(roles[i - 1].Id, i);
+					reorderProperties[i] = new(roles[i - 1].Id, i);
 				}
 				else if (i < position)
 				{
-					reorderProperties[i] = new ReorderRoleProperties(roles[i].Id, i);
+					reorderProperties[i] = new(roles[i].Id, i);
 				}
 				else
 				{
-					reorderProperties[i] = new ReorderRoleProperties(role.Id, i);
+					reorderProperties[i] = new(role.Id, i);
 					newPosition = i;
 				}
 			}
@@ -214,7 +214,7 @@ namespace Advobot.Utilities
 				{
 					set.Remove(id);
 				}
-				x.RoleIds = new Optional<IEnumerable<ulong>>(set);
+				x.RoleIds = new(set);
 			}, options);
 		}
 	}

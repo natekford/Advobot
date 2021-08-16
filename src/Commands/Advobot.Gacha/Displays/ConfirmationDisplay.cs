@@ -51,7 +51,7 @@ namespace Advobot.Gacha.Displays
 			return new EmbedBuilder
 			{
 				Description = description,
-				Author = new EmbedAuthorBuilder
+				Author = new()
 				{
 					Name = $"{_Giver.Username} giving {_Receiver.Username}",
 					IconUrl = _Giver.GetAvatarUrl(),

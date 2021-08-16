@@ -463,7 +463,7 @@ namespace Advobot.Standard.Commands
 					{
 						var allow = x.AllowValue & ~view;
 						var deny = x.DenyValue | view;
-						return new OverwritePermissions(allow, deny);
+						return new(allow, deny);
 					}, GenerateRequestOptions()).CAF();
 				}
 

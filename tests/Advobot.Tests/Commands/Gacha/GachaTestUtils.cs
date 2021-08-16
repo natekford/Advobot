@@ -44,7 +44,7 @@ namespace Advobot.Tests.Commands.Gacha.Utilities
 			Source fakeSource,
 			long? characterId = null)
 		{
-			return new Character
+			return new()
 			{
 				SourceId = fakeSource.SourceId,
 				CharacterId = characterId ?? TimeUtils.UtcNowTicks,
@@ -60,7 +60,7 @@ namespace Advobot.Tests.Commands.Gacha.Utilities
 			User user,
 			Character character)
 		{
-			return new Claim(user, character)
+			return new(user, character)
 			{
 				IsPrimaryClaim = Rng.NextBool(),
 			};
@@ -71,7 +71,7 @@ namespace Advobot.Tests.Commands.Gacha.Utilities
 			var width = Rng.Next(1, 500);
 			var height = Rng.Next(1, 500);
 
-			return new Image(character)
+			return new(character)
 			{
 				Url = $"https://placekitten.com/{width}/{height}",
 			};
@@ -79,7 +79,7 @@ namespace Advobot.Tests.Commands.Gacha.Utilities
 
 		public static Source GenerateFakeSource(long? sourceId = null)
 		{
-			return new Source
+			return new()
 			{
 				SourceId = sourceId ?? TimeUtils.UtcNowTicks,
 				Name = Guid.NewGuid().ToString(),
@@ -90,7 +90,7 @@ namespace Advobot.Tests.Commands.Gacha.Utilities
 			ulong? userId = null,
 			ulong? guildId = null)
 		{
-			return new User
+			return new()
 			{
 				UserId = userId ?? Rng.NextUlongAboveLongMax(),
 				GuildId = guildId ?? Rng.NextUlongAboveLongMax(),

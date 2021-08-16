@@ -32,7 +32,7 @@ namespace Advobot.Logging.Context
 				string s when s.CaseInsContains("image/") => ("Image", url),
 				_ => ("File", null),
 			};
-			return new ImageLogItem(footer, url, imageUrl);
+			return new(footer, url, imageUrl);
 		}
 
 		public static ImageLogItem? FromEmbed(IEmbed embed)
@@ -40,7 +40,7 @@ namespace Advobot.Logging.Context
 			if (embed.Video is EmbedVideo video)
 			{
 				var thumb = embed.Thumbnail?.Url ?? GetVideoThumbnail(video.Url);
-				return new ImageLogItem("Video", embed.Url, thumb);
+				return new("Video", embed.Url, thumb);
 			}
 
 			var img = embed.Image?.Url ?? embed.Thumbnail?.Url;
@@ -48,7 +48,7 @@ namespace Advobot.Logging.Context
 			{
 				return null;
 			}
-			return new ImageLogItem("Image", embed.Url, img);
+			return new("Image", embed.Url, img);
 		}
 
 		public static IEnumerable<ImageLogItem> GetAllImages(IMessage message)

@@ -13,7 +13,7 @@ namespace Advobot.Services.ImageResizing
 		/// <summary>
 		/// How much before colors should be considered the same.
 		/// </summary>
-		public Percentage ColorFuzzing { get; set; } = new Percentage(30);
+		public Percentage ColorFuzzing { get; set; } = new(30);
 
 		/// <summary>
 		/// How long the gif should be.

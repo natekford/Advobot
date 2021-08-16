@@ -73,19 +73,19 @@ namespace Advobot.AutoMod.Utils
 		{
 			if (message.Author is not IGuildUser user)
 			{
-				return new ValueTask<bool>(false);
+				return new(false);
 			}
 			else if (settings.IgnoreAdmins && user.GuildPermissions.Administrator)
 			{
-				return new ValueTask<bool>(false);
+				return new(false);
 			}
 			else if (settings.CheckDuration && ts > settings.Duration)
 			{
-				return new ValueTask<bool>(false);
+				return new(false);
 			}
 			else if (!settings.IgnoreHigherHierarchy)
 			{
-				return new ValueTask<bool>(false);
+				return new(false);
 			}
 
 			static async ValueTask<bool> CheckHierarchyAsync(IGuildUser user)

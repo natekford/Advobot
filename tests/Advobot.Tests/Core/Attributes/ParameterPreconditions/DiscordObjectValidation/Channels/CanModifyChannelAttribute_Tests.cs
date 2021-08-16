@@ -8,14 +8,14 @@ using Advobot.Tests.TestBases;
 using AdvorangesUtils;
 
 using Discord;
-using Discord.Commands;
 
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace Advobot.Tests.Core.Attributes.ParameterPreconditions.DiscordObjectValidation.Channels
 {
 	[TestClass]
-	public sealed class CanModifyChannelAttribute_Tests : ParameterPreconditionTestsBase
+	public sealed class CanModifyChannelAttribute_Tests
+		: ParameterPreconditionTestsBase<CanModifyChannelAttribute>
 	{
 		private static readonly OverwritePermissions _Allowed = new(
 			viewChannel: PermValue.Allow,
@@ -28,13 +28,12 @@ namespace Advobot.Tests.Core.Attributes.ParameterPreconditions.DiscordObjectVali
 		private static readonly GuildPermissions _ManageMessages = new(manageMessages: true);
 		private readonly FakeTextChannel _Channel;
 
-		protected override ParameterPreconditionAttribute Instance { get; }
-			= new CanModifyChannelAttribute(ChannelPermission.ManageMessages);
+		protected override CanModifyChannelAttribute Instance { get; } = new(ChannelPermission.ManageMessages);
 
 		public CanModifyChannelAttribute_Tests()
 		{
-			_Channel = new FakeTextChannel(Context.Guild);
-			Context.Guild.FakeEveryoneRole.Permissions = new GuildPermissions(viewChannel: true);
+			_Channel = new(Context.Guild);
+			Context.Guild.FakeEveryoneRole.Permissions = new(viewChannel: true);
 		}
 
 		[TestMethod]

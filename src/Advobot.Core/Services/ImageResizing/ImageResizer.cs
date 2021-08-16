@@ -51,7 +51,7 @@ namespace Advobot.Services.ImageResizing
 		public ImageResizer(HttpClient client, int threads)
 		{
 			_Client = client;
-			_SemaphoreSlim = new SemaphoreSlim(threads);
+			_SemaphoreSlim = new(threads);
 		}
 
 		/// <inheritdoc />

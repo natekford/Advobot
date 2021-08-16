@@ -196,7 +196,7 @@ namespace Advobot.Quotes.Commands
 			[Command]
 			public async Task<RuntimeResult> Command(RuleFormatter? args = null)
 			{
-				args ??= new RuleFormatter();
+				args ??= new();
 
 				var dict = await Db.GetRuleDictionaryAsync(Context.Guild.Id).CAF();
 				return AdvobotResult.Success(args.Format(dict));
@@ -207,7 +207,7 @@ namespace Advobot.Quotes.Commands
 				RuleCategory category,
 				RuleFormatter? args = null)
 			{
-				args ??= new RuleFormatter();
+				args ??= new();
 
 				var rules = await Db.GetRulesAsync(category).CAF();
 				return AdvobotResult.Success(args.Format(category, rules));

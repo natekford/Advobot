@@ -6,17 +6,15 @@ using Advobot.Tests.TestBases;
 
 using AdvorangesUtils;
 
-using Discord.Commands;
-
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace Advobot.Tests.Core.Attributes.ParameterPreconditions.DiscordObjectValidation.Roles
 {
 	[TestClass]
-	public sealed class NotEveryoneAttribute_Tests : ParameterPreconditionTestsBase
+	public sealed class NotEveryoneAttribute_Tests
+		: ParameterPreconditionTestsBase<NotEveryoneAttribute>
 	{
-		protected override ParameterPreconditionAttribute Instance { get; }
-			= new NotEveryoneAttribute();
+		protected override NotEveryoneAttribute Instance { get; } = new();
 
 		[TestMethod]
 		public async Task RoleIsEveryone_Test()

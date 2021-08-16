@@ -48,7 +48,7 @@ namespace Advobot.Standard.Commands
 				INestedChannel channel,
 				CreateInviteArguments? args)
 			{
-				args ??= new CreateInviteArguments();
+				args ??= new();
 				var options = GenerateRequestOptions();
 				var invite = await channel.CreateInviteAsync(args.Time, args.Uses, args.IsTemporary, args.IsUnique, options).CAF();
 				return Responses.Snowflakes.Created(invite);

@@ -97,7 +97,7 @@ namespace Advobot.Utilities
 		/// <param name="ticks"></param>
 		/// <returns></returns>
 		public static DateTimeOffset CreateUtcDTOFromTicks(this long ticks)
-			=> DateTime.SpecifyKind(new DateTime(ticks), DateTimeKind.Utc);
+			=> DateTime.SpecifyKind(new(ticks), DateTimeKind.Utc);
 
 		/// <summary>
 		/// Gets the file inside the bot directory.
@@ -168,7 +168,7 @@ namespace Advobot.Utilities
 			var absolutePath = accessor.GetBaseBotDirectoryFile(relativePath).FullName;
 			//Make sure the directory the db will be created in exists
 			Directory.CreateDirectory(Path.GetDirectoryName(absolutePath));
-			return new FileInfo(absolutePath);
+			return new(absolutePath);
 		}
 	}
 }

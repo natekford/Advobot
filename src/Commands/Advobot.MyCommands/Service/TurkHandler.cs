@@ -58,7 +58,7 @@ namespace Advobot.MyCommands.Service
 			{
 				// If API key changed, make new client
 				_APIKey = config.APIKey;
-				_DetectLanguage = new DetectLanguageClient(_APIKey);
+				_DetectLanguage = new(_APIKey);
 			}
 
 			DetectResult[] languages;

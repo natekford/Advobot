@@ -6,17 +6,15 @@ using Advobot.Tests.TestBases;
 
 using AdvorangesUtils;
 
-using Discord.Commands;
-
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace Advobot.Tests.Core.Attributes.ParameterPreconditions.DiscordObjectValidation.Invites
 {
 	[TestClass]
-	public sealed class NeverExpiresAttribute_Tests : ParameterPreconditionTestsBase
+	public sealed class NeverExpiresAttribute_Tests
+		: ParameterPreconditionTestsBase<NeverExpiresAttribute>
 	{
-		protected override ParameterPreconditionAttribute Instance { get; }
-			= new NeverExpiresAttribute();
+		protected override NeverExpiresAttribute Instance { get; } = new();
 
 		[TestMethod]
 		public async Task InviteExpires_Test()

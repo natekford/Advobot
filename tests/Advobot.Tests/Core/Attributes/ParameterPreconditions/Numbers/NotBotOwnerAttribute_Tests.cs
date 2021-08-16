@@ -5,17 +5,15 @@ using Advobot.Tests.TestBases;
 
 using AdvorangesUtils;
 
-using Discord.Commands;
-
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace Advobot.Tests.Core.Attributes.ParameterPreconditions.Numbers
 {
 	[TestClass]
-	public sealed class NotBotOwnerAttribute_Tests : ParameterPreconditionTestsBase
+	public sealed class NotBotOwnerAttribute_Tests
+		: ParameterPreconditionTestsBase<NotBotOwnerAttribute>
 	{
-		protected override ParameterPreconditionAttribute Instance { get; }
-			= new NotBotOwnerAttribute();
+		protected override NotBotOwnerAttribute Instance { get; } = new();
 
 		[TestMethod]
 		public async Task Invalid_Test()

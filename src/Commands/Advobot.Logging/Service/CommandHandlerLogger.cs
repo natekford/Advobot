@@ -81,7 +81,7 @@ namespace Advobot.Logging.Service
 			{
 				Description = context.Message.Content,
 				Author = context.User.CreateAuthor(),
-				Footer = new EmbedFooterBuilder { Text = "Mod Log", },
+				Footer = new() { Text = "Mod Log", },
 			}.ToMessageArgs()).CAF();
 		}
 

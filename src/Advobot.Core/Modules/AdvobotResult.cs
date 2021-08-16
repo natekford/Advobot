@@ -89,7 +89,7 @@ namespace Advobot.Modules
 		{
 			if (reason.Length < 2000)
 			{
-				return new AdvobotResult(null, reason);
+				return new(null, reason);
 			}
 
 			return Success(new TextFileInfo

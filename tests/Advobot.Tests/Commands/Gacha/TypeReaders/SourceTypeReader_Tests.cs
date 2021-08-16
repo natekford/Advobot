@@ -57,7 +57,7 @@ namespace Advobot.Tests.Commands.Gacha.TypeReaders
 
 		private Source GenerateStaticSource(string name)
 		{
-			return new Source
+			return new()
 			{
 				SourceId = TimeUtils.UtcNowTicks,
 				Name = name,

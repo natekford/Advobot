@@ -32,7 +32,7 @@ namespace Advobot.AutoMod
 		{
 			foreach (var value in _Values)
 			{
-				_Dict[value] = new TValue();
+				_Dict[value] = new();
 			}
 		}
 
@@ -42,13 +42,13 @@ namespace Advobot.AutoMod
 			=> ((IReadOnlyDictionary<TEnum, TValue>)_Dict).GetEnumerator();
 
 		public void Reset(TEnum key)
-			=> _Dict[key] = new TValue();
+			=> _Dict[key] = new();
 
 		public void ResetAll()
 		{
 			foreach (var value in _Values)
 			{
-				_Dict[value] = new TValue();
+				_Dict[value] = new();
 			}
 		}
 

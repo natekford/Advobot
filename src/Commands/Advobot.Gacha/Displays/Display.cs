@@ -67,7 +67,7 @@ namespace Advobot.Gacha.Displays
 
 		protected EmbedFooterBuilder GenerateDefaultFooter()
 		{
-			return new EmbedFooterBuilder
+			return new()
 			{
 				Text = $"Id: {Id}",
 			};

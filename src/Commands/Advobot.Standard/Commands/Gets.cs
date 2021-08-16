@@ -94,7 +94,7 @@ namespace Advobot.Standard.Commands
 			[LocalizedAlias(nameof(Aliases.Invite))]
 			[Priority(1)]
 			public Task<RuntimeResult> Invite(IInviteMetadata invite)
-				=> Responses.Gets.Invite(invite, Context.Guild.GetChannel(invite.ChannelId));
+				=> Responses.Gets.Invite(invite);
 
 			[LocalizedCommand(nameof(Groups.Webhook))]
 			[LocalizedAlias(nameof(Aliases.Webhook))]
@@ -120,7 +120,7 @@ namespace Advobot.Standard.Commands
 
 			[Command]
 			public Task<RuntimeResult> Implicit(IInviteMetadata invite)
-				=> Responses.Gets.Invite(invite, Context.Guild.GetChannel(invite.ChannelId));
+				=> Responses.Gets.Invite(invite);
 
 			[Command]
 			public Task<RuntimeResult> Implicit(IWebhook webhook)

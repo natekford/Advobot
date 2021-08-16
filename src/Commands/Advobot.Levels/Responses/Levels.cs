@@ -39,8 +39,8 @@ namespace Advobot.Levels.Responses
 				Title = title,
 				Description = description,
 				ThumbnailUrl = user?.GetAvatarUrl(),
-				Author = user?.CreateAuthor() ?? new EmbedAuthorBuilder(),
-				Footer = new EmbedFooterBuilder { Text = LevelsLevelFooter, },
+				Author = user?.CreateAuthor() ?? new(),
+				Footer = new() { Text = LevelsLevelFooter, },
 			});
 		}
 
@@ -74,7 +74,7 @@ namespace Advobot.Levels.Responses
 			{
 				Title = title,
 				Description = description,
-				Footer = new EmbedFooterBuilder { Text = LevelsTopFooter, },
+				Footer = new() { Text = LevelsTopFooter, },
 			});
 		}
 

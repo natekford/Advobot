@@ -33,7 +33,7 @@ namespace Advobot.Attributes.ParameterPreconditions.Numbers
 		/// <param name="numbers"></param>
 		protected RangeParameterPreconditionAttribute(int[] numbers)
 		{
-			Range = new NumberRange<int>(numbers);
+			Range = new(numbers);
 		}
 
 		/// <summary>
@@ -43,7 +43,7 @@ namespace Advobot.Attributes.ParameterPreconditions.Numbers
 		/// <param name="end"></param>
 		protected RangeParameterPreconditionAttribute(int start, int end)
 		{
-			Range = new NumberRange<int>(start, end);
+			Range = new(start, end);
 		}
 
 		/// <inheritdoc />

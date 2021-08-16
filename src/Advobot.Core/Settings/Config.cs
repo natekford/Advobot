@@ -195,7 +195,7 @@ namespace Advobot.Settings
 		{
 			//Add the config file into the local application data folder under Advobot
 			var appdata = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
-			return new FileInfo(Path.Combine(appdata, "Advobot", "Advobot" + instance + ".config"));
+			return new(Path.Combine(appdata, "Advobot", $"Advobot{instance}.config"));
 		}
 
 		private void Save()

@@ -139,7 +139,7 @@ namespace Advobot.Utilities
 			// Make sure all the information from the embed that didn't fit goes in the text file
 			if (args.Embed?.Errors?.Count > 0)
 			{
-				args.File ??= new TextFileInfo();
+				args.File ??= new();
 				args.File.Name ??= "Embed_Errors";
 				args.File.Text += $"Embed Errors:\n{args.Embed}\n\n{args.File.Text}";
 			}
@@ -148,7 +148,7 @@ namespace Advobot.Utilities
 			args.Content = args.Content.Sanitize();
 			if (args.Content.Length > 2000)
 			{
-				args.File ??= new TextFileInfo();
+				args.File ??= new();
 				args.File.Name ??= "Long_Message";
 				args.File.Text += $"Message Content:\n{args.Content}\n\n{args.File.Text}";
 				args.Content = $"{Constants.ZERO_WIDTH_SPACE}Response is too long; sent as text file instead.";
@@ -279,7 +279,7 @@ namespace Advobot.Utilities
 		/// <summary>
 		/// The allowed mentions of the message. By default this is None.
 		/// </summary>
-		public AllowedMentions? AllowedMentions { get; set; } = new AllowedMentions();
+		public AllowedMentions? AllowedMentions { get; set; } = new();
 		/// <summary>
 		/// Whether or not to allow null channels. If true, a null message will be returned. If false, an exception will occur.
 		/// </summary>

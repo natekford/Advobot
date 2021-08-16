@@ -23,7 +23,7 @@ namespace Advobot.Logging.Utilities
 			{
 				Title = custom.Title,
 				Description = custom.Description,
-				Color = new Color(custom.Color),
+				Color = new(custom.Color),
 				ImageUrl = custom.ImageUrl,
 				Url = custom.Url,
 				ThumbnailUrl = custom.ThumbnailUrl,
@@ -79,10 +79,10 @@ namespace Advobot.Logging.Utilities
 
 		public static SendMessageArgs ToMessageArgs(this EmbedWrapper embed)
 		{
-			return new SendMessageArgs
+			return new()
 			{
 				Embed = embed,
-				AllowedMentions = new AllowedMentions(AllowedMentionTypes.Users),
+				AllowedMentions = new(AllowedMentionTypes.Users),
 			};
 		}
 	}

@@ -12,20 +12,20 @@ namespace Advobot.Services.LogCounters
 {
 	internal sealed class LogCounterService : ILogCounterService, INotifyPropertyChanged
 	{
-		public LogCounter Animated { get; } = new LogCounter();
-		public LogCounter AttemptedCommands { get; } = new LogCounter();
-		public LogCounter FailedCommands { get; } = new LogCounter();
-		public LogCounter Files { get; } = new LogCounter();
-		public LogCounter Images { get; } = new LogCounter();
-		public LogCounter MessageDeletes { get; } = new LogCounter();
-		public LogCounter MessageEdits { get; } = new LogCounter();
-		public LogCounter Messages { get; } = new LogCounter();
-		public LogCounter SuccessfulCommands { get; } = new LogCounter();
-		public LogCounter TotalGuilds { get; } = new LogCounter();
-		public LogCounter TotalUsers { get; } = new LogCounter();
-		public LogCounter UserChanges { get; } = new LogCounter();
-		public LogCounter UserJoins { get; } = new LogCounter();
-		public LogCounter UserLeaves { get; } = new LogCounter();
+		public LogCounter Animated { get; } = new();
+		public LogCounter AttemptedCommands { get; } = new();
+		public LogCounter FailedCommands { get; } = new();
+		public LogCounter Files { get; } = new();
+		public LogCounter Images { get; } = new();
+		public LogCounter MessageDeletes { get; } = new();
+		public LogCounter MessageEdits { get; } = new();
+		public LogCounter Messages { get; } = new();
+		public LogCounter SuccessfulCommands { get; } = new();
+		public LogCounter TotalGuilds { get; } = new();
+		public LogCounter TotalUsers { get; } = new();
+		public LogCounter UserChanges { get; } = new();
+		public LogCounter UserJoins { get; } = new();
+		public LogCounter UserLeaves { get; } = new();
 
 		ILogCounter ILogCounterService.Animated => Animated;
 		ILogCounter ILogCounterService.AttemptedCommands => AttemptedCommands;

@@ -66,12 +66,12 @@ namespace Advobot.Standard.Responses
 			var embed = new EmbedWrapper
 			{
 				Description = info.ToString(),
-				Author = new EmbedAuthorBuilder
+				Author = new()
 				{
 					Name = guild.Format(),
 					IconUrl = guild.IconUrl,
 				},
-				Footer = new EmbedFooterBuilder
+				Footer = new()
 				{
 					Text = GetsFooterGuildUsers,
 					IconUrl = guild.IconUrl,
@@ -129,7 +129,10 @@ namespace Advobot.Standard.Responses
 					$"**Thread Count:** `{ProcessInfoUtils.GetThreadCount()}`\n" +
 					$"**Shard Count:** `{client.Shards.Count}`",
 				Author = client.CurrentUser.CreateAuthor(),
-				Footer = new EmbedFooterBuilder { Text = $"Versions [Bot: {Constants.BOT_VERSION}] [API: {Constants.API_VERSION}]", },
+				Footer = new()
+				{
+					Text = $"Versions [Bot: {Constants.BOT_VERSION}] [API: {Constants.API_VERSION}]",
+				},
 			};
 
 			embed.TryAddField("Users", FormatLogCounters(new[]
@@ -182,12 +185,12 @@ namespace Advobot.Standard.Responses
 			var embed = new EmbedWrapper
 			{
 				Description = info.ToString(),
-				Author = new EmbedAuthorBuilder
+				Author = new()
 				{
 					Name = channel.Format(),
 					IconUrl = channel.Guild.IconUrl,
 				},
-				Footer = new EmbedFooterBuilder
+				Footer = new()
 				{
 					Text = GetsFooterChannel,
 					IconUrl = channel.Guild.IconUrl,
@@ -225,13 +228,13 @@ namespace Advobot.Standard.Responses
 			{
 				Description = info.ToString(),
 				ThumbnailUrl = emote.Url,
-				Author = new EmbedAuthorBuilder
+				Author = new()
 				{
 					Name = ((IEmote)emote).Format(),
 					IconUrl = emote.Url,
 					Url = emote.Url,
 				},
-				Footer = new EmbedFooterBuilder
+				Footer = new()
 				{
 					Text = GetsFooterEmote,
 					IconUrl = emote.Url,
@@ -276,12 +279,12 @@ namespace Advobot.Standard.Responses
 				Description = info.ToString(),
 				Color = owner.GetRoles().LastOrDefault(x => x.Color.RawValue != 0)?.Color,
 				ThumbnailUrl = guild.IconUrl,
-				Author = new EmbedAuthorBuilder
+				Author = new()
 				{
 					Name = guild.Format(),
 					IconUrl = guild.IconUrl,
 				},
-				Footer = new EmbedFooterBuilder
+				Footer = new()
 				{
 					Text = GetsFooterGuild,
 					IconUrl = guild.IconUrl,
@@ -330,28 +333,28 @@ namespace Advobot.Standard.Responses
 			});
 		}
 
-		public static AdvobotResult Invite(IInviteMetadata invite, IGuildChannel channel)
+		public static AdvobotResult Invite(IInviteMetadata invite)
 		{
 			var info = new InformationMatrix();
 			info.AddTimeCreatedCollection(invite.Id, invite.CreatedAt.GetValueOrDefault().UtcDateTime);
 			var meta = info.CreateCollection();
 			meta.Add(GetsTitleCreator, invite.Inviter.Format());
-			meta.Add(GetsTitleChannel, channel.Format());
+			meta.Add(GetsTitleChannel, invite.Channel.Format());
 			meta.Add(GetsTitleUses, invite.Uses ?? 0);
 
 			return Success(new EmbedWrapper
 			{
 				Description = info.ToString(),
-				Author = new EmbedAuthorBuilder
+				Author = new()
 				{
 					Name = invite.Format(),
-					IconUrl = channel.Guild.IconUrl,
+					IconUrl = invite.Guild.IconUrl,
 					Url = invite.Url,
 				},
-				Footer = new EmbedFooterBuilder
+				Footer = new()
 				{
 					Text = GetsFooterInvite,
-					IconUrl = channel.Guild.IconUrl,
+					IconUrl = invite.Guild.IconUrl,
 				},
 			});
 		}
@@ -402,8 +405,8 @@ namespace Advobot.Standard.Responses
 			{
 				Description = info.ToString(),
 				Color = role.Color,
-				Author = new EmbedAuthorBuilder { Name = role.Format(), },
-				Footer = new EmbedFooterBuilder { Text = GetsFooterRole, },
+				Author = new() { Name = role.Format(), },
+				Footer = new() { Text = GetsFooterRole, },
 			};
 			if (permissions.Length > 0)
 			{
@@ -431,7 +434,7 @@ namespace Advobot.Standard.Responses
 			{
 				Description = description,
 				Author = client.CurrentUser.CreateAuthor(),
-				Footer = new EmbedFooterBuilder
+				Footer = new()
 				{
 					Text = GetsFooterShards,
 					IconUrl = client.CurrentUser.GetAvatarUrl(),
@@ -460,7 +463,7 @@ namespace Advobot.Standard.Responses
 				Description = info.ToString(),
 				ThumbnailUrl = user.GetAvatarUrl(),
 				Author = user.CreateAuthor(),
-				Footer = new EmbedFooterBuilder
+				Footer = new()
 				{
 					Text = GetsFooterUser,
 					IconUrl = user.GetAvatarUrl(),
@@ -591,13 +594,13 @@ namespace Advobot.Standard.Responses
 			{
 				Description = info.ToString(),
 				ThumbnailUrl = webhook.GetAvatarUrl(),
-				Author = new EmbedAuthorBuilder
+				Author = new()
 				{
 					Name = webhook.Format(),
 					IconUrl = webhook.GetAvatarUrl(),
 					Url = webhook.GetAvatarUrl(),
 				},
-				Footer = new EmbedFooterBuilder
+				Footer = new()
 				{
 					Text = GetsFooterWebhook,
 					IconUrl = webhook.GetAvatarUrl(),

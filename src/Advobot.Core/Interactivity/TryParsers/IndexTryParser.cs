@@ -28,15 +28,15 @@ namespace Advobot.Interactivity.TryParsers
 		{
 			if (!int.TryParse(message.Content, out var position))
 			{
-				return new ValueTask<Optional<int>>(Optional<int>.Unspecified);
+				return new(Optional<int>.Unspecified);
 			}
 
 			var index = position - 1;
 			if (index >= _MinVal && index <= _MaxVal)
 			{
-				return new ValueTask<Optional<int>>(index);
+				return new(index);
 			}
-			return new ValueTask<Optional<int>>(Optional<int>.Unspecified);
+			return new(Optional<int>.Unspecified);
 		}
 	}
 }

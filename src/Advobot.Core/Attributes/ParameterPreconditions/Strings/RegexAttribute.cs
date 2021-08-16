@@ -43,7 +43,7 @@ namespace Advobot.Attributes.ParameterPreconditions.Strings
 			Regex regex;
 			try
 			{
-				regex = new Regex(value);
+				regex = new(value);
 			}
 			catch (ArgumentException)
 			{

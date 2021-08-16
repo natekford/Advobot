@@ -21,9 +21,9 @@ namespace Advobot.AutoMod.Models
 
 		public T Create<T>(TimedPrevention? original) where T : TimedPrevention, new()
 		{
-			original ??= new T();
+			original ??= new();
 
-			return new T
+			return new()
 			{
 				GuildId = original.GuildId,
 				Enabled = original.Enabled,

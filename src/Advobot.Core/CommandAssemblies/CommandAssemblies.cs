@@ -52,7 +52,7 @@ namespace Advobot.CommandAssemblies
 			{
 				throw new InvalidOperationException($"Duplicate assembly name: {name}");
 			}
-			_Assemblies[name] = new CommandAssembly(assembly, attr);
+			_Assemblies[name] = new(assembly, attr);
 		}
 	}
 }

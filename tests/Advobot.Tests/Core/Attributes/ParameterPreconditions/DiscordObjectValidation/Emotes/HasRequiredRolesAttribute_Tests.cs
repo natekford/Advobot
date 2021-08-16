@@ -8,14 +8,14 @@ using Advobot.Tests.Utilities;
 using AdvorangesUtils;
 
 using Discord;
-using Discord.Commands;
 
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace Advobot.Tests.Core.Attributes.ParameterPreconditions.DiscordObjectValidation.Emotes
 {
 	[TestClass]
-	public sealed class HasRequiredRolesAttribute_Tests : ParameterPreconditionTestsBase
+	public sealed class HasRequiredRolesAttribute_Tests
+		: ParameterPreconditionTestsBase<HasRequiredRolesAttribute>
 	{
 		private readonly GuildEmote _Emote = new EmoteCreationArgs
 		{
@@ -24,8 +24,7 @@ namespace Advobot.Tests.Core.Attributes.ParameterPreconditions.DiscordObjectVali
 			RoleIds = new List<ulong>(),
 		}.Build();
 
-		protected override ParameterPreconditionAttribute Instance { get; }
-			= new HasRequiredRolesAttribute();
+		protected override HasRequiredRolesAttribute Instance { get; } = new();
 
 		[TestMethod]
 		public async Task DoesNotHaveRequiredRoles_Test()

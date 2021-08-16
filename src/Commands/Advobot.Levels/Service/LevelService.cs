@@ -246,7 +246,7 @@ namespace Advobot.Levels.Service
 					return null;
 				}
 
-				return new XpContext(guild, channel, user, msg);
+				return new(guild, channel, user, msg);
 			}
 
 			public SearchArgs CreateArgs()

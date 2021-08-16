@@ -46,7 +46,7 @@ namespace Advobot.Gacha.Displays
 			{
 				Description = description,
 				ThumbnailUrl = _Source.ThumbnailUrl,
-				Author = new EmbedAuthorBuilder
+				Author = new()
 				{
 					Name = "Placeholder Name",
 					IconUrl = "https://cdn.discordapp.com/attachments/367092372636434443/597957769038921758/image0-4-1.jpg",

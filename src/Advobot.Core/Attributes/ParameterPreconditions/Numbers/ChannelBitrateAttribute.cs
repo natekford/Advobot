@@ -35,7 +35,7 @@ namespace Advobot.Attributes.ParameterPreconditions.Numbers
 				_ when context.Guild.Features.CaseInsContains("VIP_REGIONS") => 128,
 				_ => 96,
 			};
-			return new NumberRange<int>(8, end);
+			return new(8, end);
 		}
 	}
 }

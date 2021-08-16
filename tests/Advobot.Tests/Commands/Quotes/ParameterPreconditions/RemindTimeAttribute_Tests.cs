@@ -6,17 +6,15 @@ using Advobot.Tests.TestBases;
 
 using AdvorangesUtils;
 
-using Discord.Commands;
-
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace Advobot.Tests.Commands.Quotes.ParameterPreconditions
 {
 	[TestClass]
-	public sealed class RemindTimeAttribute_Tests : ParameterPreconditionTestsBase
+	public sealed class RemindTimeAttribute_Tests
+		: ParameterPreconditionTestsBase<RemindTimeAttribute>
 	{
-		protected override ParameterPreconditionAttribute Instance { get; }
-			= new RemindTimeAttribute();
+		protected override RemindTimeAttribute Instance { get; } = new();
 
 		[TestMethod]
 		public async Task Standard_Test()

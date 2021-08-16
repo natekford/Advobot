@@ -1,5 +1,8 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Concurrent;
+using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 
 using Advobot.AutoMod.Context;
@@ -19,6 +22,8 @@ namespace Advobot.AutoMod.Service
 {
 	public sealed class AutoModService
 	{
+		private static readonly RequestOptions _AutoMod
+			= DiscordUtils.GenerateRequestOptions("Auto mod.");
 		private static readonly Punishment _Ban = new()
 		{
 			PunishmentType = PunishmentType.Ban,
@@ -27,8 +32,6 @@ namespace Advobot.AutoMod.Service
 			= DiscordUtils.GenerateRequestOptions("Banned name.");
 		private static readonly RequestOptions _BannedPhrase
 			= DiscordUtils.GenerateRequestOptions("Banned phrase.");
-		private static readonly RequestOptions _ImageOnly
-			= DiscordUtils.GenerateRequestOptions("Image only channel.");
 		private static readonly RequestOptions _PersistentRoles
 			= DiscordUtils.GenerateRequestOptions("Persistent roles.");
 		private static readonly RequestOptions _RaidPrev
@@ -42,6 +45,7 @@ namespace Advobot.AutoMod.Service
 		private readonly GuildSpecific<RaidType, HashSet<ulong>> _Raid = new();
 		private readonly GuildSpecific<ulong, EnumMapped<SpamType, SortedSet<ulong>>> _Spam = new();
 		private readonly ITime _Time;
+		private ConcurrentDictionary<ulong, (ConcurrentBag<ulong>, ITextChannel)> _Messages = new();
 
 		public AutoModService(
 			BaseSocketClient client,
@@ -56,6 +60,27 @@ namespace Advobot.AutoMod.Service
 			client.MessageReceived += OnMessageReceived;
 			client.MessageUpdated += OnMessageUpdated;
 			client.UserJoined += OnUserJoined;
+
+			_ = Task.Run(async () =>
+			{
+				while (true)
+				{
+					var messageGroups = Interlocked.Exchange(ref _Messages, new());
+					foreach (var (_, (messages, channel)) in messageGroups)
+					{
+						try
+						{
+							await channel.DeleteMessagesAsync(messages, _AutoMod).CAF();
+						}
+						catch (Exception e)
+						{
+							e.Write();
+						}
+					}
+
+					await Task.Delay(TimeSpan.FromSeconds(1)).CAF();
+				}
+			});
 		}
 
 		private async Task OnMessageReceived(IMessage message)
@@ -75,22 +100,10 @@ namespace Advobot.AutoMod.Service
 
 			var isSpam = await ProcessSpamAsync(context).CAF();
 			var isBannedPhrase = await ProcessBannedPhrasesAsync(context).CAF();
-			if (isSpam)
-			{
-				await message.DeleteAsync(_SpamPrev).CAF();
-				return;
-			}
-			if (isBannedPhrase)
-			{
-				await message.DeleteAsync(_BannedPhrase).CAF();
-				return;
-			}
-
 			var isAllowed = await ProcessChannelSettings(context).CAF();
-			if (!isAllowed)
+			if (isSpam || isBannedPhrase || !isAllowed)
 			{
-				await message.DeleteAsync(_ImageOnly).CAF();
-				return;
+				QueueMessageForDeletion(context.Channel, message);
 			}
 		}
 
@@ -282,6 +295,13 @@ namespace Advobot.AutoMod.Service
 				Options = options,
 			};
 			return _Punisher.HandleAsync(context);
+		}
+
+		private void QueueMessageForDeletion(ITextChannel channel, IMessage message)
+		{
+			_Messages
+				.GetOrAdd(message.Channel.Id, _ => (new(), channel))
+				.Item1.Add(message.Id);
 		}
 	}
 }

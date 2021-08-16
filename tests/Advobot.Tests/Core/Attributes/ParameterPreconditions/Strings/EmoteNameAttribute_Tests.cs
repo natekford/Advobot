@@ -6,17 +6,15 @@ using Advobot.Tests.TestBases;
 
 using AdvorangesUtils;
 
-using Discord.Commands;
-
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace Advobot.Tests.Core.Attributes.ParameterPreconditions.Strings
 {
 	[TestClass]
-	public sealed class EmoteNameAttribute_Tests : ParameterPreconditionTestsBase
+	public sealed class EmoteNameAttribute_Tests
+		: ParameterPreconditionTestsBase<EmoteNameAttribute>
 	{
-		protected override ParameterPreconditionAttribute Instance { get; }
-			= new EmoteNameAttribute();
+		protected override EmoteNameAttribute Instance { get; } = new();
 
 		[TestMethod]
 		public async Task Standard_Test()

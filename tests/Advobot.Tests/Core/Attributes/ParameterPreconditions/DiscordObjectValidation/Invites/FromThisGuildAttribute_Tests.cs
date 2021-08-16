@@ -8,17 +8,15 @@ using Advobot.Tests.TestBases;
 
 using AdvorangesUtils;
 
-using Discord.Commands;
-
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace Advobot.Tests.Core.Attributes.ParameterPreconditions.DiscordObjectValidation.Invites
 {
 	[TestClass]
-	public sealed class FromThisGuildAttribute_Tests : ParameterPreconditionTestsBase
+	public sealed class FromThisGuildAttribute_Tests
+		: ParameterPreconditionTestsBase<FromThisGuildAttribute>
 	{
-		protected override ParameterPreconditionAttribute Instance { get; }
-			= new FromThisGuildAttribute();
+		protected override FromThisGuildAttribute Instance { get; } = new();
 
 		[TestMethod]
 		public async Task FromThisGuild_Test()

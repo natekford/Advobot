@@ -46,7 +46,7 @@ namespace Advobot.TypeReaders
 			var trimmed = input.Replace("0x", "").TrimStart('&', 'h', '#', 'x');
 			if (uint.TryParse(trimmed, NumberStyles.HexNumber, null, out var hex))
 			{
-				result = new Color(hex);
+				result = new(hex);
 				return true;
 			}
 			//By RGB
@@ -63,7 +63,7 @@ namespace Advobot.TypeReaders
 					.ToArray();
 				if (rgb.Length == 3)
 				{
-					result = new Color(rgb[0].Value, rgb[1].Value, rgb[2].Value);
+					result = new(rgb[0].Value, rgb[1].Value, rgb[2].Value);
 					return true;
 				}
 			}

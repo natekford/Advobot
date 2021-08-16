@@ -8,20 +8,18 @@ using Advobot.Tests.TestBases;
 
 using AdvorangesUtils;
 
-using Discord.Commands;
-
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace Advobot.Tests.Commands.Logging.ParameterPreconditions
 {
 	[TestClass]
-	public sealed class NotServerLogAttribute_Tests : ParameterPreconditionTestsBase
+	public sealed class NotServerLogAttribute_Tests
+		: ParameterPreconditionTestsBase<NotServerLogAttribute>
 	{
 		private readonly FakeLoggingDatabase _Db = new();
 
-		protected override ParameterPreconditionAttribute Instance { get; }
-			= new NotServerLogAttribute();
+		protected override NotServerLogAttribute Instance { get; } = new();
 
 		[TestMethod]
 		public async Task LogExisting_Test()

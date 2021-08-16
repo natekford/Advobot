@@ -6,27 +6,24 @@ using Advobot.Tests.TestBases;
 
 using AdvorangesUtils;
 
-using Discord;
-using Discord.Commands;
-
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace Advobot.Tests.Core.Attributes.ParameterPreconditions.DiscordObjectValidation.Roles
 {
 	[TestClass]
-	public sealed class CanModifyRoleAttribute_Tests : ParameterPreconditionTestsBase
+	public sealed class CanModifyRoleAttribute_Tests
+		: ParameterPreconditionTestsBase<CanModifyRoleAttribute>
 	{
-		private readonly IRole _HigherRole;
-		private readonly IRole _LowerRole;
-		private readonly IRole _Role;
-		protected override ParameterPreconditionAttribute Instance { get; }
-			= new CanModifyRoleAttribute();
+		private readonly FakeRole _HigherRole;
+		private readonly FakeRole _LowerRole;
+		private readonly FakeRole _Role;
+		protected override CanModifyRoleAttribute Instance { get; } = new();
 
 		public CanModifyRoleAttribute_Tests()
 		{
-			_HigherRole = new FakeRole(Context.Guild) { Position = 1, };
-			_LowerRole = new FakeRole(Context.Guild) { Position = -1, };
-			_Role = new FakeRole(Context.Guild) { Position = 0, };
+			_HigherRole = new(Context.Guild) { Position = 1, };
+			_LowerRole = new(Context.Guild) { Position = -1, };
+			_Role = new(Context.Guild) { Position = 0, };
 		}
 
 		[TestMethod]

@@ -41,7 +41,7 @@ namespace Advobot.Gacha.Counters
 			_IsStaggered = resetMinute == -1;
 
 			var firstInterval = CalculateFirstInterval();
-			_Timer = new Timer(Callback, new StrongBox<ulong>(0), firstInterval, _Period);
+			_Timer = new(Callback, new StrongBox<ulong>(0), firstInterval, _Period);
 		}
 
 		public ICounter<ulong> GetCounter(IGuild guild)
@@ -70,8 +70,7 @@ namespace Advobot.Gacha.Counters
 
 			//Remove guilds where their id % time is the current minute state
 			var minutes = (ulong)_StaggerInterval.TotalMinutes;
-			var removable = _Counters.Keys.Where(x => x % minutes == i.Value).ToArray();
-			foreach (var key in removable)
+			foreach (var key in _Counters.Keys.Where(x => x % minutes == i.Value).ToList())
 			{
 				_Counters.TryRemove(key, out _);
 			}

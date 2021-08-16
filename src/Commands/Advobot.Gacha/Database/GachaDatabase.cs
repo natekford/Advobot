@@ -59,12 +59,12 @@ namespace Advobot.Gacha.Database
 		";
 
 		private readonly ITime _Time;
-		public CloseIds CharacterIds { get; } = new CloseIds
+		public CloseIds CharacterIds { get; } = new()
 		{
 			IncludeWhenContains = false,
 			MaxAllowedCloseness = 2,
 		};
-		public CloseIds SourceIds { get; } = new CloseIds
+		public CloseIds SourceIds { get; } = new()
 		{
 			IncludeWhenContains = false,
 			MaxAllowedCloseness = 2,
@@ -164,7 +164,7 @@ namespace Advobot.Gacha.Database
 			//TODO: implement likes
 			var likes = new AmountAndRank("Likes", -1, -1, -1, -1);
 			var wishes = await connection.GetRankAsync<Wish>("Wish", id, _Time.UtcNow).CAF();
-			return new CharacterMetadata(source, character, claims, likes, wishes);
+			return new(source, character, claims, likes, wishes);
 		}
 
 		public async Task<IReadOnlyList<Character>> GetCharactersAsync()

@@ -8,9 +8,10 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace Advobot.Tests.TestBases
 {
-	public abstract class ParameterPreconditionTestsBase : TestsBase
+	public abstract class ParameterPreconditionTestsBase<T> : TestsBase
+		 where T : ParameterPreconditionAttribute
 	{
-		protected abstract ParameterPreconditionAttribute Instance { get; }
+		protected abstract T Instance { get; }
 
 		[TestMethod]
 		public async Task InvalidType_Test()

@@ -16,12 +16,12 @@ namespace Advobot.Tests.Commands.Gacha
 	{
 		private readonly List<Character> _Characters = new();
 		private readonly List<Source> _Sources = new();
-		public CloseIds CharacterIds { get; } = new CloseIds
+		public CloseIds CharacterIds { get; } = new()
 		{
 			IncludeWhenContains = false,
 			MaxAllowedCloseness = 2,
 		};
-		public CloseIds SourceIds { get; } = new CloseIds
+		public CloseIds SourceIds { get; } = new()
 		{
 			IncludeWhenContains = false,
 			MaxAllowedCloseness = 2,

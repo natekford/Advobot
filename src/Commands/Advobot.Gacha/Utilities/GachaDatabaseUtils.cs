@@ -70,7 +70,7 @@ namespace Advobot.Gacha.Utilities
 			var rank = GetRank(dict.Values, amount);
 			var normalizedAmount = normalizedDict.TryGetValue(id, out var n) ? n : 0;
 			var normalizedRank = GetRank(normalizedDict.Values, normalizedAmount);
-			return new AmountAndRank(tableName, amount, rank, normalizedAmount, normalizedRank);
+			return new(tableName, amount, rank, normalizedAmount, normalizedRank);
 		}
 
 		public static Task<IReadOnlyList<Source>> GetSourcesAsync(this IGachaDatabase db, string input)

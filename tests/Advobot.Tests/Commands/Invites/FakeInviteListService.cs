@@ -36,7 +36,7 @@ namespace Advobot.Tests.Commands.Invites
 		{
 			if (!_Keywords.TryGetValue(word, out var list))
 			{
-				_Keywords[word] = list = new List<ulong>();
+				_Keywords[word] = list = new();
 			}
 			list.Add(guild.Id);
 			return Task.CompletedTask;
@@ -48,7 +48,7 @@ namespace Advobot.Tests.Commands.Invites
 			var invites = await guild.GetInvitesAsync().CAF();
 			if (invites.TryGetFirst(x => x.Id == listedInvite.Code, out var invite))
 			{
-				_Invites[guild.Id] = new ListedInvite(invite, _Time.UtcNow);
+				_Invites[guild.Id] = new(invite, _Time.UtcNow);
 				return true;
 			}
 

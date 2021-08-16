@@ -1,17 +1,6 @@
 ﻿using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.Linq;
 using System.Threading.Tasks;
-
-using Advobot.AutoMod.Context;
-using Advobot.AutoMod.Database;
-using Advobot.AutoMod.Models;
-using Advobot.AutoMod.Utils;
-using Advobot.Punishments;
-using Advobot.Services.Time;
-using Advobot.Utilities;
-
-using AdvorangesUtils;
 
 using Discord;
 using Discord.WebSocket;

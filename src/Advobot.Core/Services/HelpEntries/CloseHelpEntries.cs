@@ -30,7 +30,7 @@ namespace Advobot.Services.HelpEntries
 					distance = aliasDistance;
 				}
 			}
-			return new CloseWord<IModuleHelpEntry>(closest, search, distance, obj);
+			return new(closest, search, distance, obj);
 		}
 	}
 }

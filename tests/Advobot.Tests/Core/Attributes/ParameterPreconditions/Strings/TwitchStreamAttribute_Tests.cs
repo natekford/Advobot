@@ -6,17 +6,15 @@ using Advobot.Tests.TestBases;
 
 using AdvorangesUtils;
 
-using Discord.Commands;
-
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace Advobot.Tests.Core.Attributes.ParameterPreconditions.Strings
 {
 	[TestClass]
-	public sealed class TwitchStreamAttribute_Tests : ParameterPreconditionTestsBase
+	public sealed class TwitchStreamAttribute_Tests
+		: ParameterPreconditionTestsBase<TwitchStreamAttribute>
 	{
-		protected override ParameterPreconditionAttribute Instance { get; }
-			= new TwitchStreamAttribute();
+		protected override TwitchStreamAttribute Instance { get; } = new();
 
 		[TestMethod]
 		public async Task InvalidName_Test()

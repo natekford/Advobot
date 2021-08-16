@@ -6,17 +6,15 @@ using Advobot.Tests.TestBases;
 
 using AdvorangesUtils;
 
-using Discord.Commands;
-
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace Advobot.Tests.Core.Attributes.ParameterPreconditions.DiscordObjectValidation.Roles
 {
 	[TestClass]
-	public sealed class NotManagedAttribute_Tests : ParameterPreconditionTestsBase
+	public sealed class NotManagedAttribute_Tests
+		: ParameterPreconditionTestsBase<NotManagedAttribute>
 	{
-		protected override ParameterPreconditionAttribute Instance { get; }
-			= new NotManagedAttribute();
+		protected override NotManagedAttribute Instance { get; } = new();
 
 		[TestMethod]
 		public async Task RoleIsManaged_Test()

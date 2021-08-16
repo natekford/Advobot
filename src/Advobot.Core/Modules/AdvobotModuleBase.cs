@@ -4,7 +4,6 @@ using System.Threading;
 using System.Threading.Tasks;
 
 using Advobot.Attributes.Preconditions;
-using Advobot.Classes;
 using Advobot.Interactivity;
 using Advobot.Interactivity.Criterions;
 using Advobot.Interactivity.TryParsers;
@@ -67,7 +66,7 @@ namespace Advobot.Modules
 			InteractivityOptions? options = null)
 		{
 			var tryParser = new IndexTryParser(minVal, maxVal);
-			options ??= new InteractivityOptions();
+			options ??= new();
 			options.Criteria = _NextIndexCriteria;
 			return NextValueAsync(tryParser, options);
 		}
@@ -161,7 +160,7 @@ namespace Advobot.Modules
 			{
 				Content = message,
 				IsTTS = isTTS,
-				Embed = embed != null ? new EmbedWrapper(embed.ToEmbedBuilder()) : null,
+				Embed = embed != null ? new(embed.ToEmbedBuilder()) : null,
 				Options = options,
 				AllowedMentions = mentions,
 			});

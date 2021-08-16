@@ -6,17 +6,15 @@ using Advobot.Tests.TestBases;
 
 using AdvorangesUtils;
 
-using Discord.Commands;
-
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace Advobot.Tests.Commands.Quotes.ParameterPreconditions
 {
 	[TestClass]
-	public sealed class RuleAttribute_Tests : ParameterPreconditionTestsBase
+	public sealed class RuleAttribute_Tests
+		: ParameterPreconditionTestsBase<RuleAttribute>
 	{
-		protected override ParameterPreconditionAttribute Instance { get; }
-			= new RuleAttribute();
+		protected override RuleAttribute Instance { get; } = new();
 
 		[TestMethod]
 		public async Task Standard_Test()

@@ -85,7 +85,7 @@ namespace Advobot.Services.Commands
 			_BotSettings = botSettings;
 			_GuildSettings = guildSettings;
 			_Help = help;
-			_CommandService = new Localized<CommandService>(_ =>
+			_CommandService = new(_ =>
 			{
 				var commands = new CommandService(_Config);
 				commands.Log += OnLog;
