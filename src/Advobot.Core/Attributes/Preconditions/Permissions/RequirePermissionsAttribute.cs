@@ -61,11 +61,11 @@ namespace Advobot.Attributes.Preconditions.Permissions
 				var perms = await GetUserPermissionsAsync(context, user, services).CAF();
 				if (perms == null)
 				{
-					return PreconditionResult.FromError($"{user.Format()} has no permissions.");
+					return PreconditionResult.FromError($"`{user.Format()}` has no permissions.");
 				}
 				else if (!Permissions.Any(x => perms.HasFlag(x)))
 				{
-					return PreconditionResult.FromError($"{user.Format()} does not have any suitable permissions.");
+					return PreconditionResult.FromError($"`{user.Format()}` does not have any suitable permissions.");
 				}
 				return this.FromSuccess();
 			}

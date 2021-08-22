@@ -5,6 +5,7 @@
     <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
     <Nullable>enable</Nullable>
     <LangVersion>preview</LangVersion>
+    <Deterministic>false</Deterministic>
   </PropertyGroup>
   
   <ItemGroup>

@@ -95,7 +95,7 @@ namespace Advobot.Standard.Responses
 						Name = MiscTitleLinks,
 						Value = MiscLinks.Format(
 							Constants.REPO.WithNoMarkdown(),
-							Constants.DISCORD_INV.WithNoMarkdown()
+							Constants.INVITE.WithNoMarkdown()
 						),
 						IsInline = false,
 					},

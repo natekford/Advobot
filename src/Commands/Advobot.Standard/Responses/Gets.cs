@@ -131,7 +131,7 @@ namespace Advobot.Standard.Responses
 				Author = client.CurrentUser.CreateAuthor(),
 				Footer = new()
 				{
-					Text = $"Versions [Bot: {Constants.BOT_VERSION}] [API: {Constants.API_VERSION}]",
+					Text = $"Versions [Bot: {Constants.BOT_VERSION}] [Discord.Net: {Constants.DISCORD_NET_VERSION}]",
 				},
 			};
 

@@ -7,13 +7,17 @@ using Advobot;
 // General Information about an assembly is controlled through the following
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
-[assembly: AssemblyCompany("Advorange")]
-[assembly: AssemblyConfiguration("")]
-[assembly: AssemblyCopyright("Copyright © 2020")]
-[assembly: AssemblyDescription(".Net Core UI for Advobot.")]
-[assembly: AssemblyProduct("Advobot")]
+[assembly: AssemblyCompany(Constants.ASSEMBLY_COMPANY)]
+#if DEBUG
+[assembly: AssemblyConfiguration(Constants.AC_DEB)]
+#else
+[assembly: AssemblyConfiguration(Constants.AC_REL)]
+#endif
+[assembly: AssemblyCopyright(Constants.ASSEMBLY_COPYRIGHT)]
+[assembly: AssemblyDescription("UI program for Advobot.")]
+[assembly: AssemblyProduct(Constants.ASSEMBLY_PRODUCT)]
 [assembly: AssemblyTitle("Advobot.UI")]
-[assembly: NeutralResourcesLanguage("en")]
+[assembly: NeutralResourcesLanguage(Constants.ASSEMBLY_LANGUAGE)]
 
 // Setting ComVisible to false makes the types in this assembly not visible
 // to COM components.  If you need to access a type in this assembly from
@@ -30,6 +34,4 @@ using Advobot;
 //      Build Number
 //      Revision
 //
-[assembly: AssemblyVersion(Constants.BOT_VERSION)]
-[assembly: AssemblyFileVersion(Constants.BOT_VERSION)]
-[assembly: AssemblyInformationalVersion(Constants.BOT_VERSION)]
+[assembly: AssemblyVersion(Constants.ASSEMBLY_VERSION)]

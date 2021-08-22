@@ -4,7 +4,9 @@
     <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
     <Nullable>enable</Nullable>
     <LangVersion>preview</LangVersion>
+    <Deterministic>false</Deterministic>
   </PropertyGroup>
+  
   <ItemGroup>
     <PackageReference Include="DetectLanguage" Version="1.0.0" />
   </ItemGroup>

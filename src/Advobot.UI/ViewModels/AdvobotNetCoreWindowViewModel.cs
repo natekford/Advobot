@@ -58,10 +58,10 @@ namespace Advobot.UI.ViewModels
 		public string MainMenuText { get; } = "Latency: Time it takes for a command to reach the bot.\n\n" +
 			"Memory: Amount of RAM the program is using.\n\n" +
 			"Threads: Where all the actions in the bot happen.\n\n" +
-			$"API wrapper version: {Constants.API_VERSION}\n" +
+			$"Discord.Net version: {Constants.DISCORD_NET_VERSION}\n" +
 			$"Bot version: {Constants.BOT_VERSION}\n\n" +
 			$"Github repository for Advobot: {Constants.REPO}\n" +
-			$"Join the Discord server for additional help: {Constants.DISCORD_INV}";
+			$"Join the Discord server for additional help: {Constants.INVITE}";
 		public IObservable<string> Memory { get; }
 		public bool OpenColorsMenu => GetMenuStatus();
 		public ICommand OpenFileSearchWindowCommand { get; }

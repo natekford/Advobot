@@ -87,7 +87,8 @@ namespace Advobot.Logging.Service
 
 		public Task OnReady()
 		{
-			ConsoleUtils.WriteLine($"Version: {Constants.BOT_VERSION}; " +
+			ConsoleUtils.WriteLine($"Bot version: {Constants.BOT_VERSION}; " +
+				$"Discord.Net version: {Constants.DISCORD_NET_VERSION}; " +
 				$"Prefix: {_BotSettings.Prefix}; " +
 				$"Launch Time: {ProcessInfoUtils.GetUptime().TotalMilliseconds:n}ms");
 			return Task.CompletedTask;

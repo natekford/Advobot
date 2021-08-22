@@ -1,11 +1,11 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
-
   <PropertyGroup>
     <RootNamespace>Advobot</RootNamespace>
     <TargetFramework>netstandard2.1</TargetFramework>
     <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
     <Nullable>enable</Nullable>
     <LangVersion>preview</LangVersion>
+    <Deterministic>false</Deterministic>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
@@ -32,11 +32,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Compile Update="AssemblyVersion.cs">
-      <DesignTime>True</DesignTime>
-      <AutoGen>True</AutoGen>
-      <DependentUpon>AssemblyVersion.tt</DependentUpon>
-    </Compile>
     <Compile Update="Resources\BotSettingNames.Designer.cs">
       <DesignTime>True</DesignTime>
       <AutoGen>True</AutoGen>
@@ -58,14 +53,6 @@
       <Generator>ResXFileCodeGenerator</Generator>
       <LastGenOutput>GuildSettingNames.Designer.cs</LastGenOutput>
     </EmbeddedResource>
-  </ItemGroup>
-
-  <ItemGroup>
-    <None Update="AssemblyVersion.tt">
-      <Generator>TextTemplatingFileGenerator</Generator>
-      <OutputFileName>AssemblyVersion.cs</OutputFileName>
-      <LastGenOutput>AssemblyVersion.cs</LastGenOutput>
-    </None>
   </ItemGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">

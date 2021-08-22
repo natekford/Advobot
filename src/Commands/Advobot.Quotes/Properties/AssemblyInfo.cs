@@ -4,8 +4,6 @@ using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 
 using Advobot;
-using Advobot.CommandAssemblies;
-using Advobot.Levels;
 
 // General Information about an assembly is controlled through the following
 // set of attributes. Change these attribute values to modify the information
@@ -17,9 +15,9 @@ using Advobot.Levels;
 [assembly: AssemblyConfiguration(Constants.AC_REL)]
 #endif
 [assembly: AssemblyCopyright(Constants.ASSEMBLY_COPYRIGHT)]
-[assembly: AssemblyDescription("Commands for chat XP.")]
+[assembly: AssemblyDescription("Commands for storing quotes and reminders.")]
 [assembly: AssemblyProduct(Constants.ASSEMBLY_PRODUCT)]
-[assembly: AssemblyTitle("Advobot.Levels")]
+[assembly: AssemblyTitle("Advobot.Quotes")]
 [assembly: NeutralResourcesLanguage(Constants.ASSEMBLY_LANGUAGE)]
 
 // Setting ComVisible to false makes the types in this assembly not visible
@@ -28,7 +26,7 @@ using Advobot.Levels;
 [assembly: ComVisible(false)]
 
 // The following GUID is for the ID of the typelib if this project is exposed to COM
-[assembly: Guid("b90908a6-da2d-42d5-9557-9e5003ee0017")]
+[assembly: Guid("7a77bcef-0af7-4ac3-89ee-246c23d661d3")]
 
 // Version information for an assembly consists of the following four values:
 //
@@ -40,5 +38,5 @@ using Advobot.Levels;
 [assembly: AssemblyVersion(Constants.ASSEMBLY_VERSION)]
 
 // Indicates the assembly has commands in it for the bot to use
-[assembly: CommandAssembly("en-US", InstantiatorType = typeof(LevelInstantiator))]
+//[assembly: CommandAssembly("en-US", InstantiatorType = typeof(QuotesInstantiator))]
 [assembly: InternalsVisibleTo("Advobot.Tests")]
