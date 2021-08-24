@@ -11,15 +11,20 @@ namespace Advobot
 	public static class Constants
 	{
 		/// <summary>
-		/// Used in AssemblyConfiguration to specify debug mode.
+		/// Used in AssemblyConfiguration to specify debug or release mode.
 		/// </summary>
+		/// <remarks>
+		/// Since all the command projects are in the same solution as this project, there
+		/// shouldn't be significant issues in having this as a variable here instead of
+		/// handling the #ifs in each command project separately.
+		/// </remarks>
 		[EditorBrowsable(EditorBrowsableState.Never)]
-		public const string AC_DEB = "Debug";
-		/// <summary>
-		/// Used in AssemblyConfiguration to specify release mode.
-		/// </summary>
-		[EditorBrowsable(EditorBrowsableState.Never)]
-		public const string AC_REL = "Release";
+		public const string ASSEMBLY_CONFIGURATION
+#if DEBUG
+			= "Debug";
+#else
+			= "Release";
+#endif
 		/// <summary>
 		/// The emoji to use for an allowed permission. ✅
 		/// </summary>

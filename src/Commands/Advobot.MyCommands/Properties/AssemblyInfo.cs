@@ -11,11 +11,7 @@ using Advobot.MyCommands;
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
 [assembly: AssemblyCompany(Constants.ASSEMBLY_COMPANY)]
-#if DEBUG
-[assembly: AssemblyConfiguration(Constants.AC_DEB)]
-#else
-[assembly: AssemblyConfiguration(Constants.AC_REL)]
-#endif
+[assembly: AssemblyConfiguration(Constants.ASSEMBLY_CONFIGURATION)]
 [assembly: AssemblyCopyright(Constants.ASSEMBLY_COPYRIGHT)]
 [assembly: AssemblyDescription("Commands for my guild.")]
 [assembly: AssemblyProduct(Constants.ASSEMBLY_PRODUCT)]

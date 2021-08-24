@@ -8,11 +8,7 @@ using Advobot;
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
 [assembly: AssemblyCompany(Constants.ASSEMBLY_COMPANY)]
-#if DEBUG
-[assembly: AssemblyConfiguration(Constants.AC_DEB)]
-#else
-[assembly: AssemblyConfiguration(Constants.AC_REL)]
-#endif
+[assembly: AssemblyConfiguration(Constants.ASSEMBLY_CONFIGURATION)]
 [assembly: AssemblyCopyright(Constants.ASSEMBLY_COPYRIGHT)]
 [assembly: AssemblyDescription("Console program for Advobot.")]
 [assembly: AssemblyProduct(Constants.ASSEMBLY_PRODUCT)]
