@@ -1,6 +1,4 @@
-﻿using System.Linq;
-using System.Threading.Tasks;
-
+﻿
 using Advobot.Invites.Database;
 using Advobot.Invites.Models;
 using Advobot.Tests.Fakes.Database;

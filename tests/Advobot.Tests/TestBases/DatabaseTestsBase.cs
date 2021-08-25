@@ -1,5 +1,4 @@
-﻿using System.Threading.Tasks;
-
+﻿
 using Advobot.Services.Time;
 using Advobot.SQLite;
 using Advobot.Tests.Fakes.Database;

@@ -1,5 +1,4 @@
-﻿using System.Collections.Generic;
-
+﻿
 using Advobot.Modules;
 using Advobot.Quotes.Models;
 using Advobot.Utilities;

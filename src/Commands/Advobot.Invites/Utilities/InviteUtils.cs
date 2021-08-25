@@ -1,5 +1,4 @@
-﻿using System;
-
+﻿
 using Advobot.Invites.Models;
 using Advobot.Utilities;
 

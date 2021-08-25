@@ -2,7 +2,6 @@
 //Because without having the actual source list from the settings and a seperate list for the UI
 //when the settings list gets modified it attempts to modify the UI from not the UI thread
 
-using System;
 using System.Collections.ObjectModel;
 using System.Collections.Specialized;
 using System.Windows.Input;

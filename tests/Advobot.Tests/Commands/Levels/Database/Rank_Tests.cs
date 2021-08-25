@@ -1,7 +1,4 @@
-﻿using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-
+﻿
 using Advobot.Levels.Database;
 using Advobot.Levels.Metadata;
 using Advobot.Levels.Models;

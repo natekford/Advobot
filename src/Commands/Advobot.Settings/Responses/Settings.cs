@@ -1,5 +1,4 @@
-﻿using System.Collections.Generic;
-
+﻿
 using Advobot.Modules;
 using Advobot.Services.HelpEntries;
 using Advobot.Utilities;

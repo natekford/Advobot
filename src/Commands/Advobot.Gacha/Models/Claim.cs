@@ -1,5 +1,4 @@
-﻿using System;
-
+﻿
 using Advobot.Gacha.Relationships;
 using Advobot.Gacha.Utilities;
 using Advobot.SQLite.Relationships;

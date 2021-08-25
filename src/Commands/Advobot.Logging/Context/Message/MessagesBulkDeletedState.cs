@@ -1,6 +1,4 @@
-﻿using System.Collections.Generic;
-using System.Linq;
-
+﻿
 using Discord;
 
 namespace Advobot.Logging.Context.Messages

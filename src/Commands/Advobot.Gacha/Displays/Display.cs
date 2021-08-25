@@ -1,6 +1,4 @@
-﻿using System;
-using System.Threading.Tasks;
-
+﻿
 using Advobot.Gacha.Database;
 using Advobot.Gacha.Interaction;
 using Advobot.Modules;

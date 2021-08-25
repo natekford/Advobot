@@ -1,5 +1,4 @@
-﻿using System;
-
+﻿
 using Advobot.Tests.Fakes.Discord.Users;
 
 using Discord;

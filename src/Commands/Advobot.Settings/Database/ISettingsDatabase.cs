@@ -1,6 +1,4 @@
-﻿using System.Collections.Generic;
-using System.Threading.Tasks;
-
+﻿
 using Advobot.Settings.Models;
 
 namespace Advobot.Settings.Database

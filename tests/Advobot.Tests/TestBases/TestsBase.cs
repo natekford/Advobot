@@ -1,5 +1,4 @@
-﻿using System;
-
+﻿
 using Advobot.Services.Time;
 using Advobot.Tests.Fakes.Discord;
 using Advobot.Tests.Utilities;

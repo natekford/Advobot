@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Data.SQLite;
-using System.Linq;
-using System.Threading.Tasks;
+﻿using System.Data.SQLite;
 
 using Advobot.Gacha.Database;
 using Advobot.Gacha.Metadata;

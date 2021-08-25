@@ -1,7 +1,4 @@
-﻿using System.Collections.Generic;
-using System.Threading.Tasks;
-
-namespace Advobot.Gacha.Interaction
+﻿namespace Advobot.Gacha.Interaction
 {
 	public interface IInteractionHandler
 	{

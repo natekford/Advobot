@@ -1,5 +1,4 @@
-﻿using System;
-
+﻿
 using Advobot.Attributes.ParameterPreconditions.Strings;
 
 namespace Advobot.Quotes.ParameterPreconditions

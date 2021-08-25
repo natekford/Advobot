@@ -1,5 +1,4 @@
-﻿using System;
-
+﻿
 using Advobot.UI.ViewModels;
 
 using Avalonia.Controls;

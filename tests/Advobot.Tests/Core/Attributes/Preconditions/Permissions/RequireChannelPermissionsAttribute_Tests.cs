@@ -1,5 +1,4 @@
-﻿using System.Threading.Tasks;
-
+﻿
 using Advobot.Attributes.Preconditions.Permissions;
 using Advobot.Tests.Fakes.Discord;
 using Advobot.Tests.TestBases;

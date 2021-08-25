@@ -1,6 +1,4 @@
-﻿using System;
-using System.IO;
-using System.Windows.Input;
+﻿using System.Windows.Input;
 
 using Advobot.Settings;
 using Advobot.Utilities;

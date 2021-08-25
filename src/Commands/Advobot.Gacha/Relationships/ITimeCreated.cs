@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace Advobot.Gacha.Relationships
+﻿namespace Advobot.Gacha.Relationships
 {
 	public interface ITimeCreated
 	{

@@ -1,6 +1,4 @@
-﻿using System.Linq;
-using System.Threading.Tasks;
-
+﻿
 using Advobot.Services.HelpEntries;
 using Advobot.Tests.Fakes.Services.HelpEntries;
 using Advobot.Tests.TestBases;

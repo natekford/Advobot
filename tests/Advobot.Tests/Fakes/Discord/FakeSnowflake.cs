@@ -1,5 +1,4 @@
-﻿using System;
-
+﻿
 using Advobot.Tests.Utilities;
 
 using Discord;

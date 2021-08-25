@@ -1,6 +1,4 @@
-﻿using System.Net.Http;
-using System.Threading.Tasks;
-
+﻿
 using Advobot.Attributes.Preconditions;
 using Advobot.Services.ImageResizing;
 using Advobot.Tests.Fakes.Services.ImageResizing;

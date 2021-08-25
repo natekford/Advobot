@@ -1,6 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-
+﻿
 using Advobot.Services.HelpEntries;
 
 namespace Advobot.Tests.Fakes.Services.HelpEntries

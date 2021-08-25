@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace Advobot.AutoMod.Models
+﻿namespace Advobot.AutoMod.Models
 {
 	public record TimedPrevention(
 		bool Enabled,

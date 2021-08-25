@@ -1,9 +1,6 @@
 ﻿#define DEBUG_MESSAGES
 #undef DEBUG_MESSAGES
 
-using System;
-using System.Collections.Generic;
-
 using Advobot.AutoMod;
 using Advobot.AutoMod.Models;
 using Advobot.AutoMod.Utils;

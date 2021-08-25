@@ -1,5 +1,4 @@
-﻿using System.Threading.Tasks;
-
+﻿
 using Advobot.Gacha.Database;
 using Advobot.Gacha.Models;
 using Advobot.Gacha.TypeReaders;

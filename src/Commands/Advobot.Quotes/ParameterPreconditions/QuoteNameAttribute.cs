@@ -1,6 +1,4 @@
-﻿using System;
-using System.Threading.Tasks;
-
+﻿
 using Advobot.Attributes.ParameterPreconditions;
 using Advobot.Attributes.ParameterPreconditions.Strings;
 using Advobot.Quotes.Database;

@@ -1,6 +1,4 @@
-﻿using System.Collections.Generic;
-using System.Threading.Tasks;
-
+﻿
 using Advobot.UI.ViewModels;
 
 using Avalonia.Controls;

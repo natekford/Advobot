@@ -1,6 +1,4 @@
-﻿using System;
-using System.Threading.Tasks;
-
+﻿
 using Advobot.CommandAssemblies;
 using Advobot.Logging.Database;
 using Advobot.Logging.OptionSetters;

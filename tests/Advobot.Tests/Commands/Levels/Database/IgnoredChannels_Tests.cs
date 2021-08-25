@@ -1,6 +1,4 @@
-﻿using System.Linq;
-using System.Threading.Tasks;
-
+﻿
 using Advobot.Levels.Database;
 using Advobot.Tests.Fakes.Database;
 using Advobot.Tests.TestBases;

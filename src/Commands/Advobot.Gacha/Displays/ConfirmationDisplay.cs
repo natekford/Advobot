@@ -1,7 +1,4 @@
-﻿using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-
+﻿
 using Advobot.Gacha.Database;
 using Advobot.Gacha.Interaction;
 using Advobot.Gacha.Trading;

@@ -1,5 +1,4 @@
-﻿using System.Threading.Tasks;
-
+﻿
 using Advobot.AutoMod.Attributes.ParameterPreconditions;
 using Advobot.AutoMod.Database;
 using Advobot.AutoMod.Models;

@@ -1,6 +1,4 @@
-﻿using System.Collections.Generic;
-using System.Data.SQLite;
-using System.Threading.Tasks;
+﻿using System.Data.SQLite;
 
 using Advobot.Settings.Models;
 using Advobot.SQLite;

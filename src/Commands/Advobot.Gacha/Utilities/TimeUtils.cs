@@ -1,6 +1,4 @@
-﻿using System;
-using System.Threading;
-
+﻿
 using Advobot.Utilities;
 
 namespace Advobot.Gacha.Utilities

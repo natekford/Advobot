@@ -1,7 +1,4 @@
-﻿using System;
-using System.Linq;
-using System.Threading.Tasks;
-
+﻿
 using Advobot.Tests.Fakes.Discord.Channels;
 using Advobot.Tests.Fakes.Discord.Users;
 

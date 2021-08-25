@@ -1,5 +1,3 @@
-using System.Linq;
-using System.Threading.Tasks;
 
 using Advobot.Gacha.Database;
 using Advobot.Tests.Commands.Gacha.Utilities;

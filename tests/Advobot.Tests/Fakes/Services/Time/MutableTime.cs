@@ -1,5 +1,4 @@
-﻿using System;
-
+﻿
 using Advobot.Services.Time;
 
 namespace Advobot.Tests.Fakes.Services.Time

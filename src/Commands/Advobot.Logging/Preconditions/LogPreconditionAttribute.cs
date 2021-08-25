@@ -1,6 +1,4 @@
-﻿using System;
-using System.Threading.Tasks;
-
+﻿
 using Advobot.Logging.Database;
 using Advobot.Logging.Models;
 using Advobot.Services.HelpEntries;

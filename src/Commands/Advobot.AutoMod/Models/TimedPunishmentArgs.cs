@@ -1,5 +1,4 @@
-﻿using System;
-
+﻿
 using Advobot.Punishments;
 using Advobot.TypeReaders;
 

@@ -1,5 +1,4 @@
-﻿using System.Threading.Tasks;
-
+﻿
 using Advobot.MyCommands.Models;
 
 namespace Advobot.MyCommands.Database

@@ -1,5 +1,4 @@
-﻿using System.Threading.Tasks;
-
+﻿
 using Advobot.Tests.TestBases;
 using Advobot.Tests.Utilities;
 using Advobot.TypeReaders;

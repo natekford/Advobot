@@ -1,5 +1,4 @@
-﻿using System.Threading.Tasks;
-
+﻿
 using Advobot.Attributes.Preconditions;
 using Advobot.Tests.TestBases;
 

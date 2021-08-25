@@ -1,5 +1,4 @@
 ﻿using System.Collections.Concurrent;
-using System.Threading.Tasks;
 
 using Advobot.Gacha.Counters;
 using Advobot.Gacha.Database;

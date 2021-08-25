@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace Advobot.Levels.Service
+﻿namespace Advobot.Levels.Service
 {
 	public sealed class LevelServiceConfig
 	{

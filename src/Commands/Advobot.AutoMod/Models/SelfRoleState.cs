@@ -1,5 +1,4 @@
-﻿using System.Collections.Generic;
-
+﻿
 using Discord;
 
 namespace Advobot.AutoMod.Models

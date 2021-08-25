@@ -1,6 +1,4 @@
-﻿using System.Collections.Generic;
-using System.Threading.Tasks;
-
+﻿
 using Advobot.AutoMod.Models;
 
 namespace Advobot.AutoMod.Database

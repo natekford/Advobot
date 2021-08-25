@@ -1,6 +1,4 @@
-﻿using System;
-using System.Threading.Tasks;
-
+﻿
 using Advobot.Attributes;
 using Advobot.Localization;
 using Advobot.Modules;

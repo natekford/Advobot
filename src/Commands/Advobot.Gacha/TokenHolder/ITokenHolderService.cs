@@ -1,5 +1,4 @@
-﻿using System.Threading;
-
+﻿
 using Discord;
 
 namespace Advobot.Gacha.ActionLimits

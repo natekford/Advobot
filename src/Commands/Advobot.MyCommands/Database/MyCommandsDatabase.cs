@@ -1,5 +1,4 @@
 ﻿using System.Data.SQLite;
-using System.Threading.Tasks;
 
 using Advobot.MyCommands.Models;
 using Advobot.SQLite;

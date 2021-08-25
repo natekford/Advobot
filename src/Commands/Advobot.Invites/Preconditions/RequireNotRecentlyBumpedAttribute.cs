@@ -1,6 +1,4 @@
-﻿using System;
-using System.Threading.Tasks;
-
+﻿
 using Advobot.Invites.Service;
 using Advobot.Invites.Utilities;
 using Advobot.Services.HelpEntries;

@@ -1,5 +1,4 @@
-﻿using System.Collections.Generic;
-
+﻿
 using Advobot.AutoMod.Models;
 using Advobot.Modules;
 using Advobot.Punishments;

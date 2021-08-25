@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace Advobot.AutoMod
+﻿namespace Advobot.AutoMod
 {
 	/// <summary>
 	/// Specifies what raid prevention to modify/set up.

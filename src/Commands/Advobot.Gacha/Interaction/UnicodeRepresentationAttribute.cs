@@ -1,5 +1,4 @@
-﻿using System;
-
+﻿
 using Discord;
 
 namespace Advobot.Gacha.Interaction

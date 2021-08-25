@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Net;
-using System.Threading.Tasks;
+﻿using System.Net;
 
 using Advobot.AutoMod.Database;
 using Advobot.AutoMod.Models;

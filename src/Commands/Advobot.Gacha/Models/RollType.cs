@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace Advobot.Gacha.Models
+﻿namespace Advobot.Gacha.Models
 {
 	[Flags]
 	public enum RollType : ulong

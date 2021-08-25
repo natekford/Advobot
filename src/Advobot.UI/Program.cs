@@ -1,7 +1,4 @@
-﻿using System;
-using System.Threading;
-using System.Threading.Tasks;
-
+﻿
 using Advobot.UI.ViewModels;
 using Advobot.UI.Views;
 

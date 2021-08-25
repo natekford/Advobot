@@ -1,6 +1,4 @@
-﻿using System;
-using System.Threading.Tasks;
-
+﻿
 using Advobot.Invites.Preconditions;
 using Advobot.Invites.Service;
 using Advobot.Services.Time;

@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Threading.Tasks;
-
+﻿
 using Advobot.Logging;
 using Advobot.Logging.Database;
 using Advobot.Logging.Models;

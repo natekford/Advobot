@@ -1,5 +1,4 @@
-﻿using System.Threading.Tasks;
-
+﻿
 using Advobot.Tests.Fakes.Discord.Users;
 using Advobot.Tests.TestBases;
 using Advobot.TypeReaders;

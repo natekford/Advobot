@@ -1,6 +1,4 @@
-﻿using System.Collections.Generic;
-using System.Threading.Tasks;
-
+﻿
 using Advobot.Invites.Database;
 using Advobot.Invites.Models;
 using Advobot.Services.Time;

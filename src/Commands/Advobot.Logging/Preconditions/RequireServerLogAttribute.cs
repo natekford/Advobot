@@ -1,5 +1,4 @@
-﻿using System;
-
+﻿
 using Advobot.Logging.Models;
 
 namespace Advobot.Logging.Preconditions

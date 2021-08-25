@@ -1,6 +1,4 @@
-﻿using System;
-using System.Threading.Tasks;
-
+﻿
 using Advobot.Attributes.ParameterPreconditions;
 using Advobot.Gacha.Models;
 using Advobot.Utilities;

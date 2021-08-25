@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace Advobot.AutoMod
+﻿namespace Advobot.AutoMod
 {
 	/// <summary>
 	/// Specifies what spam prevention to modify/set up.

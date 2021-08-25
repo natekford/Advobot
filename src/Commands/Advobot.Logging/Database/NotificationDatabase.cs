@@ -1,6 +1,4 @@
-﻿using System;
-using System.Data.SQLite;
-using System.Threading.Tasks;
+﻿using System.Data.SQLite;
 
 using Advobot.Logging.Models;
 using Advobot.SQLite;

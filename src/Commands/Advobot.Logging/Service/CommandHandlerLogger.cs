@@ -1,7 +1,4 @@
-﻿using System;
-using System.Linq;
-using System.Threading.Tasks;
-
+﻿
 using Advobot.Classes;
 using Advobot.Formatting;
 using Advobot.Logging.Database;

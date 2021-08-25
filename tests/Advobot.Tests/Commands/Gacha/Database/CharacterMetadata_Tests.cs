@@ -1,7 +1,4 @@
-﻿using System.Collections.Generic;
-using System.Threading.Tasks;
-
-using Advobot.Gacha.Database;
+﻿using Advobot.Gacha.Database;
 using Advobot.Gacha.Models;
 using Advobot.Gacha.Utilities;
 using Advobot.Tests.Commands.Gacha.Utilities;

@@ -1,6 +1,4 @@
-﻿using System.Collections.Generic;
-using System.Threading.Tasks;
-
+﻿
 using Advobot.Quotes.Database;
 using Advobot.Quotes.Models;
 using Advobot.Tests.TestBases;

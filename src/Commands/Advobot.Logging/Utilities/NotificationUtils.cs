@@ -1,5 +1,4 @@
-﻿using System.Threading.Tasks;
-
+﻿
 using Advobot.Classes;
 using Advobot.Logging.Models;
 using Advobot.Utilities;

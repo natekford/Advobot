@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace Advobot.Quotes.Formatting
+﻿namespace Advobot.Quotes.Formatting
 {
 	/// <summary>
 	/// Markdown format options for rule formatter.

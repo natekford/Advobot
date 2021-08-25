@@ -1,5 +1,4 @@
-﻿using System.Threading.Tasks;
-
+﻿
 using Advobot.AutoMod.Database;
 using Advobot.AutoMod.Models;
 using Advobot.Punishments;

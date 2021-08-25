@@ -1,7 +1,4 @@
-﻿using System;
-using System.Linq;
-using System.Threading.Tasks;
-
+﻿
 using Advobot.AutoMod.Database;
 using Advobot.AutoMod.Service;
 using Advobot.Punishments;

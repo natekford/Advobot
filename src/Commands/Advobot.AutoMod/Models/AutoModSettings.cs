@@ -1,6 +1,4 @@
-﻿using System;
-using System.Threading;
-
+﻿
 using Advobot.SQLite.Relationships;
 
 namespace Advobot.AutoMod.Models

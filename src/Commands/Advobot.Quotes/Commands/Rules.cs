@@ -1,6 +1,4 @@
-﻿using System.Linq;
-using System.Threading.Tasks;
-
+﻿
 using Advobot.Attributes;
 using Advobot.Attributes.Preconditions.Permissions;
 using Advobot.Localization;
