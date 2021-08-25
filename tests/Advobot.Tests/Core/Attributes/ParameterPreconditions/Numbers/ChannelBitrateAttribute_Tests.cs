@@ -1,5 +1,4 @@
-﻿
-using Advobot.Attributes.ParameterPreconditions.Numbers;
+﻿using Advobot.Attributes.ParameterPreconditions.Numbers;
 using Advobot.Tests.TestBases;
 
 using AdvorangesUtils;
@@ -15,79 +14,71 @@ namespace Advobot.Tests.Core.Attributes.ParameterPreconditions.Numbers
 		protected override ChannelBitrateAttribute Instance { get; } = new();
 
 		[TestMethod]
-		public async Task Standard_Test()
+		public async Task Value129_Test()
 		{
+			const int VALUE = 129;
 			Context.Guild.PremiumSubscriptionCount = 0;
-
-			var expected = new Dictionary<int, bool>
-			{
-				{ 7, false },
-				{ 8, true },
-				{ 96, true },
-				{ 97, false },
-			};
-			foreach (var kvp in expected)
-			{
-				var result = await CheckPermissionsAsync(kvp.Key).CAF();
-				Assert.AreEqual(kvp.Value, result.IsSuccess);
-			}
-		}
-
-		[TestMethod]
-		public async Task Tier1_Test()
-		{
+			await AssertFailureAsync(VALUE).CAF();
 			Context.Guild.PremiumSubscriptionCount = 2;
-
-			var expected = new Dictionary<int, bool>
-			{
-				{ 7, false },
-				{ 8, true },
-				{ 128, true },
-				{ 129, false },
-			};
-			foreach (var kvp in expected)
-			{
-				var result = await CheckPermissionsAsync(kvp.Key).CAF();
-				Assert.AreEqual(kvp.Value, result.IsSuccess);
-			}
-		}
-
-		[TestMethod]
-		public async Task Tier2_Test()
-		{
+			await AssertFailureAsync(VALUE).CAF();
 			Context.Guild.PremiumSubscriptionCount = 10;
-
-			var expected = new Dictionary<int, bool>
-			{
-				{ 7, false },
-				{ 8, true },
-				{ 256, true },
-				{ 257, false },
-			};
-			foreach (var kvp in expected)
-			{
-				var result = await CheckPermissionsAsync(kvp.Key).CAF();
-				Assert.AreEqual(kvp.Value, result.IsSuccess);
-			}
+			await AssertSuccessAsync(VALUE).CAF();
+			Context.Guild.PremiumSubscriptionCount = 50;
+			await AssertSuccessAsync(VALUE).CAF();
 		}
 
 		[TestMethod]
-		public async Task Tier3_Test()
+		public async Task Value257_Test()
 		{
+			const int VALUE = 257;
+			Context.Guild.PremiumSubscriptionCount = 0;
+			await AssertFailureAsync(VALUE).CAF();
+			Context.Guild.PremiumSubscriptionCount = 2;
+			await AssertFailureAsync(VALUE).CAF();
+			Context.Guild.PremiumSubscriptionCount = 10;
+			await AssertFailureAsync(VALUE).CAF();
 			Context.Guild.PremiumSubscriptionCount = 50;
+			await AssertSuccessAsync(VALUE).CAF();
+		}
 
-			var expected = new Dictionary<int, bool>
-			{
-				{ 7, false },
-				{ 8, true },
-				{ 384, true },
-				{ 385, false },
-			};
-			foreach (var kvp in expected)
-			{
-				var result = await CheckPermissionsAsync(kvp.Key).CAF();
-				Assert.AreEqual(kvp.Value, result.IsSuccess);
-			}
+		[TestMethod]
+		public async Task Value385_Test()
+		{
+			const int VALUE = 385;
+			Context.Guild.PremiumSubscriptionCount = 0;
+			await AssertFailureAsync(VALUE).CAF();
+			Context.Guild.PremiumSubscriptionCount = 2;
+			await AssertFailureAsync(VALUE).CAF();
+			Context.Guild.PremiumSubscriptionCount = 10;
+			await AssertFailureAsync(VALUE).CAF();
+			Context.Guild.PremiumSubscriptionCount = 50;
+			await AssertFailureAsync(VALUE).CAF();
+		}
+
+		[TestMethod]
+		public async Task Value7_Test()
+			=> await AssertFailureAsync(7).CAF();
+
+		[TestMethod]
+		public async Task Value8_Test()
+			=> await AssertSuccessAsync(8).CAF();
+
+		[TestMethod]
+		public async Task Value96_Test()
+			=> await AssertSuccessAsync(96).CAF();
+
+		[TestMethod]
+		public async Task Value97_Test()
+		{
+			const int VALUE = 97;
+			Context.Guild.PremiumSubscriptionCount = 0;
+			await AssertFailureAsync(VALUE).CAF();
+			Context.Guild.PremiumSubscriptionCount = 2;
+			await AssertSuccessAsync(VALUE).CAF();
+			Context.Guild.PremiumSubscriptionCount = 10;
+			await AssertSuccessAsync(VALUE).CAF();
+			Context.Guild.PremiumSubscriptionCount = 50;
+			await AssertSuccessAsync(VALUE).CAF();
 		}
 	}
 }

@@ -1,5 +1,4 @@
-﻿
-using Advobot.Attributes.ParameterPreconditions.DiscordObjectValidation.Invites;
+﻿using Advobot.Attributes.ParameterPreconditions.DiscordObjectValidation.Invites;
 using Advobot.Tests.Fakes.Discord;
 using Advobot.Tests.Fakes.Discord.Channels;
 using Advobot.Tests.Fakes.Discord.Users;
@@ -22,8 +21,7 @@ namespace Advobot.Tests.Core.Attributes.ParameterPreconditions.DiscordObjectVali
 		{
 			var invite = new FakeInviteMetadata(Context.Channel, Context.User);
 
-			var result = await CheckPermissionsAsync(invite).CAF();
-			Assert.IsTrue(result.IsSuccess);
+			await AssertSuccessAsync(invite).CAF();
 		}
 
 		[TestMethod]
@@ -34,8 +32,7 @@ namespace Advobot.Tests.Core.Attributes.ParameterPreconditions.DiscordObjectVali
 			var user = new FakeGuildUser(guild);
 			var invite = new FakeInviteMetadata(channel, user);
 
-			var result = await CheckPermissionsAsync(invite).CAF();
-			Assert.IsFalse(result.IsSuccess);
+			await AssertFailureAsync(invite).CAF();
 		}
 	}
 }

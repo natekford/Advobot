@@ -1,5 +1,4 @@
-﻿
-using Advobot.Attributes.ParameterPreconditions.DiscordObjectValidation.Emotes;
+﻿using Advobot.Attributes.ParameterPreconditions.DiscordObjectValidation.Emotes;
 using Advobot.Tests.TestBases;
 using Advobot.Tests.Utilities;
 
@@ -26,18 +25,14 @@ namespace Advobot.Tests.Core.Attributes.ParameterPreconditions.DiscordObjectVali
 
 		[TestMethod]
 		public async Task DoesNotHaveRequiredRoles_Test()
-		{
-			var result = await CheckPermissionsAsync(_Emote).CAF();
-			Assert.IsFalse(result.IsSuccess);
-		}
+			=> await AssertFailureAsync(_Emote).CAF();
 
 		[TestMethod]
 		public async Task HasRequiredRoles_Test()
 		{
 			((IList<ulong>)_Emote.RoleIds).Add(35);
 
-			var result = await CheckPermissionsAsync(_Emote).CAF();
-			Assert.IsTrue(result.IsSuccess);
+			await AssertSuccessAsync(_Emote).CAF();
 		}
 	}
 }

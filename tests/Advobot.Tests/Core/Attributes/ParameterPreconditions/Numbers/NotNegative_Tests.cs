@@ -8,10 +8,10 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 namespace Advobot.Tests.Core.Attributes.ParameterPreconditions.Numbers
 {
 	[TestClass]
-	public sealed class Positive_Tests
-		: ParameterPreconditionTestsBase<PositiveAttribute>
+	public sealed class NotNegative_Tests
+		: ParameterPreconditionTestsBase<NotNegativeAttribute>
 	{
-		protected override PositiveAttribute Instance { get; } = new();
+		protected override NotNegativeAttribute Instance { get; } = new();
 
 		[TestMethod]
 		public async Task MaxValue_Test()
@@ -27,6 +27,6 @@ namespace Advobot.Tests.Core.Attributes.ParameterPreconditions.Numbers
 
 		[TestMethod]
 		public async Task Zero_Test()
-			=> await AssertFailureAsync(0).CAF();
+			=> await AssertSuccessAsync(0).CAF();
 	}
 }

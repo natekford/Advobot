@@ -1,5 +1,4 @@
-﻿
-using Advobot.Attributes.ParameterPreconditions.Strings;
+﻿using Advobot.Attributes.ParameterPreconditions.Strings;
 using Advobot.Tests.TestBases;
 
 using AdvorangesUtils;
@@ -15,20 +14,19 @@ namespace Advobot.Tests.Core.Attributes.ParameterPreconditions.Strings
 		protected override ChannelTopicAttribute Instance { get; } = new();
 
 		[TestMethod]
-		public async Task Standard_Test()
-		{
-			var expected = new Dictionary<string, bool>
-			{
-				{ "", true },
-				{ new string('a', 1), true },
-				{ new string('a', 1024), true },
-				{ new string('a', 1025), false },
-			};
-			foreach (var kvp in expected)
-			{
-				var result = await CheckPermissionsAsync(kvp.Key).CAF();
-				Assert.AreEqual(kvp.Value, result.IsSuccess);
-			}
-		}
+		public async Task Empty_Test()
+			=> await AssertSuccessAsync("").CAF();
+
+		[TestMethod]
+		public async Task Length1_Test()
+			=> await AssertSuccessAsync(new string('a', 1)).CAF();
+
+		[TestMethod]
+		public async Task Length1024_Test()
+			=> await AssertSuccessAsync(new string('a', 1024)).CAF();
+
+		[TestMethod]
+		public async Task Length1025_Test()
+			=> await AssertFailureAsync(new string('a', 1025)).CAF();
 	}
 }

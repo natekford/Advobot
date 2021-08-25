@@ -1,5 +1,4 @@
-﻿
-using Advobot.Attributes.ParameterPreconditions.DiscordObjectValidation.Channels;
+﻿using Advobot.Attributes.ParameterPreconditions.DiscordObjectValidation.Channels;
 using Advobot.Tests.Fakes.Discord;
 using Advobot.Tests.Fakes.Discord.Channels;
 using Advobot.Tests.TestBases;
@@ -46,8 +45,7 @@ namespace Advobot.Tests.Core.Attributes.ParameterPreconditions.DiscordObjectVali
 			await _Channel.AddPermissionOverwriteAsync(Context.User, _Allowed).CAF();
 			await _Channel.AddPermissionOverwriteAsync(Context.Guild.FakeCurrentUser, _Allowed).CAF();
 
-			var result = await CheckPermissionsAsync(_Channel).CAF();
-			Assert.IsTrue(result.IsSuccess);
+			await AssertSuccessAsync(_Channel).CAF();
 		}
 
 		[TestMethod]
@@ -61,8 +59,7 @@ namespace Advobot.Tests.Core.Attributes.ParameterPreconditions.DiscordObjectVali
 			await _Channel.AddPermissionOverwriteAsync(Context.User, _Denied).CAF();
 			await _Channel.AddPermissionOverwriteAsync(Context.Guild.FakeCurrentUser, _Denied).CAF();
 
-			var result = await CheckPermissionsAsync(_Channel).CAF();
-			Assert.IsFalse(result.IsSuccess);
+			await AssertFailureAsync(_Channel).CAF();
 		}
 	}
 }

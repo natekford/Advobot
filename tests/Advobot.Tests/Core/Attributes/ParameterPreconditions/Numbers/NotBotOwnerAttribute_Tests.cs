@@ -1,5 +1,4 @@
-﻿
-using Advobot.Attributes.ParameterPreconditions.Numbers;
+﻿using Advobot.Attributes.ParameterPreconditions.Numbers;
 using Advobot.Tests.TestBases;
 
 using AdvorangesUtils;
@@ -19,15 +18,11 @@ namespace Advobot.Tests.Core.Attributes.ParameterPreconditions.Numbers
 		{
 			Context.Client.FakeApplication.Owner = Context.User;
 
-			var result = await CheckPermissionsAsync(Context.User.Id).CAF();
-			Assert.IsFalse(result.IsSuccess);
+			await AssertFailureAsync(Context.User.Id).CAF();
 		}
 
 		[TestMethod]
 		public async Task Valid_Test()
-		{
-			var result = await CheckPermissionsAsync(Context.User.Id).CAF();
-			Assert.IsTrue(result.IsSuccess);
-		}
+			=> await AssertSuccessAsync(Context.User.Id).CAF();
 	}
 }

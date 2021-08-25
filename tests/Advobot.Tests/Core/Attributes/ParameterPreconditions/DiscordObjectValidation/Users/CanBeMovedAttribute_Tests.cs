@@ -1,5 +1,4 @@
-﻿
-using Advobot.Attributes.ParameterPreconditions.DiscordObjectValidation.Users;
+﻿using Advobot.Attributes.ParameterPreconditions.DiscordObjectValidation.Users;
 using Advobot.Tests.Fakes.Discord;
 using Advobot.Tests.Fakes.Discord.Channels;
 using Advobot.Tests.Fakes.Discord.Users;
@@ -54,8 +53,7 @@ namespace Advobot.Tests.Core.Attributes.ParameterPreconditions.DiscordObjectVali
 			await _Channel.AddPermissionOverwriteAsync(Context.User, _Denied).CAF();
 			await _Channel.AddPermissionOverwriteAsync(Context.Guild.FakeCurrentUser, _Denied).CAF();
 
-			var result = await CheckPermissionsAsync(_User).CAF();
-			Assert.IsTrue(result.IsSuccess);
+			await AssertSuccessAsync(_User).CAF();
 		}
 
 		[TestMethod]
@@ -64,8 +62,7 @@ namespace Advobot.Tests.Core.Attributes.ParameterPreconditions.DiscordObjectVali
 			await _Channel.AddPermissionOverwriteAsync(Context.User, _Allowed).CAF();
 			await _Channel.AddPermissionOverwriteAsync(Context.Guild.FakeCurrentUser, _Allowed).CAF();
 
-			var result = await CheckPermissionsAsync(_User).CAF();
-			Assert.IsTrue(result.IsSuccess);
+			await AssertSuccessAsync(_User).CAF();
 		}
 
 		[TestMethod]
@@ -76,8 +73,7 @@ namespace Advobot.Tests.Core.Attributes.ParameterPreconditions.DiscordObjectVali
 			await Context.User.AddRoleAsync(role).CAF();
 			await Context.Guild.FakeCurrentUser.AddRoleAsync(role).CAF();
 
-			var result = await CheckPermissionsAsync(_User).CAF();
-			Assert.IsTrue(result.IsSuccess);
+			await AssertSuccessAsync(_User).CAF();
 		}
 
 		[TestMethod]
@@ -91,24 +87,19 @@ namespace Advobot.Tests.Core.Attributes.ParameterPreconditions.DiscordObjectVali
 			await _Channel.AddPermissionOverwriteAsync(Context.User, _Denied).CAF();
 			await _Channel.AddPermissionOverwriteAsync(Context.Guild.FakeCurrentUser, _Denied).CAF();
 
-			var result = await CheckPermissionsAsync(_User).CAF();
-			Assert.IsFalse(result.IsSuccess);
+			await AssertFailureAsync(_User).CAF();
 		}
 
 		[TestMethod]
 		public async Task UserCannotBeMovedBecausePermissions_Test()
-		{
-			var result = await CheckPermissionsAsync(_User).CAF();
-			Assert.IsFalse(result.IsSuccess);
-		}
+			=> await AssertFailureAsync(_User).CAF();
 
 		[TestMethod]
 		public async Task UserNotInVoiceChannel_Test()
 		{
 			_User.VoiceChannel = null;
 
-			var result = await CheckPermissionsAsync(_User).CAF();
-			Assert.IsFalse(result.IsSuccess);
+			await AssertFailureAsync(_User).CAF();
 		}
 	}
 }

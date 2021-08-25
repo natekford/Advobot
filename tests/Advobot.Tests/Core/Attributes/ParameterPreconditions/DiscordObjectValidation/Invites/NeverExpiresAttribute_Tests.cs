@@ -1,5 +1,4 @@
-﻿
-using Advobot.Attributes.ParameterPreconditions.DiscordObjectValidation.Invites;
+﻿using Advobot.Attributes.ParameterPreconditions.DiscordObjectValidation.Invites;
 using Advobot.Tests.Fakes.Discord;
 using Advobot.Tests.TestBases;
 
@@ -18,25 +17,19 @@ namespace Advobot.Tests.Core.Attributes.ParameterPreconditions.DiscordObjectVali
 		[TestMethod]
 		public async Task InviteExpires_Test()
 		{
-			var invite = new FakeInviteMetadata(Context.Channel, Context.User)
+			await AssertFailureAsync(new FakeInviteMetadata(Context.Channel, Context.User)
 			{
 				MaxAge = 3600,
-			};
-
-			var result = await CheckPermissionsAsync(invite).CAF();
-			Assert.IsFalse(result.IsSuccess);
+			}).CAF();
 		}
 
 		[TestMethod]
 		public async Task InviteNeverExpires_Test()
 		{
-			var invite = new FakeInviteMetadata(Context.Channel, Context.User)
+			await AssertSuccessAsync(new FakeInviteMetadata(Context.Channel, Context.User)
 			{
 				MaxAge = null,
-			};
-
-			var result = await CheckPermissionsAsync(invite).CAF();
-			Assert.IsTrue(result.IsSuccess);
+			}).CAF();
 		}
 	}
 }

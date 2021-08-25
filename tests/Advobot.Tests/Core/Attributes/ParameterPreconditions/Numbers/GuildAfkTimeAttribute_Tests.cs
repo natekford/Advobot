@@ -1,5 +1,4 @@
-﻿
-using Advobot.Attributes.ParameterPreconditions.Numbers;
+﻿using Advobot.Attributes.ParameterPreconditions.Numbers;
 using Advobot.Tests.TestBases;
 
 using AdvorangesUtils;
@@ -15,23 +14,31 @@ namespace Advobot.Tests.Core.Attributes.ParameterPreconditions.Numbers
 		protected override GuildAfkTimeAttribute Instance { get; } = new();
 
 		[TestMethod]
-		public async Task Standard_Test()
-		{
-			var expected = new Dictionary<int, bool>
-			{
-				{ 59, false },
-				{ 60, true },
-				{ 300, true },
-				{ 900, true },
-				{ 1800, true },
-				{ 3600, true },
-				{ 3601, false },
-			};
-			foreach (var kvp in expected)
-			{
-				var result = await CheckPermissionsAsync(kvp.Key).CAF();
-				Assert.AreEqual(kvp.Value, result.IsSuccess);
-			}
-		}
+		public async Task Value1800_Test()
+			=> await AssertSuccessAsync(1800).CAF();
+
+		[TestMethod]
+		public async Task Value300_Test()
+			=> await AssertSuccessAsync(300).CAF();
+
+		[TestMethod]
+		public async Task Value3600_Test()
+			=> await AssertSuccessAsync(3600).CAF();
+
+		[TestMethod]
+		public async Task Value3601_Test()
+			=> await AssertFailureAsync(3601).CAF();
+
+		[TestMethod]
+		public async Task Value59_Test()
+			=> await AssertFailureAsync(59).CAF();
+
+		[TestMethod]
+		public async Task Value60_Test()
+			=> await AssertSuccessAsync(60).CAF();
+
+		[TestMethod]
+		public async Task Value900_Test()
+			=> await AssertSuccessAsync(900).CAF();
 	}
 }

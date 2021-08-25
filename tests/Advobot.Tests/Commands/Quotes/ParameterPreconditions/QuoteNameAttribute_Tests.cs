@@ -1,5 +1,4 @@
-﻿
-using Advobot.Quotes.Database;
+﻿using Advobot.Quotes.Database;
 using Advobot.Quotes.Models;
 using Advobot.Quotes.ParameterPreconditions;
 using Advobot.Tests.TestBases;
@@ -30,16 +29,12 @@ namespace Advobot.Tests.Commands.Quotes.ParameterPreconditions
 			};
 			await _Db.AddQuoteAsync(quote).CAF();
 
-			var result = await CheckPermissionsAsync(quote.Name).CAF();
-			Assert.IsFalse(result.IsSuccess);
+			await AssertFailureAsync(quote.Name).CAF();
 		}
 
 		[TestMethod]
 		public async Task QuoteNotExisting_Test()
-		{
-			var result = await CheckPermissionsAsync("i dont exist").CAF();
-			Assert.IsTrue(result.IsSuccess);
-		}
+			=> await AssertSuccessAsync("i dont exist").CAF();
 
 		protected override void ModifyServices(IServiceCollection services)
 		{

@@ -1,5 +1,4 @@
-﻿
-using Advobot.Attributes.ParameterPreconditions.DiscordObjectValidation;
+﻿using Advobot.Attributes.ParameterPreconditions.DiscordObjectValidation;
 using Advobot.Tests.TestBases;
 
 using AdvorangesUtils;
@@ -20,15 +19,11 @@ namespace Advobot.Tests.Core.Attributes.ParameterPreconditions.DiscordObjectVali
 		{
 			await Context.Guild.AddBanAsync(ID).CAF();
 
-			var result = await CheckPermissionsAsync(ID).CAF();
-			Assert.IsFalse(result.IsSuccess);
+			await AssertFailureAsync(ID).CAF();
 		}
 
 		[TestMethod]
 		public async Task BanNotExisting_Test()
-		{
-			var result = await CheckPermissionsAsync(ID).CAF();
-			Assert.IsTrue(result.IsSuccess);
-		}
+			=> await AssertSuccessAsync(ID).CAF();
 	}
 }

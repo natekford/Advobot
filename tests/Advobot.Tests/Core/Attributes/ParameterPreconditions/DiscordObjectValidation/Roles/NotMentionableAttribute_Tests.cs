@@ -1,5 +1,4 @@
-﻿
-using Advobot.Attributes.ParameterPreconditions.DiscordObjectValidation.Roles;
+﻿using Advobot.Attributes.ParameterPreconditions.DiscordObjectValidation.Roles;
 using Advobot.Tests.Fakes.Discord;
 using Advobot.Tests.TestBases;
 
@@ -17,22 +16,10 @@ namespace Advobot.Tests.Core.Attributes.ParameterPreconditions.DiscordObjectVali
 
 		[TestMethod]
 		public async Task RoleIsMentionable_Test()
-		{
-			var result = await CheckPermissionsAsync(new FakeRole(Context.Guild)
-			{
-				IsMentionable = true
-			}).CAF();
-			Assert.IsFalse(result.IsSuccess);
-		}
+			=> await AssertFailureAsync(new FakeRole(Context.Guild) { IsMentionable = true }).CAF();
 
 		[TestMethod]
 		public async Task RoleIsNotMentionable_Test()
-		{
-			var result = await CheckPermissionsAsync(new FakeRole(Context.Guild)
-			{
-				IsMentionable = false
-			}).CAF();
-			Assert.IsTrue(result.IsSuccess);
-		}
+			=> await AssertSuccessAsync(new FakeRole(Context.Guild) { IsMentionable = false }).CAF();
 	}
 }

@@ -1,5 +1,4 @@
-﻿
-using Advobot.Attributes.ParameterPreconditions.DiscordObjectValidation.Roles;
+﻿using Advobot.Attributes.ParameterPreconditions.DiscordObjectValidation.Roles;
 using Advobot.Tests.Fakes.Discord;
 using Advobot.Tests.TestBases;
 
@@ -31,8 +30,7 @@ namespace Advobot.Tests.Core.Attributes.ParameterPreconditions.DiscordObjectVali
 			await Context.User.AddRoleAsync(_HigherRole).CAF();
 			await Context.Guild.FakeCurrentUser.AddRoleAsync(_LowerRole).CAF();
 
-			var result = await CheckPermissionsAsync(_Role).CAF();
-			Assert.IsFalse(result.IsSuccess);
+			await AssertFailureAsync(_Role).CAF();
 		}
 
 		[TestMethod]
@@ -41,8 +39,7 @@ namespace Advobot.Tests.Core.Attributes.ParameterPreconditions.DiscordObjectVali
 			await Context.User.AddRoleAsync(_HigherRole).CAF();
 			await Context.Guild.FakeCurrentUser.AddRoleAsync(_HigherRole).CAF();
 
-			var result = await CheckPermissionsAsync(_Role).CAF();
-			Assert.IsTrue(result.IsSuccess);
+			await AssertSuccessAsync(_Role).CAF();
 		}
 
 		[TestMethod]
@@ -51,8 +48,7 @@ namespace Advobot.Tests.Core.Attributes.ParameterPreconditions.DiscordObjectVali
 			await Context.User.AddRoleAsync(_LowerRole).CAF();
 			await Context.Guild.FakeCurrentUser.AddRoleAsync(_HigherRole).CAF();
 
-			var result = await CheckPermissionsAsync(_Role).CAF();
-			Assert.IsFalse(result.IsSuccess);
+			await AssertFailureAsync(_Role).CAF();
 		}
 
 		[TestMethod]
@@ -61,8 +57,7 @@ namespace Advobot.Tests.Core.Attributes.ParameterPreconditions.DiscordObjectVali
 			await Context.User.AddRoleAsync(_LowerRole).CAF();
 			await Context.Guild.FakeCurrentUser.AddRoleAsync(_LowerRole).CAF();
 
-			var result = await CheckPermissionsAsync(_Role).CAF();
-			Assert.IsFalse(result.IsSuccess);
+			await AssertFailureAsync(_Role).CAF();
 		}
 	}
 }

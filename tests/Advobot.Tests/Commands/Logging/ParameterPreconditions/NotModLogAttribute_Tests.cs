@@ -1,5 +1,4 @@
-﻿
-using Advobot.Logging;
+﻿using Advobot.Logging;
 using Advobot.Logging.Database;
 using Advobot.Logging.ParameterPreconditions;
 using Advobot.Tests.Fakes.Services.Logging;
@@ -24,16 +23,13 @@ namespace Advobot.Tests.Commands.Logging.ParameterPreconditions
 		public async Task LogExisting_Test()
 		{
 			await _Db.UpsertLogChannelAsync(Log.Mod, Context.Guild.Id, Context.Channel.Id).CAF();
-			var result = await CheckPermissionsAsync(Context.Channel).CAF();
-			Assert.IsFalse(result.IsSuccess);
+
+			await AssertFailureAsync(Context.Channel).CAF();
 		}
 
 		[TestMethod]
 		public async Task LogNotExisting_Test()
-		{
-			var result = await CheckPermissionsAsync(Context.Channel).CAF();
-			Assert.IsTrue(result.IsSuccess);
-		}
+			=> await AssertSuccessAsync(Context.Channel).CAF();
 
 		protected override void ModifyServices(IServiceCollection services)
 		{

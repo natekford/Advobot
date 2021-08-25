@@ -1,5 +1,4 @@
-﻿
-using Advobot.AutoMod.Attributes.ParameterPreconditions;
+﻿using Advobot.AutoMod.Attributes.ParameterPreconditions;
 using Advobot.AutoMod.Database;
 using Advobot.AutoMod.Models;
 using Advobot.Punishments;
@@ -37,16 +36,12 @@ namespace Advobot.Tests.Commands.AutoMod.ParameterPreconditions
 				PunishmentType: PunishmentType.Nothing
 			)).CAF();
 
-			var result = await CheckPermissionsAsync(PHRASE).CAF();
-			Assert.IsFalse(result.IsSuccess);
+			await AssertFailureAsync(PHRASE).CAF();
 		}
 
 		[TestMethod]
 		public async Task NotExisting_Test()
-		{
-			var result = await CheckPermissionsAsync("not existing").CAF();
-			Assert.IsTrue(result.IsSuccess);
-		}
+			=> await AssertSuccessAsync("not existing").CAF();
 
 		[TestMethod]
 		public async Task NotExistingButOtherTypeExists_Test()
@@ -63,8 +58,7 @@ namespace Advobot.Tests.Commands.AutoMod.ParameterPreconditions
 				PunishmentType: PunishmentType.Nothing
 			)).CAF();
 
-			var result = await CheckPermissionsAsync(PHRASE).CAF();
-			Assert.IsTrue(result.IsSuccess);
+			await AssertSuccessAsync(PHRASE).CAF();
 		}
 
 		protected override void ModifyServices(IServiceCollection services)

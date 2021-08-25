@@ -1,5 +1,4 @@
-﻿
-using Advobot.Attributes.ParameterPreconditions.DiscordObjectValidation.Roles;
+﻿using Advobot.Attributes.ParameterPreconditions.DiscordObjectValidation.Roles;
 using Advobot.Tests.Fakes.Discord;
 using Advobot.Tests.TestBases;
 
@@ -17,19 +16,10 @@ namespace Advobot.Tests.Core.Attributes.ParameterPreconditions.DiscordObjectVali
 
 		[TestMethod]
 		public async Task RoleIsEveryone_Test()
-		{
-			var result = await CheckPermissionsAsync(Context.Guild.FakeEveryoneRole).CAF();
-			Assert.IsFalse(result.IsSuccess);
-		}
+			=> await AssertFailureAsync(Context.Guild.FakeEveryoneRole).CAF();
 
 		[TestMethod]
 		public async Task RoleIsNotEveryone_Test()
-		{
-			var result = await CheckPermissionsAsync(new FakeRole(Context.Guild)
-			{
-				Id = 73,
-			}).CAF();
-			Assert.IsTrue(result.IsSuccess);
-		}
+			=> await AssertSuccessAsync(new FakeRole(Context.Guild) { Id = 73, }).CAF();
 	}
 }

@@ -1,5 +1,4 @@
-﻿
-using Advobot.Quotes.ParameterPreconditions;
+﻿using Advobot.Quotes.ParameterPreconditions;
 using Advobot.Tests.TestBases;
 
 using AdvorangesUtils;
@@ -15,20 +14,19 @@ namespace Advobot.Tests.Commands.Quotes.ParameterPreconditions
 		protected override RuleAttribute Instance { get; } = new();
 
 		[TestMethod]
-		public async Task Standard_Test()
-		{
-			var expected = new Dictionary<string, bool>
-			{
-				{ "", false },
-				{ new string('a', 1), true },
-				{ new string('a', 500), true },
-				{ new string('a', 501), false },
-			};
-			foreach (var kvp in expected)
-			{
-				var result = await CheckPermissionsAsync(kvp.Key).CAF();
-				Assert.AreEqual(kvp.Value, result.IsSuccess);
-			}
-		}
+		public async Task Empty_Test()
+			=> await AssertFailureAsync("").CAF();
+
+		[TestMethod]
+		public async Task Length1_Test()
+			=> await AssertSuccessAsync(new string('a', 1)).CAF();
+
+		[TestMethod]
+		public async Task Length500_Test()
+			=> await AssertSuccessAsync(new string('a', 500)).CAF();
+
+		[TestMethod]
+		public async Task Length501_Test()
+			=> await AssertFailureAsync(new string('a', 501)).CAF();
 	}
 }

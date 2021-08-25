@@ -1,5 +1,4 @@
-﻿
-using Advobot.Attributes.ParameterPreconditions.DiscordObjectValidation.Users;
+﻿using Advobot.Attributes.ParameterPreconditions.DiscordObjectValidation.Users;
 using Advobot.Tests.Fakes.Discord;
 using Advobot.Tests.Fakes.Discord.Users;
 using Advobot.Tests.TestBases;
@@ -35,8 +34,7 @@ namespace Advobot.Tests.Core.Attributes.ParameterPreconditions.DiscordObjectVali
 			await Context.Guild.FakeCurrentUser.AddRoleAsync(_LowerRole).CAF();
 			await _User.AddRoleAsync(_Role).CAF();
 
-			var result = await CheckPermissionsAsync(_User).CAF();
-			Assert.IsFalse(result.IsSuccess);
+			await AssertFailureAsync(_User).CAF();
 		}
 
 		[TestMethod]
@@ -45,8 +43,7 @@ namespace Advobot.Tests.Core.Attributes.ParameterPreconditions.DiscordObjectVali
 			await Context.User.AddRoleAsync(_HigherRole).CAF();
 			await Context.Guild.FakeCurrentUser.AddRoleAsync(_HigherRole).CAF();
 
-			var result = await CheckPermissionsAsync(Context.Guild.FakeOwner).CAF();
-			Assert.IsFalse(result.IsSuccess);
+			await AssertFailureAsync(Context.Guild.FakeOwner).CAF();
 		}
 
 		[TestMethod]
@@ -56,8 +53,7 @@ namespace Advobot.Tests.Core.Attributes.ParameterPreconditions.DiscordObjectVali
 			await Context.Guild.FakeCurrentUser.AddRoleAsync(_HigherRole).CAF();
 			await _User.AddRoleAsync(_Role).CAF();
 
-			var result = await CheckPermissionsAsync(_User).CAF();
-			Assert.IsTrue(result.IsSuccess);
+			await AssertSuccessAsync(_User).CAF();
 		}
 
 		[TestMethod]
@@ -67,8 +63,7 @@ namespace Advobot.Tests.Core.Attributes.ParameterPreconditions.DiscordObjectVali
 			await Context.Guild.FakeCurrentUser.AddRoleAsync(_HigherRole).CAF();
 			await _User.AddRoleAsync(_Role).CAF();
 
-			var result = await CheckPermissionsAsync(_User).CAF();
-			Assert.IsFalse(result.IsSuccess);
+			await AssertFailureAsync(_User).CAF();
 		}
 
 		[TestMethod]
@@ -78,8 +73,7 @@ namespace Advobot.Tests.Core.Attributes.ParameterPreconditions.DiscordObjectVali
 			await Context.Guild.FakeCurrentUser.AddRoleAsync(_LowerRole).CAF();
 			await _User.AddRoleAsync(_Role).CAF();
 
-			var result = await CheckPermissionsAsync(_User).CAF();
-			Assert.IsFalse(result.IsSuccess);
+			await AssertFailureAsync(_User).CAF();
 		}
 	}
 }

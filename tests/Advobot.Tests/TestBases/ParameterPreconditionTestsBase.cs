@@ -1,5 +1,4 @@
-﻿
-using AdvorangesUtils;
+﻿using AdvorangesUtils;
 
 using Discord.Commands;
 
@@ -14,12 +13,24 @@ namespace Advobot.Tests.TestBases
 
 		[TestMethod]
 		public async Task InvalidType_Test()
+			=> await AssertFailureAsync(new object()).CAF();
+
+		protected async Task<PreconditionResult> AssertFailureAsync(
+			object value,
+			ParameterInfo? parameter = null)
 		{
-			var result = await CheckPermissionsAsync(new object()).CAF();
+			var result = await Instance.CheckPermissionsAsync(Context, parameter, value, Services).CAF();
 			Assert.IsFalse(result.IsSuccess);
+			return result;
 		}
 
-		protected Task<PreconditionResult> CheckPermissionsAsync(object value, ParameterInfo? parameter = null)
-			=> Instance.CheckPermissionsAsync(Context, parameter, value, Services);
+		protected async Task<PreconditionResult> AssertSuccessAsync(
+			object value,
+			ParameterInfo? parameter = null)
+		{
+			var result = await Instance.CheckPermissionsAsync(Context, parameter, value, Services).CAF();
+			Assert.IsTrue(result.IsSuccess);
+			return result;
+		}
 	}
 }
