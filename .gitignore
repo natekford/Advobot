@@ -260,5 +260,8 @@ paket-files/
 __pycache__/
 *.pyc
 
-# VS Code
+# Visual Studio Code settings
 .vscode/
+
+# lcov files
+lcov.info

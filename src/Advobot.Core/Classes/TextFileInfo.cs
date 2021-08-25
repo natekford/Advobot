@@ -22,7 +22,6 @@ namespace Advobot.Classes
 				_Name = $"{sanitized}_{FormattingUtils.ToSaving()}.txt";
 			}
 		}
-
 		/// <summary>
 		/// The text of the text file.
 		/// </summary>

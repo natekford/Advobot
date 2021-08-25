@@ -16,6 +16,7 @@ namespace Advobot.Classes
 	/// </summary>
 	public sealed class EmbedWrapper
 	{
+		//TODO: rewrite
 		/// <summary>
 		/// The maximum length in lines a description can be before it won't render on mobile.
 		/// </summary>
@@ -25,11 +26,7 @@ namespace Advobot.Classes
 		/// </summary>
 		public const int MAX_FIELD_LINES = 5;
 
-		private readonly EmbedBuilder _Builder = new()
-		{
-			Color = Base,
-			Timestamp = DateTimeOffset.UtcNow
-		};
+		private readonly EmbedBuilder _Builder;
 		private readonly List<IEmbedError> _Errors = new();
 
 		/// <summary>
@@ -171,6 +168,11 @@ namespace Advobot.Classes
 		/// </summary>
 		public EmbedWrapper()
 		{
+			_Builder = new()
+			{
+				Color = Base,
+				Timestamp = DateTimeOffset.UtcNow
+			};
 		}
 
 		/// <summary>
