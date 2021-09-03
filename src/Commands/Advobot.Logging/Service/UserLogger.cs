@@ -18,8 +18,8 @@ namespace Advobot.Logging.Service
 	public sealed class UserLogger
 	{
 		private readonly BaseSocketClient _Client;
-		private readonly ConcurrentDictionary<ulong, InviteCache> _Invites =
-			new();
+		private readonly ConcurrentDictionary<ulong, InviteCache> _Invites = new();
+		private readonly MessageSenderQueue _MessageQueue;
 		private readonly ITime _Time;
 
 		#region Handlers
@@ -28,9 +28,14 @@ namespace Advobot.Logging.Service
 		private readonly LogHandler<UserUpdatedState> _UserUpdated;
 		#endregion Handlers
 
-		public UserLogger(ILoggingDatabase db, BaseSocketClient client, ITime time)
+		public UserLogger(
+			ILoggingDatabase db,
+			BaseSocketClient client,
+			MessageSenderQueue queue,
+			ITime time)
 		{
 			_Client = client;
+			_MessageQueue = queue;
 			_Time = time;
 
 			_UserJoined = new(LogAction.UserJoined, db)
@@ -86,7 +91,7 @@ namespace Advobot.Logging.Service
 				? $"**New Account:** {(int)time.TotalHours} hours, {time.Minutes} minutes old."
 				: "";
 
-			await context.ServerLog.SendMessageAsync(new EmbedWrapper
+			_MessageQueue.Enqueue((context.ServerLog, new EmbedWrapper
 			{
 				Description = $"**ID:** {context.State.User.Id}\n{invite}\n{age}",
 				Color = EmbedWrapper.Join,
@@ -95,7 +100,7 @@ namespace Advobot.Logging.Service
 				{
 					Text = context.State.User.IsBot ? "Bot Joined" : "User Joined"
 				},
-			}.ToMessageArgs()).CAF();
+			}.ToMessageArgs()));
 		}
 
 		private Task HandleLeftLogging(ILogContext<UserState> context)
@@ -112,7 +117,7 @@ namespace Advobot.Logging.Service
 				stay = $"**Stayed for:** {time.Days}:{time.Hours:00}:{time.Minutes:00}:{time.Seconds:00}";
 			}
 
-			return context.ServerLog.SendMessageAsync(new EmbedWrapper
+			_MessageQueue.Enqueue((context.ServerLog, new EmbedWrapper
 			{
 				Description = $"**ID:** {context.State.User.Id}\n{stay}",
 				Color = EmbedWrapper.Leave,
@@ -121,7 +126,8 @@ namespace Advobot.Logging.Service
 				{
 					Text = context.State.User.IsBot ? "Bot Left" : "User Left",
 				},
-			}.ToMessageArgs());
+			}.ToMessageArgs()));
+			return Task.CompletedTask;
 		}
 
 		private Task HandleUsernameUpdated(ILogContext<UserUpdatedState> context)
@@ -131,7 +137,7 @@ namespace Advobot.Logging.Service
 				return Task.CompletedTask;
 			}
 
-			return context.ServerLog.SendMessageAsync(new EmbedWrapper
+			_MessageQueue.Enqueue((context.ServerLog, new EmbedWrapper
 			{
 				Color = EmbedWrapper.UserEdit,
 				Author = context.State.User.CreateAuthor(),
@@ -151,7 +157,8 @@ namespace Advobot.Logging.Service
 						IsInline = true
 					},
 				},
-			}.ToMessageArgs());
+			}.ToMessageArgs()));
+			return Task.CompletedTask;
 		}
 	}
 }

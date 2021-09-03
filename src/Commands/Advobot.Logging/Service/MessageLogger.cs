@@ -22,6 +22,7 @@ namespace Advobot.Logging.Service
 		private const int MAX_FIELD_LENGTH = EmbedFieldBuilder.MaxFieldValueLength - 50;
 		private const int MAX_FIELD_LINES = MAX_DESCRIPTION_LENGTH / 2;
 
+		private readonly MessageSenderQueue _MessageQueue;
 		private ConcurrentDictionary<ulong, (ConcurrentBag<IMessage>, ITextChannel)> _Messages = new();
 
 		#region Handlers
@@ -31,8 +32,10 @@ namespace Advobot.Logging.Service
 		private readonly LogHandler<MessageEditState> _MessageUpdated;
 		#endregion Handlers
 
-		public MessageLogger(ILoggingDatabase db)
+		public MessageLogger(ILoggingDatabase db, MessageSenderQueue queue)
 		{
+			_MessageQueue = queue;
+
 			_MessageDeleted = new(LogAction.MessageDeleted, db)
 			{
 				HandleMessageDeletedLogging,
@@ -92,36 +95,37 @@ namespace Advobot.Logging.Service
 			ISocketMessageChannel _)
 			=> _MessageUpdated.HandleAsync(new MessageEditState(cached, message));
 
-		private async Task HandleImageLoggingAsync(ILogContext<MessageState> context)
+		private Task HandleImageLoggingAsync(ILogContext<MessageState> context)
 		{
 			if (context.ImageLog is null)
 			{
-				return;
+				return Task.CompletedTask;
 			}
 
 			var state = context.State;
-			foreach (var loggable in ImageLogItem.GetAllImages(state.Message))
+			foreach (var image in ImageLogItem.GetAllImages(state.Message))
 			{
 				var jump = state.Message.GetJumpUrl();
-				var description = $"[Message]({jump}), [Embed Source]({loggable.Url})";
-				if (loggable.ImageUrl != null)
+				var description = $"[Message]({jump}), [Embed Source]({image.Url})";
+				if (image.ImageUrl != null)
 				{
-					description += $", [Image]({loggable.ImageUrl})";
+					description += $", [Image]({image.ImageUrl})";
 				}
 
-				await context.ImageLog.SendMessageAsync(new EmbedWrapper
+				_MessageQueue.Enqueue((context.ImageLog, new EmbedWrapper
 				{
 					Description = description,
 					Color = EmbedWrapper.Attachment,
-					ImageUrl = loggable.ImageUrl,
+					ImageUrl = image.ImageUrl,
 					Author = state.User.CreateAuthor(),
 					Footer = new()
 					{
-						Text = loggable.Footer,
+						Text = image.Footer,
 						IconUrl = state.User.GetAvatarUrl()
 					},
-				}.ToMessageArgs()).CAF();
+				}.ToMessageArgs()));
 			}
+			return Task.CompletedTask;
 		}
 
 		private Task HandleMessageDeletedLogging(ILogContext<MessageDeletedState> context)
@@ -198,7 +202,8 @@ namespace Advobot.Logging.Service
 				};
 			}
 
-			return context.ServerLog.SendMessageAsync(sendMessageArgs);
+			_MessageQueue.Enqueue((context.ServerLog, sendMessageArgs));
+			return Task.CompletedTask;
 		}
 
 		private Task HandleMessagesBulkDeletedLogging(ILogContext<MessagesBulkDeletedState> context)
@@ -235,15 +240,16 @@ namespace Advobot.Logging.Service
 				}
 			}
 
+			SendMessageArgs sendMessageArgs;
 			if (inEmbed)
 			{
-				return log.SendMessageAsync(new EmbedWrapper
+				sendMessageArgs = new EmbedWrapper
 				{
 					Title = "Deleted Messages",
 					Description = sb.ToString(),
 					Color = EmbedWrapper.MessageDelete,
 					Footer = new() { Text = "Deleted Messages", },
-				}.ToMessageArgs());
+				}.ToMessageArgs();
 			}
 			else
 			{
@@ -256,15 +262,18 @@ namespace Advobot.Logging.Service
 					sb.AppendLineFeed(text);
 				}
 
-				return log.SendMessageAsync(new SendMessageArgs
+				sendMessageArgs = new SendMessageArgs
 				{
 					File = new()
 					{
 						Name = $"{ordered.Count}_Deleted_Messages",
 						Text = sb.ToString(),
 					}
-				});
+				};
 			}
+
+			_MessageQueue.Enqueue((log, sendMessageArgs));
+			return Task.CompletedTask;
 		}
 	}
 }

@@ -1,5 +1,4 @@
-﻿
-using Advobot.Logging.Database;
+﻿using Advobot.Logging.Database;
 using Advobot.Services.BotSettings;
 using Advobot.Services.Commands;
 using Advobot.Services.Time;
@@ -24,6 +23,7 @@ namespace Advobot.Logging.Service
 			BaseSocketClient client,
 			ICommandHandlerService commandHandler,
 			IBotSettings botSettings,
+			MessageSenderQueue queue,
 			ITime time)
 		{
 			_Db = db;
@@ -40,13 +40,13 @@ namespace Advobot.Logging.Service
 			commandHandler.Ready += _CommandHandlerLogger.OnReady;
 			commandHandler.Log += OnLogMessageSent;
 
-			_MessageLogger = new(_Db);
+			_MessageLogger = new(_Db, queue);
 			client.MessageDeleted += _MessageLogger.OnMessageDeleted;
 			client.MessagesBulkDeleted += _MessageLogger.OnMessagesBulkDeleted;
 			client.MessageReceived += _MessageLogger.OnMessageReceived;
 			client.MessageUpdated += _MessageLogger.OnMessageUpdated;
 
-			_UserLogger = new(_Db, client, time);
+			_UserLogger = new(_Db, client, queue, time);
 			client.UserJoined += _UserLogger.OnUserJoined;
 			client.UserLeft += _UserLogger.OnUserLeft;
 			client.UserUpdated += _UserLogger.OnUserUpdated;

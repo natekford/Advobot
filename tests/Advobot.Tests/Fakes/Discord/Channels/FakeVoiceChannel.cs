@@ -1,5 +1,4 @@
-﻿
-using AdvorangesUtils;
+﻿using AdvorangesUtils;
 
 using Discord;
 using Discord.Audio;
@@ -11,6 +10,7 @@ namespace Advobot.Tests.Fakes.Discord.Channels
 		public int Bitrate { get; set; }
 		public ulong? CategoryId => ProtectedCategoryId;
 		public int? UserLimit { get; set; }
+		public string Mention => MentionUtils.MentionChannel(Id);
 
 		public FakeVoiceChannel(FakeGuild guild) : base(guild)
 		{

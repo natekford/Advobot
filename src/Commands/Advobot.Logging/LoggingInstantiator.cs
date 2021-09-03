@@ -1,5 +1,4 @@
-﻿
-using Advobot.CommandAssemblies;
+﻿using Advobot.CommandAssemblies;
 using Advobot.Logging.Database;
 using Advobot.Logging.OptionSetters;
 using Advobot.Logging.Service;
@@ -21,6 +20,7 @@ namespace Advobot.Logging
 				.AddSingleton<INotificationDatabase, NotificationDatabase>()
 				.AddSQLiteFileDatabaseConnectionStringFor<NotificationDatabase>("Notification.db")
 				.AddSingleton<NotificationService>()
+				.AddSingleton<MessageSenderQueue>()
 				.AddDefaultOptionsSetter<LogActionsResetter>()
 				.AddDefaultOptionsSetter<WelcomeNotificationResetter>()
 				.AddDefaultOptionsSetter<GoodbyeNotificationResetter>();
@@ -32,6 +32,7 @@ namespace Advobot.Logging
 		{
 			services.GetRequiredService<IConnectionStringFor<LoggingDatabase>>().MigrateUp();
 			services.GetRequiredService<IConnectionStringFor<NotificationDatabase>>().MigrateUp();
+			services.GetRequiredService<MessageSenderQueue>().Start();
 
 			return Task.CompletedTask;
 		}
