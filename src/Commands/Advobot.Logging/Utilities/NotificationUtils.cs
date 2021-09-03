@@ -1,13 +1,7 @@
-﻿
-using Advobot.Classes;
-using Advobot.Logging.Models;
+﻿using Advobot.Classes;
 using Advobot.Utilities;
 
-using AdvorangesUtils;
-
 using Discord;
-
-using static Advobot.Resources.Responses;
 
 namespace Advobot.Logging.Utilities
 {
@@ -15,6 +9,7 @@ namespace Advobot.Logging.Utilities
 	{
 		public const string USER_MENTION = "%USERMENTION%";
 		public const string USER_STRING = "%USER%";
+		public static AllowedMentions UserMentions { get; } = new(AllowedMentionTypes.Users);
 
 		public static EmbedWrapper BuildWrapper(this Models.CustomEmbed custom)
 		{
@@ -53,35 +48,12 @@ namespace Advobot.Logging.Utilities
 				&& custom.Url == null;
 		}
 
-		public static async Task<IUserMessage?> SendAsync(
-			this CustomNotification notification,
-			IGuild guild,
-			IUser? user)
-		{
-			var channel = await guild.GetTextChannelAsync(notification.ChannelId).CAF();
-			if (channel == null)
-			{
-				return null;
-			}
-
-			var content = notification.Content
-				?.CaseInsReplace(USER_MENTION, user?.Mention ?? VariableInvalidUser)
-				?.CaseInsReplace(USER_STRING, user?.Format() ?? VariableInvalidUser);
-			var embed = notification.EmbedEmpty() ? null : notification.BuildWrapper();
-			return await channel.SendMessageAsync(new SendMessageArgs
-			{
-				Content = content,
-				Embed = embed,
-				AllowedMentions = AllowedMentions.All,
-			}).CAF();
-		}
-
 		public static SendMessageArgs ToMessageArgs(this EmbedWrapper embed)
 		{
 			return new()
 			{
 				Embed = embed,
-				AllowedMentions = new(AllowedMentionTypes.Users),
+				AllowedMentions = UserMentions,
 			};
 		}
 	}

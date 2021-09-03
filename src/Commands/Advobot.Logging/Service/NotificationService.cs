@@ -1,47 +1,63 @@
-﻿
-using Advobot.Logging.Database;
+﻿using Advobot.Logging.Database;
 using Advobot.Logging.Utilities;
+using Advobot.Utilities;
 
 using AdvorangesUtils;
 
 using Discord.WebSocket;
+
+using static Advobot.Resources.Responses;
 
 namespace Advobot.Logging.Service
 {
 	public sealed class NotificationService
 	{
 		private readonly INotificationDatabase _Db;
+		private readonly MessageSenderQueue _MessageQueue;
 
 		public NotificationService(
 			INotificationDatabase db,
-			BaseSocketClient client)
+			BaseSocketClient client,
+			MessageSenderQueue queue)
 		{
 			_Db = db;
+			_MessageQueue = queue;
 
 			client.UserJoined += OnUserJoined;
 			client.UserLeft += OnUserLeft;
 		}
 
-		private async Task OnUserJoined(SocketGuildUser user)
+		private async Task OnEvent(Notification notifType, SocketGuildUser user)
 		{
-			var notification = await _Db.GetAsync(Notification.Welcome, user.Guild.Id).CAF();
-			if (notification == null || notification.GuildId == 0)
+			var notification = await _Db.GetAsync(notifType, user.Guild.Id).CAF();
+			if (notification is null || notification.GuildId == 0)
 			{
 				return;
 			}
 
-			await notification.SendAsync(user.Guild, user).CAF();
-		}
-
-		private async Task OnUserLeft(SocketGuildUser user)
-		{
-			var notification = await _Db.GetAsync(Notification.Goodbye, user.Guild.Id).CAF();
-			if (notification == null || notification.GuildId == 0)
+			var channel = user.Guild.GetTextChannel(notification.ChannelId);
+			if (channel is null)
 			{
 				return;
 			}
 
-			await notification.SendAsync(user.Guild, user).CAF();
+			var content = notification.Content
+				?.CaseInsReplace(NotificationUtils.USER_MENTION, user?.Mention ?? VariableInvalidUser)
+				?.CaseInsReplace(NotificationUtils.USER_STRING, user?.Format() ?? VariableInvalidUser);
+			var embed = notification.EmbedEmpty() ? null : notification.BuildWrapper();
+
+			_MessageQueue.Enqueue((channel, new SendMessageArgs
+			{
+				Content = content,
+				Embed = embed,
+				AllowedMentions = NotificationUtils.UserMentions,
+			}));
 		}
+
+		private Task OnUserJoined(SocketGuildUser user)
+			=> OnEvent(Notification.Welcome, user);
+
+		private Task OnUserLeft(SocketGuildUser user)
+			=> OnEvent(Notification.Goodbye, user);
 	}
 }
