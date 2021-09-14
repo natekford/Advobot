@@ -1,5 +1,4 @@
-﻿using System;
-
+﻿
 using Advobot.Utilities;
 
 namespace Advobot.Formatting

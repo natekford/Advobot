@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace Advobot.Attributes
+﻿namespace Advobot.Attributes
 {
 	/// <summary>
 	/// Indicates the category a command belongs to.

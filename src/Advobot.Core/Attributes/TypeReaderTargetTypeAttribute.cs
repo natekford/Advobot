@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-
-namespace Advobot.Attributes
+﻿namespace Advobot.Attributes
 {
 	/// <summary>
 	/// Specifies what type this type reader targets.

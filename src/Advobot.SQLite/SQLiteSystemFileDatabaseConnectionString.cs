@@ -1,7 +1,4 @@
-﻿using System.IO;
-using System.Threading.Tasks;
-
-namespace Advobot.SQLite
+﻿namespace Advobot.SQLite
 {
 	/// <summary>
 	/// Used for starting a SQLite database from a system file.

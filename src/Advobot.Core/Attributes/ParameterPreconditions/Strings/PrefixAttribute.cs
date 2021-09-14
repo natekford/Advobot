@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace Advobot.Attributes.ParameterPreconditions.Strings
+﻿namespace Advobot.Attributes.ParameterPreconditions.Strings
 {
 	/// <summary>
 	/// Validates the bot prefix by making sure it is between 1 and 10 characters.

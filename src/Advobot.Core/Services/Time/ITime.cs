@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace Advobot.Services.Time
+﻿namespace Advobot.Services.Time
 {
 	/// <summary>
 	/// Abstraction for time.

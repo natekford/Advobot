@@ -1,6 +1,4 @@
-﻿using System.Threading.Tasks;
-
-namespace Advobot.SQLite
+﻿namespace Advobot.SQLite
 {
 	/// <summary>
 	/// Provides a connection string for a database.

@@ -1,5 +1,4 @@
-﻿using System.Collections.Generic;
-
+﻿
 using Advobot.Interfaces;
 
 namespace Advobot.Services.HelpEntries

@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace Advobot.Attributes
+﻿namespace Advobot.Attributes
 {
 	/// <summary>
 	/// Indicates that the class, method, or parameter should not be included in help entries.

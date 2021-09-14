@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace Advobot.Attributes.ParameterPreconditions.Numbers
+﻿namespace Advobot.Attributes.ParameterPreconditions.Numbers
 {
 	/// <summary>
 	/// Validates the amount of days to prune with allowing specified valid values.

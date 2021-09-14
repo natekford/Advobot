@@ -1,6 +1,4 @@
-﻿using System;
-using System.Collections;
-using System.Threading.Tasks;
+﻿using System.Collections;
 
 using Advobot.Services.HelpEntries;
 using Advobot.Utilities;

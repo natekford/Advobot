@@ -1,6 +1,4 @@
-﻿using System.Collections.Generic;
-
-namespace Advobot.Services.HelpEntries
+﻿namespace Advobot.Services.HelpEntries
 {
 	/// <summary>
 	/// Abstraction for a service providing information about commands.

@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace Advobot.Attributes.ParameterPreconditions.Numbers
+﻿namespace Advobot.Attributes.ParameterPreconditions.Numbers
 {
 	/// <summary>
 	/// Validates the channel limit allowing 0 to 99.

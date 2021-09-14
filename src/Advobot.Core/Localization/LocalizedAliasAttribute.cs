@@ -1,6 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Resources;
+﻿using System.Resources;
 
 using Advobot.Utilities;
 

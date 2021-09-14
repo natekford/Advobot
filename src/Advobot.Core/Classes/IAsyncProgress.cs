@@ -1,6 +1,4 @@
-﻿using System.Threading.Tasks;
-
-namespace Advobot.Interfaces
+﻿namespace Advobot.Interfaces
 {
 	/// <summary>
 	/// Defines a provider for asynchronous progress updates.

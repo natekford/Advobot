@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace Advobot.Attributes
+﻿namespace Advobot.Attributes
 {
 	/// <summary>
 	/// Specifies the default value for whether a command is enabled or not.

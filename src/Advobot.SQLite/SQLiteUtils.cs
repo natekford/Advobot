@@ -1,8 +1,5 @@
-﻿using System.Collections.Generic;
-using System.Data.Common;
+﻿using System.Data.Common;
 using System.Data.SQLite;
-using System.Linq;
-using System.Threading.Tasks;
 
 using Advobot.Settings;
 using Advobot.Utilities;

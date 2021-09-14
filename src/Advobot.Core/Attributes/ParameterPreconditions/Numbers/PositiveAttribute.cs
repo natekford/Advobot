@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace Advobot.Attributes.ParameterPreconditions.Numbers
+﻿namespace Advobot.Attributes.ParameterPreconditions.Numbers
 {
 	/// <summary>
 	/// Validates the passed in number allowing 1 to <see cref="int.MaxValue"/>.

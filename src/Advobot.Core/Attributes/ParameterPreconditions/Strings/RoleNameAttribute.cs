@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace Advobot.Attributes.ParameterPreconditions.Strings
+﻿namespace Advobot.Attributes.ParameterPreconditions.Strings
 {
 	/// <summary>
 	/// Validates the role name by making sure it is between 1 and 100 characters.

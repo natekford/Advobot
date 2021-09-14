@@ -1,5 +1,4 @@
 ﻿using System.Globalization;
-using System.Threading.Tasks;
 
 using Advobot.Services.BotSettings;
 using Advobot.Utilities;

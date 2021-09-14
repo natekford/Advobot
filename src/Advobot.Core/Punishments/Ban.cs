@@ -1,5 +1,4 @@
-﻿using System.Threading.Tasks;
-
+﻿
 using Discord;
 
 namespace Advobot.Punishments

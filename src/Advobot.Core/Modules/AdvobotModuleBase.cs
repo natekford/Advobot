@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Threading;
-using System.Threading.Tasks;
-
+﻿
 using Advobot.Attributes.Preconditions;
 using Advobot.Interactivity;
 using Advobot.Interactivity.Criterions;

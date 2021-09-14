@@ -1,5 +1,4 @@
-﻿using System.Collections.Generic;
-
+﻿
 using AdvorangesUtils;
 
 namespace Advobot.Formatting

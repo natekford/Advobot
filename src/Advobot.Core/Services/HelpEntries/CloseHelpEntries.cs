@@ -1,5 +1,4 @@
-﻿using System.Collections.Generic;
-
+﻿
 using Advobot.Classes.CloseWords;
 
 namespace Advobot.Services.HelpEntries

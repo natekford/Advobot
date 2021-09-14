@@ -1,6 +1,4 @@
-﻿using System.Collections.Generic;
-
-namespace Advobot.Services.ImageResizing
+﻿namespace Advobot.Services.ImageResizing
 {
 	/// <summary>
 	/// Resizes and uses images.

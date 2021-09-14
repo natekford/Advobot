@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace Advobot.Attributes.ParameterPreconditions.Numbers
+﻿namespace Advobot.Attributes.ParameterPreconditions.Numbers
 {
 	/// <summary>
 	/// Validates the guild afk timer in seconds allowing specified valid values.

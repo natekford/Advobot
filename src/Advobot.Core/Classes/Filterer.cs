@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-
-namespace Advobot.Classes
+﻿namespace Advobot.Classes
 {
 	/// <summary>
 	/// Indicates whether when searching for a number to look at numbers exactly equal, below, or above.

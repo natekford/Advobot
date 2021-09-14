@@ -1,5 +1,4 @@
-﻿using System;
-
+﻿
 using Discord.Commands;
 
 namespace Advobot.Preconditions

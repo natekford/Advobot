@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace Advobot.Modules
+﻿namespace Advobot.Modules
 {
 	/// <summary>
 	/// Holds time since the command was started.
