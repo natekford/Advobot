@@ -9,8 +9,8 @@ namespace Advobot.Tests.Fakes.Discord.Channels
 	{
 		public int Bitrate { get; set; }
 		public ulong? CategoryId => ProtectedCategoryId;
-		public int? UserLimit { get; set; }
 		public string Mention => MentionUtils.MentionChannel(Id);
+		public int? UserLimit { get; set; }
 
 		public FakeVoiceChannel(FakeGuild guild) : base(guild)
 		{
@@ -30,8 +30,14 @@ namespace Advobot.Tests.Fakes.Discord.Channels
 			return Task.FromResult<IInviteMetadata>(invite);
 		}
 
-		public Task DisconnectAsync()
+		public Task<IInviteMetadata> CreateInviteToApplicationAsync(ulong applicationId, int? maxAge = 86400, int? maxUses = null, bool isTemporary = false, bool isUnique = false, RequestOptions options = null)
 			=> throw new NotImplementedException();
+
+		public Task<IInviteMetadata> CreateInviteToStreamAsync(IUser user, int? maxAge = 86400, int? maxUses = null, bool isTemporary = false, bool isUnique = false, RequestOptions options = null)
+			=> throw new NotImplementedException();
+
+		public Task DisconnectAsync()
+							=> throw new NotImplementedException();
 
 		public Task<ICategoryChannel?> GetCategoryAsync(CacheMode mode = CacheMode.AllowDownload, RequestOptions? options = null)
 		{

@@ -1,5 +1,4 @@
-﻿
-using Advobot.Attributes;
+﻿using Advobot.Attributes;
 using Advobot.Attributes.ParameterPreconditions.DiscordObjectValidation.Emotes;
 using Advobot.Attributes.ParameterPreconditions.DiscordObjectValidation.Roles;
 using Advobot.Attributes.ParameterPreconditions.Strings;
@@ -25,7 +24,7 @@ namespace Advobot.Standard.Commands
 		[LocalizedSummary(nameof(Summaries.CreateEmote))]
 		[Meta("e001108f-5bae-4589-865e-775a2d21e327", IsEnabled = true)]
 		[RateLimit(TimeUnit.Minutes, 1)]
-		[RequireGuildPermissions(GuildPermission.ManageEmojis)]
+		[RequireGuildPermissions(GuildPermission.ManageEmojisAndStickers)]
 		public sealed class CreateEmote : ImageResizerModule
 		{
 			[Command]
@@ -50,7 +49,7 @@ namespace Advobot.Standard.Commands
 		[LocalizedAlias(nameof(Aliases.DeleteEmote))]
 		[LocalizedSummary(nameof(Summaries.DeleteEmote))]
 		[Meta("104da53d-1cb6-4ee4-8260-ac7398512351", IsEnabled = true)]
-		[RequireGuildPermissions(GuildPermission.ManageEmojis)]
+		[RequireGuildPermissions(GuildPermission.ManageEmojisAndStickers)]
 		public sealed class DeleteEmote : AdvobotModuleBase
 		{
 			[Command]
@@ -88,7 +87,7 @@ namespace Advobot.Standard.Commands
 		[LocalizedAlias(nameof(Aliases.ModifyEmoteName))]
 		[LocalizedSummary(nameof(Summaries.ModifyEmoteName))]
 		[Meta("3fe7f72f-c10a-4cc8-b76f-376a1c1aced4", IsEnabled = true)]
-		[RequireGuildPermissions(GuildPermission.ManageEmojis)]
+		[RequireGuildPermissions(GuildPermission.ManageEmojisAndStickers)]
 		public sealed class ModifyEmoteName : AdvobotModuleBase
 		{
 			[Command]
@@ -107,7 +106,7 @@ namespace Advobot.Standard.Commands
 		[LocalizedAlias(nameof(Aliases.ModifyEmoteRoles))]
 		[LocalizedSummary(nameof(Summaries.ModifyEmoteRoles))]
 		[Meta("103b0c35-0bd0-4f72-a010-8a4013601258", IsEnabled = true)]
-		[RequireGuildPermissions(GuildPermission.ManageEmojis)]
+		[RequireGuildPermissions(GuildPermission.ManageEmojisAndStickers)]
 		public sealed class ModifyEmoteRoles : AdvobotModuleBase
 		{
 			[LocalizedCommand(nameof(Groups.Add))]

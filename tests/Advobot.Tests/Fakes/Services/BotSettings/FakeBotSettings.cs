@@ -1,5 +1,4 @@
-﻿
-using Advobot.Services.BotSettings;
+﻿using Advobot.Services.BotSettings;
 
 using Discord;
 
@@ -29,10 +28,13 @@ namespace Advobot.Tests.Fakes.Services.BotSettings
 		public IList<ulong> UsersIgnoredFromCommands { get; set; } = new List<ulong>();
 		public IList<ulong> UsersUnableToDmOwner { get; set; } = new List<ulong>();
 
-		public IReadOnlyCollection<string> GetSettingNames() => throw new NotImplementedException();
+		public IReadOnlyCollection<string> GetSettingNames()
+			=> throw new NotImplementedException();
 
-		public void ResetSetting(string name) => throw new NotImplementedException();
+		public void ResetSetting(string name)
+			=> throw new NotImplementedException();
 
-		public void Save() => throw new NotImplementedException();
+		public void Save()
+			=> throw new NotImplementedException();
 	}
 }

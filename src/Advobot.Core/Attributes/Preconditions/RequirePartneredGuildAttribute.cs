@@ -1,7 +1,7 @@
-﻿
-using Advobot.Services.HelpEntries;
+﻿using Advobot.Services.HelpEntries;
 using Advobot.Utilities;
 
+using Discord;
 using Discord.Commands;
 
 namespace Advobot.Attributes.Preconditions
@@ -23,7 +23,7 @@ namespace Advobot.Attributes.Preconditions
 			CommandInfo command,
 			IServiceProvider services)
 		{
-			if (context.Guild.Features.Count > 0)
+			if ((context.Guild.Features.Value & GuildFeature.Partnered) != 0)
 			{
 				return this.FromSuccess().AsTask();
 			}

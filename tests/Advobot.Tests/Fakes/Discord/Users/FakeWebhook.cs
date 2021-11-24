@@ -1,5 +1,4 @@
-﻿
-using Advobot.Tests.Fakes.Discord.Channels;
+﻿using Advobot.Tests.Fakes.Discord.Channels;
 
 using Discord;
 
@@ -7,6 +6,7 @@ namespace Advobot.Tests.Fakes.Discord.Users
 {
 	public sealed class FakeWebhook : FakeSnowflake, IWebhook
 	{
+		public ulong? ApplicationId => throw new NotImplementedException();
 		public string AvatarId => throw new NotImplementedException();
 		public ulong ChannelId => FakeChannel.Id;
 		public FakeTextChannel FakeChannel { get; private set; }

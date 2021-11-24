@@ -40,10 +40,9 @@ namespace Advobot.Tests.Fakes.Discord
 		public List<FakeRole> FakeRoles { get; } = new List<FakeRole>();
 		public List<FakeGuildUser> FakeUsers { get; } = new List<FakeGuildUser>();
 		public List<FakeWebhook> FakeWebhooks { get; } = new List<FakeWebhook>();
-		public List<string> Features { get; } = new List<string>();
+		public GuildFeatures Features { get; set; } = new GuildFeaturesCreationArgs().Build();
 		public string IconId => throw new NotImplementedException();
 		public string IconUrl => throw new NotImplementedException();
-
 		public override ulong Id
 		{
 			get => base.Id;
@@ -53,7 +52,7 @@ namespace Advobot.Tests.Fakes.Discord
 				base.Id = value;
 			}
 		}
-
+		public bool IsBoostProgressBarEnabled => throw new NotImplementedException();
 		public bool IsEmbeddable => throw new NotImplementedException();
 		public bool IsWidgetEnabled => throw new NotImplementedException();
 		public int? MaxMembers => throw new NotImplementedException();
@@ -61,11 +60,11 @@ namespace Advobot.Tests.Fakes.Discord
 		public int? MaxVideoChannelUsers => throw new NotImplementedException();
 		public MfaLevel MfaLevel => throw new NotImplementedException();
 		public string Name => "Fake Guild";
+		public NsfwLevel NsfwLevel => throw new NotImplementedException();
 		public ulong OwnerId => FakeOwner.Id;
 		public CultureInfo PreferredCulture => throw new NotImplementedException();
 		public string PreferredLocale => throw new NotImplementedException();
 		public int PremiumSubscriptionCount { get; set; }
-
 		public PremiumTier PremiumTier => PremiumSubscriptionCount switch
 		{
 			int i when i >= 50 => PremiumTier.Tier3,
@@ -73,11 +72,11 @@ namespace Advobot.Tests.Fakes.Discord
 			int i when i >= 2 => PremiumTier.Tier1,
 			_ => PremiumTier.None,
 		};
-
 		public ulong? PublicUpdatesChannelId => throw new NotImplementedException();
 		public ulong? RulesChannelId => throw new NotImplementedException();
 		public string SplashId => throw new NotImplementedException();
 		public string SplashUrl => throw new NotImplementedException();
+		public IReadOnlyCollection<ICustomSticker> Stickers => throw new NotImplementedException();
 		public SystemChannelMessageDeny SystemChannelFlags => throw new NotImplementedException();
 		public ulong? SystemChannelId => throw new NotImplementedException();
 		public string VanityURLCode => throw new NotImplementedException();
@@ -86,7 +85,6 @@ namespace Advobot.Tests.Fakes.Discord
 		public ulong? WidgetChannelId => throw new NotImplementedException();
 		IReadOnlyCollection<GuildEmote> IGuild.Emotes => Emotes;
 		IRole IGuild.EveryoneRole => FakeEveryoneRole;
-		IReadOnlyCollection<string> IGuild.Features => Features;
 		IReadOnlyCollection<IRole> IGuild.Roles => FakeRoles;
 
 		public FakeGuild(FakeClient client)
@@ -122,9 +120,17 @@ namespace Advobot.Tests.Fakes.Discord
 			return Task.CompletedTask;
 		}
 
-		public Task<IGuildUser> AddGuildUserAsync(ulong userId, string accessToken, Action<AddGuildUserProperties>? func = null, RequestOptions? options = null) => throw new NotImplementedException();
+		public Task<IGuildUser> AddGuildUserAsync(ulong userId, string accessToken, Action<AddGuildUserProperties>? func = null, RequestOptions? options = null)
+			=> throw new NotImplementedException();
 
-		public Task<ICategoryChannel> CreateCategoryAsync(string name, Action<GuildChannelProperties>? func = null, RequestOptions? options = null) => throw new NotImplementedException();
+		public Task<IReadOnlyCollection<IApplicationCommand>> BulkOverwriteApplicationCommandsAsync(ApplicationCommandProperties[] properties, RequestOptions options = null)
+			=> throw new NotImplementedException();
+
+		public Task<IApplicationCommand> CreateApplicationCommandAsync(ApplicationCommandProperties properties, RequestOptions options = null)
+			=> throw new NotImplementedException();
+
+		public Task<ICategoryChannel> CreateCategoryAsync(string name, Action<GuildChannelProperties>? func = null, RequestOptions? options = null)
+			=> throw new NotImplementedException();
 
 		public Task<GuildEmote> CreateEmoteAsync(string name, Image image, Optional<IEnumerable<IRole>> roles = default, RequestOptions? options = null)
 		{
@@ -139,7 +145,11 @@ namespace Advobot.Tests.Fakes.Discord
 			return Task.FromResult(emote);
 		}
 
-		public Task<IGuildIntegration> CreateIntegrationAsync(ulong id, string type, RequestOptions? options = null) => throw new NotImplementedException();
+		public Task<IGuildScheduledEvent> CreateEventAsync(string name, DateTimeOffset startTime, GuildScheduledEventType type, GuildScheduledEventPrivacyLevel privacyLevel = GuildScheduledEventPrivacyLevel.Private, string description = null, DateTimeOffset? endTime = null, ulong? channelId = null, string location = null, RequestOptions options = null)
+			=> throw new NotImplementedException();
+
+		public Task<IGuildIntegration> CreateIntegrationAsync(ulong id, string type, RequestOptions? options = null)
+			=> throw new NotImplementedException();
 
 		public Task<IRole> CreateRoleAsync(string name, GuildPermissions? permissions = null, Color? color = null, bool isHoisted = false, RequestOptions? options = null)
 		{
@@ -153,7 +163,20 @@ namespace Advobot.Tests.Fakes.Discord
 			return Task.FromResult<IRole>(role);
 		}
 
-		public Task<IRole> CreateRoleAsync(string name, GuildPermissions? permissions = null, Color? color = null, bool isHoisted = false, bool isMentionable = false, RequestOptions? options = null) => throw new NotImplementedException();
+		public Task<IRole> CreateRoleAsync(string name, GuildPermissions? permissions = null, Color? color = null, bool isHoisted = false, bool isMentionable = false, RequestOptions? options = null)
+			=> throw new NotImplementedException();
+
+		public Task<IStageChannel> CreateStageChannelAsync(string name, Action<VoiceChannelProperties> func = null, RequestOptions options = null)
+			=> throw new NotImplementedException();
+
+		public Task<ICustomSticker> CreateStickerAsync(string name, string description, IEnumerable<string> tags, Image image, RequestOptions options = null)
+			=> throw new NotImplementedException();
+
+		public Task<ICustomSticker> CreateStickerAsync(string name, string description, IEnumerable<string> tags, string path, RequestOptions options = null)
+			=> throw new NotImplementedException();
+
+		public Task<ICustomSticker> CreateStickerAsync(string name, string description, IEnumerable<string> tags, Stream stream, string filename, RequestOptions options = null)
+			=> throw new NotImplementedException();
 
 		public async Task<ITextChannel> CreateTextChannelAsync(string name, Action<TextChannelProperties>? func = null, RequestOptions? options = null)
 		{
@@ -169,9 +192,11 @@ namespace Advobot.Tests.Fakes.Discord
 			return channel;
 		}
 
-		public Task<IVoiceChannel> CreateVoiceChannelAsync(string name, Action<VoiceChannelProperties>? func = null, RequestOptions? options = null) => throw new NotImplementedException();
+		public Task<IVoiceChannel> CreateVoiceChannelAsync(string name, Action<VoiceChannelProperties>? func = null, RequestOptions? options = null)
+			=> throw new NotImplementedException();
 
-		public Task DeleteAsync(RequestOptions? options = null) => throw new NotImplementedException();
+		public Task DeleteAsync(RequestOptions? options = null)
+			=> throw new NotImplementedException();
 
 		public Task DeleteEmoteAsync(GuildEmote emote, RequestOptions? options = null)
 		{
@@ -179,11 +204,23 @@ namespace Advobot.Tests.Fakes.Discord
 			return Task.CompletedTask;
 		}
 
+		public Task DeleteStickerAsync(ICustomSticker sticker, RequestOptions options = null)
+			=> throw new NotImplementedException();
+
+		public Task DisconnectAsync(IGuildUser user)
+			=> throw new NotImplementedException();
+
 		public Task DownloadUsersAsync()
 			=> Task.CompletedTask;
 
 		public async Task<IVoiceChannel> GetAFKChannelAsync(CacheMode mode = CacheMode.AllowDownload, RequestOptions? options = null)
 			=> (IVoiceChannel)await GetChannelAsync(AFKChannelId ?? 0).CAF();
+
+		public Task<IApplicationCommand> GetApplicationCommandAsync(ulong id, CacheMode mode = CacheMode.AllowDownload, RequestOptions options = null)
+			=> throw new NotImplementedException();
+
+		public Task<IReadOnlyCollection<IApplicationCommand>> GetApplicationCommandsAsync(RequestOptions options = null)
+			=> throw new NotImplementedException();
 
 		public Task<IReadOnlyCollection<IAuditLogEntry>> GetAuditLogsAsync(int limit = 100, CacheMode mode = CacheMode.AllowDownload, RequestOptions? options = null, ulong? beforeId = null, ulong? userId = null, ActionType? actionType = null)
 			=> throw new NotImplementedException();
@@ -198,9 +235,11 @@ namespace Advobot.Tests.Fakes.Discord
 		public Task<IReadOnlyCollection<IBan>> GetBansAsync(RequestOptions? options = null)
 			=> Task.FromResult<IReadOnlyCollection<IBan>>(FakeBans);
 
-		public Task<IReadOnlyCollection<ICategoryChannel>> GetCategoriesAsync(CacheMode mode = CacheMode.AllowDownload, RequestOptions? options = null) => throw new NotImplementedException();
+		public Task<IReadOnlyCollection<ICategoryChannel>> GetCategoriesAsync(CacheMode mode = CacheMode.AllowDownload, RequestOptions? options = null)
+			=> throw new NotImplementedException();
 
-		public Task<IGuildChannel> GetChannelAsync(ulong id, CacheMode mode = CacheMode.AllowDownload, RequestOptions? options = null) => throw new NotImplementedException();
+		public Task<IGuildChannel> GetChannelAsync(ulong id, CacheMode mode = CacheMode.AllowDownload, RequestOptions? options = null)
+			=> throw new NotImplementedException();
 
 		public Task<IReadOnlyCollection<IGuildChannel>> GetChannelsAsync(CacheMode mode = CacheMode.AllowDownload, RequestOptions? options = null)
 			=> Task.FromResult<IReadOnlyCollection<IGuildChannel>>(FakeChannels);
@@ -208,14 +247,23 @@ namespace Advobot.Tests.Fakes.Discord
 		public Task<IGuildUser> GetCurrentUserAsync(CacheMode mode = CacheMode.AllowDownload, RequestOptions? options = null)
 			=> Task.FromResult<IGuildUser>(FakeCurrentUser);
 
-		public Task<ITextChannel> GetDefaultChannelAsync(CacheMode mode = CacheMode.AllowDownload, RequestOptions? options = null) => throw new NotImplementedException();
+		public Task<ITextChannel> GetDefaultChannelAsync(CacheMode mode = CacheMode.AllowDownload, RequestOptions? options = null)
+			=> throw new NotImplementedException();
 
-		public Task<GuildEmote> GetEmoteAsync(ulong id, RequestOptions? options = null) => throw new NotImplementedException();
+		public Task<GuildEmote> GetEmoteAsync(ulong id, RequestOptions? options = null)
+			=> throw new NotImplementedException();
 
 		public Task<IReadOnlyCollection<GuildEmote>> GetEmotesAsync(RequestOptions? options = null)
 			=> Task.FromResult<IReadOnlyCollection<GuildEmote>>(Emotes);
 
-		public Task<IReadOnlyCollection<IGuildIntegration>> GetIntegrationsAsync(RequestOptions? options = null) => throw new NotImplementedException();
+		public Task<IGuildScheduledEvent> GetEventAsync(ulong id, RequestOptions options = null)
+			=> throw new NotImplementedException();
+
+		public Task<IReadOnlyCollection<IGuildScheduledEvent>> GetEventsAsync(RequestOptions options = null)
+			=> throw new NotImplementedException();
+
+		public Task<IReadOnlyCollection<IGuildIntegration>> GetIntegrationsAsync(RequestOptions? options = null)
+			=> throw new NotImplementedException();
 
 		public Task<IReadOnlyCollection<IInviteMetadata>> GetInvitesAsync(RequestOptions? options = null)
 			=> Task.FromResult<IReadOnlyCollection<IInviteMetadata>>(FakeInvites);
@@ -223,18 +271,41 @@ namespace Advobot.Tests.Fakes.Discord
 		public Task<IGuildUser> GetOwnerAsync(CacheMode mode = CacheMode.AllowDownload, RequestOptions? options = null)
 			=> Task.FromResult<IGuildUser>(FakeOwner);
 
-		public Task<ITextChannel> GetPublicUpdatesChannelAsync(CacheMode mode = CacheMode.AllowDownload, RequestOptions? options = null) => throw new NotImplementedException();
+		public Task<ITextChannel> GetPublicUpdatesChannelAsync(CacheMode mode = CacheMode.AllowDownload, RequestOptions? options = null)
+			=> throw new NotImplementedException();
 
 		public IRole? GetRole(ulong id)
 			=> FakeRoles.SingleOrDefault(x => x.Id == id);
 
-		public Task<ITextChannel> GetRulesChannelAsync(CacheMode mode = CacheMode.AllowDownload, RequestOptions? options = null) => throw new NotImplementedException();
+		public Task<ITextChannel> GetRulesChannelAsync(CacheMode mode = CacheMode.AllowDownload, RequestOptions? options = null)
+			=> throw new NotImplementedException();
 
-		public Task<ITextChannel> GetSystemChannelAsync(CacheMode mode = CacheMode.AllowDownload, RequestOptions? options = null) => throw new NotImplementedException();
+		public Task<IStageChannel> GetStageChannelAsync(ulong id, CacheMode mode = CacheMode.AllowDownload, RequestOptions options = null)
+			=> throw new NotImplementedException();
 
-		public Task<ITextChannel> GetTextChannelAsync(ulong id, CacheMode mode = CacheMode.AllowDownload, RequestOptions? options = null) => throw new NotImplementedException();
+		public Task<IReadOnlyCollection<IStageChannel>> GetStageChannelsAsync(CacheMode mode = CacheMode.AllowDownload, RequestOptions options = null)
+			=> throw new NotImplementedException();
 
-		public Task<IReadOnlyCollection<ITextChannel>> GetTextChannelsAsync(CacheMode mode = CacheMode.AllowDownload, RequestOptions? options = null) => throw new NotImplementedException();
+		public Task<ICustomSticker> GetStickerAsync(ulong id, CacheMode mode = CacheMode.AllowDownload, RequestOptions options = null)
+			=> throw new NotImplementedException();
+
+		public Task<IReadOnlyCollection<ICustomSticker>> GetStickersAsync(CacheMode mode = CacheMode.AllowDownload, RequestOptions options = null)
+			=> throw new NotImplementedException();
+
+		public Task<ITextChannel> GetSystemChannelAsync(CacheMode mode = CacheMode.AllowDownload, RequestOptions? options = null)
+			=> throw new NotImplementedException();
+
+		public Task<ITextChannel> GetTextChannelAsync(ulong id, CacheMode mode = CacheMode.AllowDownload, RequestOptions? options = null)
+			=> throw new NotImplementedException();
+
+		public Task<IReadOnlyCollection<ITextChannel>> GetTextChannelsAsync(CacheMode mode = CacheMode.AllowDownload, RequestOptions? options = null)
+			=> throw new NotImplementedException();
+
+		public Task<IThreadChannel> GetThreadChannelAsync(ulong id, CacheMode mode = CacheMode.AllowDownload, RequestOptions options = null)
+			=> throw new NotImplementedException();
+
+		public Task<IReadOnlyCollection<IThreadChannel>> GetThreadChannelsAsync(CacheMode mode = CacheMode.AllowDownload, RequestOptions options = null)
+			=> throw new NotImplementedException();
 
 		public Task<IGuildUser?> GetUserAsync(ulong id, CacheMode mode = CacheMode.AllowDownload, RequestOptions? options = null)
 			=> Task.FromResult<IGuildUser?>(FakeUsers.SingleOrDefault(x => x.Id == id));
@@ -242,11 +313,14 @@ namespace Advobot.Tests.Fakes.Discord
 		public Task<IReadOnlyCollection<IGuildUser>> GetUsersAsync(CacheMode mode = CacheMode.AllowDownload, RequestOptions? options = null)
 			=> Task.FromResult<IReadOnlyCollection<IGuildUser>>(FakeUsers);
 
-		public Task<IInviteMetadata> GetVanityInviteAsync(RequestOptions? options = null) => throw new NotImplementedException();
+		public Task<IInviteMetadata> GetVanityInviteAsync(RequestOptions? options = null)
+			=> throw new NotImplementedException();
 
-		public Task<IVoiceChannel> GetVoiceChannelAsync(ulong id, CacheMode mode = CacheMode.AllowDownload, RequestOptions? options = null) => throw new NotImplementedException();
+		public Task<IVoiceChannel> GetVoiceChannelAsync(ulong id, CacheMode mode = CacheMode.AllowDownload, RequestOptions? options = null)
+			=> throw new NotImplementedException();
 
-		public Task<IReadOnlyCollection<IVoiceChannel>> GetVoiceChannelsAsync(CacheMode mode = CacheMode.AllowDownload, RequestOptions? options = null) => throw new NotImplementedException();
+		public Task<IReadOnlyCollection<IVoiceChannel>> GetVoiceChannelsAsync(CacheMode mode = CacheMode.AllowDownload, RequestOptions? options = null)
+			=> throw new NotImplementedException();
 
 		public Task<IReadOnlyCollection<IVoiceRegion>> GetVoiceRegionsAsync(RequestOptions? options = null)
 			=> FakeClient.GetVoiceRegionsAsync(options);
@@ -257,17 +331,26 @@ namespace Advobot.Tests.Fakes.Discord
 		public Task<IReadOnlyCollection<IWebhook>> GetWebhooksAsync(RequestOptions? options = null)
 			=> Task.FromResult<IReadOnlyCollection<IWebhook>>(FakeWebhooks);
 
-		public Task<IGuildChannel> GetWidgetChannelAsync(CacheMode mode = CacheMode.AllowDownload, RequestOptions? options = null) => throw new NotImplementedException();
+		public Task<IGuildChannel> GetWidgetChannelAsync(CacheMode mode = CacheMode.AllowDownload, RequestOptions? options = null)
+			=> throw new NotImplementedException();
 
-		public Task LeaveAsync(RequestOptions? options = null) => throw new NotImplementedException();
+		public Task LeaveAsync(RequestOptions? options = null)
+			=> throw new NotImplementedException();
 
-		public Task ModifyAsync(Action<GuildProperties> func, RequestOptions? options = null) => throw new NotImplementedException();
+		public Task ModifyAsync(Action<GuildProperties> func, RequestOptions? options = null)
+			=> throw new NotImplementedException();
 
-		public Task<GuildEmote> ModifyEmoteAsync(GuildEmote emote, Action<EmoteProperties> func, RequestOptions? options = null) => throw new NotImplementedException();
+		public Task<GuildEmote> ModifyEmoteAsync(GuildEmote emote, Action<EmoteProperties> func, RequestOptions? options = null)
+			=> throw new NotImplementedException();
 
-		public Task ModifyWidgetAsync(Action<GuildWidgetProperties> func, RequestOptions? options = null) => throw new NotImplementedException();
+		public Task ModifyWidgetAsync(Action<GuildWidgetProperties> func, RequestOptions? options = null)
+			=> throw new NotImplementedException();
 
-		public Task<int> PruneUsersAsync(int days = 30, bool simulate = false, RequestOptions? options = null, IEnumerable<ulong>? includeRoleIds = null) => throw new NotImplementedException();
+		public Task MoveAsync(IGuildUser user, IVoiceChannel targetChannel)
+			=> throw new NotImplementedException();
+
+		public Task<int> PruneUsersAsync(int days = 30, bool simulate = false, RequestOptions? options = null, IEnumerable<ulong>? includeRoleIds = null)
+			=> throw new NotImplementedException();
 
 		public Task RemoveBanAsync(IUser user, RequestOptions? options = null)
 			=> RemoveBanAsync(user.Id, options);
@@ -278,9 +361,11 @@ namespace Advobot.Tests.Fakes.Discord
 			return Task.CompletedTask;
 		}
 
-		public Task ReorderChannelsAsync(IEnumerable<ReorderChannelProperties> args, RequestOptions? options = null) => throw new NotImplementedException();
+		public Task ReorderChannelsAsync(IEnumerable<ReorderChannelProperties> args, RequestOptions? options = null)
+			=> throw new NotImplementedException();
 
-		public Task ReorderRolesAsync(IEnumerable<ReorderRoleProperties> args, RequestOptions? options = null) => throw new NotImplementedException();
+		public Task ReorderRolesAsync(IEnumerable<ReorderRoleProperties> args, RequestOptions? options = null)
+			=> throw new NotImplementedException();
 
 		public Task<IReadOnlyCollection<IGuildUser>> SearchUsersAsync(string query, int limit = 1000, CacheMode mode = CacheMode.AllowDownload, RequestOptions? options = null)
 			=> throw new NotImplementedException();

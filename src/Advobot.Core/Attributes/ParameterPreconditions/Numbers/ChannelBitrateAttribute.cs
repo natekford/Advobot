@@ -1,5 +1,4 @@
-﻿
-using AdvorangesUtils;
+﻿using AdvorangesUtils;
 
 using Discord;
 using Discord.Commands;
@@ -31,7 +30,8 @@ namespace Advobot.Attributes.ParameterPreconditions.Numbers
 				PremiumTier.Tier3 => 384,
 				PremiumTier.Tier2 => 256,
 				PremiumTier.Tier1 => 128,
-				_ when context.Guild.Features.CaseInsContains("VIP_REGIONS") => 128,
+				// this probably lets you go to 384 at this point but idk
+				_ when (context.Guild.Features.Value & GuildFeature.VIPRegions) != 0 => 128,
 				_ => 96,
 			};
 			return new(8, end);

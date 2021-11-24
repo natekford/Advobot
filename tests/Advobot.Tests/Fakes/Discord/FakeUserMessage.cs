@@ -1,5 +1,4 @@
-﻿
-using Advobot.Tests.Fakes.Discord.Channels;
+﻿using Advobot.Tests.Fakes.Discord.Channels;
 using Advobot.Tests.Fakes.Discord.Users;
 
 using Discord;
@@ -11,15 +10,12 @@ namespace Advobot.Tests.Fakes.Discord
 		public IUserMessage ReferencedMessage => throw new NotImplementedException();
 
 		public FakeUserMessage(FakeMessageChannel channel, FakeUser author, string content)
-					: base(channel, author, content) { }
+			: base(channel, author, content) { }
 
 		public Task CrosspostAsync(RequestOptions? options = null)
 			=> throw new NotImplementedException();
 
 		public Task ModifyAsync(Action<MessageProperties> func, RequestOptions? options = null)
-			=> throw new NotImplementedException();
-
-		public Task ModifySuppressionAsync(bool suppressEmbeds, RequestOptions? options = null)
 			=> throw new NotImplementedException();
 
 		public Task PinAsync(RequestOptions? options = null)

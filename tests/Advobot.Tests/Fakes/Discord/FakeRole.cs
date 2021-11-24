@@ -1,5 +1,4 @@
-﻿
-using Discord;
+﻿using Discord;
 
 namespace Advobot.Tests.Fakes.Discord
 {
@@ -7,7 +6,9 @@ namespace Advobot.Tests.Fakes.Discord
 	{
 		private readonly FakeGuild _Guild;
 		public Color Color { get; set; }
+		public Emoji Emoji { get; set; }
 		public IGuild Guild => _Guild;
+		public string Icon { get; set; }
 		public bool IsHoisted { get; set; }
 		public bool IsManaged { get; set; }
 		public bool IsMentionable { get; set; }
@@ -23,13 +24,17 @@ namespace Advobot.Tests.Fakes.Discord
 			guild.FakeRoles.Add(this);
 		}
 
-		public int CompareTo(IRole? other) => throw new NotImplementedException();
+		public int CompareTo(IRole? other)
+			=> throw new NotImplementedException();
 
 		public Task DeleteAsync(RequestOptions? options = null)
 		{
 			_Guild.FakeRoles.Remove(this);
 			return Task.CompletedTask;
 		}
+
+		public string GetIconUrl()
+			=> throw new NotImplementedException();
 
 		public Task ModifyAsync(Action<RoleProperties> func, RequestOptions? options = null)
 		{

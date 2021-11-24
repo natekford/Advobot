@@ -23,7 +23,7 @@ namespace Advobot.Attributes.Preconditions.Permissions
 			GuildPermission.ManageNicknames,
 			GuildPermission.ManageRoles,
 			GuildPermission.ManageWebhooks,
-			GuildPermission.ManageEmojis,
+			GuildPermission.ManageEmojisAndStickers,
 		};
 
 		/// <inheritdoc />

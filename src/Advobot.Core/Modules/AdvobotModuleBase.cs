@@ -149,8 +149,11 @@ namespace Advobot.Modules
 			bool isTTS = false,
 			Embed? embed = null,
 			RequestOptions? options = null,
-			AllowedMentions? mentions = null,
-			MessageReference? messageReference = null)
+			AllowedMentions? allowedMentions = null,
+			MessageReference? messageReference = null,
+			MessageComponent? component = null,
+			ISticker[]? stickers = null,
+			Embed[]? embeds = null)
 		{
 			return Context.Channel.SendMessageAsync(new SendMessageArgs
 			{
@@ -158,7 +161,7 @@ namespace Advobot.Modules
 				IsTTS = isTTS,
 				Embed = embed != null ? new(embed.ToEmbedBuilder()) : null,
 				Options = options,
-				AllowedMentions = mentions,
+				AllowedMentions = allowedMentions,
 			});
 		}
 	}

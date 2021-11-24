@@ -1,5 +1,4 @@
-﻿
-using Advobot.Tests.Fakes.Discord.Channels;
+﻿using Advobot.Tests.Fakes.Discord.Channels;
 using Advobot.Tests.Fakes.Discord.Users;
 using Advobot.Tests.Utilities;
 
@@ -14,12 +13,15 @@ namespace Advobot.Tests.Fakes.Discord
 		public MessageActivity Activity => throw new NotImplementedException();
 		public MessageApplication Application => throw new NotImplementedException();
 		public IReadOnlyCollection<IAttachment> Attachments => throw new NotImplementedException();
+		public string CleanContent => throw new NotImplementedException();
+		public IReadOnlyCollection<IMessageComponent> Components => throw new NotImplementedException();
 		public string Content { get; set; }
 		public DateTimeOffset? EditedTimestamp => throw new NotImplementedException();
 		public IReadOnlyCollection<IEmbed> Embeds => throw new NotImplementedException();
 		public FakeUser FakeAuthor { get; }
 		public FakeMessageChannel FakeChannel { get; }
 		public MessageFlags? Flags { get; set; }
+		public IMessageInteraction Interaction => throw new NotImplementedException();
 		public bool IsPinned => throw new NotImplementedException();
 		public bool IsSuppressed => throw new NotImplementedException();
 		public bool IsTTS => throw new NotImplementedException();
@@ -30,7 +32,7 @@ namespace Advobot.Tests.Fakes.Discord
 		public IReadOnlyDictionary<IEmote, ReactionMetadata> Reactions => throw new NotImplementedException();
 		public MessageReference Reference => throw new NotImplementedException();
 		public MessageSource Source => throw new NotImplementedException();
-		public IReadOnlyCollection<ISticker> Stickers => throw new NotImplementedException();
+		public IReadOnlyCollection<IStickerItem> Stickers => throw new NotImplementedException();
 		public IReadOnlyCollection<ITag> Tags => throw new NotImplementedException();
 		public DateTimeOffset Timestamp => CreatedAt;
 		public MessageType Type => throw new NotImplementedException();

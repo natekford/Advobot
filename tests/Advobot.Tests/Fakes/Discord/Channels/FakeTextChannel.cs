@@ -1,5 +1,4 @@
-﻿
-using Advobot.Tests.Fakes.Discord.Users;
+﻿using Advobot.Tests.Fakes.Discord.Users;
 
 using AdvorangesUtils;
 
@@ -29,6 +28,15 @@ namespace Advobot.Tests.Fakes.Discord.Channels
 			};
 			return Task.FromResult<IInviteMetadata>(invite);
 		}
+
+		public Task<IInviteMetadata> CreateInviteToApplicationAsync(ulong applicationId, int? maxAge = 86400, int? maxUses = null, bool isTemporary = false, bool isUnique = false, RequestOptions options = null)
+			=> throw new NotImplementedException();
+
+		public Task<IInviteMetadata> CreateInviteToStreamAsync(IUser user, int? maxAge = 86400, int? maxUses = null, bool isTemporary = false, bool isUnique = false, RequestOptions options = null)
+			=> throw new NotImplementedException();
+
+		public Task<IThreadChannel> CreateThreadAsync(string name, ThreadType type = ThreadType.PublicThread, ThreadArchiveDuration autoArchiveDuration = ThreadArchiveDuration.OneDay, IMessage message = null, bool? invitable = null, int? slowmode = null, RequestOptions options = null)
+			=> throw new NotImplementedException();
 
 		public Task<IWebhook> CreateWebhookAsync(string name, Stream? avatar = null, RequestOptions? options = null)
 		{

@@ -1,5 +1,4 @@
-﻿
-using Advobot.Gacha.Database;
+﻿using Advobot.Gacha.Database;
 using Advobot.Gacha.Interaction;
 using Advobot.Gacha.Trading;
 using Advobot.Services.Time;
@@ -7,6 +6,8 @@ using Advobot.Services.Time;
 using AdvorangesUtils;
 
 using Discord;
+
+using InteractionType = Advobot.Gacha.Interaction.InteractionType;
 
 namespace Advobot.Gacha.Displays
 {

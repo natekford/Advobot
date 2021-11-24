@@ -308,10 +308,22 @@ namespace Advobot.Standard.Responses
 				emoteInfo.Add(GetsTitleManagedEmoteCount, managed);
 				embed.TryAddField(GetsTitleEmoteInfo, emoteInfo.ToString(), false, out _);
 			}
-			if (guild.Features.Count > 0)
 			{
-				var fieldValue = guild.Features.Join().WithBlock().Value;
-				embed.TryAddField(GetsTitleFeatures, fieldValue, false, out _);
+				var fieldValue = "";
+				if (guild.Features.Value != 0)
+				{
+					fieldValue += guild.Features.Value.ToString();
+				}
+				if (guild.Features.Experimental.Count > 0)
+				{
+					fieldValue += guild.Features.Experimental.Join();
+				}
+
+				if (!string.IsNullOrWhiteSpace(fieldValue))
+				{
+					fieldValue = fieldValue.WithBlock().Value;
+					embed.TryAddField(GetsTitleFeatures, fieldValue, false, out _);
+				}
 			}
 			return Success(embed);
 		}

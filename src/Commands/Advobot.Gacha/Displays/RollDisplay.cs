@@ -1,6 +1,4 @@
-﻿using System.Text;
-
-using Advobot.Gacha.Counters;
+﻿using Advobot.Gacha.Counters;
 using Advobot.Gacha.Database;
 using Advobot.Gacha.Interaction;
 using Advobot.Gacha.Models;
@@ -10,7 +8,10 @@ using AdvorangesUtils;
 
 using Discord;
 
+using System.Text;
+
 using Image = Advobot.Gacha.Models.Image;
+using InteractionType = Advobot.Gacha.Interaction.InteractionType;
 
 namespace Advobot.Gacha.Displays
 {

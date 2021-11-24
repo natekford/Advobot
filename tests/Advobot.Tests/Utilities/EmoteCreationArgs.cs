@@ -1,6 +1,6 @@
-﻿using System.Reflection;
+﻿using Discord;
 
-using Discord;
+using System.Reflection;
 
 namespace Advobot.Tests.Utilities
 {

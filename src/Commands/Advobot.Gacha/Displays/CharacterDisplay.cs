@@ -1,5 +1,4 @@
-﻿
-using Advobot.Gacha.Database;
+﻿using Advobot.Gacha.Database;
 using Advobot.Gacha.Interaction;
 using Advobot.Gacha.Metadata;
 using Advobot.Gacha.Models;
@@ -10,6 +9,7 @@ using AdvorangesUtils;
 using Discord;
 
 using Image = Advobot.Gacha.Models.Image;
+using InteractionType = Advobot.Gacha.Interaction.InteractionType;
 
 namespace Advobot.Gacha.Displays
 {

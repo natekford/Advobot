@@ -1,5 +1,4 @@
-﻿
-using Advobot.Attributes.Preconditions.Permissions;
+﻿using Advobot.Attributes.Preconditions.Permissions;
 using Advobot.Tests.Fakes.Discord;
 using Advobot.Tests.TestBases;
 
@@ -61,7 +60,7 @@ namespace Advobot.Tests.Core.Attributes.Preconditions.Permissions
 		[DataRow(FLAGS1)]
 		[DataRow(FLAGS2)]
 		[DataRow(FLAGS3)]
-		[DataRow(FLAGS1 | GuildPermission.ManageEmojis)]
+		[DataRow(FLAGS1 | GuildPermission.ManageEmojisAndStickers)]
 		[DataRow(FLAGS1 | FLAGS2 | FLAGS3)]
 		[DataTestMethod]
 		public async Task ValidPermissions_Test(ulong permission)
