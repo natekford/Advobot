@@ -1,41 +1,39 @@
-﻿
-using Advobot.Utilities;
+﻿using Advobot.Utilities;
 
 using AdvorangesUtils;
 
 using Discord;
 using Discord.Commands;
 
-namespace Advobot.Attributes.ParameterPreconditions.Strings
+namespace Advobot.Attributes.ParameterPreconditions.Strings;
+
+/// <summary>
+/// Validates the text channel name by making sure it is between 2 and 100 characters and has no spaces.
+/// </summary>
+[AttributeUsage(AttributeTargets.Parameter, AllowMultiple = false, Inherited = true)]
+public sealed class TextChannelNameAttribute : ChannelNameAttribute
 {
-	/// <summary>
-	/// Validates the text channel name by making sure it is between 2 and 100 characters and has no spaces.
-	/// </summary>
-	[AttributeUsage(AttributeTargets.Parameter, AllowMultiple = false, Inherited = true)]
-	public sealed class TextChannelNameAttribute : ChannelNameAttribute
+	/// <inheritdoc />
+	public override string StringType => "text channel name with no spaces";
+
+	/// <inheritdoc />
+	protected override async Task<PreconditionResult> CheckPermissionsAsync(
+		ICommandContext context,
+		ParameterInfo parameter,
+		IGuildUser invoker,
+		string value,
+		IServiceProvider services)
 	{
-		/// <inheritdoc />
-		public override string StringType => "text channel name with no spaces";
-
-		/// <inheritdoc />
-		protected override async Task<PreconditionResult> CheckPermissionsAsync(
-			ICommandContext context,
-			ParameterInfo parameter,
-			IGuildUser invoker,
-			string value,
-			IServiceProvider services)
+		var result = await base.CheckPermissionsAsync(context, parameter, invoker, value, services).CAF();
+		if (!result.IsSuccess)
 		{
-			var result = await base.CheckPermissionsAsync(context, parameter, invoker, value, services).CAF();
-			if (!result.IsSuccess)
-			{
-				return result;
-			}
-
-			if (!value.Contains(" "))
-			{
-				return this.FromSuccess();
-			}
-			return PreconditionResult.FromError("Spaces are not allowed in text channel names.");
+			return result;
 		}
+
+		if (!value.Contains(" "))
+		{
+			return this.FromSuccess();
+		}
+		return PreconditionResult.FromError("Spaces are not allowed in text channel names.");
 	}
 }

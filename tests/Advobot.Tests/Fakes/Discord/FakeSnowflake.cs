@@ -1,13 +1,11 @@
-﻿
-using Advobot.Tests.Utilities;
+﻿using Advobot.Tests.Utilities;
 
 using Discord;
 
-namespace Advobot.Tests.Fakes.Discord
+namespace Advobot.Tests.Fakes.Discord;
+
+public class FakeSnowflake : ISnowflakeEntity
 {
-	public class FakeSnowflake : ISnowflakeEntity
-	{
-		public DateTimeOffset CreatedAt => SnowflakeUtils.FromSnowflake(Id);
-		public virtual ulong Id { get; set; } = SnowflakeGenerator.UTCNext();
-	}
+	public DateTimeOffset CreatedAt => SnowflakeUtils.FromSnowflake(Id);
+	public virtual ulong Id { get; set; } = SnowflakeGenerator.UTCNext();
 }

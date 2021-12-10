@@ -1,55 +1,55 @@
-﻿using System.Text;
-using System.Text.RegularExpressions;
-
-using Advobot.Utilities;
+﻿using Advobot.Utilities;
 
 using AdvorangesUtils;
 
 using Discord;
 using Discord.Commands;
 
-namespace Advobot.Attributes.ParameterPreconditions.Strings
+using System.Text;
+using System.Text.RegularExpressions;
+
+namespace Advobot.Attributes.ParameterPreconditions.Strings;
+
+/// <summary>
+/// Validates a regex with various test cases.
+/// </summary>
+[AttributeUsage(AttributeTargets.Parameter, AllowMultiple = false, Inherited = true)]
+public sealed class RegexAttribute : StringRangeParameterPreconditionAttribute
 {
+	/// <inheritdoc />
+	public override string StringType => "regex";
+
 	/// <summary>
-	/// Validates a regex with various test cases.
+	/// Creates an instance of <see cref="RegexAttribute"/>.
 	/// </summary>
-	[AttributeUsage(AttributeTargets.Parameter, AllowMultiple = false, Inherited = true)]
-	public sealed class RegexAttribute : StringRangeParameterPreconditionAttribute
+	public RegexAttribute() : base(1, 100) { }
+
+	/// <inheritdoc />
+	protected override async Task<PreconditionResult> CheckPermissionsAsync(
+		ICommandContext context,
+		ParameterInfo parameter,
+		IGuildUser invoker,
+		string value,
+		IServiceProvider services)
 	{
-		/// <inheritdoc />
-		public override string StringType => "regex";
-
-		/// <summary>
-		/// Creates an instance of <see cref="RegexAttribute"/>.
-		/// </summary>
-		public RegexAttribute() : base(1, 100) { }
-
-		/// <inheritdoc />
-		protected override async Task<PreconditionResult> CheckPermissionsAsync(
-			ICommandContext context,
-			ParameterInfo parameter,
-			IGuildUser invoker,
-			string value,
-			IServiceProvider services)
+		var result = await base.CheckPermissionsAsync(context, parameter, invoker, value, services).CAF();
+		if (!result.IsSuccess)
 		{
-			var result = await base.CheckPermissionsAsync(context, parameter, invoker, value, services).CAF();
-			if (!result.IsSuccess)
-			{
-				return result;
-			}
+			return result;
+		}
 
-			Regex regex;
-			try
-			{
-				regex = new(value);
-			}
-			catch (ArgumentException)
-			{
-				return PreconditionResult.FromError("Invalid regex provided.");
-			}
+		Regex regex;
+		try
+		{
+			regex = new(value);
+		}
+		catch (ArgumentException)
+		{
+			return PreconditionResult.FromError("Invalid regex provided.");
+		}
 
-			var tests = new (string Name, Func<string, bool> Test)[]
-			{
+		var tests = new (string Name, Func<string, bool> Test)[]
+		{
 				("empty", x => RegexUtils.IsMatch("", x)),
 				("space", x => RegexUtils.IsMatch(" ", x)),
 				("new line", x =>  RegexUtils.IsMatch(Environment.NewLine, x)),
@@ -71,16 +71,15 @@ namespace Advobot.Attributes.ParameterPreconditions.Strings
 					}
 					return randomMatchCount >= 5;
 				}),
-			};
+		};
 
-			foreach (var (Name, Test) in tests)
+		foreach (var (Name, Test) in tests)
+		{
+			if (Test.Invoke(value))
 			{
-				if (Test.Invoke(value))
-				{
-					return PreconditionResult.FromError($"Invalid regex; matched {Name} when it should not have.");
-				}
+				return PreconditionResult.FromError($"Invalid regex; matched {Name} when it should not have.");
 			}
-			return this.FromSuccess();
 		}
+		return this.FromSuccess();
 	}
 }

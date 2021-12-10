@@ -1,19 +1,17 @@
-﻿
-using Advobot.Logging.Models;
+﻿using Advobot.Logging.Models;
 
-namespace Advobot.Logging.Preconditions
+namespace Advobot.Logging.Preconditions;
+
+/// <summary>
+/// Requires an image log to be set.
+/// </summary>
+[AttributeUsage(AttributeTargets.Class | AttributeTargets.Method, AllowMultiple = false, Inherited = true)]
+public sealed class RequireImageLogAttribute : LogPreconditionAttribute
 {
-	/// <summary>
-	/// Requires an image log to be set.
-	/// </summary>
-	[AttributeUsage(AttributeTargets.Class | AttributeTargets.Method, AllowMultiple = false, Inherited = true)]
-	public sealed class RequireImageLogAttribute : LogPreconditionAttribute
-	{
-		/// <inheritdoc />
-		protected override string LogName => Resources.Responses.VariableImageLog;
+	/// <inheritdoc />
+	protected override string LogName => Resources.Responses.VariableImageLog;
 
-		/// <inheritdoc />
-		protected override ulong GetId(LogChannels channels)
-			=> channels.ImageLogId;
-	}
+	/// <inheritdoc />
+	protected override ulong GetId(LogChannels channels)
+		=> channels.ImageLogId;
 }

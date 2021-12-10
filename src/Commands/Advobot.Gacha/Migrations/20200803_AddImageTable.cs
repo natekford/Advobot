@@ -1,16 +1,16 @@
 ﻿using FluentMigrator;
 
-namespace Advobot.Gacha.Migrations
-{
-	[Migration(20200803174900)]
-	public sealed class AddImageTable : Migration
-	{
-		public override void Down()
-			=> Delete.Table("Image");
+namespace Advobot.Gacha.Migrations;
 
-		public override void Up()
-		{
-			Execute.Sql(@"
+[Migration(20200803174900)]
+public sealed class AddImageTable : Migration
+{
+	public override void Down()
+		=> Delete.Table("Image");
+
+	public override void Up()
+	{
+		Execute.Sql(@"
 			CREATE TABLE IF NOT EXISTS Image
 			(
 				CharacterId					INTEGER NOT NULL,
@@ -23,6 +23,5 @@ namespace Advobot.Gacha.Migrations
 				CharacterId
 			);
 			");
-		}
 	}
 }

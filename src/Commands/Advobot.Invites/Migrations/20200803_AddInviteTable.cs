@@ -1,16 +1,16 @@
 ﻿using FluentMigrator;
 
-namespace Advobot.Invites.Migrations
-{
-	[Migration(20200803173300)]
-	public sealed class AddInviteTable : Migration
-	{
-		public override void Down()
-			=> Delete.Table("Invite");
+namespace Advobot.Invites.Migrations;
 
-		public override void Up()
-		{
-			Execute.Sql(@"
+[Migration(20200803173300)]
+public sealed class AddInviteTable : Migration
+{
+	public override void Down()
+		=> Delete.Table("Invite");
+
+	public override void Up()
+	{
+		Execute.Sql(@"
 			CREATE TABLE IF NOT EXISTS Invite
 			(
 				GuildId						TEXT NOT NULL,
@@ -22,6 +22,5 @@ namespace Advobot.Invites.Migrations
 				PRIMARY KEY(GuildId)
 			);
 			");
-		}
 	}
 }

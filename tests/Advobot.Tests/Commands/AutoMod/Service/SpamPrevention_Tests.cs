@@ -14,77 +14,77 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 using static Discord.MentionUtils;
 
-namespace Advobot.Tests.Commands.AutoMod.Service
+namespace Advobot.Tests.Commands.AutoMod.Service;
+
+[TestClass]
+public sealed class SpamPrevention_Tests
 {
-	[TestClass]
-	public sealed class SpamPrevention_Tests
+	private readonly FakeTextChannel _Channel;
+	private readonly FakeGuild _Guild;
+	private readonly SpamPrevention _Prevention = new()
 	{
-		private readonly FakeTextChannel _Channel;
-		private readonly FakeGuild _Guild;
-		private readonly SpamPrevention _Prevention = new()
+		SpamType = SpamType.Mention,
+		Size = 2,
+		Instances = 5,
+		PunishmentType = PunishmentType.Kick,
+		IntervalTicks = TimeSpan.FromSeconds(15).Ticks,
+		Enabled = true,
+	};
+	private readonly SnowflakeGenerator _Snowflakes = new(TimeSpan.FromMilliseconds(200));
+	private readonly FakeGuildUser _User;
+
+	public SpamPrevention_Tests()
+	{
+		_Guild = new(new());
+		_Channel = new(_Guild);
+		_User = new(_Guild)
 		{
-			SpamType = SpamType.Mention,
-			Size = 2,
-			Instances = 5,
-			PunishmentType = PunishmentType.Kick,
-			IntervalTicks = TimeSpan.FromSeconds(15).Ticks,
-			Enabled = true,
+			Id = 172138437246320640,
 		};
-		private readonly SnowflakeGenerator _Snowflakes = new(TimeSpan.FromMilliseconds(200));
-		private readonly FakeGuildUser _User;
+	}
 
-		public SpamPrevention_Tests()
+	[TestMethod]
+	public void DontPunishNotSpam_Test()
+	{
+		for (var i = 0; i < 10; ++i)
 		{
-			_Guild = new(new());
-			_Channel = new(_Guild);
-			_User = new(_Guild)
+			var msg = new FakeUserMessage(_Channel, _User, GenerateNotSpam())
 			{
-				Id = 172138437246320640,
+				Id = _Snowflakes.Next(_Prevention.Interval / 10),
 			};
-		}
-
-		[TestMethod]
-		public void DontPunishNotSpam_Test()
-		{
-			for (var i = 0; i < 10; ++i)
+			if (_Prevention.IsSpam(msg))
 			{
-				var msg = new FakeUserMessage(_Channel, _User, GenerateNotSpam())
-				{
-					Id = _Snowflakes.Next(_Prevention.Interval / 10),
-				};
-				if (_Prevention.IsSpam(msg))
-				{
-					Assert.Fail("This should not have been caught as spam.");
-				}
+				Assert.Fail("This should not have been caught as spam.");
 			}
 		}
+	}
 
-		[TestMethod]
-		public void DontPunishSlowSpam_Test()
+	[TestMethod]
+	public void DontPunishSlowSpam_Test()
+	{
+		var spam = new List<ulong>();
+		for (var i = 0; i < 10; ++i)
 		{
-			var spam = new List<ulong>();
-			for (var i = 0; i < 10; ++i)
+			var msg = new FakeUserMessage(_Channel, _User, GenerateMentionSpam())
 			{
-				var msg = new FakeUserMessage(_Channel, _User, GenerateMentionSpam())
-				{
-					Id = _Snowflakes.Next(_Prevention.Interval * 10),
-				};
-				if (_Prevention.IsSpam(msg))
-				{
-					spam.Add(msg.Id);
-				}
-				if (_Prevention.ShouldPunish(spam))
-				{
-					Assert.Fail("This should not have been caught as spam.");
-				}
+				Id = _Snowflakes.Next(_Prevention.Interval * 10),
+			};
+			if (_Prevention.IsSpam(msg))
+			{
+				spam.Add(msg.Id);
+			}
+			if (_Prevention.ShouldPunish(spam))
+			{
+				Assert.Fail("This should not have been caught as spam.");
 			}
 		}
+	}
 
-		[TestMethod]
-		public void DontPunishSporadicSpam_Test()
+	[TestMethod]
+	public void DontPunishSporadicSpam_Test()
+	{
+		var timeMults = new[]
 		{
-			var timeMults = new[]
-			{
 				1.0,
 				1.0,
 				2.0,
@@ -98,51 +98,50 @@ namespace Advobot.Tests.Commands.AutoMod.Service
 				2.0,
 			};
 
-			var spam = new List<ulong>();
-			foreach (var timeMult in timeMults)
-			{
-				var normalizedTimeMult = timeMult / (_Prevention.Instances + 1);
-				var msg = new FakeUserMessage(_Channel, _User, GenerateMentionSpam())
-				{
-					Id = _Snowflakes.Next(_Prevention.Interval * normalizedTimeMult, false),
-				};
-				if (_Prevention.IsSpam(msg))
-				{
-					spam.Add(msg.Id);
-				}
-				if (_Prevention.ShouldPunish(spam))
-				{
-					Assert.Fail("This should not have been caught as spam.");
-				}
-			}
-		}
-
-		[TestMethod]
-		public void PunishSpam_Test()
+		var spam = new List<ulong>();
+		foreach (var timeMult in timeMults)
 		{
-			var spam = new List<ulong>();
-			for (var i = 0; i < 10; ++i)
+			var normalizedTimeMult = timeMult / (_Prevention.Instances + 1);
+			var msg = new FakeUserMessage(_Channel, _User, GenerateMentionSpam())
 			{
-				var msg = new FakeUserMessage(_Channel, _User, GenerateMentionSpam())
-				{
-					Id = _Snowflakes.Next(_Prevention.Interval / 10),
-				};
-				if (_Prevention.IsSpam(msg))
-				{
-					spam.Add(msg.Id);
-				}
-				if (_Prevention.ShouldPunish(spam))
-				{
-					return;
-				}
+				Id = _Snowflakes.Next(_Prevention.Interval * normalizedTimeMult, false),
+			};
+			if (_Prevention.IsSpam(msg))
+			{
+				spam.Add(msg.Id);
 			}
-			Assert.Fail("This should have been caught as spam.");
+			if (_Prevention.ShouldPunish(spam))
+			{
+				Assert.Fail("This should not have been caught as spam.");
+			}
 		}
-
-		private string GenerateMentionSpam()
-			=> $"{MentionUser(1)} {MentionUser(2)} {MentionUser(3)}";
-
-		private string GenerateNotSpam()
-			=> "Not spam.";
 	}
+
+	[TestMethod]
+	public void PunishSpam_Test()
+	{
+		var spam = new List<ulong>();
+		for (var i = 0; i < 10; ++i)
+		{
+			var msg = new FakeUserMessage(_Channel, _User, GenerateMentionSpam())
+			{
+				Id = _Snowflakes.Next(_Prevention.Interval / 10),
+			};
+			if (_Prevention.IsSpam(msg))
+			{
+				spam.Add(msg.Id);
+			}
+			if (_Prevention.ShouldPunish(spam))
+			{
+				return;
+			}
+		}
+		Assert.Fail("This should have been caught as spam.");
+	}
+
+	private string GenerateMentionSpam()
+		=> $"{MentionUser(1)} {MentionUser(2)} {MentionUser(3)}";
+
+	private string GenerateNotSpam()
+		=> "Not spam.";
 }

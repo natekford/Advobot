@@ -1,23 +1,21 @@
-﻿
-using Advobot.Logging.Database;
+﻿using Advobot.Logging.Database;
 
 using Discord;
 
-namespace Advobot.Logging.Context.Users
+namespace Advobot.Logging.Context.Users;
+
+public class UserState : ILogState
 {
-	public class UserState : ILogState
+	public IGuild Guild => User.Guild;
+	public bool IsValid => User is not null;
+	public IGuildUser User { get; }
+
+	public UserState(IGuildUser user)
 	{
-		public bool IsValid => !(User is null);
-		public IGuildUser User { get; }
-		public IGuild Guild => User.Guild;
-
-		public UserState(IGuildUser user)
-		{
-			User = user;
-		}
-
-		// Only log if it wasn't this bot that was affected
-		public virtual Task<bool> CanLog(ILoggingDatabase db, ILogContext context)
-			=> Task.FromResult(User.Id != context.Bot.Id);
+		User = user;
 	}
+
+	// Only log if it wasn't this bot that was affected
+	public virtual Task<bool> CanLog(ILoggingDatabase db, ILogContext context)
+		=> Task.FromResult(User.Id != context.Bot.Id);
 }

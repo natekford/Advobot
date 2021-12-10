@@ -1,6 +1,4 @@
-﻿using System.Collections.Immutable;
-
-using Advobot.Modules;
+﻿using Advobot.Modules;
 using Advobot.Utilities;
 
 using AdvorangesUtils;
@@ -10,96 +8,97 @@ using Discord.Commands;
 
 using ImageMagick;
 
-namespace Advobot.Services.ImageResizing
-{
-	/// <summary>
-	/// Creates an emote on the specified guild.
-	/// </summary>
-	public sealed class EmoteCreationContext : ImageContextBase
-	{
-		private static readonly ImmutableArray<MagickFormat> _AllValidFormats
-			= _ValidStaticFormats.Concat(_ValidGifFormats).ToImmutableArray();
+using System.Collections.Immutable;
 
-		private static readonly ImmutableArray<MagickFormat> _ValidGifFormats = new[]
-		{
+namespace Advobot.Services.ImageResizing;
+
+/// <summary>
+/// Creates an emote on the specified guild.
+/// </summary>
+public sealed class EmoteCreationContext : ImageContextBase
+{
+	private static readonly ImmutableArray<MagickFormat> _AllValidFormats
+		= _ValidStaticFormats.Concat(_ValidGifFormats).ToImmutableArray();
+
+	private static readonly ImmutableArray<MagickFormat> _ValidGifFormats = new[]
+	{
 			MagickFormat.Mp4,
 			MagickFormat.Gif,
 		}.ToImmutableArray();
 
-		private static readonly ImmutableArray<MagickFormat> _ValidStaticFormats = new[]
-						{
+	private static readonly ImmutableArray<MagickFormat> _ValidStaticFormats = new[]
+					{
 			MagickFormat.Png,
 			MagickFormat.Jpg,
 			MagickFormat.Jpeg,
 		}.ToImmutableArray();
 
-		/// <inheritdoc />
-		public override long MaxAllowedLengthInBytes => 256000;
+	/// <inheritdoc />
+	public override long MaxAllowedLengthInBytes => 256000;
 
-		/// <summary>
-		/// The name to give an emote.
-		/// </summary>
-		public string Name { get; }
+	/// <summary>
+	/// The name to give an emote.
+	/// </summary>
+	public string Name { get; }
 
-		/// <inheritdoc />
-		public override string Type => "Emote";
+	/// <inheritdoc />
+	public override string Type => "Emote";
 
-		/// <summary>
-		/// Creates an instance of <see cref="EmoteCreationContext"/>.
-		/// </summary>
-		/// <param name="context"></param>
-		/// <param name="url"></param>
-		/// <param name="args"></param>
-		/// <param name="name"></param>
-		public EmoteCreationContext(
-			ICommandContext context,
-			Uri url,
-			UserProvidedImageArgs args,
-			string name)
-			: base(context, url, args)
+	/// <summary>
+	/// Creates an instance of <see cref="EmoteCreationContext"/>.
+	/// </summary>
+	/// <param name="context"></param>
+	/// <param name="url"></param>
+	/// <param name="args"></param>
+	/// <param name="name"></param>
+	public EmoteCreationContext(
+		ICommandContext context,
+		Uri url,
+		UserProvidedImageArgs args,
+		string name)
+		: base(context, url, args)
+	{
+		Name = name;
+	}
+
+	/// <inheritdoc />
+	public override IResult CanUseFormat(MagickFormat format)
+	{
+		var emoteCount = Context.Guild.PremiumTier switch
 		{
-			Name = name;
+			PremiumTier.Tier1 => 100,
+			PremiumTier.Tier2 => 150,
+			PremiumTier.Tier3 => 250,
+			_ => 50,
+		};
+
+		var emotes = Context.Guild.Emotes;
+		if (_ValidStaticFormats.Contains(format) && emotes.Count(x => !x.Animated) >= emoteCount)
+		{
+			return AdvobotResult.Failure($"There cannot be more than {emoteCount} non animated emotes.");
 		}
-
-		/// <inheritdoc />
-		public override IResult CanUseFormat(MagickFormat format)
+		else if (_ValidGifFormats.Contains(format) && emotes.Count(x => x.Animated) >= emoteCount)
 		{
-			var emoteCount = Context.Guild.PremiumTier switch
-			{
-				PremiumTier.Tier1 => 100,
-				PremiumTier.Tier2 => 150,
-				PremiumTier.Tier3 => 250,
-				_ => 50,
-			};
+			return AdvobotResult.Failure($"There cannot be more than {emoteCount} animated emotes.");
+		}
+		else if (!_AllValidFormats.Contains(format))
+		{
+			return AdvobotResult.Failure($"Cannot use an image with the format {format}.");
+		}
+		return AdvobotResult.IgnoreSuccess;
+	}
 
-			var emotes = Context.Guild.Emotes;
-			if (_ValidStaticFormats.Contains(format) && emotes.Count(x => !x.Animated) >= emoteCount)
-			{
-				return AdvobotResult.Failure($"There cannot be more than {emoteCount} non animated emotes.");
-			}
-			else if (_ValidGifFormats.Contains(format) && emotes.Count(x => x.Animated) >= emoteCount)
-			{
-				return AdvobotResult.Failure($"There cannot be more than {emoteCount} animated emotes.");
-			}
-			else if (!_AllValidFormats.Contains(format))
-			{
-				return AdvobotResult.Failure($"Cannot use an image with the format {format}.");
-			}
+	/// <inheritdoc />
+	public override async Task<IResult> UseStream(MemoryStream stream)
+	{
+		try
+		{
+			await Context.Guild.CreateEmoteAsync(Name, new Image(stream), default, Context.GenerateRequestOptions()).CAF();
 			return AdvobotResult.IgnoreSuccess;
 		}
-
-		/// <inheritdoc />
-		public override async Task<IResult> UseStream(MemoryStream stream)
+		catch (Exception e)
 		{
-			try
-			{
-				await Context.Guild.CreateEmoteAsync(Name, new Image(stream), default, Context.GenerateRequestOptions()).CAF();
-				return AdvobotResult.IgnoreSuccess;
-			}
-			catch (Exception e)
-			{
-				return AdvobotResult.Exception(e);
-			}
+			return AdvobotResult.Exception(e);
 		}
 	}
 }

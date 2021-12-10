@@ -1,24 +1,23 @@
-﻿namespace Advobot.Quotes.Formatting
+﻿namespace Advobot.Quotes.Formatting;
+
+/// <summary>
+/// Additional format options for rule formatter.
+/// </summary>
+[Flags]
+public enum RuleFormatOption : uint
 {
 	/// <summary>
-	/// Additional format options for rule formatter.
+	/// No formatting.
 	/// </summary>
-	[Flags]
-	public enum RuleFormatOption : uint
-	{
-		/// <summary>
-		/// No formatting.
-		/// </summary>
-		Nothing = 0,
+	Nothing = 0,
 
-		/// <summary>
-		/// Keep all the numbers the same length so everything looks uniform.
-		/// </summary>
-		NumbersSameLength = 1U << 0,
+	/// <summary>
+	/// Keep all the numbers the same length so everything looks uniform.
+	/// </summary>
+	NumbersSameLength = 1U << 0,
 
-		/// <summary>
-		/// Put in extra lines between categories.
-		/// </summary>
-		ExtraLines = 1U << 1,
-	}
+	/// <summary>
+	/// Put in extra lines between categories.
+	/// </summary>
+	ExtraLines = 1U << 1,
 }

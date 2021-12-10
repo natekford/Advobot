@@ -5,28 +5,27 @@ using AdvorangesUtils;
 
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
-namespace Advobot.Tests.Commands.Quotes.ParameterPreconditions
+namespace Advobot.Tests.Commands.Quotes.ParameterPreconditions;
+
+[TestClass]
+public sealed class RuleAttribute_Tests
+	: ParameterPreconditionTestsBase<RuleAttribute>
 {
-	[TestClass]
-	public sealed class RuleAttribute_Tests
-		: ParameterPreconditionTestsBase<RuleAttribute>
-	{
-		protected override RuleAttribute Instance { get; } = new();
+	protected override RuleAttribute Instance { get; } = new();
 
-		[TestMethod]
-		public async Task Empty_Test()
-			=> await AssertFailureAsync("").CAF();
+	[TestMethod]
+	public async Task Empty_Test()
+		=> await AssertFailureAsync("").CAF();
 
-		[TestMethod]
-		public async Task Length1_Test()
-			=> await AssertSuccessAsync(new string('a', 1)).CAF();
+	[TestMethod]
+	public async Task Length1_Test()
+		=> await AssertSuccessAsync(new string('a', 1)).CAF();
 
-		[TestMethod]
-		public async Task Length500_Test()
-			=> await AssertSuccessAsync(new string('a', 500)).CAF();
+	[TestMethod]
+	public async Task Length500_Test()
+		=> await AssertSuccessAsync(new string('a', 500)).CAF();
 
-		[TestMethod]
-		public async Task Length501_Test()
-			=> await AssertFailureAsync(new string('a', 501)).CAF();
-	}
+	[TestMethod]
+	public async Task Length501_Test()
+		=> await AssertFailureAsync(new string('a', 501)).CAF();
 }

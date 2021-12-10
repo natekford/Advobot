@@ -1,18 +1,16 @@
-﻿
-using AdvorangesUtils;
+﻿using AdvorangesUtils;
 
-namespace Advobot.Console
+namespace Advobot.Console;
+
+/// <summary>
+/// Starting point for Advobot in a console.
+/// </summary>
+public sealed class ConsoleLauncher
 {
-	/// <summary>
-	/// Starting point for Advobot in a console.
-	/// </summary>
-	public sealed class ConsoleLauncher
+	private static async Task Main(string[] args)
 	{
-		private static async Task Main(string[] args)
-		{
-			System.Console.Title = "Advobot";
-			await AdvobotLauncher.NoConfigurationStart(args).CAF();
-			await Task.Delay(-1).CAF();
-		}
+		System.Console.Title = "Advobot";
+		await AdvobotLauncher.NoConfigurationStart(args).CAF();
+		await Task.Delay(-1).CAF();
 	}
 }

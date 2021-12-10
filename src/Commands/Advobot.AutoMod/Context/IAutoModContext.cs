@@ -1,10 +1,9 @@
 ﻿using Discord;
 
-namespace Advobot.AutoMod.Context
+namespace Advobot.AutoMod.Context;
+
+public interface IAutoModContext
 {
-	public interface IAutoModContext
-	{
-		public IGuild Guild { get; }
-		public IGuildUser User { get; }
-	}
+	public IGuild Guild { get; }
+	public IGuildUser User { get; }
 }

@@ -1,16 +1,16 @@
 ﻿using FluentMigrator;
 
-namespace Advobot.AutoMod.Migrations
-{
-	[Migration(20200813223200)]
-	public sealed class AddSpamPreventionTable : Migration
-	{
-		public override void Down()
-			=> Delete.Table("SpamPrevention");
+namespace Advobot.AutoMod.Migrations;
 
-		public override void Up()
-		{
-			Execute.Sql(@"
+[Migration(20200813223200)]
+public sealed class AddSpamPreventionTable : Migration
+{
+	public override void Down()
+		=> Delete.Table("SpamPrevention");
+
+	public override void Up()
+	{
+		Execute.Sql(@"
 			CREATE TABLE IF NOT EXISTS SpamPrevention
 			(
 				GuildId					TEXT NOT NULL,
@@ -29,6 +29,5 @@ namespace Advobot.AutoMod.Migrations
 				GuildId
 			);
 			");
-		}
 	}
 }

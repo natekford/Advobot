@@ -1,32 +1,31 @@
-﻿namespace Advobot.SQLite
+﻿namespace Advobot.SQLite;
+
+/// <summary>
+/// Used for starting a SQLite database from a system file.
+/// </summary>
+public sealed class SQLiteSystemFileDatabaseConnectionString : IConnectionStringFor<object>
 {
+	public string ConnectionString { get; }
+	public string Location { get; }
+
 	/// <summary>
-	/// Used for starting a SQLite database from a system file.
+	/// Creates an instance of <see cref="SQLiteSystemFileDatabaseConnectionString"/>.
 	/// </summary>
-	public sealed class SQLiteSystemFileDatabaseConnectionString : IConnectionStringFor<object>
+	/// <param name="path"></param>
+	public SQLiteSystemFileDatabaseConnectionString(string path)
 	{
-		public string ConnectionString { get; }
-		public string Location { get; }
+		Location = path;
+		ConnectionString = $"Data Source={Location}";
+	}
 
-		/// <summary>
-		/// Creates an instance of <see cref="SQLiteSystemFileDatabaseConnectionString"/>.
-		/// </summary>
-		/// <param name="path"></param>
-		public SQLiteSystemFileDatabaseConnectionString(string path)
+	/// <inheritdoc />
+	public Task EnsureCreatedAsync()
+	{
+		if (!File.Exists(Location))
 		{
-			Location = path;
-			ConnectionString = $"Data Source={Location}";
+			Directory.CreateDirectory(Path.GetDirectoryName(Location));
+			File.Create(Location).Dispose();
 		}
-
-		/// <inheritdoc />
-		public Task EnsureCreatedAsync()
-		{
-			if (!File.Exists(Location))
-			{
-				Directory.CreateDirectory(Path.GetDirectoryName(Location));
-				using (File.Create(Location)) { }
-			}
-			return Task.CompletedTask;
-		}
+		return Task.CompletedTask;
 	}
 }

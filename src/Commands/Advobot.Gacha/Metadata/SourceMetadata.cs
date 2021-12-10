@@ -1,6 +1,5 @@
-﻿namespace Advobot.Gacha.Metadata
+﻿namespace Advobot.Gacha.Metadata;
+
+public readonly struct SourceMetadata
 {
-	public readonly struct SourceMetadata
-	{
-	}
 }

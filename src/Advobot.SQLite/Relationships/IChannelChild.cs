@@ -1,13 +1,12 @@
-﻿namespace Advobot.SQLite.Relationships
+﻿namespace Advobot.SQLite.Relationships;
+
+/// <summary>
+/// Represents an object which belongs to a channel.
+/// </summary>
+public interface IChannelChild : IGuildChild
 {
 	/// <summary>
-	/// Represents an object which belongs to a channel.
+	/// The channel's id.
 	/// </summary>
-	public interface IChannelChild : IGuildChild
-	{
-		/// <summary>
-		/// The channel's id.
-		/// </summary>
-		ulong ChannelId { get; }
-	}
+	ulong ChannelId { get; }
 }

@@ -1,5 +1,4 @@
-﻿
-using Advobot.AutoMod.Database;
+﻿using Advobot.AutoMod.Database;
 using Advobot.AutoMod.Models;
 using Advobot.Utilities;
 
@@ -11,77 +10,76 @@ using Microsoft.Extensions.DependencyInjection;
 
 using static Advobot.Resources.Responses;
 
-namespace Advobot.AutoMod.TypeReaders
+namespace Advobot.AutoMod.TypeReaders;
+
+/// <summary>
+/// A type reader for banned names.
+/// </summary>
+public sealed class BannedNameTypeReader : BannedPhraseTypeReaderBase
+{
+	/// <inheritdoc />
+	protected override string BannedPhraseName => VariableName;
+
+	/// <inheritdoc />
+	protected override bool IsValid(BannedPhrase phrase, string input)
+		=> phrase.IsName && phrase.Phrase == input;
+}
+
+/// <summary>
+/// A type reader for banned phrases.
+/// </summary>
+public abstract class BannedPhraseTypeReaderBase : TypeReader
 {
 	/// <summary>
-	/// A type reader for banned names.
+	/// Gets the name of the banned phrase type.
 	/// </summary>
-	public sealed class BannedNameTypeReader : BannedPhraseTypeReaderBase
-	{
-		/// <inheritdoc />
-		protected override string BannedPhraseName => VariableName;
+	protected abstract string BannedPhraseName { get; }
 
-		/// <inheritdoc />
-		protected override bool IsValid(BannedPhrase phrase, string input)
-			=> phrase.IsName && phrase.Phrase == input;
+	/// <inheritdoc />
+	public override async Task<TypeReaderResult> ReadAsync(
+		ICommandContext context,
+		string input,
+		IServiceProvider services)
+	{
+		var db = services.GetRequiredService<IAutoModDatabase>();
+		var phrases = await db.GetBannedPhrasesAsync(context.Guild.Id).CAF();
+		var matches = phrases.Where(x => IsValid(x, input)).ToArray();
+
+		var type = BannedPhraseType.Format(BannedPhraseName.WithNoMarkdown());
+		return TypeReaderUtils.SingleValidResult(matches, type, input);
 	}
 
 	/// <summary>
-	/// A type reader for banned phrases.
+	/// Determines if this phrase is valid.
 	/// </summary>
-	public abstract class BannedPhraseTypeReaderBase : TypeReader
-	{
-		/// <summary>
-		/// Gets the name of the banned phrase type.
-		/// </summary>
-		protected abstract string BannedPhraseName { get; }
+	/// <param name="phrase"></param>
+	/// <param name="input"></param>
+	/// <returns></returns>
+	protected abstract bool IsValid(BannedPhrase phrase, string input);
+}
 
-		/// <inheritdoc />
-		public override async Task<TypeReaderResult> ReadAsync(
-			ICommandContext context,
-			string input,
-			IServiceProvider services)
-		{
-			var db = services.GetRequiredService<IAutoModDatabase>();
-			var phrases = await db.GetBannedPhrasesAsync(context.Guild.Id).CAF();
-			var matches = phrases.Where(x => IsValid(x, input)).ToArray();
+/// <summary>
+/// A type reader for banned regex.
+/// </summary>
+public sealed class BannedRegexTypeReader : BannedPhraseTypeReaderBase
+{
+	/// <inheritdoc />
+	protected override string BannedPhraseName => VariableRegex;
 
-			var type = BannedPhraseType.Format(BannedPhraseName.WithNoMarkdown());
-			return TypeReaderUtils.SingleValidResult(matches, type, input);
-		}
+	/// <inheritdoc />
+	protected override bool IsValid(BannedPhrase phrase, string input)
+		=> !phrase.IsName && phrase.IsRegex && phrase.Phrase == input;
+}
 
-		/// <summary>
-		/// Determines if this phrase is valid.
-		/// </summary>
-		/// <param name="phrase"></param>
-		/// <param name="input"></param>
-		/// <returns></returns>
-		protected abstract bool IsValid(BannedPhrase phrase, string input);
-	}
+/// <summary>
+/// A type reader for banned strings.
+/// </summary>
+public sealed class BannedStringTypeReader : BannedPhraseTypeReaderBase
+{
+	/// <inheritdoc />
+	protected override string BannedPhraseName => VariableString;
 
-	/// <summary>
-	/// A type reader for banned regex.
-	/// </summary>
-	public sealed class BannedRegexTypeReader : BannedPhraseTypeReaderBase
-	{
-		/// <inheritdoc />
-		protected override string BannedPhraseName => VariableRegex;
-
-		/// <inheritdoc />
-		protected override bool IsValid(BannedPhrase phrase, string input)
-			=> !phrase.IsName && phrase.IsRegex && phrase.Phrase == input;
-	}
-
-	/// <summary>
-	/// A type reader for banned strings.
-	/// </summary>
-	public sealed class BannedStringTypeReader : BannedPhraseTypeReaderBase
-	{
-		/// <inheritdoc />
-		protected override string BannedPhraseName => VariableString;
-
-		/// <inheritdoc />
-		protected override bool IsValid(BannedPhrase phrase, string input)
-			=> !phrase.IsName && !phrase.IsRegex && phrase.Phrase == input;
-	}
+	/// <inheritdoc />
+	protected override bool IsValid(BannedPhrase phrase, string input)
+		=> !phrase.IsName && !phrase.IsRegex && phrase.Phrase == input;
 }

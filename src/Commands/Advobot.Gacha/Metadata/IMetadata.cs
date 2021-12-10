@@ -1,7 +1,6 @@
-﻿namespace Advobot.Gacha.Metadata
+﻿namespace Advobot.Gacha.Metadata;
+
+public interface IMetadata<T>
 {
-	public interface IMetadata<T>
-	{
-		T Data { get; }
-	}
+	T Data { get; }
 }

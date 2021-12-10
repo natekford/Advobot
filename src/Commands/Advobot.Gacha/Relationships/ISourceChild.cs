@@ -1,7 +1,6 @@
-﻿namespace Advobot.Gacha.Relationships
+﻿namespace Advobot.Gacha.Relationships;
+
+public interface ISourceChild
 {
-	public interface ISourceChild
-	{
-		long SourceId { get; }
-	}
+	long SourceId { get; }
 }

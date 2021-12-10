@@ -1,19 +1,17 @@
-﻿
-using Discord;
+﻿using Discord;
 
-namespace Advobot.Interactivity.TryParsers
+namespace Advobot.Interactivity.TryParsers;
+
+/// <summary>
+/// Parses objects from messages.
+/// </summary>
+/// <typeparam name="T"></typeparam>
+public interface IMessageTryParser<T>
 {
 	/// <summary>
-	/// Parses objects from messages.
+	/// Attempts to parse a value from the message.
 	/// </summary>
-	/// <typeparam name="T"></typeparam>
-	public interface IMessageTryParser<T>
-	{
-		/// <summary>
-		/// Attempts to parse a value from the message.
-		/// </summary>
-		/// <param name="message"></param>
-		/// <returns></returns>
-		public ValueTask<Optional<T>> TryParseAsync(IMessage message);
-	}
+	/// <param name="message"></param>
+	/// <returns></returns>
+	public ValueTask<Optional<T>> TryParseAsync(IMessage message);
 }

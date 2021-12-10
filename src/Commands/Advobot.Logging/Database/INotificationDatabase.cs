@@ -1,16 +1,14 @@
-﻿
-using Advobot.Logging.Models;
+﻿using Advobot.Logging.Models;
 
-namespace Advobot.Logging.Database
+namespace Advobot.Logging.Database;
+
+public interface INotificationDatabase
 {
-	public interface INotificationDatabase
-	{
-		Task<CustomNotification?> GetAsync(Notification notification, ulong guildId);
+	Task<CustomNotification?> GetAsync(Notification notification, ulong guildId);
 
-		Task<int> UpsertNotificationChannelAsync(Notification notification, ulong guildId, ulong? channelId);
+	Task<int> UpsertNotificationChannelAsync(Notification notification, ulong guildId, ulong? channelId);
 
-		Task<int> UpsertNotificationContentAsync(Notification notification, ulong guildId, string? content);
+	Task<int> UpsertNotificationContentAsync(Notification notification, ulong guildId, string? content);
 
-		Task<int> UpsertNotificationEmbedAsync(Notification notification, ulong guildId, CustomEmbed? embed);
-	}
+	Task<int> UpsertNotificationEmbedAsync(Notification notification, ulong guildId, CustomEmbed? embed);
 }

@@ -1,5 +1,4 @@
-﻿
-using Advobot.AutoMod.Database;
+﻿using Advobot.AutoMod.Database;
 using Advobot.AutoMod.Models;
 using Advobot.Punishments;
 using Advobot.Tests.Commands.AutoMod;
@@ -10,60 +9,59 @@ using AdvorangesUtils;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
-namespace Advobot.Tests.Core.TypeReaders.BannedPhraseTypeReaders
+namespace Advobot.Tests.Core.TypeReaders.BannedPhraseTypeReaders;
+
+[TestClass]
+public abstract class BannedPhraseTypeReader_Tests : TypeReaderTestsBase
 {
-	[TestClass]
-	public abstract class BannedPhraseTypeReader_Tests : TypeReaderTestsBase
+	private readonly FakeAutoModDatabase _Db = new();
+
+	protected abstract bool IsName { get; }
+	protected abstract bool IsRegex { get; }
+	protected abstract bool IsString { get; }
+
+	[TestMethod]
+	public async Task Existing_Test()
 	{
-		private readonly FakeAutoModDatabase _Db = new();
+		const string PHRASE = "asdf";
 
-		protected abstract bool IsName { get; }
-		protected abstract bool IsRegex { get; }
-		protected abstract bool IsString { get; }
+		await _Db.UpsertBannedPhraseAsync(new BannedPhrase
+		(
+			GuildId: Context.Guild.Id,
+			IsContains: IsName || IsString,
+			IsName: IsName,
+			IsRegex: IsRegex,
+			Phrase: PHRASE,
+			PunishmentType: PunishmentType.Nothing
+		)).CAF();
 
-		[TestMethod]
-		public async Task Existing_Test()
-		{
-			const string PHRASE = "asdf";
+		var result = await ReadAsync(PHRASE).CAF();
+		Assert.IsTrue(result.IsSuccess);
+		Assert.IsInstanceOfType(result.BestMatch, typeof(BannedPhrase));
+	}
 
-			await _Db.UpsertBannedPhraseAsync(new BannedPhrase
-			(
-				GuildId: Context.Guild.Id,
-				IsContains: IsName || IsString,
-				IsName: IsName,
-				IsRegex: IsRegex,
-				Phrase: PHRASE,
-				PunishmentType: PunishmentType.Nothing
-			)).CAF();
+	[TestMethod]
+	public async Task NotExistingButOtherTypeExists_Test()
+	{
+		const string PHRASE = "asdf";
 
-			var result = await ReadAsync(PHRASE).CAF();
-			Assert.IsTrue(result.IsSuccess);
-			Assert.IsInstanceOfType(result.BestMatch, typeof(BannedPhrase));
-		}
+		await _Db.UpsertBannedPhraseAsync(new BannedPhrase
+		(
+			GuildId: Context.Guild.Id,
+			IsContains: !(IsName || IsString),
+			IsName: !IsName,
+			IsRegex: !IsRegex,
+			Phrase: PHRASE,
+			PunishmentType: PunishmentType.Nothing
+		)).CAF();
 
-		[TestMethod]
-		public async Task NotExistingButOtherTypeExists_Test()
-		{
-			const string PHRASE = "asdf";
+		var result = await ReadAsync(PHRASE).CAF();
+		Assert.IsFalse(result.IsSuccess);
+	}
 
-			await _Db.UpsertBannedPhraseAsync(new BannedPhrase
-			(
-				GuildId: Context.Guild.Id,
-				IsContains: !(IsName || IsString),
-				IsName: !IsName,
-				IsRegex: !IsRegex,
-				Phrase: PHRASE,
-				PunishmentType: PunishmentType.Nothing
-			)).CAF();
-
-			var result = await ReadAsync(PHRASE).CAF();
-			Assert.IsFalse(result.IsSuccess);
-		}
-
-		protected override void ModifyServices(IServiceCollection services)
-		{
-			services
-				.AddSingleton<IAutoModDatabase>(_Db);
-		}
+	protected override void ModifyServices(IServiceCollection services)
+	{
+		services
+			.AddSingleton<IAutoModDatabase>(_Db);
 	}
 }

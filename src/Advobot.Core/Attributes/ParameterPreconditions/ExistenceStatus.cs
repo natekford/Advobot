@@ -1,23 +1,22 @@
-﻿namespace Advobot.Attributes.ParameterPreconditions
+﻿namespace Advobot.Attributes.ParameterPreconditions;
+
+/// <summary>
+/// How something must exist before being valid.
+/// </summary>
+public enum ExistenceStatus
 {
 	/// <summary>
-	/// How something must exist before being valid.
+	/// The value can either exist or not exist.
 	/// </summary>
-	public enum ExistenceStatus
-	{
-		/// <summary>
-		/// The value can either exist or not exist.
-		/// </summary>
-		None,
+	None,
 
-		/// <summary>
-		/// The value can only exist.
-		/// </summary>
-		MustExist,
+	/// <summary>
+	/// The value can only exist.
+	/// </summary>
+	MustExist,
 
-		/// <summary>
-		/// The value can only not exist.
-		/// </summary>
-		MustNotExist,
-	}
+	/// <summary>
+	/// The value can only not exist.
+	/// </summary>
+	MustNotExist,
 }

@@ -1,6 +1,5 @@
-﻿namespace Advobot.Settings.Responses
+﻿namespace Advobot.Settings.Responses;
+
+internal class BotSettings
 {
-	internal class BotSettings
-	{
-	}
 }

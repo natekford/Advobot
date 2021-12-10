@@ -1,13 +1,12 @@
-﻿namespace Advobot.Gacha.Interaction
+﻿namespace Advobot.Gacha.Interaction;
+
+public interface IInteractionHandler
 {
-	public interface IInteractionHandler
-	{
-		public IList<IInteraction> Interactions { get; }
+	public IList<IInteraction> Interactions { get; }
 
-		public void AddInteraction(InteractionType interaction);
+	public void AddInteraction(InteractionType interaction);
 
-		public Task StartAsync();
+	public Task StartAsync();
 
-		public Task StopAsync();
-	}
+	public Task StopAsync();
 }

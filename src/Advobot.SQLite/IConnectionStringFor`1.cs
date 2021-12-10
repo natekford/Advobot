@@ -1,10 +1,9 @@
-﻿namespace Advobot.SQLite
+﻿namespace Advobot.SQLite;
+
+/// <summary>
+/// Provides a connection string for the type param.
+/// </summary>
+/// <typeparam name="T"></typeparam>
+public interface IConnectionStringFor<in T> : IConnectionString
 {
-	/// <summary>
-	/// Provides a connection string for the type param.
-	/// </summary>
-	/// <typeparam name="T"></typeparam>
-	public interface IConnectionStringFor<in T> : IConnectionString
-	{
-	}
 }

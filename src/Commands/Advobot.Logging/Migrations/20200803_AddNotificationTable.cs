@@ -1,16 +1,16 @@
 ﻿using FluentMigrator;
 
-namespace Advobot.Logging.Migrations
-{
-	[Migration(20200803193000)]
-	public sealed class AddNotificationTable : Migration
-	{
-		public override void Down()
-			=> Delete.Table("Notification");
+namespace Advobot.Logging.Migrations;
 
-		public override void Up()
-		{
-			Execute.Sql(@"
+[Migration(20200803193000)]
+public sealed class AddNotificationTable : Migration
+{
+	public override void Down()
+		=> Delete.Table("Notification");
+
+	public override void Up()
+	{
+		Execute.Sql(@"
 			CREATE TABLE IF NOT EXISTS Notification
 			(
 				GuildId						TEXT NOT NULL,
@@ -39,6 +39,5 @@ namespace Advobot.Logging.Migrations
 				ChannelId
 			);
 			");
-		}
 	}
 }

@@ -1,11 +1,11 @@
-﻿using System.Reflection;
+﻿using Advobot;
+using Advobot.CommandAssemblies;
+using Advobot.Logging;
+
+using System.Reflection;
 using System.Resources;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
-
-using Advobot;
-using Advobot.CommandAssemblies;
-using Advobot.Logging;
 
 // General Information about an assembly is controlled through the following
 // set of attributes. Change these attribute values to modify the information

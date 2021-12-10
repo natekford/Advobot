@@ -1,16 +1,14 @@
-﻿
-using Advobot.Quotes.Models;
+﻿using Advobot.Quotes.Models;
 
-namespace Advobot.Quotes.Database
+namespace Advobot.Quotes.Database;
+
+public interface IQuoteDatabase
 {
-	public interface IQuoteDatabase
-	{
-		Task<int> AddQuoteAsync(Quote quote);
+	Task<int> AddQuoteAsync(Quote quote);
 
-		Task<int> DeleteQuoteAsync(Quote quote);
+	Task<int> DeleteQuoteAsync(Quote quote);
 
-		Task<Quote?> GetQuoteAsync(ulong guildId, string name);
+	Task<Quote?> GetQuoteAsync(ulong guildId, string name);
 
-		Task<IReadOnlyList<Quote>> GetQuotesAsync(ulong guildId);
-	}
+	Task<IReadOnlyList<Quote>> GetQuotesAsync(ulong guildId);
 }

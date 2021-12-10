@@ -1,11 +1,10 @@
 ﻿using Advobot.SQLite.Relationships;
 
-namespace Advobot.Levels.Metadata
+namespace Advobot.Levels.Metadata;
+
+public interface IRank : IUserChild
 {
-	public interface IRank : IUserChild
-	{
-		int Experience { get; }
-		int Position { get; }
-		int TotalRankCount { get; }
-	}
+	int Experience { get; }
+	int Position { get; }
+	int TotalRankCount { get; }
 }

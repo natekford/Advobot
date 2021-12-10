@@ -1,34 +1,33 @@
-﻿namespace Advobot.Quotes.Formatting
+﻿namespace Advobot.Quotes.Formatting;
+
+/// <summary>
+/// Markdown format options for rule formatter.
+/// </summary>
+[Flags]
+public enum MarkDownFormat : uint
 {
 	/// <summary>
-	/// Markdown format options for rule formatter.
+	/// No markdown.
 	/// </summary>
-	[Flags]
-	public enum MarkDownFormat : uint
-	{
-		/// <summary>
-		/// No markdown.
-		/// </summary>
-		Nothing = 0,
+	Nothing = 0,
 
-		/// <summary>
-		/// Add bold in markdown.
-		/// </summary>
-		Bold = 1U << 0,
+	/// <summary>
+	/// Add bold in markdown.
+	/// </summary>
+	Bold = 1U << 0,
 
-		/// <summary>
-		/// Add italics in markdown.
-		/// </summary>
-		Italics = 1U << 1,
+	/// <summary>
+	/// Add italics in markdown.
+	/// </summary>
+	Italics = 1U << 1,
 
-		/// <summary>
-		/// Add backticks in markdown.
-		/// </summary>
-		Code = 1U << 2,
+	/// <summary>
+	/// Add backticks in markdown.
+	/// </summary>
+	Code = 1U << 2,
 
-		/// <summary>
-		/// Puts a line through the text in markdown.
-		/// </summary>
-		StrikeThrough = 1U << 3,
-	}
+	/// <summary>
+	/// Puts a line through the text in markdown.
+	/// </summary>
+	StrikeThrough = 1U << 3,
 }

@@ -1,61 +1,59 @@
-﻿
-using Advobot.Interfaces;
+﻿using Advobot.Interfaces;
 
 using Discord.Commands;
 
 using ImageMagick;
 
-namespace Advobot.Services.ImageResizing
+namespace Advobot.Services.ImageResizing;
+
+/// <summary>
+/// Specifies how to use and resize an image.
+/// </summary>
+public interface IImageContext : IAsyncProgress<string>
 {
 	/// <summary>
-	/// Specifies how to use and resize an image.
+	/// The user provided arguments.
 	/// </summary>
-	public interface IImageContext : IAsyncProgress<string>
-	{
-		/// <summary>
-		/// The user provided arguments.
-		/// </summary>
-		UserProvidedImageArgs Args { get; }
+	UserProvidedImageArgs Args { get; }
 
-		/// <summary>
-		/// The guild this image context is for.
-		/// </summary>
-		ulong GuildId { get; }
+	/// <summary>
+	/// The guild this image context is for.
+	/// </summary>
+	ulong GuildId { get; }
 
-		/// <summary>
-		/// The largest allowed file size.
-		/// </summary>
-		long MaxAllowedLengthInBytes { get; }
+	/// <summary>
+	/// The largest allowed file size.
+	/// </summary>
+	long MaxAllowedLengthInBytes { get; }
 
-		/// <summary>
-		/// What this is targeting, e.g. emote, profile picture, etc.
-		/// </summary>
-		string Type { get; }
+	/// <summary>
+	/// What this is targeting, e.g. emote, profile picture, etc.
+	/// </summary>
+	string Type { get; }
 
-		/// <summary>
-		/// The url to download from.
-		/// </summary>
-		Uri Url { get; }
+	/// <summary>
+	/// The url to download from.
+	/// </summary>
+	Uri Url { get; }
 
-		/// <summary>
-		/// Whether or not this context can use <paramref name="format"/>.
-		/// </summary>
-		/// <param name="format"></param>
-		/// <returns></returns>
-		IResult CanUseFormat(MagickFormat format);
+	/// <summary>
+	/// Whether or not this context can use <paramref name="format"/>.
+	/// </summary>
+	/// <param name="format"></param>
+	/// <returns></returns>
+	IResult CanUseFormat(MagickFormat format);
 
-		/// <summary>
-		/// Sends the response to the context channel.
-		/// </summary>
-		/// <param name="result"></param>
-		/// <returns></returns>
-		Task SendFinalResponseAsync(IResult result);
+	/// <summary>
+	/// Sends the response to the context channel.
+	/// </summary>
+	/// <param name="result"></param>
+	/// <returns></returns>
+	Task SendFinalResponseAsync(IResult result);
 
-		/// <summary>
-		/// Uses the supplied stream to do the specified action.
-		/// </summary>
-		/// <param name="stream"></param>
-		/// <returns></returns>
-		Task<IResult> UseStream(MemoryStream stream);
-	}
+	/// <summary>
+	/// Uses the supplied stream to do the specified action.
+	/// </summary>
+	/// <param name="stream"></param>
+	/// <returns></returns>
+	Task<IResult> UseStream(MemoryStream stream);
 }

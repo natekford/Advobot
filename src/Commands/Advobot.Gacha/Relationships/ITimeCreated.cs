@@ -1,7 +1,6 @@
-﻿namespace Advobot.Gacha.Relationships
+﻿namespace Advobot.Gacha.Relationships;
+
+public interface ITimeCreated
 {
-	public interface ITimeCreated
-	{
-		DateTimeOffset GetTimeCreated();
-	}
+	DateTimeOffset GetTimeCreated();
 }

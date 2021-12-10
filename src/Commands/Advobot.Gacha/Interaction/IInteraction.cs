@@ -1,7 +1,6 @@
-﻿namespace Advobot.Gacha.Interaction
+﻿namespace Advobot.Gacha.Interaction;
+
+public interface IInteraction
 {
-	public interface IInteraction
-	{
-		string Name { get; }
-	}
+	string Name { get; }
 }

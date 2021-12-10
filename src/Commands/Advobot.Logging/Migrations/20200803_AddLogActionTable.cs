@@ -1,16 +1,16 @@
 ﻿using FluentMigrator;
 
-namespace Advobot.Logging.Migrations
-{
-	[Migration(20200803192800)]
-	public sealed class AddLogActionTable : Migration
-	{
-		public override void Down()
-			=> Delete.Table("LogAction");
+namespace Advobot.Logging.Migrations;
 
-		public override void Up()
-		{
-			Execute.Sql(@"
+[Migration(20200803192800)]
+public sealed class AddLogActionTable : Migration
+{
+	public override void Down()
+		=> Delete.Table("LogAction");
+
+	public override void Up()
+	{
+		Execute.Sql(@"
 			CREATE TABLE IF NOT EXISTS LogAction
 			(
 				GuildId						TEXT NOT NULL,
@@ -22,6 +22,5 @@ namespace Advobot.Logging.Migrations
 				GuildId
 			);
 			");
-		}
 	}
 }

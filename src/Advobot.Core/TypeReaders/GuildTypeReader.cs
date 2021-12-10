@@ -1,5 +1,4 @@
-﻿
-using Advobot.Attributes;
+﻿using Advobot.Attributes;
 using Advobot.Utilities;
 
 using AdvorangesUtils;
@@ -7,38 +6,37 @@ using AdvorangesUtils;
 using Discord;
 using Discord.Commands;
 
-namespace Advobot.TypeReaders
+namespace Advobot.TypeReaders;
+
+/// <summary>
+/// Attempts to find an <see cref="IGuild"/>.
+/// </summary>
+[TypeReaderTargetType(typeof(IGuild))]
+public sealed class GuildTypeReader : TypeReader
 {
 	/// <summary>
-	/// Attempts to find an <see cref="IGuild"/>.
+	/// Checks for any guilds matching the input.
 	/// </summary>
-	[TypeReaderTargetType(typeof(IGuild))]
-	public sealed class GuildTypeReader : TypeReader
+	/// <param name="context"></param>
+	/// <param name="input"></param>
+	/// <param name="services"></param>
+	/// <returns></returns>
+	public override async Task<TypeReaderResult> ReadAsync(
+		ICommandContext context,
+		string input,
+		IServiceProvider services)
 	{
-		/// <summary>
-		/// Checks for any guilds matching the input.
-		/// </summary>
-		/// <param name="context"></param>
-		/// <param name="input"></param>
-		/// <param name="services"></param>
-		/// <returns></returns>
-		public override async Task<TypeReaderResult> ReadAsync(
-			ICommandContext context,
-			string input,
-			IServiceProvider services)
+		if (ulong.TryParse(input, out var id))
 		{
-			if (ulong.TryParse(input, out var id))
+			var guild = await context.Client.GetGuildAsync(id).CAF();
+			if (guild != null)
 			{
-				var guild = await context.Client.GetGuildAsync(id).CAF();
-				if (guild != null)
-				{
-					return TypeReaderResult.FromSuccess(guild);
-				}
+				return TypeReaderResult.FromSuccess(guild);
 			}
-
-			var guilds = await context.Client.GetGuildsAsync().CAF();
-			var matches = guilds.Where(x => x.Name.CaseInsEquals(input)).ToArray();
-			return TypeReaderUtils.SingleValidResult(matches, "guilds", input);
 		}
+
+		var guilds = await context.Client.GetGuildsAsync().CAF();
+		var matches = guilds.Where(x => x.Name.CaseInsEquals(input)).ToArray();
+		return TypeReaderUtils.SingleValidResult(matches, "guilds", input);
 	}
 }

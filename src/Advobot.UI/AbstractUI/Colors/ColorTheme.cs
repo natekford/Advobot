@@ -1,23 +1,22 @@
-﻿namespace Advobot.UI.AbstractUI.Colors
+﻿namespace Advobot.UI.AbstractUI.Colors;
+
+/// <summary>
+/// Indicates what theme to use in the UI.
+/// </summary>
+public enum ColorTheme
 {
 	/// <summary>
-	/// Indicates what theme to use in the UI.
+	/// Light theme.
 	/// </summary>
-	public enum ColorTheme
-	{
-		/// <summary>
-		/// Light theme.
-		/// </summary>
-		LightMode,
+	LightMode,
 
-		/// <summary>
-		/// Dark theme.
-		/// </summary>
-		DarkMode,
+	/// <summary>
+	/// Dark theme.
+	/// </summary>
+	DarkMode,
 
-		/// <summary>
-		/// Custom theme.
-		/// </summary>
-		UserMade,
-	}
+	/// <summary>
+	/// Custom theme.
+	/// </summary>
+	UserMade,
 }

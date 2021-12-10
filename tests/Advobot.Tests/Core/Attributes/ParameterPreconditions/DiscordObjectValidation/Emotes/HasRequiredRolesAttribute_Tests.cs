@@ -8,31 +8,30 @@ using Discord;
 
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
-namespace Advobot.Tests.Core.Attributes.ParameterPreconditions.DiscordObjectValidation.Emotes
+namespace Advobot.Tests.Core.Attributes.ParameterPreconditions.DiscordObjectValidation.Emotes;
+
+[TestClass]
+public sealed class HasRequiredRolesAttribute_Tests
+	: ParameterPreconditionTestsBase<HasRequiredRolesAttribute>
 {
-	[TestClass]
-	public sealed class HasRequiredRolesAttribute_Tests
-		: ParameterPreconditionTestsBase<HasRequiredRolesAttribute>
+	private readonly GuildEmote _Emote = new EmoteCreationArgs
 	{
-		private readonly GuildEmote _Emote = new EmoteCreationArgs
-		{
-			Id = 73UL,
-			Name = "emote name",
-			RoleIds = new List<ulong>(),
-		}.Build();
+		Id = 73UL,
+		Name = "emote name",
+		RoleIds = new List<ulong>(),
+	}.Build();
 
-		protected override HasRequiredRolesAttribute Instance { get; } = new();
+	protected override HasRequiredRolesAttribute Instance { get; } = new();
 
-		[TestMethod]
-		public async Task DoesNotHaveRequiredRoles_Test()
-			=> await AssertFailureAsync(_Emote).CAF();
+	[TestMethod]
+	public async Task DoesNotHaveRequiredRoles_Test()
+		=> await AssertFailureAsync(_Emote).CAF();
 
-		[TestMethod]
-		public async Task HasRequiredRoles_Test()
-		{
-			((IList<ulong>)_Emote.RoleIds).Add(35);
+	[TestMethod]
+	public async Task HasRequiredRoles_Test()
+	{
+		((IList<ulong>)_Emote.RoleIds).Add(35);
 
-			await AssertSuccessAsync(_Emote).CAF();
-		}
+		await AssertSuccessAsync(_Emote).CAF();
 	}
 }

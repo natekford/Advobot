@@ -1,8 +1,7 @@
-﻿namespace Advobot.Gacha.Trading
+﻿namespace Advobot.Gacha.Trading;
+
+public enum ExchangeMethod
 {
-	public enum ExchangeMethod
-	{
-		Trade,
-		Gift
-	}
+	Trade,
+	Gift
 }

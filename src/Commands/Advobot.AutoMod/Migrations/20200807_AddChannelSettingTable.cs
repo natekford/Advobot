@@ -1,16 +1,16 @@
 ﻿using FluentMigrator;
 
-namespace Advobot.AutoMod.Migrations
-{
-	[Migration(20200807004600)]
-	public sealed class AddChannelSettingTable : Migration
-	{
-		public override void Down()
-			=> Delete.Table("ChannelSetting");
+namespace Advobot.AutoMod.Migrations;
 
-		public override void Up()
-		{
-			Execute.Sql(@"
+[Migration(20200807004600)]
+public sealed class AddChannelSettingTable : Migration
+{
+	public override void Down()
+		=> Delete.Table("ChannelSetting");
+
+	public override void Up()
+	{
+		Execute.Sql(@"
 			CREATE TABLE IF NOT EXISTS ChannelSetting
 			(
 				GuildId					TEXT NOT NULL,
@@ -23,6 +23,5 @@ namespace Advobot.AutoMod.Migrations
 				GuildId
 			);
 			");
-		}
 	}
 }

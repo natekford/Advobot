@@ -6,58 +6,57 @@ using AdvorangesUtils;
 
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
-namespace Advobot.Tests.Core.Attributes.ParameterPreconditions.DiscordObjectValidation.Roles
+namespace Advobot.Tests.Core.Attributes.ParameterPreconditions.DiscordObjectValidation.Roles;
+
+[TestClass]
+public sealed class CanModifyRoleAttribute_Tests
+	: ParameterPreconditionTestsBase<CanModifyRoleAttribute>
 {
-	[TestClass]
-	public sealed class CanModifyRoleAttribute_Tests
-		: ParameterPreconditionTestsBase<CanModifyRoleAttribute>
+	private readonly FakeRole _HigherRole;
+	private readonly FakeRole _LowerRole;
+	private readonly FakeRole _Role;
+	protected override CanModifyRoleAttribute Instance { get; } = new();
+
+	public CanModifyRoleAttribute_Tests()
 	{
-		private readonly FakeRole _HigherRole;
-		private readonly FakeRole _LowerRole;
-		private readonly FakeRole _Role;
-		protected override CanModifyRoleAttribute Instance { get; } = new();
+		_HigherRole = new(Context.Guild) { Position = 1, };
+		_LowerRole = new(Context.Guild) { Position = -1, };
+		_Role = new(Context.Guild) { Position = 0, };
+	}
 
-		public CanModifyRoleAttribute_Tests()
-		{
-			_HigherRole = new(Context.Guild) { Position = 1, };
-			_LowerRole = new(Context.Guild) { Position = -1, };
-			_Role = new(Context.Guild) { Position = 0, };
-		}
+	[TestMethod]
+	public async Task BotIsLower_Test()
+	{
+		await Context.User.AddRoleAsync(_HigherRole).CAF();
+		await Context.Guild.FakeCurrentUser.AddRoleAsync(_LowerRole).CAF();
 
-		[TestMethod]
-		public async Task BotIsLower_Test()
-		{
-			await Context.User.AddRoleAsync(_HigherRole).CAF();
-			await Context.Guild.FakeCurrentUser.AddRoleAsync(_LowerRole).CAF();
+		await AssertFailureAsync(_Role).CAF();
+	}
 
-			await AssertFailureAsync(_Role).CAF();
-		}
+	[TestMethod]
+	public async Task InvokerAndBotAreHigher_Test()
+	{
+		await Context.User.AddRoleAsync(_HigherRole).CAF();
+		await Context.Guild.FakeCurrentUser.AddRoleAsync(_HigherRole).CAF();
 
-		[TestMethod]
-		public async Task InvokerAndBotAreHigher_Test()
-		{
-			await Context.User.AddRoleAsync(_HigherRole).CAF();
-			await Context.Guild.FakeCurrentUser.AddRoleAsync(_HigherRole).CAF();
+		await AssertSuccessAsync(_Role).CAF();
+	}
 
-			await AssertSuccessAsync(_Role).CAF();
-		}
+	[TestMethod]
+	public async Task InvokerIsLower_Test()
+	{
+		await Context.User.AddRoleAsync(_LowerRole).CAF();
+		await Context.Guild.FakeCurrentUser.AddRoleAsync(_HigherRole).CAF();
 
-		[TestMethod]
-		public async Task InvokerIsLower_Test()
-		{
-			await Context.User.AddRoleAsync(_LowerRole).CAF();
-			await Context.Guild.FakeCurrentUser.AddRoleAsync(_HigherRole).CAF();
+		await AssertFailureAsync(_Role).CAF();
+	}
 
-			await AssertFailureAsync(_Role).CAF();
-		}
+	[TestMethod]
+	public async Task NeitherHigher_Test()
+	{
+		await Context.User.AddRoleAsync(_LowerRole).CAF();
+		await Context.Guild.FakeCurrentUser.AddRoleAsync(_LowerRole).CAF();
 
-		[TestMethod]
-		public async Task NeitherHigher_Test()
-		{
-			await Context.User.AddRoleAsync(_LowerRole).CAF();
-			await Context.Guild.FakeCurrentUser.AddRoleAsync(_LowerRole).CAF();
-
-			await AssertFailureAsync(_Role).CAF();
-		}
+		await AssertFailureAsync(_Role).CAF();
 	}
 }

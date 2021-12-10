@@ -7,34 +7,33 @@ using Advobot.Utilities;
 
 using Microsoft.Extensions.DependencyInjection;
 
-namespace Advobot.Logging
+namespace Advobot.Logging;
+
+public sealed class LoggingInstantiator : ICommandAssemblyInstantiator
 {
-	public sealed class LoggingInstantiator : ICommandAssemblyInstantiator
+	public Task AddServicesAsync(IServiceCollection services)
 	{
-		public Task AddServicesAsync(IServiceCollection services)
-		{
-			services
-				.AddSingleton<ILoggingDatabase, LoggingDatabase>()
-				.AddSQLiteFileDatabaseConnectionStringFor<LoggingDatabase>("Logging.db")
-				.AddSingleton<LoggingService>()
-				.AddSingleton<INotificationDatabase, NotificationDatabase>()
-				.AddSQLiteFileDatabaseConnectionStringFor<NotificationDatabase>("Notification.db")
-				.AddSingleton<NotificationService>()
-				.AddSingleton<MessageSenderQueue>()
-				.AddDefaultOptionsSetter<LogActionsResetter>()
-				.AddDefaultOptionsSetter<WelcomeNotificationResetter>()
-				.AddDefaultOptionsSetter<GoodbyeNotificationResetter>();
+		services
+			.AddSingleton<ILoggingDatabase, LoggingDatabase>()
+			.AddSQLiteFileDatabaseConnectionStringFor<LoggingDatabase>("Logging.db")
+			.AddSingleton<LoggingService>()
+			.AddSingleton<INotificationDatabase, NotificationDatabase>()
+			.AddSQLiteFileDatabaseConnectionStringFor<NotificationDatabase>("Notification.db")
+			.AddSingleton<NotificationService>()
+			.AddSingleton<MessageSenderQueue>()
+			.AddDefaultOptionsSetter<LogActionsResetter>()
+			.AddDefaultOptionsSetter<WelcomeNotificationResetter>()
+			.AddDefaultOptionsSetter<GoodbyeNotificationResetter>();
 
-			return Task.CompletedTask;
-		}
+		return Task.CompletedTask;
+	}
 
-		public Task ConfigureServicesAsync(IServiceProvider services)
-		{
-			services.GetRequiredService<IConnectionStringFor<LoggingDatabase>>().MigrateUp();
-			services.GetRequiredService<IConnectionStringFor<NotificationDatabase>>().MigrateUp();
-			services.GetRequiredService<MessageSenderQueue>().Start();
+	public Task ConfigureServicesAsync(IServiceProvider services)
+	{
+		services.GetRequiredService<IConnectionStringFor<LoggingDatabase>>().MigrateUp();
+		services.GetRequiredService<IConnectionStringFor<NotificationDatabase>>().MigrateUp();
+		services.GetRequiredService<MessageSenderQueue>().Start();
 
-			return Task.CompletedTask;
-		}
+		return Task.CompletedTask;
 	}
 }

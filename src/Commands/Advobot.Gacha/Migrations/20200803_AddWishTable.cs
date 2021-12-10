@@ -1,16 +1,16 @@
 ﻿using FluentMigrator;
 
-namespace Advobot.Gacha.Migrations
-{
-	[Migration(20200803175200)]
-	public sealed class AddWishTable : Migration
-	{
-		public override void Down()
-			=> Delete.Table("Wish");
+namespace Advobot.Gacha.Migrations;
 
-		public override void Up()
-		{
-			Execute.Sql(@"
+[Migration(20200803175200)]
+public sealed class AddWishTable : Migration
+{
+	public override void Down()
+		=> Delete.Table("Wish");
+
+	public override void Up()
+	{
+		Execute.Sql(@"
 			CREATE TABLE IF NOT EXISTS Wish
 			(
 				WishId						INTEGER NOT NULL,
@@ -34,6 +34,5 @@ namespace Advobot.Gacha.Migrations
 				CharacterId
 			);
 			");
-		}
 	}
 }

@@ -9,32 +9,31 @@ using AdvorangesUtils;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
-namespace Advobot.Tests.Commands.Logging.ParameterPreconditions
+namespace Advobot.Tests.Commands.Logging.ParameterPreconditions;
+
+[TestClass]
+public sealed class NotImageLogAttribute_Tests
+	: ParameterPreconditionTestsBase<NotImageLogAttribute>
 {
-	[TestClass]
-	public sealed class NotImageLogAttribute_Tests
-		: ParameterPreconditionTestsBase<NotImageLogAttribute>
+	private readonly FakeLoggingDatabase _Db = new();
+
+	protected override NotImageLogAttribute Instance { get; } = new();
+
+	[TestMethod]
+	public async Task LogExisting_Test()
 	{
-		private readonly FakeLoggingDatabase _Db = new();
+		await _Db.UpsertLogChannelAsync(Log.Image, Context.Guild.Id, Context.Channel.Id).CAF();
 
-		protected override NotImageLogAttribute Instance { get; } = new();
+		await AssertFailureAsync(Context.Channel).CAF();
+	}
 
-		[TestMethod]
-		public async Task LogExisting_Test()
-		{
-			await _Db.UpsertLogChannelAsync(Log.Image, Context.Guild.Id, Context.Channel.Id).CAF();
+	[TestMethod]
+	public async Task LogNotExisting_Test()
+		=> await AssertSuccessAsync(Context.Channel).CAF();
 
-			await AssertFailureAsync(Context.Channel).CAF();
-		}
-
-		[TestMethod]
-		public async Task LogNotExisting_Test()
-			=> await AssertSuccessAsync(Context.Channel).CAF();
-
-		protected override void ModifyServices(IServiceCollection services)
-		{
-			services
-				.AddSingleton<ILoggingDatabase>(_Db);
-		}
+	protected override void ModifyServices(IServiceCollection services)
+	{
+		services
+			.AddSingleton<ILoggingDatabase>(_Db);
 	}
 }

@@ -1,19 +1,17 @@
-﻿
-using Advobot.Gacha.Displays;
+﻿using Advobot.Gacha.Displays;
 
 using Discord;
 using Discord.WebSocket;
 
-namespace Advobot.Gacha.Interaction
+namespace Advobot.Gacha.Interaction;
+
+public interface IInteractionManager
 {
-	public interface IInteractionManager
-	{
-		IReadOnlyDictionary<InteractionType, IInteraction> Interactions { get; }
+	IReadOnlyDictionary<InteractionType, IInteraction> Interactions { get; }
 
-		event Func<IMessage, Task> MessageReceived;
+	event Func<IMessage, Task> MessageReceived;
 
-		event Func<Cacheable<IUserMessage, ulong>, Cacheable<IMessageChannel, ulong>, SocketReaction, Task> ReactionReceived;
+	event Func<Cacheable<IUserMessage, ulong>, Cacheable<IMessageChannel, ulong>, SocketReaction, Task> ReactionReceived;
 
-		IInteractionHandler CreateInteractionHandler(Display display);
-	}
+	IInteractionHandler CreateInteractionHandler(Display display);
 }

@@ -1,65 +1,65 @@
-﻿using System.Data.SQLite;
-
-using Advobot.Settings.Models;
+﻿using Advobot.Settings.Models;
 using Advobot.SQLite;
 
 using AdvorangesUtils;
 
-namespace Advobot.Settings.Database
-{
-	public sealed class SettingsDatabase : DatabaseBase<SQLiteConnection>, ISettingsDatabase
-	{
-		public SettingsDatabase(IConnectionStringFor<SettingsDatabase> conn) : base(conn)
-		{
-		}
+using System.Data.SQLite;
 
-		public Task<int> DeleteCommandOverridesAsync(IEnumerable<CommandOverride> overrides)
-		{
-			return BulkModifyAsync(@"
+namespace Advobot.Settings.Database;
+
+public sealed class SettingsDatabase : DatabaseBase<SQLiteConnection>, ISettingsDatabase
+{
+	public SettingsDatabase(IConnectionStringFor<SettingsDatabase> conn) : base(conn)
+	{
+	}
+
+	public Task<int> DeleteCommandOverridesAsync(IEnumerable<CommandOverride> overrides)
+	{
+		return BulkModifyAsync(@"
 				DELETE FROM CommandOverride
 				WHERE GuildId = @GuildId AND CommandId = @CommandId AND TargetId = @TargetId
 			", overrides);
-		}
+	}
 
-		public async Task<IReadOnlyList<CommandOverride>> GetCommandOverridesAsync(
-			ulong guildId,
-			string commandId)
+	public async Task<IReadOnlyList<CommandOverride>> GetCommandOverridesAsync(
+		ulong guildId,
+		string commandId)
+	{
+		var param = new
 		{
-			var param = new
-			{
-				GuildId = guildId.ToString(),
-				CommandId = commandId
-			};
-			return await GetManyAsync<CommandOverride>(@"
+			GuildId = guildId.ToString(),
+			CommandId = commandId
+		};
+		return await GetManyAsync<CommandOverride>(@"
 				SELECT * FROM CommandOverride
 				WHERE GuildId = @GuildId AND CommandId = @CommandId
 				ORDER BY Priority DESC, TargetType ASC
 			", param).CAF();
-		}
+	}
 
-		public async Task<IReadOnlyList<CommandOverride>> GetCommandOverridesAsync(
-			ulong guildId)
-		{
-			var param = new { GuildId = guildId.ToString() };
-			return await GetManyAsync<CommandOverride>(@"
+	public async Task<IReadOnlyList<CommandOverride>> GetCommandOverridesAsync(
+		ulong guildId)
+	{
+		var param = new { GuildId = guildId.ToString() };
+		return await GetManyAsync<CommandOverride>(@"
 				SELECT * FROM CommandOverride
 				WHERE GuildId = @GuildId
 				ORDER BY CommandId ASC, Priority DESC, TargetType ASC
 			", param).CAF();
-		}
+	}
 
-		public async Task<GuildSettings> GetGuildSettingsAsync(ulong guildId)
-		{
-			var param = new { GuildId = guildId.ToString() };
-			return await GetOneAsync<GuildSettings>(@"
+	public async Task<GuildSettings> GetGuildSettingsAsync(ulong guildId)
+	{
+		var param = new { GuildId = guildId.ToString() };
+		return await GetOneAsync<GuildSettings>(@"
 				SELECT * FROM GuildSetting
 				WHERE GuildId = @GuildId
 			", param).CAF() ?? new GuildSettings { GuildId = guildId };
-		}
+	}
 
-		public Task<int> UpsertCommandOverridesAsync(IEnumerable<CommandOverride> overrides)
-		{
-			return BulkModifyAsync(@"
+	public Task<int> UpsertCommandOverridesAsync(IEnumerable<CommandOverride> overrides)
+	{
+		return BulkModifyAsync(@"
 				INSERT OR IGNORE INTO CommandOverride
 					( GuildId, CommandId, TargetId, TargetType, Enabled, Priority )
 					VALUES
@@ -70,11 +70,11 @@ namespace Advobot.Settings.Database
 					Priority = @Priority
 				WHERE GuildId = @GuildId AND CommandId = @CommandId AND TargetId = @TargetId
 			", overrides);
-		}
+	}
 
-		public Task<int> UpsertGuildSettingsAsync(GuildSettings settings)
-		{
-			return ModifyAsync(@"
+	public Task<int> UpsertGuildSettingsAsync(GuildSettings settings)
+	{
+		return ModifyAsync(@"
 				INSERT OR IGNORE INTO GuildSetting
 					( GuildId )
 					VALUES
@@ -86,6 +86,5 @@ namespace Advobot.Settings.Database
 					Culture = @Culture
 				WHERE GuildId = @GuildId
 			", settings);
-		}
 	}
 }

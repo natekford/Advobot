@@ -1,9 +1,8 @@
-﻿namespace Advobot.AutoMod.Models
+﻿namespace Advobot.AutoMod.Models;
+
+public sealed record SpamPrevention(
+	SpamType SpamType
+) : TimedPrevention
 {
-	public sealed record SpamPrevention(
-		SpamType SpamType
-	) : TimedPrevention
-	{
-		public SpamPrevention() : this(default(SpamType)) { }
-	}
+	public SpamPrevention() : this(default(SpamType)) { }
 }

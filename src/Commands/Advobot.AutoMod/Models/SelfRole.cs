@@ -1,13 +1,12 @@
 ﻿using Advobot.SQLite.Relationships;
 
-namespace Advobot.AutoMod.Models
+namespace Advobot.AutoMod.Models;
+
+public sealed record SelfRole(
+	int GroupId,
+	ulong GuildId,
+	ulong RoleId
+) : IGuildChild
 {
-	public sealed record SelfRole(
-		int GroupId,
-		ulong GuildId,
-		ulong RoleId
-	) : IGuildChild
-	{
-		public SelfRole() : this(default, default, default) { }
-	}
+	public SelfRole() : this(default, default, default) { }
 }

@@ -1,16 +1,16 @@
 ﻿using FluentMigrator;
 
-namespace Advobot.Settings.Migrations
-{
-	[Migration(20200914021000)]
-	public sealed class AddGuildSettingsTable : Migration
-	{
-		public override void Down()
-			=> Delete.Table("GuildSetting");
+namespace Advobot.Settings.Migrations;
 
-		public override void Up()
-		{
-			Execute.Sql(@"
+[Migration(20200914021000)]
+public sealed class AddGuildSettingsTable : Migration
+{
+	public override void Down()
+		=> Delete.Table("GuildSetting");
+
+	public override void Up()
+	{
+		Execute.Sql(@"
 			CREATE TABLE IF NOT EXISTS GuildSetting
 			(
 				GuildId						TEXT NOT NULL,
@@ -20,6 +20,5 @@ namespace Advobot.Settings.Migrations
 				PRIMARY KEY(GuildId)
 			);
 			");
-		}
 	}
 }

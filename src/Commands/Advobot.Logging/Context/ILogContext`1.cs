@@ -1,7 +1,6 @@
-﻿namespace Advobot.Logging.Context
+﻿namespace Advobot.Logging.Context;
+
+public interface ILogContext<out T> : ILogContext
 {
-	public interface ILogContext<out T> : ILogContext
-	{
-		T State { get; }
-	}
+	T State { get; }
 }

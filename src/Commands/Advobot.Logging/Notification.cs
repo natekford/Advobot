@@ -1,9 +1,8 @@
-﻿namespace Advobot.Logging
+﻿namespace Advobot.Logging;
+
+public enum Notification : long
 {
-	public enum Notification : long
-	{
-		None = 0,
-		Goodbye = 1U << 0,
-		Welcome = 1U << 1,
-	}
+	None = 0,
+	Goodbye = 1U << 0,
+	Welcome = 1U << 1,
 }

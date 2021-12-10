@@ -1,18 +1,16 @@
-﻿
-using Discord.Commands;
+﻿using Discord.Commands;
 
-namespace Advobot.Services
+namespace Advobot.Services;
+
+/// <summary>
+/// Sets something in a command module to a recommended/default value.
+/// </summary>
+public interface IResetter
 {
 	/// <summary>
-	/// Sets something in a command module to a recommended/default value.
+	/// Sets some option value.
 	/// </summary>
-	public interface IResetter
-	{
-		/// <summary>
-		/// Sets some option value.
-		/// </summary>
-		/// <param name="context"></param>
-		/// <returns></returns>
-		Task ResetAsync(ICommandContext context);
-	}
+	/// <param name="context"></param>
+	/// <returns></returns>
+	Task ResetAsync(ICommandContext context);
 }

@@ -1,16 +1,16 @@
 ﻿using FluentMigrator;
 
-namespace Advobot.AutoMod.Migrations
-{
-	[Migration(20200803174100)]
-	public sealed class AddPunishmentTable : Migration
-	{
-		public override void Down()
-			=> Delete.Table("Punishment");
+namespace Advobot.AutoMod.Migrations;
 
-		public override void Up()
-		{
-			Execute.Sql(@"
+[Migration(20200803174100)]
+public sealed class AddPunishmentTable : Migration
+{
+	public override void Down()
+		=> Delete.Table("Punishment");
+
+	public override void Up()
+	{
+		Execute.Sql(@"
 			CREATE TABLE IF NOT EXISTS Punishment
 			(
 				GuildId					TEXT NOT NULL,
@@ -30,6 +30,5 @@ namespace Advobot.AutoMod.Migrations
 				PunishmentType
 			);
 			");
-		}
 	}
 }

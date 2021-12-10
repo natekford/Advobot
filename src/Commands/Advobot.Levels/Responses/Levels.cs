@@ -1,5 +1,4 @@
-﻿
-using Advobot.Classes;
+﻿using Advobot.Classes;
 using Advobot.Levels.Database;
 using Advobot.Levels.Metadata;
 using Advobot.Modules;
@@ -11,84 +10,83 @@ using Discord;
 
 using static Advobot.Resources.Responses;
 
-namespace Advobot.Levels.Responses
+namespace Advobot.Levels.Responses;
+
+public sealed class Levels : AdvobotResult
 {
-	public sealed class Levels : AdvobotResult
+	private Levels() : base(null, "")
 	{
-		private Levels() : base(null, "")
-		{
-		}
+	}
 
-		public static AdvobotResult Level(SearchArgs args, IRank rank, int level, IUser? user)
+	public static AdvobotResult Level(SearchArgs args, IRank rank, int level, IUser? user)
+	{
+		var title = LevelsLevelTitle.Format(
+			GetSearchType(args).WithTitleCase(),
+			FormatUser(rank, user).WithNoMarkdown()
+		);
+		var description = LevelsLevelDescription.Format(
+			rank.Position.ToString().WithBlock(),
+			rank.TotalRankCount.ToString().WithBlock(),
+			rank.Experience.ToString().WithBlock(),
+			level.ToString().WithBlock()
+		);
+		return Success(new EmbedWrapper
 		{
-			var title = LevelsLevelTitle.Format(
-				GetSearchType(args).WithTitleCase(),
-				FormatUser(rank, user).WithNoMarkdown()
+			Title = title,
+			Description = description,
+			ThumbnailUrl = user?.GetAvatarUrl(),
+			Author = user?.CreateAuthor() ?? new(),
+			Footer = new() { Text = LevelsLevelFooter, },
+		});
+	}
+
+	public static AdvobotResult NoXp(SearchArgs args, IRank rank, IUser? user)
+	{
+		return Success(LevelsNoXp.Format(
+			FormatUser(rank, user).WithBlock(),
+			GetSearchType(args).WithNoMarkdown()
+		));
+	}
+
+	public static AdvobotResult Top(
+		SearchArgs args,
+		IReadOnlyList<IRank> ranks,
+		Func<IRank, (int Level, IUser? User)> getInfo)
+	{
+		var title = LevelsTopTitle.Format(
+			GetSearchType(args).WithTitleCase()
+		);
+		var description = ranks.Join(x =>
+		{
+			var (level, user) = getInfo(x);
+			return LevelsTopDescription.Format(
+				(x.Position + 1).ToString().WithBlock(),
+				FormatUser(x, user).WithBlock(),
+				x.Experience.ToString().WithNoMarkdown(),
+				level.ToString().WithNoMarkdown()
 			);
-			var description = LevelsLevelDescription.Format(
-				rank.Position.ToString().WithBlock(),
-				rank.TotalRankCount.ToString().WithBlock(),
-				rank.Experience.ToString().WithBlock(),
-				level.ToString().WithBlock()
-			);
-			return Success(new EmbedWrapper
-			{
-				Title = title,
-				Description = description,
-				ThumbnailUrl = user?.GetAvatarUrl(),
-				Author = user?.CreateAuthor() ?? new(),
-				Footer = new() { Text = LevelsLevelFooter, },
-			});
-		}
-
-		public static AdvobotResult NoXp(SearchArgs args, IRank rank, IUser? user)
+		}, Environment.NewLine);
+		return Success(new EmbedWrapper
 		{
-			return Success(LevelsNoXp.Format(
-				FormatUser(rank, user).WithBlock(),
-				GetSearchType(args).WithNoMarkdown()
-			));
-		}
+			Title = title,
+			Description = description,
+			Footer = new() { Text = LevelsTopFooter, },
+		});
+	}
 
-		public static AdvobotResult Top(
-			SearchArgs args,
-			IReadOnlyList<IRank> ranks,
-			Func<IRank, (int Level, IUser? User)> getInfo)
+	private static string FormatUser(IRank rank, IUser? user)
+		=> user?.Format() ?? rank.UserId.ToString();
+
+	private static string GetSearchType(SearchArgs args)
+	{
+		if (args.ChannelId != null)
 		{
-			var title = LevelsTopTitle.Format(
-				GetSearchType(args).WithTitleCase()
-			);
-			var description = ranks.Join(x =>
-			{
-				var (level, user) = getInfo(x);
-				return LevelsTopDescription.Format(
-					(x.Position + 1).ToString().WithBlock(),
-					FormatUser(x, user).WithBlock(),
-					x.Experience.ToString().WithNoMarkdown(),
-					level.ToString().WithNoMarkdown()
-				);
-			}, Environment.NewLine);
-			return Success(new EmbedWrapper
-			{
-				Title = title,
-				Description = description,
-				Footer = new() { Text = LevelsTopFooter, },
-			});
+			return LevelsVariableChannel;
 		}
-
-		private static string FormatUser(IRank rank, IUser? user)
-			=> user?.Format() ?? rank.UserId.ToString();
-
-		private static string GetSearchType(SearchArgs args)
+		else if (args.GuildId != null)
 		{
-			if (args.ChannelId != null)
-			{
-				return LevelsVariableChannel;
-			}
-			else if (args.GuildId != null)
-			{
-				return LevelsVariableGuild;
-			}
-			return LevelsVariableGlobal;
+			return LevelsVariableGuild;
 		}
+		return LevelsVariableGlobal;
 	}
 }

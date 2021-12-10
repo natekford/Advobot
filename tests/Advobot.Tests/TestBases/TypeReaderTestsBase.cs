@@ -1,30 +1,28 @@
-﻿
-using AdvorangesUtils;
+﻿using AdvorangesUtils;
 
 using Discord.Commands;
 
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
-namespace Advobot.Tests.TestBases
+namespace Advobot.Tests.TestBases;
+
+public abstract class TypeReaderTestsBase : TestsBase
 {
-	public abstract class TypeReaderTestsBase : TestsBase
+	protected abstract TypeReader Instance { get; }
+	protected virtual string? NotExisting { get; } = "asdf";
+
+	[TestMethod]
+	public async Task NotExisting_Test()
 	{
-		protected abstract TypeReader Instance { get; }
-		protected virtual string? NotExisting { get; } = "asdf";
-
-		[TestMethod]
-		public async Task NotExisting_Test()
+		if (NotExisting == null)
 		{
-			if (NotExisting == null)
-			{
-				return;
-			}
-
-			var result = await ReadAsync(NotExisting).CAF();
-			Assert.IsFalse(result.IsSuccess);
+			return;
 		}
 
-		protected Task<TypeReaderResult> ReadAsync(string input)
-			=> Instance.ReadAsync(Context, input, Services);
+		var result = await ReadAsync(NotExisting).CAF();
+		Assert.IsFalse(result.IsSuccess);
 	}
+
+	protected Task<TypeReaderResult> ReadAsync(string input)
+		=> Instance.ReadAsync(Context, input, Services);
 }

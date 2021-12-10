@@ -1,13 +1,12 @@
-﻿namespace Advobot.Services.Time
+﻿namespace Advobot.Services.Time;
+
+/// <summary>
+/// Abstraction for time.
+/// </summary>
+public interface ITime
 {
 	/// <summary>
-	/// Abstraction for time.
+	/// The current time.
 	/// </summary>
-	public interface ITime
-	{
-		/// <summary>
-		/// The current time.
-		/// </summary>
-		DateTimeOffset UtcNow { get; }
-	}
+	DateTimeOffset UtcNow { get; }
 }

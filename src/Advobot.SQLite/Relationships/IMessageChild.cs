@@ -1,13 +1,12 @@
-﻿namespace Advobot.SQLite.Relationships
+﻿namespace Advobot.SQLite.Relationships;
+
+/// <summary>
+/// Represents an object which belongs to a message.
+/// </summary>
+public interface IMessageChild : IChannelChild
 {
 	/// <summary>
-	/// Represents an object which belongs to a message.
+	/// The message's id.
 	/// </summary>
-	public interface IMessageChild : IChannelChild
-	{
-		/// <summary>
-		/// The message's id.
-		/// </summary>
-		ulong MessageId { get; }
-	}
+	ulong MessageId { get; }
 }

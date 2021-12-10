@@ -1,24 +1,22 @@
-﻿
-using Discord;
+﻿using Discord;
 
-namespace Advobot.Punishments
+namespace Advobot.Punishments;
+
+/// <summary>
+/// Deafens a user.
+/// </summary>
+public sealed class Deafen : GuildUserPunishmentBase
 {
 	/// <summary>
-	/// Deafens a user.
+	/// Creates an instance of <see cref="Deafen"/>.
 	/// </summary>
-	public sealed class Deafen : GuildUserPunishmentBase
+	/// <param name="user"></param>
+	/// <param name="isGive"></param>
+	public Deafen(IGuildUser user, bool isGive) : base(user, isGive, PunishmentType.Deafen)
 	{
-		/// <summary>
-		/// Creates an instance of <see cref="Deafen"/>.
-		/// </summary>
-		/// <param name="user"></param>
-		/// <param name="isGive"></param>
-		public Deafen(IGuildUser user, bool isGive) : base(user, isGive, PunishmentType.Deafen)
-		{
-		}
-
-		/// <inheritdoc/>
-		protected internal override Task ExecuteAsync()
-			=> User.ModifyAsync(x => x.Deaf = IsGive, Options);
 	}
+
+	/// <inheritdoc/>
+	protected internal override Task ExecuteAsync()
+		=> User.ModifyAsync(x => x.Deaf = IsGive, Options);
 }

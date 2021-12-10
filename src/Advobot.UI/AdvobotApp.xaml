@@ -1,38 +1,38 @@
 ﻿<Application xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             xmlns:converters="clr-namespace:Advobot.UI.Converters;assembly=Advobot.UI"
              xmlns:colors="clr-namespace:Advobot.UI.AbstractUI.Colors;assembly=Advobot.UI"
+             xmlns:converters="clr-namespace:Advobot.UI.Converters;assembly=Advobot.UI"
              x:Class="Advobot.UI.AdvobotApp">
 
-  <!-- Don't use Application.Resources because it messes something up with how I'm targetting colors. -->
-  <Application.Styles>
-    <StyleInclude Source="resm:Avalonia.Themes.Default.DefaultTheme.xaml?assembly=Avalonia.Themes.Default" />
-    <StyleInclude Source="resm:Avalonia.Themes.Default.Accents.BaseLight.xaml?assembly=Avalonia.Themes.Default" />
-    <Style Selector=":is(TextBlock)">
-      <Setter Property="Foreground" Value="{DynamicResource {x:Static colors:ColorTargets.BaseForeground}}" />
-    </Style>
-    <!-- How to center text vertically without messing with border? -->
-    <Style Selector="TextBox.i1">
-      <Setter Property="BorderThickness" Value="0" />
-      <Setter Property="IsReadOnly" Value="True" />
-      <Setter Property="TextAlignment" Value="Left" />
-      <Setter Property="VerticalAlignment" Value="Center" />
-      <Setter Property="AcceptsReturn" Value="True" />
-      <Setter Property="TextWrapping" Value="Wrap" />
-      <Setter Property="ScrollViewer.VerticalScrollBarVisibility" Value="Disabled" />
-    </Style>
-    <Style Selector="TextBox.i2">
-      <Setter Property="HorizontalAlignment" Value="Center" />
-    </Style>
-    <Style Selector="TextBox.i3">
-      <Setter Property="HorizontalAlignment" Value="Left" />
-    </Style>
-    <Style Selector="Border.b1">
-      <Setter Property="Grid.RowSpan" Value="1000" />
-      <Setter Property="Grid.ColumnSpan" Value="1000" />
-      <Setter Property="BorderThickness" Value="2" />
-      <Setter Property="BorderBrush" Value="{DynamicResource {x:Static colors:ColorTargets.BaseBorder}}" />
-      <Setter Property="IsHitTestVisible" Value="False" />
-    </Style>
-  </Application.Styles>
+    <!-- Don't use Application.Resources because it messes something up with how I'm targetting colors. -->
+    <Application.Styles>
+        <StyleInclude Source="resm:Avalonia.Themes.Default.DefaultTheme.xaml?assembly=Avalonia.Themes.Default" />
+        <StyleInclude Source="resm:Avalonia.Themes.Default.Accents.BaseLight.xaml?assembly=Avalonia.Themes.Default" />
+        <Style Selector=":is(TextBlock)">
+            <Setter Property="Foreground" Value="{DynamicResource {x:Static colors:ColorTargets.BaseForeground}}" />
+        </Style>
+        <!-- How to center text vertically without messing with border? -->
+        <Style Selector="TextBox.i1">
+            <Setter Property="BorderThickness" Value="0" />
+            <Setter Property="IsReadOnly" Value="True" />
+            <Setter Property="TextAlignment" Value="Left" />
+            <Setter Property="VerticalAlignment" Value="Center" />
+            <Setter Property="AcceptsReturn" Value="True" />
+            <Setter Property="TextWrapping" Value="Wrap" />
+            <Setter Property="ScrollViewer.VerticalScrollBarVisibility" Value="Disabled" />
+        </Style>
+        <Style Selector="TextBox.i2">
+            <Setter Property="HorizontalAlignment" Value="Center" />
+        </Style>
+        <Style Selector="TextBox.i3">
+            <Setter Property="HorizontalAlignment" Value="Left" />
+        </Style>
+        <Style Selector="Border.b1">
+            <Setter Property="Grid.RowSpan" Value="1000" />
+            <Setter Property="Grid.ColumnSpan" Value="1000" />
+            <Setter Property="BorderThickness" Value="2" />
+            <Setter Property="BorderBrush" Value="{DynamicResource {x:Static colors:ColorTargets.BaseBorder}}" />
+            <Setter Property="IsHitTestVisible" Value="False" />
+        </Style>
+    </Application.Styles>
 </Application>

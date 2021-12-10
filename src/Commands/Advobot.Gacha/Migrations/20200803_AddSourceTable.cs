@@ -1,16 +1,16 @@
 ﻿using FluentMigrator;
 
-namespace Advobot.Gacha.Migrations
-{
-	[Migration(20200803175000)]
-	public sealed class AddSourceTable : Migration
-	{
-		public override void Down()
-			=> Delete.Table("Source");
+namespace Advobot.Gacha.Migrations;
 
-		public override void Up()
-		{
-			Execute.Sql(@"
+[Migration(20200803175000)]
+public sealed class AddSourceTable : Migration
+{
+	public override void Down()
+		=> Delete.Table("Source");
+
+	public override void Up()
+	{
+		Execute.Sql(@"
 			CREATE TABLE IF NOT EXISTS Source
 			(
 				SourceId					INTEGER NOT NULL PRIMARY KEY,
@@ -22,6 +22,5 @@ namespace Advobot.Gacha.Migrations
 				Name
 			);
 			");
-		}
 	}
 }

@@ -1,29 +1,28 @@
 ﻿using System.Globalization;
 
-namespace Advobot.Services.Localization
+namespace Advobot.Services.Localization;
+
+internal sealed class TypeLocalizer : ITypeLocalizer
 {
-	internal sealed class TypeLocalizer : ITypeLocalizer
+	private readonly Dictionary<(CultureInfo, Type), string> _Dict = new();
+
+	public void Add<T>(string value, bool overwrite = false)
 	{
-		private readonly Dictionary<(CultureInfo, Type), string> _Dict = new();
-
-		public void Add<T>(string value, bool overwrite = false)
+		var culture = CultureInfo.CurrentUICulture;
+		var key = (culture, typeof(T));
+		if (!_Dict.TryGetValue(key, out _))
 		{
-			var culture = CultureInfo.CurrentUICulture;
-			var key = (culture, typeof(T));
-			if (!_Dict.TryGetValue(key, out _))
-			{
-				_Dict.Add(key, value);
-			}
-			else if (overwrite)
-			{
-				_Dict[key] = value;
-			}
+			_Dict.Add(key, value);
 		}
-
-		public bool TryGet<T>(out string output)
+		else if (overwrite)
 		{
-			var culture = CultureInfo.CurrentUICulture;
-			return _Dict.TryGetValue((culture, typeof(T)), out output);
+			_Dict[key] = value;
 		}
+	}
+
+	public bool TryGet<T>(out string output)
+	{
+		var culture = CultureInfo.CurrentUICulture;
+		return _Dict.TryGetValue((culture, typeof(T)), out output);
 	}
 }

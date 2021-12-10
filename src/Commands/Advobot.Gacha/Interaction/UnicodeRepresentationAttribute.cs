@@ -1,16 +1,14 @@
-﻿
-using Discord;
+﻿using Discord;
 
-namespace Advobot.Gacha.Interaction
+namespace Advobot.Gacha.Interaction;
+
+[AttributeUsage(AttributeTargets.Field, AllowMultiple = false, Inherited = true)]
+public sealed class UnicodeRepresentationAttribute : Attribute
 {
-	[AttributeUsage(AttributeTargets.Field, AllowMultiple = false, Inherited = true)]
-	public sealed class UnicodeRepresentationAttribute : Attribute
-	{
-		public string Name { get; }
+	public string Name { get; }
 
-		public UnicodeRepresentationAttribute(string unicode)
-		{
-			Name = new Emoji(unicode).Name;
-		}
+	public UnicodeRepresentationAttribute(string unicode)
+	{
+		Name = new Emoji(unicode).Name;
 	}
 }

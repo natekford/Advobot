@@ -1,19 +1,18 @@
-﻿namespace Advobot.SQLite
+﻿namespace Advobot.SQLite;
+
+/// <summary>
+/// Provides a connection string for a database.
+/// </summary>
+public interface IConnectionString
 {
 	/// <summary>
-	/// Provides a connection string for a database.
+	/// A SQLite connection string.
 	/// </summary>
-	public interface IConnectionString
-	{
-		/// <summary>
-		/// A SQLite connection string.
-		/// </summary>
-		string ConnectionString { get; }
+	string ConnectionString { get; }
 
-		/// <summary>
-		/// Ensures the database is ready to be modified.
-		/// </summary>
-		/// <returns></returns>
-		Task EnsureCreatedAsync();
-	}
+	/// <summary>
+	/// Ensures the database is ready to be modified.
+	/// </summary>
+	/// <returns></returns>
+	Task EnsureCreatedAsync();
 }

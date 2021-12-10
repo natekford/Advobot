@@ -1,5 +1,4 @@
-﻿
-using Advobot.Attributes.ParameterPreconditions;
+﻿using Advobot.Attributes.ParameterPreconditions;
 using Advobot.Gacha.Database;
 using Advobot.Gacha.Models;
 using Advobot.Utilities;
@@ -11,32 +10,31 @@ using Discord.Commands;
 
 using Microsoft.Extensions.DependencyInjection;
 
-namespace Advobot.Gacha.ParameterPreconditions
+namespace Advobot.Gacha.ParameterPreconditions;
+
+[AttributeUsage(AttributeTargets.Parameter, AllowMultiple = false, Inherited = true)]
+public sealed class OwnsCharacters : AdvobotParameterPreconditionAttribute
 {
-	[AttributeUsage(AttributeTargets.Parameter, AllowMultiple = false, Inherited = true)]
-	public sealed class OwnsCharacters : AdvobotParameterPreconditionAttribute
+	public override string Summary => "Character is owned by the invoker";
+
+	protected override async Task<PreconditionResult> CheckPermissionsAsync(
+		ICommandContext context,
+		ParameterInfo parameter,
+		IGuildUser invoker,
+		object value,
+		IServiceProvider services)
 	{
-		public override string Summary => "Character is owned by the invoker";
-
-		protected override async Task<PreconditionResult> CheckPermissionsAsync(
-			ICommandContext context,
-			ParameterInfo parameter,
-			IGuildUser invoker,
-			object value,
-			IServiceProvider services)
+		if (value is not Character character)
 		{
-			if (value is not Character character)
-			{
-				return this.FromOnlySupports(value, typeof(Character));
-			}
-
-			var db = services.GetRequiredService<IGachaDatabase>();
-			var claim = await db.GetClaimAsync(context.Guild.Id, character).CAF();
-			if (claim?.UserId == context.User.Id)
-			{
-				return this.FromSuccess();
-			}
-			return PreconditionResult.FromError("You do not currently own this character.");
+			return this.FromOnlySupports(value, typeof(Character));
 		}
+
+		var db = services.GetRequiredService<IGachaDatabase>();
+		var claim = await db.GetClaimAsync(context.Guild.Id, character).CAF();
+		if (claim?.UserId == context.User.Id)
+		{
+			return this.FromSuccess();
+		}
+		return PreconditionResult.FromError("You do not currently own this character.");
 	}
 }

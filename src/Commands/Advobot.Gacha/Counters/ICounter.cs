@@ -1,9 +1,8 @@
-﻿namespace Advobot.Gacha.Counters
-{
-	public interface ICounter<T>
-	{
-		bool CanDo(T id);
+﻿namespace Advobot.Gacha.Counters;
 
-		void HasBeenDone(T id);
-	}
+public interface ICounter<T>
+{
+	bool CanDo(T id);
+
+	void HasBeenDone(T id);
 }

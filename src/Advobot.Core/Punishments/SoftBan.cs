@@ -1,29 +1,27 @@
-﻿
-using AdvorangesUtils;
+﻿using AdvorangesUtils;
 
 using Discord;
 
-namespace Advobot.Punishments
+namespace Advobot.Punishments;
+
+/// <summary>
+/// Softbans a user.
+/// </summary>
+public sealed class SoftBan : PunishmentBase
 {
 	/// <summary>
-	/// Softbans a user.
+	/// Creates an instance of <see cref="Kick"/>.
 	/// </summary>
-	public sealed class SoftBan : PunishmentBase
+	/// <param name="guild"></param>
+	/// <param name="userId"></param>
+	public SoftBan(IGuild guild, ulong userId) : base(guild, userId, true, PunishmentType.Kick)
 	{
-		/// <summary>
-		/// Creates an instance of <see cref="Kick"/>.
-		/// </summary>
-		/// <param name="guild"></param>
-		/// <param name="userId"></param>
-		public SoftBan(IGuild guild, ulong userId) : base(guild, userId, true, PunishmentType.Kick)
-		{
-		}
+	}
 
-		/// <inheritdoc/>
-		protected internal override async Task ExecuteAsync()
-		{
-			await Guild.AddBanAsync(UserId, Days, Options?.AuditLogReason, Options).CAF();
-			await Guild.RemoveBanAsync(UserId, Options).CAF();
-		}
+	/// <inheritdoc/>
+	protected internal override async Task ExecuteAsync()
+	{
+		await Guild.AddBanAsync(UserId, Days, Options?.AuditLogReason, Options).CAF();
+		await Guild.RemoveBanAsync(UserId, Options).CAF();
 	}
 }

@@ -1,24 +1,22 @@
-﻿
-using Discord;
+﻿using Discord;
 
-namespace Advobot.Punishments
+namespace Advobot.Punishments;
+
+/// <summary>
+/// Mutes a user.
+/// </summary>
+public sealed class Mute : GuildUserPunishmentBase
 {
 	/// <summary>
-	/// Mutes a user.
+	/// Creates an instance of <see cref="Mute"/>.
 	/// </summary>
-	public sealed class Mute : GuildUserPunishmentBase
+	/// <param name="user"></param>
+	/// <param name="isGive"></param>
+	public Mute(IGuildUser user, bool isGive) : base(user, isGive, PunishmentType.VoiceMute)
 	{
-		/// <summary>
-		/// Creates an instance of <see cref="Mute"/>.
-		/// </summary>
-		/// <param name="user"></param>
-		/// <param name="isGive"></param>
-		public Mute(IGuildUser user, bool isGive) : base(user, isGive, PunishmentType.VoiceMute)
-		{
-		}
-
-		/// <inheritdoc/>
-		protected internal override Task ExecuteAsync()
-			=> User.ModifyAsync(x => x.Mute = IsGive, Options);
 	}
+
+	/// <inheritdoc/>
+	protected internal override Task ExecuteAsync()
+		=> User.ModifyAsync(x => x.Mute = IsGive, Options);
 }

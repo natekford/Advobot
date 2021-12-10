@@ -1,18 +1,17 @@
-﻿namespace Advobot.Services.LogCounters
+﻿namespace Advobot.Services.LogCounters;
+
+/// <summary>
+/// Counts the actions of something.
+/// </summary>
+public interface ILogCounter
 {
 	/// <summary>
-	/// Counts the actions of something.
+	/// Its current count.
 	/// </summary>
-	public interface ILogCounter
-	{
-		/// <summary>
-		/// Its current count.
-		/// </summary>
-		int Count { get; }
+	int Count { get; }
 
-		/// <summary>
-		/// The name of the counter.
-		/// </summary>
-		string Name { get; }
-	}
+	/// <summary>
+	/// The name of the counter.
+	/// </summary>
+	string Name { get; }
 }

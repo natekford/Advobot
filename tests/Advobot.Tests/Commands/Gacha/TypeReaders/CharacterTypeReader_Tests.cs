@@ -1,5 +1,4 @@
-﻿
-using Advobot.Gacha.Database;
+﻿using Advobot.Gacha.Database;
 using Advobot.Gacha.Models;
 using Advobot.Gacha.TypeReaders;
 using Advobot.Gacha.Utilities;
@@ -13,64 +12,63 @@ using Discord.Commands;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
-namespace Advobot.Tests.Commands.Gacha.TypeReaders
-{
-	[TestClass]
-	public sealed class CharacterTypeReader_Tests : TypeReaderTestsBase
-	{
-		private readonly FakeGachaDatabase _Db = new();
-		protected override TypeReader Instance { get; } = new CharacterTypeReader();
+namespace Advobot.Tests.Commands.Gacha.TypeReaders;
 
-		[TestMethod]
-		public async Task InvalidMultipleMatches_Test()
+[TestClass]
+public sealed class CharacterTypeReader_Tests : TypeReaderTestsBase
+{
+	private readonly FakeGachaDatabase _Db = new();
+	protected override TypeReader Instance { get; } = new CharacterTypeReader();
+
+	[TestMethod]
+	public async Task InvalidMultipleMatches_Test()
+	{
+		var source = GachaTestUtils.GenerateFakeSource();
+		var characters = new[]
 		{
-			var source = GachaTestUtils.GenerateFakeSource();
-			var characters = new[]
-			{
 				GenerateStaticCharacter(source, "bobby"),
 				GenerateStaticCharacter(source, "bobby"),
 			};
-			await _Db.AddSourceAsync(source).CAF();
-			await _Db.AddCharactersAsync(characters).CAF();
+		await _Db.AddSourceAsync(source).CAF();
+		await _Db.AddCharactersAsync(characters).CAF();
 
-			var result = await ReadAsync(characters[0].Name).CAF();
-			Assert.IsFalse(result.IsSuccess);
-		}
+		var result = await ReadAsync(characters[0].Name).CAF();
+		Assert.IsFalse(result.IsSuccess);
+	}
 
-		[TestMethod]
-		public async Task Valid_Test()
+	[TestMethod]
+	public async Task Valid_Test()
+	{
+		var source = GachaTestUtils.GenerateFakeSource();
+		var characters = new[]
 		{
-			var source = GachaTestUtils.GenerateFakeSource();
-			var characters = new[]
-			{
 				GenerateStaticCharacter(source, "bobby"),
 				GenerateStaticCharacter(source, "not bobby"),
 			};
-			await _Db.AddSourceAsync(source).CAF();
-			await _Db.AddCharactersAsync(characters).CAF();
+		await _Db.AddSourceAsync(source).CAF();
+		await _Db.AddCharactersAsync(characters).CAF();
 
-			var result = await ReadAsync(characters[0].Name).CAF();
-			Assert.IsTrue(result.IsSuccess);
-		}
+		var result = await ReadAsync(characters[0].Name).CAF();
+		Assert.IsTrue(result.IsSuccess);
+	}
 
-		protected override void ModifyServices(IServiceCollection services)
+	protected override void ModifyServices(IServiceCollection services)
+	{
+		services
+			.AddSingleton<IGachaDatabase>(_Db);
+	}
+
+	private Character GenerateStaticCharacter(Source fakeSource, string name)
+	{
+		return new()
 		{
-			services
-				.AddSingleton<IGachaDatabase>(_Db);
-		}
-
-		private Character GenerateStaticCharacter(Source fakeSource, string name)
-		{
-			return new()
-			{
-				SourceId = fakeSource.SourceId,
-				CharacterId = TimeUtils.UtcNowTicks,
-				Name = name,
-				GenderIcon = "\uD83D\uDE39",
-				Gender = Gender.Other,
-				RollType = RollType.All,
-				IsFakeCharacter = true,
-			};
-		}
+			SourceId = fakeSource.SourceId,
+			CharacterId = TimeUtils.UtcNowTicks,
+			Name = name,
+			GenderIcon = "\uD83D\uDE39",
+			Gender = Gender.Other,
+			RollType = RollType.All,
+			IsFakeCharacter = true,
+		};
 	}
 }

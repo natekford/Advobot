@@ -1,16 +1,16 @@
 ﻿using FluentMigrator;
 
-namespace Advobot.Invites.Migrations
-{
-	[Migration(20200803173400)]
-	public sealed class AddKeywordTable : Migration
-	{
-		public override void Down()
-			=> Delete.Table("Keyword");
+namespace Advobot.Invites.Migrations;
 
-		public override void Up()
-		{
-			Execute.Sql(@"
+[Migration(20200803173400)]
+public sealed class AddKeywordTable : Migration
+{
+	public override void Down()
+		=> Delete.Table("Keyword");
+
+	public override void Up()
+	{
+		Execute.Sql(@"
 			CREATE TABLE IF NOT EXISTS Keyword
 			(
 				GuildId						TEXT NOT NULL,
@@ -26,6 +26,5 @@ namespace Advobot.Invites.Migrations
 				Word
 			);
 			");
-		}
 	}
 }

@@ -1,30 +1,28 @@
-﻿
-using Advobot.CommandAssemblies;
+﻿using Advobot.CommandAssemblies;
 using Advobot.Invites.Database;
 using Advobot.Invites.Service;
 using Advobot.SQLite;
 
 using Microsoft.Extensions.DependencyInjection;
 
-namespace Advobot.Invites
+namespace Advobot.Invites;
+
+public sealed class InviteInstantiator : ICommandAssemblyInstantiator
 {
-	public sealed class InviteInstantiator : ICommandAssemblyInstantiator
+	public Task AddServicesAsync(IServiceCollection services)
 	{
-		public Task AddServicesAsync(IServiceCollection services)
-		{
-			services
-				.AddSingleton<InviteDatabase>()
-				.AddSQLiteFileDatabaseConnectionStringFor<InviteDatabase>("Invites.db")
-				.AddSingleton<IInviteListService, InviteListService>();
+		services
+			.AddSingleton<InviteDatabase>()
+			.AddSQLiteFileDatabaseConnectionStringFor<InviteDatabase>("Invites.db")
+			.AddSingleton<IInviteListService, InviteListService>();
 
-			return Task.CompletedTask;
-		}
+		return Task.CompletedTask;
+	}
 
-		public Task ConfigureServicesAsync(IServiceProvider services)
-		{
-			services.GetRequiredService<IConnectionStringFor<InviteDatabase>>().MigrateUp();
+	public Task ConfigureServicesAsync(IServiceProvider services)
+	{
+		services.GetRequiredService<IConnectionStringFor<InviteDatabase>>().MigrateUp();
 
-			return Task.CompletedTask;
-		}
+		return Task.CompletedTask;
 	}
 }

@@ -1,44 +1,43 @@
-﻿using System.Collections.Immutable;
+﻿using Discord.Commands;
+
+using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Reflection;
 
-using Discord.Commands;
+namespace Advobot.Services.HelpEntries;
 
-namespace Advobot.Services.HelpEntries
+[DebuggerDisplay("{DebuggerDisplay,nq}")]
+internal sealed class ParameterHelpEntry : IParameterHelpEntry
 {
-	[DebuggerDisplay("{DebuggerDisplay,nq}")]
-	internal sealed class ParameterHelpEntry : IParameterHelpEntry
+	public bool IsOptional { get; }
+	public string Name { get; }
+	public IReadOnlyList<string> NamedArguments { get; }
+	public IReadOnlyList<IParameterPrecondition> Preconditions { get; }
+	public string Summary { get; }
+	public Type Type { get; }
+	private string DebuggerDisplay => $"{Name} ({Type.Name})";
+
+	public ParameterHelpEntry(Discord.Commands.ParameterInfo parameter)
 	{
-		public bool IsOptional { get; }
-		public string Name { get; }
-		public IReadOnlyList<string> NamedArguments { get; }
-		public IReadOnlyList<IParameterPrecondition> Preconditions { get; }
-		public string Summary { get; }
-		public Type Type { get; }
-		private string DebuggerDisplay => $"{Name} ({Type.Name})";
+		Name = parameter.Name;
+		Summary = parameter.Summary;
+		Type = parameter.Type;
+		IsOptional = parameter.IsOptional;
+		NamedArguments = GetNamedArgumentNames(parameter.Type);
+		Preconditions = parameter.Preconditions.OfType<IParameterPrecondition>().ToImmutableArray();
+	}
 
-		public ParameterHelpEntry(Discord.Commands.ParameterInfo parameter)
+	private static IReadOnlyList<string> GetNamedArgumentNames(Type type)
+	{
+		var info = type.GetTypeInfo();
+		if (info.GetCustomAttribute<NamedArgumentTypeAttribute>() == null)
 		{
-			Name = parameter.Name;
-			Summary = parameter.Summary;
-			Type = parameter.Type;
-			IsOptional = parameter.IsOptional;
-			NamedArguments = GetNamedArgumentNames(parameter.Type);
-			Preconditions = parameter.Preconditions.OfType<IParameterPrecondition>().ToImmutableArray();
+			return Array.Empty<string>();
 		}
 
-		private static IReadOnlyList<string> GetNamedArgumentNames(Type type)
-		{
-			var info = type.GetTypeInfo();
-			if (info.GetCustomAttribute<NamedArgumentTypeAttribute>() == null)
-			{
-				return Array.Empty<string>();
-			}
-
-			return info.DeclaredProperties
-				.Where(x => x.SetMethod?.IsPublic == true && !x.SetMethod.IsStatic)
-				.Select(x => x.Name)
-				.ToArray();
-		}
+		return info.DeclaredProperties
+			.Where(x => x.SetMethod?.IsPublic == true && !x.SetMethod.IsStatic)
+			.Select(x => x.Name)
+			.ToArray();
 	}
 }

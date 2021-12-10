@@ -1,16 +1,16 @@
 ﻿using FluentMigrator;
 
-namespace Advobot.Gacha.Migrations
-{
-	[Migration(20200803174700)]
-	public sealed class AddCharacterTable : Migration
-	{
-		public override void Down()
-			=> Delete.Table("Character");
+namespace Advobot.Gacha.Migrations;
 
-		public override void Up()
-		{
-			Execute.Sql(@"
+[Migration(20200803174700)]
+public sealed class AddCharacterTable : Migration
+{
+	public override void Down()
+		=> Delete.Table("Character");
+
+	public override void Up()
+	{
+		Execute.Sql(@"
 			CREATE TABLE IF NOT EXISTS Character
 			(
 				CharacterId					INTEGER NOT NULL PRIMARY KEY,
@@ -36,6 +36,5 @@ namespace Advobot.Gacha.Migrations
 				Gender
 			);
 			");
-		}
 	}
 }

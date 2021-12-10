@@ -1,19 +1,17 @@
-﻿
-using Advobot.Logging.Models;
+﻿using Advobot.Logging.Models;
 
-namespace Advobot.Logging.Preconditions
+namespace Advobot.Logging.Preconditions;
+
+/// <summary>
+/// Requires a mod log to be set.
+/// </summary>
+[AttributeUsage(AttributeTargets.Class | AttributeTargets.Method, AllowMultiple = false, Inherited = true)]
+public sealed class RequireModLogAttribute : LogPreconditionAttribute
 {
-	/// <summary>
-	/// Requires a mod log to be set.
-	/// </summary>
-	[AttributeUsage(AttributeTargets.Class | AttributeTargets.Method, AllowMultiple = false, Inherited = true)]
-	public sealed class RequireModLogAttribute : LogPreconditionAttribute
-	{
-		/// <inheritdoc />
-		protected override string LogName => Resources.Responses.VariableModLog;
+	/// <inheritdoc />
+	protected override string LogName => Resources.Responses.VariableModLog;
 
-		/// <inheritdoc />
-		protected override ulong GetId(LogChannels channels)
-			=> channels.ModLogId;
-	}
+	/// <inheritdoc />
+	protected override ulong GetId(LogChannels channels)
+		=> channels.ModLogId;
 }

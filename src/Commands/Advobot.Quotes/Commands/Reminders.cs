@@ -1,5 +1,4 @@
-﻿
-using Advobot.Attributes;
+﻿using Advobot.Attributes;
 using Advobot.Localization;
 using Advobot.Modules;
 using Advobot.Quotes.ParameterPreconditions;
@@ -9,29 +8,28 @@ using Discord.Commands;
 
 using static Advobot.Quotes.Responses.Reminders;
 
-namespace Advobot.Quotes.Commands
+namespace Advobot.Quotes.Commands;
+
+[Category(nameof(Reminders))]
+public sealed class Reminders : ModuleBase
 {
-	[Category(nameof(Reminders))]
-	public sealed class Reminders : ModuleBase
+	[LocalizedGroup(nameof(Groups.RemindMe))]
+	[LocalizedAlias(nameof(Aliases.RemindMe))]
+	[LocalizedSummary(nameof(Summaries.RemindMe))]
+	[Meta("3cedf19e-7a4d-47c0-ac2f-1c39a92026ec", IsEnabled = true)]
+	public sealed class RemindMe : AdvobotModuleBase
 	{
-		[LocalizedGroup(nameof(Groups.RemindMe))]
-		[LocalizedAlias(nameof(Aliases.RemindMe))]
-		[LocalizedSummary(nameof(Summaries.RemindMe))]
-		[Meta("3cedf19e-7a4d-47c0-ac2f-1c39a92026ec", IsEnabled = true)]
-		public sealed class RemindMe : AdvobotModuleBase
+		[Command]
+		public Task<RuntimeResult> Command(
+			[RemindTime]
+			int minutes,
+			[Remainder]
+			string message)
 		{
-			[Command]
-			public Task<RuntimeResult> Command(
-				[RemindTime]
-				int minutes,
-				[Remainder]
-				string message)
-			{
-				var time = TimeSpan.FromMinutes(minutes);
-				//TODO: actually implement
-				//Timers.Add(new TimedMessage(time, Context.User, message));
-				return AddedRemind(minutes);
-			}
+			var time = TimeSpan.FromMinutes(minutes);
+			//TODO: actually implement
+			//Timers.Add(new TimedMessage(time, Context.User, message));
+			return AddedRemind(minutes);
 		}
 	}
 }

@@ -1,10 +1,8 @@
-﻿
-using Discord;
+﻿using Discord;
 
-namespace Advobot.Gacha.ActionLimits
+namespace Advobot.Gacha.ActionLimits;
+
+public interface ITokenHolderService
 {
-	public interface ITokenHolderService
-	{
-		CancellationToken Get(IGuildUser user);
-	}
+	CancellationToken Get(IGuildUser user);
 }

@@ -1,27 +1,25 @@
-﻿
-using Advobot.Levels.Metadata;
+﻿using Advobot.Levels.Metadata;
 using Advobot.Levels.Models;
 
-namespace Advobot.Levels.Database
+namespace Advobot.Levels.Database;
+
+public interface ILevelDatabase
 {
-	public interface ILevelDatabase
-	{
-		Task<int> AddIgnoredChannelsAsync(ulong guildId, IEnumerable<ulong> channels);
+	Task<int> AddIgnoredChannelsAsync(ulong guildId, IEnumerable<ulong> channels);
 
-		Task<int> DeleteIgnoredChannelsAsync(ulong guildId, IEnumerable<ulong> channels);
+	Task<int> DeleteIgnoredChannelsAsync(ulong guildId, IEnumerable<ulong> channels);
 
-		Task<int> GetDistinctUserCountAsync(SearchArgs args);
+	Task<int> GetDistinctUserCountAsync(SearchArgs args);
 
-		Task<IReadOnlyList<ulong>> GetIgnoredChannelsAsync(ulong guildId);
+	Task<IReadOnlyList<ulong>> GetIgnoredChannelsAsync(ulong guildId);
 
-		Task<IRank> GetRankAsync(SearchArgs args);
+	Task<IRank> GetRankAsync(SearchArgs args);
 
-		Task<IReadOnlyList<IRank>> GetRanksAsync(SearchArgs args, int offset, int limit);
+	Task<IReadOnlyList<IRank>> GetRanksAsync(SearchArgs args, int offset, int limit);
 
-		Task<User> GetUserAsync(SearchArgs args);
+	Task<User> GetUserAsync(SearchArgs args);
 
-		Task<int> GetXpAsync(SearchArgs args);
+	Task<int> GetXpAsync(SearchArgs args);
 
-		Task<int> UpsertUserAsync(User user);
-	}
+	Task<int> UpsertUserAsync(User user);
 }

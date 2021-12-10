@@ -1,32 +1,30 @@
-﻿
-using Discord;
+﻿using Discord;
 
-namespace Advobot.Punishments
+namespace Advobot.Punishments;
+
+/// <summary>
+/// Mutes a user via a role.
+/// </summary>
+public sealed class RoleMute : GuildUserPunishmentBase
 {
 	/// <summary>
-	/// Mutes a user via a role.
+	/// Creates an instance of <see cref="RoleMute"/>.
 	/// </summary>
-	public sealed class RoleMute : GuildUserPunishmentBase
+	/// <param name="user"></param>
+	/// <param name="isGive"></param>
+	/// <param name="role"></param>
+	public RoleMute(IGuildUser user, bool isGive, IRole role) : base(user, isGive, PunishmentType.RoleMute)
 	{
-		/// <summary>
-		/// Creates an instance of <see cref="RoleMute"/>.
-		/// </summary>
-		/// <param name="user"></param>
-		/// <param name="isGive"></param>
-		/// <param name="role"></param>
-		public RoleMute(IGuildUser user, bool isGive, IRole role) : base(user, isGive, PunishmentType.RoleMute)
-		{
-			Role = role;
-		}
+		Role = role;
+	}
 
-		/// <inheritdoc/>
-		protected internal override Task ExecuteAsync()
+	/// <inheritdoc/>
+	protected internal override Task ExecuteAsync()
+	{
+		if (IsGive)
 		{
-			if (IsGive)
-			{
-				return User.AddRoleAsync(Role!, Options);
-			}
-			return User.RemoveRoleAsync(Role!, Options);
+			return User.AddRoleAsync(Role!, Options);
 		}
+		return User.RemoveRoleAsync(Role!, Options);
 	}
 }

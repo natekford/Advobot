@@ -1,16 +1,16 @@
 ﻿using FluentMigrator;
 
-namespace Advobot.Settings.Migrations
-{
-	[Migration(20200914023000)]
-	public sealed class AddCommandOverrideTable : Migration
-	{
-		public override void Down()
-			=> Delete.Table("CommandOverride");
+namespace Advobot.Settings.Migrations;
 
-		public override void Up()
-		{
-			Execute.Sql(@"
+[Migration(20200914023000)]
+public sealed class AddCommandOverrideTable : Migration
+{
+	public override void Down()
+		=> Delete.Table("CommandOverride");
+
+	public override void Up()
+	{
+		Execute.Sql(@"
 			CREATE TABLE IF NOT EXISTS CommandOverride
 			(
 				GuildId					TEXT NOT NULL,
@@ -36,6 +36,5 @@ namespace Advobot.Settings.Migrations
 				TargetId
 			);
 			");
-		}
 	}
 }

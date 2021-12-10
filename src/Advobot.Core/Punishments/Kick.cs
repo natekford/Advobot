@@ -1,23 +1,21 @@
-﻿
-using Discord;
+﻿using Discord;
 
-namespace Advobot.Punishments
+namespace Advobot.Punishments;
+
+/// <summary>
+/// Kicks a user.
+/// </summary>
+public sealed class Kick : GuildUserPunishmentBase
 {
 	/// <summary>
-	/// Kicks a user.
+	/// Creates an instance of <see cref="Kick"/>.
 	/// </summary>
-	public sealed class Kick : GuildUserPunishmentBase
+	/// <param name="user"></param>
+	public Kick(IGuildUser user) : base(user, true, PunishmentType.Kick)
 	{
-		/// <summary>
-		/// Creates an instance of <see cref="Kick"/>.
-		/// </summary>
-		/// <param name="user"></param>
-		public Kick(IGuildUser user) : base(user, true, PunishmentType.Kick)
-		{
-		}
-
-		/// <inheritdoc />
-		protected internal override Task ExecuteAsync()
-			=> User.KickAsync(Options?.AuditLogReason, Options);
 	}
+
+	/// <inheritdoc />
+	protected internal override Task ExecuteAsync()
+		=> User.KickAsync(Options?.AuditLogReason, Options);
 }

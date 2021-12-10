@@ -1,26 +1,25 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using AdvorangesUtils;
 
-using AdvorangesUtils;
+using System.ComponentModel.DataAnnotations;
 
-namespace Advobot.UI.ValidationAttributes
+namespace Advobot.UI.ValidationAttributes;
+
+/// <summary>
+/// Validation attribute for Twitch.tv streams.
+/// </summary>
+[AttributeUsage(AttributeTargets.Property, AllowMultiple = false, Inherited = false)]
+public sealed class TwitchStreamValidationAttribute : ValidationAttribute
 {
 	/// <summary>
-	/// Validation attribute for Twitch.tv streams.
+	/// Determines whether the passed in object is a Twitch.tv stream.
 	/// </summary>
-	[AttributeUsage(AttributeTargets.Property, AllowMultiple = false, Inherited = false)]
-	public sealed class TwitchStreamValidationAttribute : ValidationAttribute
+	/// <param name="value"></param>
+	/// <param name="validationContext"></param>
+	/// <returns></returns>
+	protected override ValidationResult? IsValid(object? value, ValidationContext validationContext)
 	{
-		/// <summary>
-		/// Determines whether the passed in object is a Twitch.tv stream.
-		/// </summary>
-		/// <param name="value"></param>
-		/// <param name="validationContext"></param>
-		/// <returns></returns>
-		protected override ValidationResult? IsValid(object? value, ValidationContext validationContext)
-		{
-			return RegexUtils.IsValidTwitchName(value?.ToString())
-				? ValidationResult.Success
-				: new ValidationResult("Invalid Twitch stream.");
-		}
+		return RegexUtils.IsValidTwitchName(value?.ToString())
+			? ValidationResult.Success
+			: new ValidationResult("Invalid Twitch stream.");
 	}
 }

@@ -1,16 +1,16 @@
 ﻿using FluentMigrator;
 
-namespace Advobot.Settings.Migrations
-{
-	[Migration(20200914022000)]
-	public sealed class AddIgnoredChannelTable : Migration
-	{
-		public override void Down()
-			=> Delete.Table("IgnoredChannel");
+namespace Advobot.Settings.Migrations;
 
-		public override void Up()
-		{
-			Execute.Sql(@"
+[Migration(20200914022000)]
+public sealed class AddIgnoredChannelTable : Migration
+{
+	public override void Down()
+		=> Delete.Table("IgnoredChannel");
+
+	public override void Up()
+	{
+		Execute.Sql(@"
 			CREATE TABLE IF NOT EXISTS IgnoredChannel
 			(
 				GuildId					TEXT NOT NULL,
@@ -22,6 +22,5 @@ namespace Advobot.Settings.Migrations
 				GuildId
 			);
 			");
-		}
 	}
 }

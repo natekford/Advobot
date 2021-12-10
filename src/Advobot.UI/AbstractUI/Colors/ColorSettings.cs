@@ -1,26 +1,26 @@
-﻿using System.ComponentModel;
-using System.Runtime.CompilerServices;
-
-using Advobot.UI.Colors;
+﻿using Advobot.UI.Colors;
 
 using Newtonsoft.Json;
 
-namespace Advobot.UI.AbstractUI.Colors
-{
-	/// <summary>
-	/// Indicates what colors to use in the UI.
-	/// </summary>
-	public abstract class ColorSettings<TBrush, TBrushFactory>
-		: IColorSettings<TBrush>, INotifyPropertyChanged
-			where TBrushFactory : BrushFactory<TBrush>, new()
-	{
-		[JsonIgnore]
-		private ColorTheme _ActiveTheme = ColorTheme.LightMode;
+using System.ComponentModel;
+using System.Runtime.CompilerServices;
 
-		/// <summary>
-		/// A dark color UI theme.
-		/// </summary>
-		public static ITheme<TBrush> DarkMode { get; } = new Theme<TBrush, TBrushFactory>
+namespace Advobot.UI.AbstractUI.Colors;
+
+/// <summary>
+/// Indicates what colors to use in the UI.
+/// </summary>
+public abstract class ColorSettings<TBrush, TBrushFactory>
+	: IColorSettings<TBrush>, INotifyPropertyChanged
+		where TBrushFactory : BrushFactory<TBrush>, new()
+{
+	[JsonIgnore]
+	private ColorTheme _ActiveTheme = ColorTheme.LightMode;
+
+	/// <summary>
+	/// A dark color UI theme.
+	/// </summary>
+	public static ITheme<TBrush> DarkMode { get; } = new Theme<TBrush, TBrushFactory>
 		{
 			{ ColorTargets.BaseBackground,            "#1C1C1C" },
 			{ ColorTargets.BaseForeground,            "#E1E1E1" },
@@ -37,15 +37,15 @@ namespace Advobot.UI.AbstractUI.Colors
 			{ ColorTargets.JsonParamName,             "#057500" },
 		};
 
-		/// <summary>
-		/// Static instance of the brush factory.
-		/// </summary>
-		public static BrushFactory<TBrush> Factory { get; } = new TBrushFactory();
+	/// <summary>
+	/// Static instance of the brush factory.
+	/// </summary>
+	public static BrushFactory<TBrush> Factory { get; } = new TBrushFactory();
 
-		/// <summary>
-		/// A light color UI theme.
-		/// </summary>
-		public static ITheme<TBrush> LightMode { get; } = new Theme<TBrush, TBrushFactory>
+	/// <summary>
+	/// A light color UI theme.
+	/// </summary>
+	public static ITheme<TBrush> LightMode { get; } = new Theme<TBrush, TBrushFactory>
 		{
 			{ ColorTargets.BaseBackground,            "#FFFFFF" },
 			{ ColorTargets.BaseForeground,            "#000000" },
@@ -62,84 +62,83 @@ namespace Advobot.UI.AbstractUI.Colors
 			{ ColorTargets.JsonParamName,             "#057500" },
 		};
 
-		/// <inheritdoc />
-		[JsonProperty("Theme", Order = 2)]
-		public ColorTheme ActiveTheme
+	/// <inheritdoc />
+	[JsonProperty("Theme", Order = 2)]
+	public ColorTheme ActiveTheme
+	{
+		get => _ActiveTheme;
+		set
 		{
-			get => _ActiveTheme;
-			set
+			if (_ActiveTheme == value) //Don't bother reloading the theme if it's the same value
 			{
-				if (_ActiveTheme == value) //Don't bother reloading the theme if it's the same value
-				{
-					return;
-				}
-
-				var themeBrushes = (_ActiveTheme = value) switch
-				{
-					ColorTheme.LightMode => LightMode,
-					ColorTheme.DarkMode => DarkMode,
-					ColorTheme.UserMade => UserDefinedColors,
-					_ => throw new ArgumentOutOfRangeException(nameof(value)),
-				};
-
-				foreach (var kvp in themeBrushes)
-				{
-					UpdateResource(kvp.Key, kvp.Value);
-				}
-				RaisePropertyChanged();
+				return;
 			}
-		}
 
-		/// <inheritdoc />
-		[JsonProperty("ColorTargets", Order = 1)] //Deserialize this first so when Theme gets set it will update the UI
-		public ITheme<TBrush> UserDefinedColors { get; } = new Theme<TBrush, TBrushFactory>();
-
-		/// <inheritdoc />
-		public event PropertyChangedEventHandler? PropertyChanged;
-
-		static ColorSettings()
-		{
-			LightMode.Freeze();
-			DarkMode.Freeze();
-		}
-
-		/// <summary>
-		/// Creates an instance of <see cref="ColorSettings{TBrush, TBrushFactory}"/> and sets the default theme and colors to light.
-		/// </summary>
-		protected ColorSettings()
-		{
-			foreach (var key in LightMode.Keys)
+			var themeBrushes = (_ActiveTheme = value) switch
 			{
-				if (!UserDefinedColors.TryGetValue(key, out var val))
-				{
-					UserDefinedColors.Add(key, LightMode[key]);
-				}
-			}
-			UserDefinedColors.PropertyChanged += (sender, e) =>
-			{
-				if (ActiveTheme == ColorTheme.UserMade
-					&& sender is ITheme<TBrush> theme && e.PropertyName is string prop)
-				{
-					UpdateResource(prop, theme[prop]);
-				}
+				ColorTheme.LightMode => LightMode,
+				ColorTheme.DarkMode => DarkMode,
+				ColorTheme.UserMade => UserDefinedColors,
+				_ => throw new ArgumentOutOfRangeException(nameof(value)),
 			};
+
+			foreach (var kvp in themeBrushes)
+			{
+				UpdateResource(kvp.Key, kvp.Value);
+			}
+			RaisePropertyChanged();
 		}
-
-		/// <inheritdoc />
-		public abstract void Save();
-
-		/// <summary>
-		/// Raises the property changed event.
-		/// </summary>
-		/// <param name="caller"></param>
-		protected void RaisePropertyChanged([CallerMemberName] string caller = "")
-			=> PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(caller));
-
-		/// <summary>
-		/// Updates a resource dictionary with the specified value.
-		/// </summary>
-		/// <param name="target"></param>
-		/// <param name="value"></param>
-		protected abstract void UpdateResource(string target, TBrush value);
 	}
+
+	/// <inheritdoc />
+	[JsonProperty("ColorTargets", Order = 1)] //Deserialize this first so when Theme gets set it will update the UI
+	public ITheme<TBrush> UserDefinedColors { get; } = new Theme<TBrush, TBrushFactory>();
+
+	/// <inheritdoc />
+	public event PropertyChangedEventHandler? PropertyChanged;
+
+	static ColorSettings()
+	{
+		LightMode.Freeze();
+		DarkMode.Freeze();
+	}
+
+	/// <summary>
+	/// Creates an instance of <see cref="ColorSettings{TBrush, TBrushFactory}"/> and sets the default theme and colors to light.
+	/// </summary>
+	protected ColorSettings()
+	{
+		foreach (var key in LightMode.Keys)
+		{
+			if (!UserDefinedColors.TryGetValue(key, out var val))
+			{
+				UserDefinedColors.Add(key, LightMode[key]);
+			}
+		}
+		UserDefinedColors.PropertyChanged += (sender, e) =>
+		{
+			if (ActiveTheme == ColorTheme.UserMade
+				&& sender is ITheme<TBrush> theme && e.PropertyName is string prop)
+			{
+				UpdateResource(prop, theme[prop]);
+			}
+		};
+	}
+
+	/// <inheritdoc />
+	public abstract void Save();
+
+	/// <summary>
+	/// Raises the property changed event.
+	/// </summary>
+	/// <param name="caller"></param>
+	protected void RaisePropertyChanged([CallerMemberName] string caller = "")
+		=> PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(caller));
+
+	/// <summary>
+	/// Updates a resource dictionary with the specified value.
+	/// </summary>
+	/// <param name="target"></param>
+	/// <param name="value"></param>
+	protected abstract void UpdateResource(string target, TBrush value);
 }

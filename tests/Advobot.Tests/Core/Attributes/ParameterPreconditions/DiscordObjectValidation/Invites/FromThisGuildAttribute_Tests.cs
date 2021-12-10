@@ -8,31 +8,30 @@ using AdvorangesUtils;
 
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
-namespace Advobot.Tests.Core.Attributes.ParameterPreconditions.DiscordObjectValidation.Invites
+namespace Advobot.Tests.Core.Attributes.ParameterPreconditions.DiscordObjectValidation.Invites;
+
+[TestClass]
+public sealed class FromThisGuildAttribute_Tests
+	: ParameterPreconditionTestsBase<FromThisGuildAttribute>
 {
-	[TestClass]
-	public sealed class FromThisGuildAttribute_Tests
-		: ParameterPreconditionTestsBase<FromThisGuildAttribute>
+	protected override FromThisGuildAttribute Instance { get; } = new();
+
+	[TestMethod]
+	public async Task FromThisGuild_Test()
 	{
-		protected override FromThisGuildAttribute Instance { get; } = new();
+		var invite = new FakeInviteMetadata(Context.Channel, Context.User);
 
-		[TestMethod]
-		public async Task FromThisGuild_Test()
-		{
-			var invite = new FakeInviteMetadata(Context.Channel, Context.User);
+		await AssertSuccessAsync(invite).CAF();
+	}
 
-			await AssertSuccessAsync(invite).CAF();
-		}
+	[TestMethod]
+	public async Task NotFromThisGuild_Test()
+	{
+		var guild = new FakeGuild(Context.Client);
+		var channel = new FakeTextChannel(guild);
+		var user = new FakeGuildUser(guild);
+		var invite = new FakeInviteMetadata(channel, user);
 
-		[TestMethod]
-		public async Task NotFromThisGuild_Test()
-		{
-			var guild = new FakeGuild(Context.Client);
-			var channel = new FakeTextChannel(guild);
-			var user = new FakeGuildUser(guild);
-			var invite = new FakeInviteMetadata(channel, user);
-
-			await AssertFailureAsync(invite).CAF();
-		}
+		await AssertFailureAsync(invite).CAF();
 	}
 }

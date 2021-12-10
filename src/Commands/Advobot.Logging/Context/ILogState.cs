@@ -1,15 +1,13 @@
-﻿
-using Advobot.Logging.Database;
+﻿using Advobot.Logging.Database;
 
 using Discord;
 
-namespace Advobot.Logging.Context
-{
-	public interface ILogState
-	{
-		IGuild? Guild { get; }
-		bool IsValid { get; }
+namespace Advobot.Logging.Context;
 
-		Task<bool> CanLog(ILoggingDatabase db, ILogContext context);
-	}
+public interface ILogState
+{
+	IGuild? Guild { get; }
+	bool IsValid { get; }
+
+	Task<bool> CanLog(ILoggingDatabase db, ILogContext context);
 }

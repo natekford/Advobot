@@ -1,13 +1,12 @@
-﻿namespace Advobot.Interfaces
+﻿namespace Advobot.Interfaces;
+
+/// <summary>
+/// Interface indicating the object has a name.
+/// </summary>
+public interface INameable
 {
 	/// <summary>
-	/// Interface indicating the object has a name.
+	/// The name of the object.
 	/// </summary>
-	public interface INameable
-	{
-		/// <summary>
-		/// The name of the object.
-		/// </summary>
-		string Name { get; }
-	}
+	string Name { get; }
 }

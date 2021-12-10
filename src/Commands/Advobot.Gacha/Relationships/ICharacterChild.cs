@@ -1,7 +1,6 @@
-﻿namespace Advobot.Gacha.Relationships
+﻿namespace Advobot.Gacha.Relationships;
+
+public interface ICharacterChild
 {
-	public interface ICharacterChild
-	{
-		long CharacterId { get; }
-	}
+	long CharacterId { get; }
 }

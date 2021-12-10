@@ -1,5 +1,4 @@
-﻿
-using Advobot.Attributes;
+﻿using Advobot.Attributes;
 using Advobot.Attributes.Preconditions.Permissions;
 using Advobot.Localization;
 using Advobot.Modules;
@@ -15,201 +14,200 @@ using Discord.Commands;
 
 using static Advobot.Quotes.Responses.Rules;
 
-namespace Advobot.Quotes.Commands
+namespace Advobot.Quotes.Commands;
+
+[Category(nameof(Rules))]
+public sealed class Rules : ModuleBase
 {
-	[Category(nameof(Rules))]
-	public sealed class Rules : ModuleBase
+	[LocalizedGroup(nameof(Groups.ModifyRuleCategories))]
+	[LocalizedAlias(nameof(Aliases.ModifyRuleCategories))]
+	[LocalizedSummary(nameof(Summaries.ModifyRuleCategories))]
+	[Meta("29ce9d5e-59c0-4262-8922-e444a9fc0ec6")]
+	[RequireGuildPermissions]
+	public sealed class ModifyRuleCategories : RuleModuleBase
 	{
-		[LocalizedGroup(nameof(Groups.ModifyRuleCategories))]
-		[LocalizedAlias(nameof(Aliases.ModifyRuleCategories))]
-		[LocalizedSummary(nameof(Summaries.ModifyRuleCategories))]
-		[Meta("29ce9d5e-59c0-4262-8922-e444a9fc0ec6")]
-		[RequireGuildPermissions]
-		public sealed class ModifyRuleCategories : RuleModuleBase
+		[LocalizedCommand(nameof(Groups.Create))]
+		[LocalizedAlias(nameof(Aliases.Create))]
+		public async Task<RuntimeResult> Create(
+			[Remainder, Rule]
+				string value)
 		{
-			[LocalizedCommand(nameof(Groups.Create))]
-			[LocalizedAlias(nameof(Aliases.Create))]
-			public async Task<RuntimeResult> Create(
-				[Remainder, Rule]
-				string value)
+			var categories = await Db.GetCategoriesAsync(Context.Guild.Id).CAF();
+
+			var category = new RuleCategory
 			{
-				var categories = await Db.GetCategoriesAsync(Context.Guild.Id).CAF();
-
-				var category = new RuleCategory
-				{
-					GuildId = Context.Guild.Id,
-					Value = value,
-					Category = categories.Count + 1,
-				};
-				await Db.UpsertRuleCategoryAsync(category).CAF();
-				return CreatedCategory(category);
-			}
-
-			[LocalizedCommand(nameof(Groups.Delete))]
-			[LocalizedAlias(nameof(Aliases.Delete))]
-			public async Task<RuntimeResult> Delete(RuleCategory category)
-			{
-				await Db.DeleteRuleCategoryAsync(category).CAF();
-				return DeletedCategory(category);
-			}
-
-			[LocalizedCommand(nameof(Groups.ModifyValue))]
-			[LocalizedAlias(nameof(Aliases.ModifyValue))]
-			public async Task<RuntimeResult> ModifyValue(
-				RuleCategory category,
-				[Remainder, Rule]
-				string value)
-			{
-				var copy = category with
-				{
-					Value = value,
-				};
-				await Db.UpsertRuleCategoryAsync(copy).CAF();
-				return ModifiedCategoryValue(copy);
-			}
-
-			[LocalizedCommand(nameof(Groups.Swap))]
-			[LocalizedAlias(nameof(Aliases.Swap))]
-			public async Task<RuntimeResult> Swap(
-				RuleCategory categoryA,
-				RuleCategory categoryB)
-			{
-				var copyA = categoryA with
-				{
-					Category = categoryB.Category,
-				};
-				var rulesA = await Db.GetRulesAsync(categoryA).CAF();
-				var copyRulesA = rulesA.Select(x => x with
-				{
-					Category = copyA.Category,
-				});
-
-				var copyB = categoryB with
-				{
-					Category = categoryA.Category,
-				};
-				var rulesB = await Db.GetRulesAsync(categoryB).CAF();
-				var copyRulesB = rulesB.Select(x => x with
-				{
-					Category = copyB.Category,
-				});
-
-				await Db.UpsertRuleCategoryAsync(copyA).CAF();
-				await Db.UpsertRuleCategoryAsync(copyB).CAF();
-				await Db.UpsertRulesAsync(copyRulesA.Concat(copyRulesB)).CAF();
-
-				// Example:
-				// 1.1, 1.2, 1.3, 1.4 | 2.1, 2.2
-				// 1.1, 1.2, [1.3, 1.4] | 2.1, 2.2, 2.3, 2.4
-				// 1.3 and 1.4 aren't upserted; only 2 rules from 2.x overwrite 1.1 and 1.2
-				// so they need to be deleted manually
-				if (rulesA.Count != rulesB.Count)
-				{
-					var (longer, shorter) = rulesA.Count > rulesB.Count
-						? (rulesA, rulesB)
-						: (rulesB, rulesA);
-					var needsDeleting = longer.Skip(shorter.Count);
-					await Db.DeleteRulesAsync(needsDeleting).CAF();
-				}
-
-				return SwappedRuleCategories(categoryA, rulesA, categoryB, rulesB);
-			}
+				GuildId = Context.Guild.Id,
+				Value = value,
+				Category = categories.Count + 1,
+			};
+			await Db.UpsertRuleCategoryAsync(category).CAF();
+			return CreatedCategory(category);
 		}
 
-		[LocalizedGroup(nameof(Groups.ModifyRules))]
-		[LocalizedAlias(nameof(Aliases.ModifyRules))]
-		[LocalizedSummary(nameof(Summaries.ModifyRules))]
-		[Meta("2808540d-9dd7-4c4a-bd87-b6bd83c37cd5")]
-		[RequireGuildPermissions]
-		public sealed class ModifyRules : RuleModuleBase
+		[LocalizedCommand(nameof(Groups.Delete))]
+		[LocalizedAlias(nameof(Aliases.Delete))]
+		public async Task<RuntimeResult> Delete(RuleCategory category)
 		{
-			[LocalizedCommand(nameof(Groups.Create))]
-			[LocalizedAlias(nameof(Aliases.Create))]
-			public async Task<RuntimeResult> Create(
-				RuleCategory category,
-				[Remainder, Rule]
-				string value)
-			{
-				var rules = await Db.GetRulesAsync(category).CAF();
-
-				var rule = new Rule
-				{
-					GuildId = Context.Guild.Id,
-					Category = category.Category,
-					Value = value,
-					Position = rules.Count + 1,
-				};
-				await Db.UpsertRuleAsync(rule).CAF();
-				return AddedRule(category);
-			}
-
-			[LocalizedCommand(nameof(Groups.Delete))]
-			[LocalizedAlias(nameof(Aliases.Delete))]
-			public async Task<RuntimeResult> Delete(Rule rule)
-			{
-				await Db.DeleteRuleAsync(rule).CAF();
-				return RemovedRule(rule);
-			}
-
-			[LocalizedCommand(nameof(Groups.ModifyValue))]
-			[LocalizedAlias(nameof(Aliases.ModifyValue))]
-			public async Task<RuntimeResult> ModifyValue(
-				Rule rule,
-				[Remainder, Rule]
-				string value)
-			{
-				var copy = rule with
-				{
-					Value = value,
-				};
-				await Db.UpsertRuleAsync(copy).CAF();
-				return ModifiedRuleValue(copy);
-			}
-
-			[LocalizedCommand(nameof(Groups.Swap))]
-			[LocalizedAlias(nameof(Aliases.Swap))]
-			public async Task<RuntimeResult> Swap(Rule ruleA, Rule ruleB)
-			{
-				var copyA = ruleA with
-				{
-					Position = ruleB.Position,
-				};
-				var copyB = ruleB with
-				{
-					Position = ruleA.Position,
-				};
-
-				await Db.UpsertRulesAsync(new[] { copyA, copyB }).CAF();
-				return SwappedRules(ruleA, ruleB);
-			}
+			await Db.DeleteRuleCategoryAsync(category).CAF();
+			return DeletedCategory(category);
 		}
 
-		[LocalizedGroup(nameof(Groups.PrintOutRules))]
-		[LocalizedAlias(nameof(Aliases.PrintOutRules))]
-		[LocalizedSummary(nameof(Summaries.PrintOutRules))]
-		[Meta("9ae48ca4-68a3-468f-8a6c-2cffd4483deb")]
-		[RequireGuildPermissions]
-		public sealed class PrintOutRules : RuleModuleBase
+		[LocalizedCommand(nameof(Groups.ModifyValue))]
+		[LocalizedAlias(nameof(Aliases.ModifyValue))]
+		public async Task<RuntimeResult> ModifyValue(
+			RuleCategory category,
+			[Remainder, Rule]
+				string value)
 		{
-			[Command]
-			public async Task<RuntimeResult> Command(RuleFormatter? args = null)
+			var copy = category with
 			{
-				args ??= new();
+				Value = value,
+			};
+			await Db.UpsertRuleCategoryAsync(copy).CAF();
+			return ModifiedCategoryValue(copy);
+		}
 
-				var dict = await Db.GetRuleDictionaryAsync(Context.Guild.Id).CAF();
-				return AdvobotResult.Success(args.Format(dict));
+		[LocalizedCommand(nameof(Groups.Swap))]
+		[LocalizedAlias(nameof(Aliases.Swap))]
+		public async Task<RuntimeResult> Swap(
+			RuleCategory categoryA,
+			RuleCategory categoryB)
+		{
+			var copyA = categoryA with
+			{
+				Category = categoryB.Category,
+			};
+			var rulesA = await Db.GetRulesAsync(categoryA).CAF();
+			var copyRulesA = rulesA.Select(x => x with
+			{
+				Category = copyA.Category,
+			});
+
+			var copyB = categoryB with
+			{
+				Category = categoryA.Category,
+			};
+			var rulesB = await Db.GetRulesAsync(categoryB).CAF();
+			var copyRulesB = rulesB.Select(x => x with
+			{
+				Category = copyB.Category,
+			});
+
+			await Db.UpsertRuleCategoryAsync(copyA).CAF();
+			await Db.UpsertRuleCategoryAsync(copyB).CAF();
+			await Db.UpsertRulesAsync(copyRulesA.Concat(copyRulesB)).CAF();
+
+			// Example:
+			// 1.1, 1.2, 1.3, 1.4 | 2.1, 2.2
+			// 1.1, 1.2, [1.3, 1.4] | 2.1, 2.2, 2.3, 2.4
+			// 1.3 and 1.4 aren't upserted; only 2 rules from 2.x overwrite 1.1 and 1.2
+			// so they need to be deleted manually
+			if (rulesA.Count != rulesB.Count)
+			{
+				var (longer, shorter) = rulesA.Count > rulesB.Count
+					? (rulesA, rulesB)
+					: (rulesB, rulesA);
+				var needsDeleting = longer.Skip(shorter.Count);
+				await Db.DeleteRulesAsync(needsDeleting).CAF();
 			}
 
-			[Command]
-			public async Task<RuntimeResult> Command(
-				RuleCategory category,
-				RuleFormatter? args = null)
-			{
-				args ??= new();
+			return SwappedRuleCategories(categoryA, rulesA, categoryB, rulesB);
+		}
+	}
 
-				var rules = await Db.GetRulesAsync(category).CAF();
-				return AdvobotResult.Success(args.Format(category, rules));
-			}
+	[LocalizedGroup(nameof(Groups.ModifyRules))]
+	[LocalizedAlias(nameof(Aliases.ModifyRules))]
+	[LocalizedSummary(nameof(Summaries.ModifyRules))]
+	[Meta("2808540d-9dd7-4c4a-bd87-b6bd83c37cd5")]
+	[RequireGuildPermissions]
+	public sealed class ModifyRules : RuleModuleBase
+	{
+		[LocalizedCommand(nameof(Groups.Create))]
+		[LocalizedAlias(nameof(Aliases.Create))]
+		public async Task<RuntimeResult> Create(
+			RuleCategory category,
+			[Remainder, Rule]
+				string value)
+		{
+			var rules = await Db.GetRulesAsync(category).CAF();
+
+			var rule = new Rule
+			{
+				GuildId = Context.Guild.Id,
+				Category = category.Category,
+				Value = value,
+				Position = rules.Count + 1,
+			};
+			await Db.UpsertRuleAsync(rule).CAF();
+			return AddedRule(category);
+		}
+
+		[LocalizedCommand(nameof(Groups.Delete))]
+		[LocalizedAlias(nameof(Aliases.Delete))]
+		public async Task<RuntimeResult> Delete(Rule rule)
+		{
+			await Db.DeleteRuleAsync(rule).CAF();
+			return RemovedRule(rule);
+		}
+
+		[LocalizedCommand(nameof(Groups.ModifyValue))]
+		[LocalizedAlias(nameof(Aliases.ModifyValue))]
+		public async Task<RuntimeResult> ModifyValue(
+			Rule rule,
+			[Remainder, Rule]
+				string value)
+		{
+			var copy = rule with
+			{
+				Value = value,
+			};
+			await Db.UpsertRuleAsync(copy).CAF();
+			return ModifiedRuleValue(copy);
+		}
+
+		[LocalizedCommand(nameof(Groups.Swap))]
+		[LocalizedAlias(nameof(Aliases.Swap))]
+		public async Task<RuntimeResult> Swap(Rule ruleA, Rule ruleB)
+		{
+			var copyA = ruleA with
+			{
+				Position = ruleB.Position,
+			};
+			var copyB = ruleB with
+			{
+				Position = ruleA.Position,
+			};
+
+			await Db.UpsertRulesAsync(new[] { copyA, copyB }).CAF();
+			return SwappedRules(ruleA, ruleB);
+		}
+	}
+
+	[LocalizedGroup(nameof(Groups.PrintOutRules))]
+	[LocalizedAlias(nameof(Aliases.PrintOutRules))]
+	[LocalizedSummary(nameof(Summaries.PrintOutRules))]
+	[Meta("9ae48ca4-68a3-468f-8a6c-2cffd4483deb")]
+	[RequireGuildPermissions]
+	public sealed class PrintOutRules : RuleModuleBase
+	{
+		[Command]
+		public async Task<RuntimeResult> Command(RuleFormatter? args = null)
+		{
+			args ??= new();
+
+			var dict = await Db.GetRuleDictionaryAsync(Context.Guild.Id).CAF();
+			return AdvobotResult.Success(args.Format(dict));
+		}
+
+		[Command]
+		public async Task<RuntimeResult> Command(
+			RuleCategory category,
+			RuleFormatter? args = null)
+		{
+			args ??= new();
+
+			var rules = await Db.GetRulesAsync(category).CAF();
+			return AdvobotResult.Success(args.Format(category, rules));
 		}
 	}
 }

@@ -6,30 +6,29 @@ using AdvorangesUtils;
 
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
-namespace Advobot.Tests.Core.Attributes.ParameterPreconditions.DiscordObjectValidation.Invites
+namespace Advobot.Tests.Core.Attributes.ParameterPreconditions.DiscordObjectValidation.Invites;
+
+[TestClass]
+public sealed class NeverExpiresAttribute_Tests
+	: ParameterPreconditionTestsBase<NeverExpiresAttribute>
 {
-	[TestClass]
-	public sealed class NeverExpiresAttribute_Tests
-		: ParameterPreconditionTestsBase<NeverExpiresAttribute>
+	protected override NeverExpiresAttribute Instance { get; } = new();
+
+	[TestMethod]
+	public async Task InviteExpires_Test()
 	{
-		protected override NeverExpiresAttribute Instance { get; } = new();
-
-		[TestMethod]
-		public async Task InviteExpires_Test()
+		await AssertFailureAsync(new FakeInviteMetadata(Context.Channel, Context.User)
 		{
-			await AssertFailureAsync(new FakeInviteMetadata(Context.Channel, Context.User)
-			{
-				MaxAge = 3600,
-			}).CAF();
-		}
+			MaxAge = 3600,
+		}).CAF();
+	}
 
-		[TestMethod]
-		public async Task InviteNeverExpires_Test()
+	[TestMethod]
+	public async Task InviteNeverExpires_Test()
+	{
+		await AssertSuccessAsync(new FakeInviteMetadata(Context.Channel, Context.User)
 		{
-			await AssertSuccessAsync(new FakeInviteMetadata(Context.Channel, Context.User)
-			{
-				MaxAge = null,
-			}).CAF();
-		}
+			MaxAge = null,
+		}).CAF();
 	}
 }

@@ -1,13 +1,12 @@
 ﻿using Advobot.Logging.Database;
 
-namespace Advobot.Logging.OptionSetters
-{
-	public sealed class GoodbyeNotificationResetter : NotificationResetter
-	{
-		protected override Notification Event => Notification.Goodbye;
+namespace Advobot.Logging.OptionSetters;
 
-		public GoodbyeNotificationResetter(INotificationDatabase db) : base(db)
-		{
-		}
+public sealed class GoodbyeNotificationResetter : NotificationResetter
+{
+	protected override Notification Event => Notification.Goodbye;
+
+	public GoodbyeNotificationResetter(INotificationDatabase db) : base(db)
+	{
 	}
 }

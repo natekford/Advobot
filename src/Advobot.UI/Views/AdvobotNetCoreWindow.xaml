@@ -1,230 +1,230 @@
 <Window xmlns="https://github.com/avaloniaui"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:colors="clr-namespace:Advobot.UI.AbstractUI.Colors;assembly=Advobot.UI"
+        xmlns:controls="clr-namespace:Advobot.UI.Controls;assembly=Advobot.UI"
         xmlns:converters="clr-namespace:Advobot.UI.Converters;assembly=Advobot.UI"
         xmlns:extensions="clr-namespace:Advobot.UI.Extensions;assembly=Advobot.UI"
         xmlns:viewmodels="clr-namespace:Advobot.UI.ViewModels;assembly=Advobot.UI"
-        xmlns:controls="clr-namespace:Advobot.UI.Controls;assembly=Advobot.UI"
-        xmlns:colors="clr-namespace:Advobot.UI.AbstractUI.Colors;assembly=Advobot.UI"
         xmlns:discord="clr-namespace:Discord;assembly=Discord.Net.Core"
         x:Class="Advobot.UI.Views.AdvobotNetCoreWindow"
-        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
-        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
         Name="MainWindow"
         Title="Advobot"
         FontFamily="Courier New">
 
-  <controls:DynamicFontSizeGrid RowDefinitions="20*,1*,1*,2*" ColumnDefinitions="3*,1*" DynamicFontSize=".02">
-    <!-- Output -->
-    <!-- Needs AcceptsReturn to be true to wrap correctly -->
-    <TextBox Grid.ColumnSpan="{Binding OutputColumnSpan}" Text="{Binding Output}" TextWrapping="Wrap" AcceptsReturn="True" IsReadOnly="True">
-      <TextBox.ContextMenu>
-        <ContextMenu>
-          <MenuItem Header="Clear Output" Command="{Binding ClearOutputCommand}" CommandParameter="{Binding ElementName=MainWindow}" />
-          <MenuItem Header="Save Output" Command="{Binding SaveOutputCommand}" />
-          <MenuItem Header="Search Output" Command="{Binding OpenOutputSearchWindowCommand}" CommandParameter="{Binding ElementName=MainWindow}" />
-        </ContextMenu>
-      </TextBox.ContextMenu>
-    </TextBox>
+    <controls:DynamicFontSizeGrid RowDefinitions="20*,1*,1*,2*" ColumnDefinitions="3*,1*" DynamicFontSize=".02">
+        <!-- Output -->
+        <!-- Needs AcceptsReturn to be true to wrap correctly -->
+        <TextBox Grid.ColumnSpan="{Binding OutputColumnSpan}" Text="{Binding Output}" TextWrapping="Wrap" AcceptsReturn="True" IsReadOnly="True">
+            <TextBox.ContextMenu>
+                <ContextMenu>
+                    <MenuItem Header="Clear Output" Command="{Binding ClearOutputCommand}" CommandParameter="{Binding ElementName=MainWindow}" />
+                    <MenuItem Header="Save Output" Command="{Binding SaveOutputCommand}" />
+                    <MenuItem Header="Search Output" Command="{Binding OpenOutputSearchWindowCommand}" CommandParameter="{Binding ElementName=MainWindow}" />
+                </ContextMenu>
+            </TextBox.ContextMenu>
+        </TextBox>
 
-    <!-- Input -->
-    <Grid Grid.Row="2" Grid.RowSpan="2" ColumnDefinitions="8*,1*">
-      <TextBox Text="{Binding Input}" MaxHeight="1000" TextWrapping="Wrap" KeyDown="EnterKeyPressed" />
-      <Button Grid.Column="1" Content="Enter" Command="{Binding TakeInputCommand}" />
-    </Grid>
+        <!-- Input -->
+        <Grid Grid.Row="2" Grid.RowSpan="2" ColumnDefinitions="8*,1*">
+            <TextBox Text="{Binding Input}" MaxHeight="1000" TextWrapping="Wrap" KeyDown="EnterKeyPressed" />
+            <Button Grid.Column="1" Content="Enter" Command="{Binding TakeInputCommand}" />
+        </Grid>
 
-    <!-- Application Info Bar -->
-    <Grid Grid.Row="1">
-      <UniformGrid Rows="1">
-        <TextBox Classes="i1 i2" Text="{Binding Uptime^, Mode=OneWay}" />
-        <TextBox Classes="i1 i2" Text="{Binding Latency^, Mode=OneWay}" />
-        <TextBox Classes="i1 i2" Text="{Binding Memory^, Mode=OneWay}" />
-        <TextBox Classes="i1 i2" Text="{Binding ThreadCount^, Mode=OneWay}" />
-      </UniformGrid>
+        <!-- Application Info Bar -->
+        <Grid Grid.Row="1">
+            <UniformGrid Rows="1">
+                <TextBox Classes="i1 i2" Text="{Binding Uptime^, Mode=OneWay}" />
+                <TextBox Classes="i1 i2" Text="{Binding Latency^, Mode=OneWay}" />
+                <TextBox Classes="i1 i2" Text="{Binding Memory^, Mode=OneWay}" />
+                <TextBox Classes="i1 i2" Text="{Binding ThreadCount^, Mode=OneWay}" />
+            </UniformGrid>
 
-      <Border Classes="b1" />
-    </Grid>
+            <Border Classes="b1" />
+        </Grid>
 
-    <!-- Menu Buttons -->
-    <UniformGrid Grid.Row="1" Grid.Column="1" Grid.RowSpan="3" Rows="1">
-      <Button Content="Main" Command="{Binding OpenMenuCommand}" CommandParameter="{extensions:NameOf OpenMainMenu, Type={x:Type viewmodels:AdvobotNetCoreWindowViewModel}}" />
-      <Button Content="Info" Command="{Binding OpenMenuCommand}" CommandParameter="{extensions:NameOf OpenInfoMenu, Type={x:Type viewmodels:AdvobotNetCoreWindowViewModel}}" />
-      <Button Content="Colors" Command="{Binding OpenMenuCommand}" CommandParameter="{extensions:NameOf OpenColorsMenu, Type={x:Type viewmodels:AdvobotNetCoreWindowViewModel}}" />
-      <Button Content="Settings" Command="{Binding OpenMenuCommand}" CommandParameter="{extensions:NameOf OpenSettingsMenu, Type={x:Type viewmodels:AdvobotNetCoreWindowViewModel}}" />
-    </UniformGrid>
+        <!-- Menu Buttons -->
+        <UniformGrid Grid.Row="1" Grid.Column="1" Grid.RowSpan="3" Rows="1">
+            <Button Content="Main" Command="{Binding OpenMenuCommand}" CommandParameter="{extensions:NameOf OpenMainMenu, Type={x:Type viewmodels:AdvobotNetCoreWindowViewModel}}" />
+            <Button Content="Info" Command="{Binding OpenMenuCommand}" CommandParameter="{extensions:NameOf OpenInfoMenu, Type={x:Type viewmodels:AdvobotNetCoreWindowViewModel}}" />
+            <Button Content="Colors" Command="{Binding OpenMenuCommand}" CommandParameter="{extensions:NameOf OpenColorsMenu, Type={x:Type viewmodels:AdvobotNetCoreWindowViewModel}}" />
+            <Button Content="Settings" Command="{Binding OpenMenuCommand}" CommandParameter="{extensions:NameOf OpenSettingsMenu, Type={x:Type viewmodels:AdvobotNetCoreWindowViewModel}}" />
+        </UniformGrid>
 
-    <!-- Main Menu -->
-    <Grid Grid.Column="1" RowDefinitions="20*,1*" ColumnDefinitions="*,*,*" IsVisible="{Binding OpenMainMenu}">
-      <!-- Need to use &#xD; for new lines in XAML -->
-      <!-- TODO: Add in hyperlinks when they get added. -->
-      <TextBox Grid.ColumnSpan="3" IsReadOnly="True" TextWrapping="Wrap" AcceptsReturn="True" Text="{Binding MainMenuText, Mode=OneTime}" />
+        <!-- Main Menu -->
+        <Grid Grid.Column="1" RowDefinitions="20*,1*" ColumnDefinitions="*,*,*" IsVisible="{Binding OpenMainMenu}">
+            <!-- Need to use &#xD; for new lines in XAML -->
+            <!-- TODO: Add in hyperlinks when they get added. -->
+            <TextBox Grid.ColumnSpan="3" IsReadOnly="True" TextWrapping="Wrap" AcceptsReturn="True" Text="{Binding MainMenuText, Mode=OneTime}" />
 
-      <!-- Bot Buttons -->
-      <Button Grid.Row="1" Grid.Column="0" Content="Disconnect" Command="{Binding DisconnectCommand}" CommandParameter="{Binding ElementName=MainWindow}" />
-      <Button Grid.Row="1" Grid.Column="1" Content="Restart" Command="{Binding RestartCommand}" CommandParameter="{Binding ElementName=MainWindow}" />
-      <Button Grid.Row="1" Grid.Column="2" Content="Pause" Command="{Binding PauseCommand}" />
+            <!-- Bot Buttons -->
+            <Button Grid.Row="1" Grid.Column="0" Content="Disconnect" Command="{Binding DisconnectCommand}" CommandParameter="{Binding ElementName=MainWindow}" />
+            <Button Grid.Row="1" Grid.Column="1" Content="Restart" Command="{Binding RestartCommand}" CommandParameter="{Binding ElementName=MainWindow}" />
+            <Button Grid.Row="1" Grid.Column="2" Content="Pause" Command="{Binding PauseCommand}" />
 
-      <Border Classes="b1" />
-    </Grid>
+            <Border Classes="b1" />
+        </Grid>
 
-    <!-- Info Menu -->
-    <Grid Grid.Column="1" RowDefinitions="15*,5*,1*" ColumnDefinitions="1*,6*,3*,1*" IsVisible="{Binding OpenInfoMenu}">
-      <!-- Titles -->
-      <UniformGrid Grid.Column="1" Columns="1">
-        <TextBox Classes="i1" Text="Guilds" />
-        <TextBox Classes="i1" Text="Users" />
-        <TextBox Classes="i1" Text="Attempted Commands" />
-        <TextBox Classes="i1" Text="Successful Commands" />
-        <TextBox Classes="i1" Text="Failed Commands" />
-        <TextBox Classes="i1" Text="User Joins" />
-        <TextBox Classes="i1" Text="User Leaves" />
-        <TextBox Classes="i1" Text="User Changes" />
-        <TextBox Classes="i1" Text="Message Edits" />
-        <TextBox Classes="i1" Text="Message Deletes" />
-        <TextBox Classes="i1" Text="Images" />
-        <TextBox Classes="i1" Text="Animated Content" />
-        <TextBox Classes="i1" Text="Files" />
-      </UniformGrid>
+        <!-- Info Menu -->
+        <Grid Grid.Column="1" RowDefinitions="15*,5*,1*" ColumnDefinitions="1*,6*,3*,1*" IsVisible="{Binding OpenInfoMenu}">
+            <!-- Titles -->
+            <UniformGrid Grid.Column="1" Columns="1">
+                <TextBox Classes="i1" Text="Guilds" />
+                <TextBox Classes="i1" Text="Users" />
+                <TextBox Classes="i1" Text="Attempted Commands" />
+                <TextBox Classes="i1" Text="Successful Commands" />
+                <TextBox Classes="i1" Text="Failed Commands" />
+                <TextBox Classes="i1" Text="User Joins" />
+                <TextBox Classes="i1" Text="User Leaves" />
+                <TextBox Classes="i1" Text="User Changes" />
+                <TextBox Classes="i1" Text="Message Edits" />
+                <TextBox Classes="i1" Text="Message Deletes" />
+                <TextBox Classes="i1" Text="Images" />
+                <TextBox Classes="i1" Text="Animated Content" />
+                <TextBox Classes="i1" Text="Files" />
+            </UniformGrid>
 
-      <!-- Info -->
-      <UniformGrid Grid.Column="2" Columns="1" DataContext="{Binding LogServiceViewModel}">
-        <TextBox Classes="i1 i3" Text="{Binding TotalGuilds, Mode=OneWay}" />
-        <TextBox Classes="i1 i3" Text="{Binding TotalUsers, Mode=OneWay}" />
-        <TextBox Classes="i1 i3" Text="{Binding AttemptedCommands, Mode=OneWay}" />
-        <TextBox Classes="i1 i3" Text="{Binding SuccessfulCommands, Mode=OneWay}" />
-        <TextBox Classes="i1 i3" Text="{Binding FailedCommands, Mode=OneWay}" />
-        <TextBox Classes="i1 i3" Text="{Binding UserJoins, Mode=OneWay}" />
-        <TextBox Classes="i1 i3" Text="{Binding UserLeaves, Mode=OneWay}" />
-        <TextBox Classes="i1 i3" Text="{Binding UserChanges, Mode=OneWay}" />
-        <TextBox Classes="i1 i3" Text="{Binding MessageEdits, Mode=OneWay}" />
-        <TextBox Classes="i1 i3" Text="{Binding MessageDeletes, Mode=OneWay}" />
-        <TextBox Classes="i1 i3" Text="{Binding Images, Mode=OneWay}" />
-        <TextBox Classes="i1 i3" Text="{Binding Animated, Mode=OneWay}" />
-        <TextBox Classes="i1 i3" Text="{Binding Files, Mode=OneWay}" />
-      </UniformGrid>
+            <!-- Info -->
+            <UniformGrid Grid.Column="2" Columns="1" DataContext="{Binding LogServiceViewModel}">
+                <TextBox Classes="i1 i3" Text="{Binding TotalGuilds, Mode=OneWay}" />
+                <TextBox Classes="i1 i3" Text="{Binding TotalUsers, Mode=OneWay}" />
+                <TextBox Classes="i1 i3" Text="{Binding AttemptedCommands, Mode=OneWay}" />
+                <TextBox Classes="i1 i3" Text="{Binding SuccessfulCommands, Mode=OneWay}" />
+                <TextBox Classes="i1 i3" Text="{Binding FailedCommands, Mode=OneWay}" />
+                <TextBox Classes="i1 i3" Text="{Binding UserJoins, Mode=OneWay}" />
+                <TextBox Classes="i1 i3" Text="{Binding UserLeaves, Mode=OneWay}" />
+                <TextBox Classes="i1 i3" Text="{Binding UserChanges, Mode=OneWay}" />
+                <TextBox Classes="i1 i3" Text="{Binding MessageEdits, Mode=OneWay}" />
+                <TextBox Classes="i1 i3" Text="{Binding MessageDeletes, Mode=OneWay}" />
+                <TextBox Classes="i1 i3" Text="{Binding Images, Mode=OneWay}" />
+                <TextBox Classes="i1 i3" Text="{Binding Animated, Mode=OneWay}" />
+                <TextBox Classes="i1 i3" Text="{Binding Files, Mode=OneWay}" />
+            </UniformGrid>
 
-      <!-- Search for file button -->
-      <Button Grid.ColumnSpan="4" Grid.Row="2" Content="Search For File" Command="{Binding OpenFileSearchWindowCommand}" CommandParameter="{Binding ElementName=MainWindow}" />
+            <!-- Search for file button -->
+            <Button Grid.ColumnSpan="4" Grid.Row="2" Content="Search For File" Command="{Binding OpenFileSearchWindowCommand}" CommandParameter="{Binding ElementName=MainWindow}" />
 
-      <Border Classes="b1" />
-    </Grid>
+            <Border Classes="b1" />
+        </Grid>
 
-    <!-- Colors Menu -->
-    <Grid Grid.Column="1" RowDefinitions="15*,5*,1*" ColumnDefinitions="1*,8*,4*,1*" IsVisible="{Binding OpenColorsMenu}"
+        <!-- Colors Menu -->
+        <Grid Grid.Column="1" RowDefinitions="15*,5*,1*" ColumnDefinitions="1*,8*,4*,1*" IsVisible="{Binding OpenColorsMenu}"
           controls:DynamicFontSizeGrid.OverrideDynamicFontSize=".015">
-      <!-- Titles -->
-      <UniformGrid Grid.Column="1" Columns="1">
-        <TextBox Classes="i1" Text="Theme" />
-        <TextBox Classes="i1" Text="Base Background" />
-        <TextBox Classes="i1" Text="Base Foreground" />
-        <TextBox Classes="i1" Text="Base Border" />
-        <TextBox Classes="i1" Text="Button Background" />
-        <TextBox Classes="i1" Text="Button Foreground" />
-        <TextBox Classes="i1" Text="Button Border" />
-        <TextBox Classes="i1" Text="Button Disabled Background" />
-        <TextBox Classes="i1" Text="Button Disabled Foreground" />
-        <TextBox Classes="i1" Text="Button Disabled Border" />
-        <TextBox Classes="i1" Text="Button Mouse Over Background" />
-        <TextBox Classes="i1" Text="Json Digits" />
-        <TextBox Classes="i1" Text="Json Value" />
-        <TextBox Classes="i1" Text="Json Param Name" />
-      </UniformGrid>
+            <!-- Titles -->
+            <UniformGrid Grid.Column="1" Columns="1">
+                <TextBox Classes="i1" Text="Theme" />
+                <TextBox Classes="i1" Text="Base Background" />
+                <TextBox Classes="i1" Text="Base Foreground" />
+                <TextBox Classes="i1" Text="Base Border" />
+                <TextBox Classes="i1" Text="Button Background" />
+                <TextBox Classes="i1" Text="Button Foreground" />
+                <TextBox Classes="i1" Text="Button Border" />
+                <TextBox Classes="i1" Text="Button Disabled Background" />
+                <TextBox Classes="i1" Text="Button Disabled Foreground" />
+                <TextBox Classes="i1" Text="Button Disabled Border" />
+                <TextBox Classes="i1" Text="Button Mouse Over Background" />
+                <TextBox Classes="i1" Text="Json Digits" />
+                <TextBox Classes="i1" Text="Json Value" />
+                <TextBox Classes="i1" Text="Json Param Name" />
+            </UniformGrid>
 
-      <!-- Colors -->
-      <UniformGrid Grid.Column="2" Columns="1" DataContext="{Binding ColorsViewModel}">
-        <ComboBox controls:SourceEnum.SourceEnum="{x:Type colors:ColorTheme}" SelectedItem="{Binding Theme}" />
-        <TextBox Text="{Binding BaseBackground}" />
-        <TextBox Text="{Binding BaseForeground}" />
-        <TextBox Text="{Binding BaseBorder}" />
-        <TextBox Text="{Binding ButtonBackground}" />
-        <TextBox Text="{Binding ButtonForeground}" />
-        <TextBox Text="{Binding ButtonBorder}" />
-        <TextBox Text="{Binding ButtonDisabledBackground}" />
-        <TextBox Text="{Binding ButtonDisabledForeground}" />
-        <TextBox Text="{Binding ButtonDisabledBorder}" />
-        <TextBox Text="{Binding ButtonMouseOverBackground}" />
-        <TextBox Text="{Binding JsonDigits}" />
-        <TextBox Text="{Binding JsonValue}" />
-        <TextBox Text="{Binding JsonParamName}" />
-      </UniformGrid>
+            <!-- Colors -->
+            <UniformGrid Grid.Column="2" Columns="1" DataContext="{Binding ColorsViewModel}">
+                <ComboBox controls:SourceEnum.SourceEnum="{x:Type colors:ColorTheme}" SelectedItem="{Binding Theme}" />
+                <TextBox Text="{Binding BaseBackground}" />
+                <TextBox Text="{Binding BaseForeground}" />
+                <TextBox Text="{Binding BaseBorder}" />
+                <TextBox Text="{Binding ButtonBackground}" />
+                <TextBox Text="{Binding ButtonForeground}" />
+                <TextBox Text="{Binding ButtonBorder}" />
+                <TextBox Text="{Binding ButtonDisabledBackground}" />
+                <TextBox Text="{Binding ButtonDisabledForeground}" />
+                <TextBox Text="{Binding ButtonDisabledBorder}" />
+                <TextBox Text="{Binding ButtonMouseOverBackground}" />
+                <TextBox Text="{Binding JsonDigits}" />
+                <TextBox Text="{Binding JsonValue}" />
+                <TextBox Text="{Binding JsonParamName}" />
+            </UniformGrid>
 
-      <!--Save Colors Button -->
-      <Button Grid.ColumnSpan="4" Grid.Row="2" Content="Save Colors" HotKey="Ctrl+s" Command="{Binding SaveColorsCommand}" />
+            <!--Save Colors Button -->
+            <Button Grid.ColumnSpan="4" Grid.Row="2" Content="Save Colors" HotKey="Ctrl+s" Command="{Binding SaveColorsCommand}" />
 
-      <Border Classes="b1" />
-    </Grid>
+            <Border Classes="b1" />
+        </Grid>
 
-    <!-- Settings Menu -->
-    <Grid Grid.Column="1" RowDefinitions="19*,1*,1*" ColumnDefinitions="1*,4*,4*,1*" IsVisible="{Binding OpenSettingsMenu}"
+        <!-- Settings Menu -->
+        <Grid Grid.Column="1" RowDefinitions="19*,1*,1*" ColumnDefinitions="1*,4*,4*,1*" IsVisible="{Binding OpenSettingsMenu}"
           controls:DynamicFontSizeGrid.OverrideDynamicFontSize=".015">
-      <!-- Titles -->
-      <UniformGrid Grid.Column="1" Columns="1">
-        <TextBox Classes="i1" Text="Always Download Users"
+            <!-- Titles -->
+            <UniformGrid Grid.Column="1" Columns="1">
+                <TextBox Classes="i1" Text="Always Download Users"
                  ToolTip.Tip="Whether or not to gather all users in a guild when the bot joins. This requires a bot restart." />
-        <TextBox Classes="i1" Text="Prefix"
+                <TextBox Classes="i1" Text="Prefix"
                  ToolTip.Tip="The text before a command." />
-        <TextBox Classes="i1" Text="Game"
+                <TextBox Classes="i1" Text="Game"
                  ToolTip.Tip="The text saying what the bot is playing or streaming." />
-        <TextBox Classes="i1" Text="Stream"
+                <TextBox Classes="i1" Text="Stream"
                  ToolTip.Tip="Links to a Twitch.tv stream." />
-        <TextBox Classes="i1" Text="Message Cache Size"
+                <TextBox Classes="i1" Text="Message Cache Size"
                  ToolTip.Tip="How many messages the bot should keep in storage at a time. This requires a bot restart." />
-        <TextBox Classes="i1" Text="User Gather Count"
+                <TextBox Classes="i1" Text="User Gather Count"
                  ToolTip.Tip="How many users multi user targetting commands should target by default." />
-        <TextBox Classes="i1" Text="Message Gather Size"
+                <TextBox Classes="i1" Text="Message Gather Size"
                  ToolTip.Tip="How many KBs worth of messages downloadmessages should gather at maximum." />
-        <TextBox Classes="i1" Text="Rule Categories"
+                <TextBox Classes="i1" Text="Rule Categories"
                  ToolTip.Tip="How many categories can exist." />
-        <TextBox Classes="i1" Text="Rules Per Category"
+                <TextBox Classes="i1" Text="Rules Per Category"
                  ToolTip.Tip="How many rules can be in each category." />
-        <TextBox Classes="i1" Text="Self Assignable Role&#xD;Groups"
+                <TextBox Classes="i1" Text="Self Assignable Role&#xD;Groups"
                  ToolTip.Tip="How many self assignable role groups a server can have." />
-        <TextBox Classes="i1" Text="Quotes"
+                <TextBox Classes="i1" Text="Quotes"
                  ToolTip.Tip="How many quotes a server can have." />
-        <TextBox Classes="i1" Text="Banned Strings"
+                <TextBox Classes="i1" Text="Banned Strings"
                  ToolTip.Tip="How many strings can be banned from a server." />
-        <TextBox Classes="i1" Text="Banned Regex"
+                <TextBox Classes="i1" Text="Banned Regex"
                  ToolTip.Tip="How many regex patterns can be banned from a server." />
-        <TextBox Classes="i1" Text="Banned Names"
+                <TextBox Classes="i1" Text="Banned Names"
                  ToolTip.Tip="How many names can be banned from a server." />
-        <TextBox Classes="i1" Text="Banned Punishments"
+                <TextBox Classes="i1" Text="Banned Punishments"
                  ToolTip.Tip="How many punishments can be added to a server." />
-        <TextBox Classes="i1" Text="Log Level"
+                <TextBox Classes="i1" Text="Log Level"
                  ToolTip.Tip="Prints out items with an equal to or higher log severity to the console. This requires a bot restart." />
-        <TextBox Classes="i1" Text="Users Unable To Dm&#xD;Owner"
+                <TextBox Classes="i1" Text="Users Unable To Dm&#xD;Owner"
                  ToolTip.Tip="Users in here cannot send DMs to the owner through the bot." />
-        <TextBox Classes="i1" Text="Users Ignored From&#xD;Commands"
+                <TextBox Classes="i1" Text="Users Ignored From&#xD;Commands"
                  ToolTip.Tip="Users in here cannot use the bot at all." />
-      </UniformGrid>
+            </UniformGrid>
 
-      <!-- Settings -->
-      <UniformGrid Grid.Column="2" Columns="1"
+            <!-- Settings -->
+            <UniformGrid Grid.Column="2" Columns="1"
                    DataContext="{Binding BotSettingsViewModel}">
-        <CheckBox IsChecked="{Binding AlwaysDownloadUsers}" />
-        <TextBox Text="{Binding Prefix}" />
-        <TextBox Text="{Binding Game}" />
-        <TextBox Text="{Binding Stream}" />
-        <controls:NumberBox StoredValue="{Binding MessageCacheSize}" HasError="{Binding Errors[MessageCacheSize]}" MaxValue="1000000" />
-        <controls:NumberBox StoredValue="{Binding MaxUserGatherCount}" HasError="{Binding Errors[MaxUserGatherCount]}" MaxValue="500000" />
-        <controls:NumberBox StoredValue="{Binding MaxMessageGatherSize}" HasError="{Binding Errors[MaxMessageGatherSize]}" MaxValue="10000000" />
-        <controls:NumberBox StoredValue="{Binding MaxRuleCategories}" HasError="{Binding Errors[MaxRuleCategories]}" MaxValue="10000" />
-        <controls:NumberBox StoredValue="{Binding MaxRulesPerCategory}" HasError="{Binding Errors[MaxRulesPerCategory]}" MaxValue="10000" />
-        <controls:NumberBox StoredValue="{Binding MaxSelfAssignableRoleGroups}" HasError="{Binding Errors[MaxSelfAssignableRoleGroups]}" MaxValue="10000" />
-        <controls:NumberBox StoredValue="{Binding MaxQuotes}" HasError="{Binding Errors[MaxQuotes]}" MaxValue="10000" />
-        <controls:NumberBox StoredValue="{Binding MaxBannedStrings}" HasError="{Binding Errors[MaxBannedStrings]}" MaxValue="10000" />
-        <controls:NumberBox StoredValue="{Binding MaxBannedRegex}" HasError="{Binding Errors[MaxBannedRegex]}" MaxValue="10000" />
-        <controls:NumberBox StoredValue="{Binding MaxBannedNames}" HasError="{Binding Errors[MaxBannedNames]}" MaxValue="10000" />
-        <controls:NumberBox StoredValue="{Binding MaxBannedPunishments}" HasError="{Binding Errors[MaxBannedPunishments]}" MaxValue="10000" />
-        <ComboBox controls:SourceEnum.SourceEnum="{x:Type discord:LogSeverity}" SelectedItem="{Binding LogLevel}" />
-        <controls:UserListEditor UserList="{Binding UsersUnableToDmOwner}" HasError="{Binding Errors[UsersUnableToDmOwner]}" />
-        <controls:UserListEditor UserList="{Binding UsersIgnoredFromCommands}" HasError="{Binding Errors[UsersIgnoredFromCommands]}" />
-      </UniformGrid>
+                <CheckBox IsChecked="{Binding AlwaysDownloadUsers}" />
+                <TextBox Text="{Binding Prefix}" />
+                <TextBox Text="{Binding Game}" />
+                <TextBox Text="{Binding Stream}" />
+                <controls:NumberBox StoredValue="{Binding MessageCacheSize}" HasError="{Binding Errors[MessageCacheSize]}" MaxValue="1000000" />
+                <controls:NumberBox StoredValue="{Binding MaxUserGatherCount}" HasError="{Binding Errors[MaxUserGatherCount]}" MaxValue="500000" />
+                <controls:NumberBox StoredValue="{Binding MaxMessageGatherSize}" HasError="{Binding Errors[MaxMessageGatherSize]}" MaxValue="10000000" />
+                <controls:NumberBox StoredValue="{Binding MaxRuleCategories}" HasError="{Binding Errors[MaxRuleCategories]}" MaxValue="10000" />
+                <controls:NumberBox StoredValue="{Binding MaxRulesPerCategory}" HasError="{Binding Errors[MaxRulesPerCategory]}" MaxValue="10000" />
+                <controls:NumberBox StoredValue="{Binding MaxSelfAssignableRoleGroups}" HasError="{Binding Errors[MaxSelfAssignableRoleGroups]}" MaxValue="10000" />
+                <controls:NumberBox StoredValue="{Binding MaxQuotes}" HasError="{Binding Errors[MaxQuotes]}" MaxValue="10000" />
+                <controls:NumberBox StoredValue="{Binding MaxBannedStrings}" HasError="{Binding Errors[MaxBannedStrings]}" MaxValue="10000" />
+                <controls:NumberBox StoredValue="{Binding MaxBannedRegex}" HasError="{Binding Errors[MaxBannedRegex]}" MaxValue="10000" />
+                <controls:NumberBox StoredValue="{Binding MaxBannedNames}" HasError="{Binding Errors[MaxBannedNames]}" MaxValue="10000" />
+                <controls:NumberBox StoredValue="{Binding MaxBannedPunishments}" HasError="{Binding Errors[MaxBannedPunishments]}" MaxValue="10000" />
+                <ComboBox controls:SourceEnum.SourceEnum="{x:Type discord:LogSeverity}" SelectedItem="{Binding LogLevel}" />
+                <controls:UserListEditor UserList="{Binding UsersUnableToDmOwner}" HasError="{Binding Errors[UsersUnableToDmOwner]}" />
+                <controls:UserListEditor UserList="{Binding UsersIgnoredFromCommands}" HasError="{Binding Errors[UsersIgnoredFromCommands]}" />
+            </UniformGrid>
 
-      <!-- Save Settings Button -->
-      <!-- TODO: Wait for hotkey scopes so this doesn't conflict with the color saving hotkey -->
-      <Button Grid.ColumnSpan="4" Grid.Row="2" Content="Save Settings" HotKey="Ctrl+s" Command="{Binding SaveBotSettingsCommand}" />
+            <!-- Save Settings Button -->
+            <!-- TODO: Wait for hotkey scopes so this doesn't conflict with the color saving hotkey -->
+            <Button Grid.ColumnSpan="4" Grid.Row="2" Content="Save Settings" HotKey="Ctrl+s" Command="{Binding SaveBotSettingsCommand}" />
 
-      <Border Classes="b1" />
-    </Grid>
-  </controls:DynamicFontSizeGrid>
+            <Border Classes="b1" />
+        </Grid>
+    </controls:DynamicFontSizeGrid>
 </Window>

@@ -1,16 +1,16 @@
 ﻿using FluentMigrator;
 
-namespace Advobot.AutoMod.Migrations
-{
-	[Migration(20200913203000)]
-	public sealed class AddSelfRoleTable : Migration
-	{
-		public override void Down()
-			=> Delete.Table("SelfRole");
+namespace Advobot.AutoMod.Migrations;
 
-		public override void Up()
-		{
-			Execute.Sql(@"
+[Migration(20200913203000)]
+public sealed class AddSelfRoleTable : Migration
+{
+	public override void Down()
+		=> Delete.Table("SelfRole");
+
+	public override void Up()
+	{
+		Execute.Sql(@"
 			CREATE TABLE IF NOT EXISTS SelfRole
 			(
 				GuildId					TEXT NOT NULL,
@@ -28,6 +28,5 @@ namespace Advobot.AutoMod.Migrations
 				GroupId
 			);
 			");
-		}
 	}
 }

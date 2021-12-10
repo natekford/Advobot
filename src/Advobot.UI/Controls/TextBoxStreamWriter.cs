@@ -1,38 +1,37 @@
 ﻿using System.Text;
 using System.Windows.Input;
 
-namespace Advobot.UI.Controls
+namespace Advobot.UI.Controls;
+
+public sealed class TextBoxStreamWriter : TextWriter
 {
-	public sealed class TextBoxStreamWriter : TextWriter
+	private readonly ICommand _Command;
+	private readonly StringBuilder _CurrentLineText = new();
+
+	public override Encoding Encoding => Encoding.UTF32;
+
+	public TextBoxStreamWriter(ICommand command)
 	{
-		private readonly ICommand _Command;
-		private readonly StringBuilder _CurrentLineText = new();
+		_Command = command;
+	}
 
-		public override Encoding Encoding => Encoding.UTF32;
-
-		public TextBoxStreamWriter(ICommand command)
+	public override void Write(char value)
+	{
+		if (value.Equals('\n'))
 		{
-			_Command = command;
+			Write(_CurrentLineText.ToString());
+			_CurrentLineText.Clear();
+		}
+		_CurrentLineText.Append(value);
+	}
+
+	public override void Write(string? value)
+	{
+		if (string.IsNullOrWhiteSpace(value))
+		{
+			return;
 		}
 
-		public override void Write(char value)
-		{
-			if (value.Equals('\n'))
-			{
-				Write(_CurrentLineText.ToString());
-				_CurrentLineText.Clear();
-			}
-			_CurrentLineText.Append(value);
-		}
-
-		public override void Write(string? value)
-		{
-			if (string.IsNullOrWhiteSpace(value))
-			{
-				return;
-			}
-
-			_Command.Execute(value + Environment.NewLine);
-		}
+		_Command.Execute(value + Environment.NewLine);
 	}
 }

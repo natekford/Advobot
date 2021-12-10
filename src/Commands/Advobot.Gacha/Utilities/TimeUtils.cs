@@ -1,28 +1,26 @@
-﻿
-using Advobot.Utilities;
+﻿using Advobot.Utilities;
 
-namespace Advobot.Gacha.Utilities
+namespace Advobot.Gacha.Utilities;
+
+public static class TimeUtils
 {
-	public static class TimeUtils
+	private static long _LastTimeStamp = DateTimeOffset.UtcNow.Ticks;
+
+	public static long UtcNowTicks
 	{
-		private static long _LastTimeStamp = DateTimeOffset.UtcNow.Ticks;
-
-		public static long UtcNowTicks
+		get
 		{
-			get
+			long original, newValue;
+			do
 			{
-				long original, newValue;
-				do
-				{
-					original = _LastTimeStamp;
-					var now = DateTimeOffset.UtcNow.Ticks;
-					newValue = Math.Max(now, original + 1);
-				} while (Interlocked.CompareExchange(ref _LastTimeStamp, newValue, original) != original);
-				return newValue;
-			}
+				original = _LastTimeStamp;
+				var now = DateTimeOffset.UtcNow.Ticks;
+				newValue = Math.Max(now, original + 1);
+			} while (Interlocked.CompareExchange(ref _LastTimeStamp, newValue, original) != original);
+			return newValue;
 		}
-
-		public static DateTimeOffset ToTime(this long ticks)
-			=> ticks.CreateUtcDTOFromTicks();
 	}
+
+	public static DateTimeOffset ToTime(this long ticks)
+		=> ticks.CreateUtcDTOFromTicks();
 }

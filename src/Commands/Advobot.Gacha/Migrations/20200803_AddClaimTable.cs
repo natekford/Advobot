@@ -1,16 +1,16 @@
 ﻿using FluentMigrator;
 
-namespace Advobot.Gacha.Migrations
-{
-	[Migration(20200803174800)]
-	public sealed class AddClaimTable : Migration
-	{
-		public override void Down()
-			=> Delete.Table("Claim");
+namespace Advobot.Gacha.Migrations;
 
-		public override void Up()
-		{
-			Execute.Sql(@"
+[Migration(20200803174800)]
+public sealed class AddClaimTable : Migration
+{
+	public override void Down()
+		=> Delete.Table("Claim");
+
+	public override void Up()
+	{
+		Execute.Sql(@"
 			CREATE TABLE IF NOT EXISTS Claim
 			(
 				ClaimId						INTEGER NOT NULL,
@@ -31,6 +31,5 @@ namespace Advobot.Gacha.Migrations
 				UserId
 			);
 			");
-		}
 	}
 }

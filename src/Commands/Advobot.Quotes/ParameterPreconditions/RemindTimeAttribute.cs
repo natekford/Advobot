@@ -1,15 +1,13 @@
-﻿
-using Advobot.Attributes.ParameterPreconditions.Numbers;
+﻿using Advobot.Attributes.ParameterPreconditions.Numbers;
 
-namespace Advobot.Quotes.ParameterPreconditions
+namespace Advobot.Quotes.ParameterPreconditions;
+
+[AttributeUsage(AttributeTargets.Parameter, AllowMultiple = false, Inherited = true)]
+public class RemindTimeAttribute : RangeParameterPreconditionAttribute
 {
-	[AttributeUsage(AttributeTargets.Parameter, AllowMultiple = false, Inherited = true)]
-	public class RemindTimeAttribute : RangeParameterPreconditionAttribute
-	{
-		public override string NumberType => "remind time";
+	public override string NumberType => "remind time";
 
-		public RemindTimeAttribute() : base(1, 525600)
-		{
-		}
+	public RemindTimeAttribute() : base(1, 525600)
+	{
 	}
 }

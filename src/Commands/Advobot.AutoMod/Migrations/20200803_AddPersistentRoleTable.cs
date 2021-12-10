@@ -1,16 +1,16 @@
 ﻿using FluentMigrator;
 
-namespace Advobot.AutoMod.Migrations
-{
-	[Migration(20200803174000)]
-	public sealed class AddPersistentRoleTable : Migration
-	{
-		public override void Down()
-			=> Delete.Table("PersistentRole");
+namespace Advobot.AutoMod.Migrations;
 
-		public override void Up()
-		{
-			Execute.Sql(@"
+[Migration(20200803174000)]
+public sealed class AddPersistentRoleTable : Migration
+{
+	public override void Down()
+		=> Delete.Table("PersistentRole");
+
+	public override void Up()
+	{
+		Execute.Sql(@"
 			CREATE TABLE IF NOT EXISTS PersistentRole
 			(
 				GuildId					TEXT NOT NULL,
@@ -33,6 +33,5 @@ namespace Advobot.AutoMod.Migrations
 				RoleId
 			);
 			");
-		}
 	}
 }

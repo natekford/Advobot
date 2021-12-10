@@ -1,12 +1,10 @@
-﻿
-using Advobot.MyCommands.Models;
+﻿using Advobot.MyCommands.Models;
 
-namespace Advobot.MyCommands.Database
+namespace Advobot.MyCommands.Database;
+
+public interface IMyCommandsDatabase
 {
-	public interface IMyCommandsDatabase
-	{
-		Task<DetectLanguageConfig> GetDetectLanguageConfig();
+	Task<DetectLanguageConfig> GetDetectLanguageConfig();
 
-		Task<int> UpsertDetectLanguageConfig(DetectLanguageConfig config);
-	}
+	Task<int> UpsertDetectLanguageConfig(DetectLanguageConfig config);
 }

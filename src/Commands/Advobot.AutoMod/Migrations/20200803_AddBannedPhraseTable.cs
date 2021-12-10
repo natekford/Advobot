@@ -1,16 +1,16 @@
 ﻿using FluentMigrator;
 
-namespace Advobot.AutoMod.Migrations
-{
-	[Migration(20200803173800)]
-	public sealed class AddBannedPhraseTable : Migration
-	{
-		public override void Down()
-			=> Delete.Table("BannedPhrase");
+namespace Advobot.AutoMod.Migrations;
 
-		public override void Up()
-		{
-			Execute.Sql(@"
+[Migration(20200803173800)]
+public sealed class AddBannedPhraseTable : Migration
+{
+	public override void Down()
+		=> Delete.Table("BannedPhrase");
+
+	public override void Up()
+	{
+		Execute.Sql(@"
 			CREATE TABLE IF NOT EXISTS BannedPhrase
 			(
 				GuildId					TEXT NOT NULL,
@@ -26,6 +26,5 @@ namespace Advobot.AutoMod.Migrations
 				GuildId
 			);
 			");
-		}
 	}
 }

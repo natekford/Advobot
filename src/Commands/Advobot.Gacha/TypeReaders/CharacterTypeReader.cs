@@ -1,5 +1,4 @@
-﻿
-using Advobot.Attributes;
+﻿using Advobot.Attributes;
 using Advobot.Gacha.Database;
 using Advobot.Gacha.Models;
 using Advobot.Gacha.Utilities;
@@ -11,19 +10,18 @@ using Discord.Commands;
 
 using Microsoft.Extensions.DependencyInjection;
 
-namespace Advobot.Gacha.TypeReaders
+namespace Advobot.Gacha.TypeReaders;
+
+[TypeReaderTargetType(typeof(Character))]
+public sealed class CharacterTypeReader : TypeReader
 {
-	[TypeReaderTargetType(typeof(Character))]
-	public sealed class CharacterTypeReader : TypeReader
+	public override async Task<TypeReaderResult> ReadAsync(
+		ICommandContext context,
+		string input,
+		IServiceProvider services)
 	{
-		public override async Task<TypeReaderResult> ReadAsync(
-			ICommandContext context,
-			string input,
-			IServiceProvider services)
-		{
-			var db = services.GetRequiredService<IGachaDatabase>();
-			var characters = await db.GetCharactersAsync(input).CAF();
-			return TypeReaderUtils.SingleValidResult(characters, "characters", input);
-		}
+		var db = services.GetRequiredService<IGachaDatabase>();
+		var characters = await db.GetCharactersAsync(input).CAF();
+		return TypeReaderUtils.SingleValidResult(characters, "characters", input);
 	}
 }

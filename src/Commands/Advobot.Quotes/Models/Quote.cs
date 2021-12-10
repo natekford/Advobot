@@ -1,13 +1,12 @@
 ﻿using Advobot.SQLite.Relationships;
 
-namespace Advobot.Quotes.Models
+namespace Advobot.Quotes.Models;
+
+public sealed record Quote(
+	string Description,
+	ulong GuildId,
+	string Name
+) : IGuildChild
 {
-	public sealed record Quote(
-		string Description,
-		ulong GuildId,
-		string Name
-	) : IGuildChild
-	{
-		public Quote() : this("", default, "") { }
-	}
+	public Quote() : this("", default, "") { }
 }

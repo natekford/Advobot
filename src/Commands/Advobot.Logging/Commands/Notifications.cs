@@ -1,5 +1,4 @@
-﻿
-using Advobot.Attributes;
+﻿using Advobot.Attributes;
 using Advobot.Attributes.ParameterPreconditions.DiscordObjectValidation.Channels;
 using Advobot.Attributes.Preconditions.Permissions;
 using Advobot.Localization;
@@ -15,133 +14,132 @@ using Discord.Commands;
 using static Advobot.Logging.Responses.Notifications;
 using static Discord.ChannelPermission;
 
-namespace Advobot.Logging.Commands
+namespace Advobot.Logging.Commands;
+
+[Category(nameof(Notifications))]
+[LocalizedGroup(nameof(Groups.Notifications))]
+[LocalizedAlias(nameof(Aliases.Notifications))]
+public sealed class Notifications : ModuleBase
 {
-	[Category(nameof(Notifications))]
-	[LocalizedGroup(nameof(Groups.Notifications))]
-	[LocalizedAlias(nameof(Aliases.Notifications))]
-	public sealed class Notifications : ModuleBase
+	[LocalizedGroup(nameof(Groups.ModifyGoodbyeMessage))]
+	[LocalizedAlias(nameof(Aliases.ModifyGoodbyeMessage))]
+	[LocalizedSummary(nameof(Summaries.ModifyGoodbyeMessage))]
+	[Meta("c59f41ec-5892-496e-beaa-eabceca4bded")]
+	[RequireGuildPermissions]
+	public sealed class ModifyGoodbyeMessage : NotificationModuleBase
 	{
-		[LocalizedGroup(nameof(Groups.ModifyGoodbyeMessage))]
-		[LocalizedAlias(nameof(Aliases.ModifyGoodbyeMessage))]
-		[LocalizedSummary(nameof(Summaries.ModifyGoodbyeMessage))]
-		[Meta("c59f41ec-5892-496e-beaa-eabceca4bded")]
-		[RequireGuildPermissions]
-		public sealed class ModifyGoodbyeMessage : NotificationModuleBase
-		{
-			private const Notification Event = Notification.Goodbye;
-			public GoodbyeNotificationResetter DefaultSetter { get; set; } = null!;
+		private const Notification Event = Notification.Goodbye;
+		public GoodbyeNotificationResetter DefaultSetter { get; set; } = null!;
 
-			[LocalizedCommand(nameof(Groups.Channel))]
-			[LocalizedAlias(nameof(Aliases.Channel))]
-			public async Task<RuntimeResult> Channel(
-				[CanModifyChannel(ManageChannels | ManageRoles)]
+		[LocalizedCommand(nameof(Groups.Channel))]
+		[LocalizedAlias(nameof(Aliases.Channel))]
+		public async Task<RuntimeResult> Channel(
+			[CanModifyChannel(ManageChannels | ManageRoles)]
 				ITextChannel channel)
-			{
-				await Db.UpsertNotificationChannelAsync(Event, Context.Guild.Id, channel.Id).CAF();
-				return ModifiedChannel(Event, channel);
-			}
-
-			[LocalizedCommand(nameof(Groups.Content))]
-			[LocalizedAlias(nameof(Aliases.Content))]
-			public async Task<RuntimeResult> Content([Remainder] string? content = null)
-			{
-				await Db.UpsertNotificationContentAsync(Event, Context.Guild.Id, content).CAF();
-				return ModifiedContent(Event, content);
-			}
-
-			[LocalizedCommand(nameof(Groups.Default))]
-			[LocalizedAlias(nameof(Aliases.Default))]
-			public async Task<RuntimeResult> Default()
-			{
-				await DefaultSetter.ResetAsync(Context).CAF();
-				return Responses.Notifications.Default(Event);
-			}
-
-			[LocalizedCommand(nameof(Groups.Disable))]
-			[LocalizedAlias(nameof(Aliases.Disable))]
-			public async Task<RuntimeResult> Disable()
-			{
-				await Db.UpsertNotificationChannelAsync(Event, Context.Guild.Id, null).CAF();
-				return Disabled(Event);
-			}
-
-			[LocalizedCommand(nameof(Groups.Embed))]
-			[LocalizedAlias(nameof(Aliases.Embed))]
-			public async Task<RuntimeResult> Embed(CustomEmbed? embed = null)
-			{
-				await Db.UpsertNotificationEmbedAsync(Event, Context.Guild.Id, embed).CAF();
-				return ModifiedEmbed(Event, embed);
-			}
-
-			[LocalizedCommand(nameof(Groups.Send))]
-			[LocalizedAlias(nameof(Aliases.Send))]
-			public async Task<RuntimeResult> Send()
-			{
-				var notification = await Db.GetAsync(Event, Context.Guild.Id).CAF();
-				return SendNotification(Event, notification);
-			}
+		{
+			await Db.UpsertNotificationChannelAsync(Event, Context.Guild.Id, channel.Id).CAF();
+			return ModifiedChannel(Event, channel);
 		}
 
-		[LocalizedGroup(nameof(Groups.ModifyWelcomeMessage))]
-		[LocalizedAlias(nameof(Aliases.ModifyWelcomeMessage))]
-		[LocalizedSummary(nameof(Summaries.ModifyWelcomeMessage))]
-		[Meta("e95c8444-6a9a-40e7-a287-91e59200d4b6")]
-		[RequireGuildPermissions]
-		public sealed class ModifyWelcomeMessage : NotificationModuleBase
+		[LocalizedCommand(nameof(Groups.Content))]
+		[LocalizedAlias(nameof(Aliases.Content))]
+		public async Task<RuntimeResult> Content([Remainder] string? content = null)
 		{
-			private const Notification Event = Notification.Welcome;
-			public WelcomeNotificationResetter DefaultSetter { get; set; } = null!;
+			await Db.UpsertNotificationContentAsync(Event, Context.Guild.Id, content).CAF();
+			return ModifiedContent(Event, content);
+		}
 
-			[LocalizedCommand(nameof(Groups.Channel))]
-			[LocalizedAlias(nameof(Aliases.Channel))]
-			public async Task<RuntimeResult> Channel(
-				[CanModifyChannel(ManageChannels | ManageRoles)]
+		[LocalizedCommand(nameof(Groups.Default))]
+		[LocalizedAlias(nameof(Aliases.Default))]
+		public async Task<RuntimeResult> Default()
+		{
+			await DefaultSetter.ResetAsync(Context).CAF();
+			return Responses.Notifications.Default(Event);
+		}
+
+		[LocalizedCommand(nameof(Groups.Disable))]
+		[LocalizedAlias(nameof(Aliases.Disable))]
+		public async Task<RuntimeResult> Disable()
+		{
+			await Db.UpsertNotificationChannelAsync(Event, Context.Guild.Id, null).CAF();
+			return Disabled(Event);
+		}
+
+		[LocalizedCommand(nameof(Groups.Embed))]
+		[LocalizedAlias(nameof(Aliases.Embed))]
+		public async Task<RuntimeResult> Embed(CustomEmbed? embed = null)
+		{
+			await Db.UpsertNotificationEmbedAsync(Event, Context.Guild.Id, embed).CAF();
+			return ModifiedEmbed(Event, embed);
+		}
+
+		[LocalizedCommand(nameof(Groups.Send))]
+		[LocalizedAlias(nameof(Aliases.Send))]
+		public async Task<RuntimeResult> Send()
+		{
+			var notification = await Db.GetAsync(Event, Context.Guild.Id).CAF();
+			return SendNotification(Event, notification);
+		}
+	}
+
+	[LocalizedGroup(nameof(Groups.ModifyWelcomeMessage))]
+	[LocalizedAlias(nameof(Aliases.ModifyWelcomeMessage))]
+	[LocalizedSummary(nameof(Summaries.ModifyWelcomeMessage))]
+	[Meta("e95c8444-6a9a-40e7-a287-91e59200d4b6")]
+	[RequireGuildPermissions]
+	public sealed class ModifyWelcomeMessage : NotificationModuleBase
+	{
+		private const Notification Event = Notification.Welcome;
+		public WelcomeNotificationResetter DefaultSetter { get; set; } = null!;
+
+		[LocalizedCommand(nameof(Groups.Channel))]
+		[LocalizedAlias(nameof(Aliases.Channel))]
+		public async Task<RuntimeResult> Channel(
+			[CanModifyChannel(ManageChannels | ManageRoles)]
 				ITextChannel channel)
-			{
-				await Db.UpsertNotificationChannelAsync(Event, Context.Guild.Id, channel.Id).CAF();
-				return ModifiedChannel(Event, channel);
-			}
+		{
+			await Db.UpsertNotificationChannelAsync(Event, Context.Guild.Id, channel.Id).CAF();
+			return ModifiedChannel(Event, channel);
+		}
 
-			[LocalizedCommand(nameof(Groups.Content))]
-			[LocalizedAlias(nameof(Aliases.Content))]
-			public async Task<RuntimeResult> Content([Remainder] string? content = null)
-			{
-				await Db.UpsertNotificationContentAsync(Event, Context.Guild.Id, content).CAF();
-				return ModifiedContent(Event, content);
-			}
+		[LocalizedCommand(nameof(Groups.Content))]
+		[LocalizedAlias(nameof(Aliases.Content))]
+		public async Task<RuntimeResult> Content([Remainder] string? content = null)
+		{
+			await Db.UpsertNotificationContentAsync(Event, Context.Guild.Id, content).CAF();
+			return ModifiedContent(Event, content);
+		}
 
-			[LocalizedCommand(nameof(Groups.Default))]
-			[LocalizedAlias(nameof(Aliases.Default))]
-			public async Task<RuntimeResult> Default()
-			{
-				await DefaultSetter.ResetAsync(Context).CAF();
-				return Responses.Notifications.Default(Event);
-			}
+		[LocalizedCommand(nameof(Groups.Default))]
+		[LocalizedAlias(nameof(Aliases.Default))]
+		public async Task<RuntimeResult> Default()
+		{
+			await DefaultSetter.ResetAsync(Context).CAF();
+			return Responses.Notifications.Default(Event);
+		}
 
-			[LocalizedCommand(nameof(Groups.Disable))]
-			[LocalizedAlias(nameof(Aliases.Disable))]
-			public async Task<RuntimeResult> Disable()
-			{
-				await Db.UpsertNotificationChannelAsync(Event, Context.Guild.Id, null).CAF();
-				return Disabled(Event);
-			}
+		[LocalizedCommand(nameof(Groups.Disable))]
+		[LocalizedAlias(nameof(Aliases.Disable))]
+		public async Task<RuntimeResult> Disable()
+		{
+			await Db.UpsertNotificationChannelAsync(Event, Context.Guild.Id, null).CAF();
+			return Disabled(Event);
+		}
 
-			[LocalizedCommand(nameof(Groups.Embed))]
-			[LocalizedAlias(nameof(Aliases.Embed))]
-			public async Task<RuntimeResult> Embed(CustomEmbed? embed = null)
-			{
-				await Db.UpsertNotificationEmbedAsync(Event, Context.Guild.Id, embed).CAF();
-				return ModifiedEmbed(Event, embed);
-			}
+		[LocalizedCommand(nameof(Groups.Embed))]
+		[LocalizedAlias(nameof(Aliases.Embed))]
+		public async Task<RuntimeResult> Embed(CustomEmbed? embed = null)
+		{
+			await Db.UpsertNotificationEmbedAsync(Event, Context.Guild.Id, embed).CAF();
+			return ModifiedEmbed(Event, embed);
+		}
 
-			[LocalizedCommand(nameof(Groups.Send))]
-			[LocalizedAlias(nameof(Aliases.Send))]
-			public async Task<RuntimeResult> Send()
-			{
-				var notification = await Db.GetAsync(Event, Context.Guild.Id).CAF();
-				return SendNotification(Event, notification);
-			}
+		[LocalizedCommand(nameof(Groups.Send))]
+		[LocalizedAlias(nameof(Aliases.Send))]
+		public async Task<RuntimeResult> Send()
+		{
+			var notification = await Db.GetAsync(Event, Context.Guild.Id).CAF();
+			return SendNotification(Event, notification);
 		}
 	}
 }
