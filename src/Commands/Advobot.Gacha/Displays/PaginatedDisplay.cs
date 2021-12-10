@@ -6,6 +6,7 @@ using AdvorangesUtils;
 
 using Discord;
 
+using IInteractionContext = Advobot.Gacha.Interaction.IInteractionContext;
 using InteractionType = Advobot.Gacha.Interaction.InteractionType;
 
 namespace Advobot.Gacha.Displays;

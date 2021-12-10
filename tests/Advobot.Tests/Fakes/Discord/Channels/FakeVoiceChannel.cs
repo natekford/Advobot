@@ -33,11 +33,14 @@ public sealed class FakeVoiceChannel : FakeGuildChannel, IVoiceChannel
 	public Task<IInviteMetadata> CreateInviteToApplicationAsync(ulong applicationId, int? maxAge = 86400, int? maxUses = null, bool isTemporary = false, bool isUnique = false, RequestOptions options = null)
 		=> throw new NotImplementedException();
 
+	public Task<IInviteMetadata> CreateInviteToApplicationAsync(DefaultApplications application, int? maxAge = 86400, int? maxUses = null, bool isTemporary = false, bool isUnique = false, RequestOptions options = null)
+		=> throw new NotImplementedException();
+
 	public Task<IInviteMetadata> CreateInviteToStreamAsync(IUser user, int? maxAge = 86400, int? maxUses = null, bool isTemporary = false, bool isUnique = false, RequestOptions options = null)
 		=> throw new NotImplementedException();
 
 	public Task DisconnectAsync()
-						=> throw new NotImplementedException();
+		=> throw new NotImplementedException();
 
 	public Task<ICategoryChannel?> GetCategoryAsync(CacheMode mode = CacheMode.AllowDownload, RequestOptions? options = null)
 	{

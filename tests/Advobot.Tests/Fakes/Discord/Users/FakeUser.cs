@@ -6,8 +6,8 @@ namespace Advobot.Tests.Fakes.Discord.Users;
 
 public class FakeUser : FakeSnowflake, IUser
 {
-	public IImmutableSet<ClientType> ActiveClients => throw new NotImplementedException();
-	public IImmutableList<IActivity> Activities => throw new NotImplementedException();
+	public IReadOnlyCollection<ClientType> ActiveClients => throw new NotImplementedException();
+	public IReadOnlyCollection<IActivity> Activities => throw new NotImplementedException();
 	public IActivity Activity => throw new NotImplementedException();
 	public string AvatarId => throw new NotImplementedException();
 	public string Discriminator => DiscriminatorValue.ToString();

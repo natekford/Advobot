@@ -55,6 +55,7 @@ public sealed class FakeGuild : FakeSnowflake, IGuild
 	public bool IsBoostProgressBarEnabled => throw new NotImplementedException();
 	public bool IsEmbeddable => throw new NotImplementedException();
 	public bool IsWidgetEnabled => throw new NotImplementedException();
+	public int MaxBitrate => throw new NotImplementedException();
 	public int? MaxMembers => throw new NotImplementedException();
 	public int? MaxPresences => throw new NotImplementedException();
 	public int? MaxVideoChannelUsers => throw new NotImplementedException();

@@ -10,6 +10,7 @@ using Discord;
 
 using System.Text;
 
+using IInteractionContext = Advobot.Gacha.Interaction.IInteractionContext;
 using Image = Advobot.Gacha.Models.Image;
 using InteractionType = Advobot.Gacha.Interaction.InteractionType;
 

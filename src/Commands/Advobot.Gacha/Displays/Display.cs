@@ -8,6 +8,8 @@ using AdvorangesUtils;
 using Discord;
 using Discord.Commands;
 
+using IInteractionContext = Advobot.Gacha.Interaction.IInteractionContext;
+
 namespace Advobot.Gacha.Displays;
 
 public abstract class Display

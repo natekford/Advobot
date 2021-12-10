@@ -27,7 +27,7 @@ public sealed class NetCoreUILauncher
 
 	public static AppBuilder BuildAvaloniaApp()
 	{
-		var app = AppBuilder.Configure<AdvobotApp>().UsePlatformDetect().LogToDebug();
+		var app = AppBuilder.Configure<AdvobotApp>().UsePlatformDetect().LogToTrace();
 		app.AfterSetup(_ => RxApp.MainThreadScheduler = AvaloniaScheduler.Instance);
 		return app;
 	}
