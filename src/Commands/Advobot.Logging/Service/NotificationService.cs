@@ -57,6 +57,12 @@ public sealed class NotificationService
 	private Task OnUserJoined(SocketGuildUser user)
 		=> OnEvent(Notification.Welcome, user);
 
-	private Task OnUserLeft(SocketGuildUser user)
-		=> OnEvent(Notification.Goodbye, user);
+	private Task OnUserLeft(SocketUser user)
+	{
+		if (user is SocketGuildUser sgu)
+		{
+			return OnEvent(Notification.Goodbye, sgu);
+		}
+		return Task.CompletedTask;
+	}
 }

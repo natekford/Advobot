@@ -6,8 +6,6 @@ using AdvorangesUtils;
 using Discord;
 using Discord.Commands;
 
-using System.Collections.Immutable;
-
 namespace Advobot.Attributes.ParameterPreconditions.DiscordObjectValidation;
 
 /// <summary>
@@ -30,7 +28,7 @@ public sealed class NotBannedAttribute : UInt64ParameterPreconditionAttribute, I
 		IServiceProvider services)
 	{
 		var bans = await context.Guild.GetBansAsync().CAF();
-		var exists = bans.Select(x => x.User.Id).Contains(value);
+		var exists = bans.Any(x => x.User.Id == value);
 		return this.FromExistence(exists, value, "ban");
 	}
 }

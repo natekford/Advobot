@@ -55,8 +55,8 @@ public sealed class UserLogger
 	public Task OnUserJoined(SocketGuildUser user)
 		=> _UserJoined.HandleAsync(new(user));
 
-	public Task OnUserLeft(SocketGuildUser user)
-		=> _UserLeft.HandleAsync(new(user));
+	public Task OnUserLeft(SocketGuild guild, SocketUser user)
+		=> _UserLeft.HandleAsync(new(guild, user));
 
 	public async Task OnUserUpdated(SocketUser before, SocketUser after)
 	{
@@ -83,17 +83,24 @@ public sealed class UserLogger
 			return;
 		}
 
+		var description = $"**ID:** {context.State.User.Id}";
+
 		var cache = _Invites.GetOrAdd(context.Guild.Id, _ => new());
-		var inv = await cache.GetInviteUserJoinedOnAsync(context.State.User).CAF();
-		var invite = inv != null ? $"**Invite:** {inv}" : "";
-		var time = _Time.UtcNow - context.State.User.CreatedAt.ToUniversalTime();
-		var age = time.TotalHours < 24
-			? $"**New Account:** {(int)time.TotalHours} hours, {time.Minutes} minutes old."
-			: "";
+		var invite = await cache.GetInviteUserJoinedOnAsync(context.State.Guild, context.State.User).CAF();
+		if (invite is not null)
+		{
+			description += $"\n**Invite:** {invite}";
+		}
+
+		var age = _Time.UtcNow - context.State.User.CreatedAt.ToUniversalTime();
+		if (age.TotalHours < 24)
+		{
+			description += $"\n**New Account:** {age:hh\\:mm\\:ss} old.";
+		}
 
 		_MessageQueue.Enqueue((context.ServerLog, new EmbedWrapper
 		{
-			Description = $"**ID:** {context.State.User.Id}\n{invite}\n{age}",
+			Description = description,
 			Color = EmbedWrapper.Join,
 			Author = context.State.User.CreateAuthor(),
 			Footer = new()
@@ -110,16 +117,17 @@ public sealed class UserLogger
 			return Task.CompletedTask;
 		}
 
-		var stay = "";
-		if (context.State.User.JoinedAt.HasValue)
+		var description = $"**ID:** {context.State.User.Id}";
+
+		if ((context.State.User as IGuildUser)?.JoinedAt is DateTimeOffset joinedAt)
 		{
-			var time = _Time.UtcNow - context.State.User.JoinedAt.Value.ToUniversalTime();
-			stay = $"**Stayed for:** {time.Days}:{time.Hours:00}:{time.Minutes:00}:{time.Seconds:00}";
+			var length = _Time.UtcNow - joinedAt.ToUniversalTime();
+			description += $"\n**Stayed for:** {length:d\\:hh\\:mm\\:ss}";
 		}
 
 		_MessageQueue.Enqueue((context.ServerLog, new EmbedWrapper
 		{
-			Description = $"**ID:** {context.State.User.Id}\n{stay}",
+			Description = description,
 			Color = EmbedWrapper.Leave,
 			Author = context.State.User.CreateAuthor(),
 			Footer = new()

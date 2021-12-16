@@ -48,7 +48,15 @@ public sealed class LoggingService
 
 		_UserLogger = new(_Db, client, queue, time);
 		client.UserJoined += _UserLogger.OnUserJoined;
-		client.UserLeft += _UserLogger.OnUserLeft;
+#warning clean this up when UserLeft adds back in (SocketGuild, SocketUser)
+		client.UserLeft += user =>
+		{
+			if (user is SocketGuildUser sgu)
+			{
+				return _UserLogger.OnUserLeft(sgu.Guild, sgu);
+			}
+			return Task.CompletedTask;
+		};
 		client.UserUpdated += _UserLogger.OnUserUpdated;
 	}
 

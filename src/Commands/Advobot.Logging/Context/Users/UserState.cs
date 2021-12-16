@@ -6,12 +6,17 @@ namespace Advobot.Logging.Context.Users;
 
 public class UserState : ILogState
 {
-	public IGuild Guild => User.Guild;
+	public IGuild Guild { get; }
 	public bool IsValid => User is not null;
-	public IGuildUser User { get; }
+	public IUser User { get; }
 
-	public UserState(IGuildUser user)
+	public UserState(IGuildUser user) : this(user.Guild, user)
 	{
+	}
+
+	public UserState(IGuild guild, IUser user)
+	{
+		Guild = guild;
 		User = user;
 	}
 

@@ -36,7 +36,7 @@
     <PackageReference Include="Avalonia" Version="0.10.999-cibuild0014036-beta" />
     <PackageReference Include="Avalonia.AvaloniaEdit" Version="0.10.9" />
     <PackageReference Include="Avalonia.Desktop" Version="0.10.999-cibuild0014036-beta" />
-    <PackageReference Include="ReactiveUI" Version="17.1.6" />
+    <PackageReference Include="ReactiveUI" Version="17.1.9" />
     <PackageReference Include="System.Reactive.Core" Version="5.0.0" />
     <PackageReference Include="System.Reactive.Interfaces" Version="5.0.0" />
     <PackageReference Include="System.Reactive.Linq" Version="5.0.0" />

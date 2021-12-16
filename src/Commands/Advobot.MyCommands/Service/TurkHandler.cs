@@ -5,6 +5,7 @@ using AdvorangesUtils;
 using DetectLanguage;
 
 using Discord;
+using Discord.Rest;
 using Discord.WebSocket;
 
 using System.Net;
@@ -27,7 +28,7 @@ public sealed class TurkHandler
 	}
 
 	private async Task OnGuildMemberUpdated(
-		Cacheable<SocketGuildUser, ulong> _,
+		Cacheable<SocketGuildUser, RestGuildUser, IGuildUser, ulong> _,
 		SocketGuildUser after)
 	{
 		if (after.Guild.Id != 199339772118827008

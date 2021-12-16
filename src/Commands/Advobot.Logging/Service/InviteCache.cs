@@ -25,9 +25,10 @@ public sealed class InviteCache
 	/// <summary>
 	/// Attempts to find the invite a user has joined on.
 	/// </summary>
+	/// <param name="guild"></param>
 	/// <param name="user"></param>
 	/// <returns></returns>
-	public async Task<string?> GetInviteUserJoinedOnAsync(IGuildUser user)
+	public async Task<string?> GetInviteUserJoinedOnAsync(IGuild guild, IUser user)
 	{
 		//Bots join by being invited by admin, not through invites.
 		if (user.IsBot)
@@ -37,7 +38,7 @@ public sealed class InviteCache
 
 		//If the bot can't get invites then determining the correct invite is not possible with any accuracy
 		//No invites means single use, vanity url, or linked twitch
-		var current = await SafeGetInvitesAsync(user.Guild).CAF();
+		var current = await SafeGetInvitesAsync(guild).CAF();
 		if (current == null)
 		{
 			return null;
@@ -61,7 +62,7 @@ public sealed class InviteCache
 		var uncached = current.Where(x => !_Cached.TryGetValue(x.Id, out _)).ToArray();
 		CacheInvites(uncached);
 		if ((uncached.Length == 0 || uncached.All(x => x.Uses == 0))
-			&& !string.IsNullOrWhiteSpace(user.Guild.VanityURLCode))
+			&& !string.IsNullOrWhiteSpace(guild.VanityURLCode))
 		{
 			return "Single use invite, vanity url, or linked Twitch account.";
 		}

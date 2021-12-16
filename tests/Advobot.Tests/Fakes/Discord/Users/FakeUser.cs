@@ -1,7 +1,5 @@
 ﻿using Discord;
 
-using System.Collections.Immutable;
-
 namespace Advobot.Tests.Fakes.Discord.Users;
 
 public class FakeUser : FakeSnowflake, IUser
