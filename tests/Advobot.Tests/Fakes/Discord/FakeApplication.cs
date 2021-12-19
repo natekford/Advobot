@@ -14,7 +14,9 @@ public sealed class FakeApplication : FakeSnowflake, IApplication
 	public bool IsBotPublic { get; set; }
 	public string Name { get; set; } = "FakeBot";
 	public IUser Owner { get; set; } = new FakeUser();
+	public string PrivacyPolicy { get; set; }
 	public IReadOnlyCollection<string> RPCOrigins { get; set; } = Array.Empty<string>();
 	public IReadOnlyCollection<string> Tags { get; set; } = Array.Empty<string>();
 	public ITeam Team { get; set; }
+	public string TermsOfService { get; set; }
 }

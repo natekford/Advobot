@@ -59,7 +59,7 @@ internal sealed class ImageResizer : IImageResizer
 	public void Enqueue(IImageContext context)
 	{
 		_Args.Enqueue(context);
-		_CurrentlyProcessing.AddOrUpdate(context.GuildId, 0, (_, __) => 0);
+		_CurrentlyProcessing.AddOrUpdate(context.GuildId, 0, (_, _) => 0);
 		if (_SemaphoreSlim.CurrentCount <= 0)
 		{
 			return;

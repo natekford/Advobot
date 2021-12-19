@@ -61,7 +61,7 @@ public abstract class SettingsViewModel : ReactiveObject
 			get => _ValidationErrors.GetOrAdd(target, false);
 			set
 			{
-				_ValidationErrors.AddOrUpdate(target, value, (_, __) => value);
+				_ValidationErrors.AddOrUpdate(target, value, (_, _) => value);
 				PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(target));
 			}
 		}

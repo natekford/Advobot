@@ -49,13 +49,13 @@ internal sealed class LogCounterService : ILogCounterService, INotifyPropertyCha
 		client.GuildAvailable += OnGuildAvailable;
 		client.GuildUnavailable += OnGuildUnavailable;
 		client.UserJoined += (_) => Add(TotalUsers, 1);
-		client.UserLeft += (_) => Add(TotalUsers, -1);
-		client.UserUpdated += (_, __) => Add(UserChanges, 1);
+		client.UserLeft += (_, _) => Add(TotalUsers, -1);
+		client.UserUpdated += (_, _) => Add(UserChanges, 1);
 		client.MessageReceived += OnMessageReceived;
-		client.MessageUpdated += (_, __, ___) => Add(MessageDeletes, 1);
-		client.MessageDeleted += (_, __) => Add(MessageDeletes, 1);
+		client.MessageUpdated += (_, _, _) => Add(MessageDeletes, 1);
+		client.MessageDeleted += (_, _) => Add(MessageDeletes, 1);
 
-		commandHandler.CommandInvoked += (_, __, result) =>
+		commandHandler.CommandInvoked += (_, _, result) =>
 		{
 			(result.IsSuccess ? SuccessfulCommands : FailedCommands).Add(1);
 			AttemptedCommands.Add(1);

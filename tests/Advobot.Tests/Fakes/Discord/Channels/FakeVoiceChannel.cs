@@ -67,6 +67,9 @@ public sealed class FakeVoiceChannel : FakeGuildChannel, IVoiceChannel
 		return Task.CompletedTask;
 	}
 
+	public Task ModifyAsync(Action<AudioChannelProperties> func, RequestOptions options = null)
+		=> throw new NotImplementedException();
+
 	public async Task SyncPermissionsAsync(RequestOptions? options = null)
 	{
 		var category = await GetCategoryAsync().CAF();

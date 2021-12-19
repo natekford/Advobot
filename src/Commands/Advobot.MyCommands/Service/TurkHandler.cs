@@ -28,7 +28,7 @@ public sealed class TurkHandler
 	}
 
 	private async Task OnGuildMemberUpdated(
-		Cacheable<SocketGuildUser, RestGuildUser, IGuildUser, ulong> _,
+		Cacheable<SocketGuildUser, ulong> _,
 		SocketGuildUser after)
 	{
 		if (after.Guild.Id != 199339772118827008

@@ -25,15 +25,7 @@ public sealed class NotificationService
 		_MessageQueue = queue;
 
 		client.UserJoined += OnUserJoined;
-#warning clean this up when UserLeft adds back in (SocketGuild, SocketUser)
-		client.UserLeft += user =>
-		{
-			if (user is SocketGuildUser sgu)
-			{
-				return OnUserLeft(sgu.Guild, sgu);
-			}
-			return Task.CompletedTask;
-		};
+		client.UserLeft += OnUserLeft;
 	}
 
 	private async Task OnEvent(Notification notifType, SocketGuild guild, SocketUser user)
