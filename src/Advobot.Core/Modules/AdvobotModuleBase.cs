@@ -1,4 +1,5 @@
 ﻿using Advobot.Attributes.Preconditions;
+using Advobot.Classes;
 using Advobot.Interactivity;
 using Advobot.Interactivity.Criterions;
 using Advobot.Interactivity.TryParsers;
@@ -154,11 +155,24 @@ public abstract class AdvobotModuleBase : ModuleBase<AdvobotCommandContext>
 		ISticker[]? stickers = null,
 		Embed[]? embeds = null)
 	{
+		if (embed is not null)
+		{
+			if (embeds is null)
+			{
+				embeds = new[] { embed };
+			}
+			else
+			{
+				Array.Resize(ref embeds, embeds.Length + 1);
+				embeds[^1] = embed;
+			}
+		}
+
 		return Context.Channel.SendMessageAsync(new SendMessageArgs
 		{
 			Content = message,
 			IsTTS = isTTS,
-			Embed = embed != null ? new(embed.ToEmbedBuilder()) : null,
+			Embeds = embeds,
 			Options = options,
 			AllowedMentions = allowedMentions,
 		});

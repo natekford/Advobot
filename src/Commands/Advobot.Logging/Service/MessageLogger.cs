@@ -194,11 +194,13 @@ public sealed class MessageLogger
 		{
 			sendMessageArgs = new()
 			{
-				File = new()
+				Files = new()
 				{
-					Name = "Edited_Message",
-					Text = $"Before:\n{beforeContent}\n\nAfter:\n{afterContent}",
-				}
+					MessageUtils.CreateTextFile(
+						"Edited_Message",
+						$"Before:\n{beforeContent}\n\nAfter:\n{afterContent}"
+					),
+				},
 			};
 		}
 
@@ -264,10 +266,12 @@ public sealed class MessageLogger
 
 			sendMessageArgs = new SendMessageArgs
 			{
-				File = new()
+				Files = new()
 				{
-					Name = $"{ordered.Count}_Deleted_Messages",
-					Text = sb.ToString(),
+					MessageUtils.CreateTextFile(
+						$"{ordered.Count}_Deleted_Messages",
+						sb.ToString()
+					),
 				}
 			};
 		}

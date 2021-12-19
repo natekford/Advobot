@@ -161,10 +161,25 @@ public sealed class Misc : ModuleBase
 	public sealed class Test : AdvobotModuleBase
 	{
 		[Command]
-		public Task<RuntimeResult> Command(double number)
+		public async Task Command(int count)
 		{
-			var output = number.ToString();
-			return AdvobotResult.Success(output);
+			var embeds = Enumerable.Range(0, count).Select(x =>
+			{
+				return new EmbedBuilder
+				{
+					Description = x.ToString()
+				}.Build();
+			}).ToArray();
+			var files = Enumerable.Range(0, count).Select(x =>
+			{
+				return MessageUtils.CreateTextFile(x.ToString(), x.ToString());
+			}).ToList();
+
+			await Context.Channel.SendMessageAsync(new SendMessageArgs
+			{
+				Embeds = embeds,
+				Files = files,
+			}).CAF();
 		}
 	}
 }

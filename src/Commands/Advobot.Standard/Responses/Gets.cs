@@ -364,11 +364,7 @@ public sealed class Gets : AdvobotResult
 			x.Format().WithNoMarkdown(),
 			x.OwnerId.ToString().WithNoMarkdown()
 		));
-		return Success(new TextFileInfo
-		{
-			Name = GetsTitleGuilds,
-			Text = text,
-		});
+		return Success(MessageUtils.CreateTextFile(GetsTitleGuilds, text));
 	}
 
 	public static AdvobotResult Invite(IInviteMetadata invite)
@@ -416,11 +412,9 @@ public sealed class Gets : AdvobotResult
 			formattedMessagesBuilder.AppendLineFeed(text);
 		}
 
-		return Success(new TextFileInfo
-		{
-			Name = GetsFileMessages.Format(channel.Name.WithNoMarkdown()),
-			Text = formattedMessagesBuilder.ToString(),
-		});
+		var fileName = GetsFileMessages.Format(channel.Name.WithNoMarkdown());
+		var content = formattedMessagesBuilder.ToString();
+		return Success(MessageUtils.CreateTextFile(fileName, content));
 	}
 
 	public static async Task<RuntimeResult> Role(IRole role)
@@ -593,11 +587,7 @@ public sealed class Gets : AdvobotResult
 				joined.UtcDateTime.ToReadable().WithNoMarkdown()
 			);
 		});
-		return Success(new TextFileInfo
-		{
-			Name = GetsFileUserJoins,
-			Text = text,
-		});
+		return Success(MessageUtils.CreateTextFile(GetsFileUserJoins, text));
 	}
 
 	public static AdvobotResult UserJoinPosition(IGuildUser user, int position)
@@ -613,11 +603,7 @@ public sealed class Gets : AdvobotResult
 	public static AdvobotResult UsersWithReason(IEnumerable<IGuildUser> users)
 	{
 		var text = users.FormatNumberedList(x => x.Format());
-		return Success(new TextFileInfo
-		{
-			Name = GetsFileUsersWithReason,
-			Text = text,
-		});
+		return Success(MessageUtils.CreateTextFile(GetsFileUsersWithReason, text));
 	}
 
 	public static AdvobotResult Webhook(IWebhook webhook)

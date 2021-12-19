@@ -1,4 +1,5 @@
-﻿using Advobot.Logging.Database;
+﻿using Advobot.Classes;
+using Advobot.Logging.Database;
 using Advobot.Logging.Utilities;
 using Advobot.Utilities;
 
@@ -24,18 +25,26 @@ public sealed class NotificationService
 		_MessageQueue = queue;
 
 		client.UserJoined += OnUserJoined;
-		client.UserLeft += OnUserLeft;
+#warning clean this up when UserLeft adds back in (SocketGuild, SocketUser)
+		client.UserLeft += user =>
+		{
+			if (user is SocketGuildUser sgu)
+			{
+				return OnUserLeft(sgu.Guild, sgu);
+			}
+			return Task.CompletedTask;
+		};
 	}
 
-	private async Task OnEvent(Notification notifType, SocketGuildUser user)
+	private async Task OnEvent(Notification notifType, SocketGuild guild, SocketUser user)
 	{
-		var notification = await _Db.GetAsync(notifType, user.Guild.Id).CAF();
+		var notification = await _Db.GetAsync(notifType, guild.Id).CAF();
 		if (notification is null || notification.GuildId == 0)
 		{
 			return;
 		}
 
-		var channel = user.Guild.GetTextChannel(notification.ChannelId);
+		var channel = guild.GetTextChannel(notification.ChannelId);
 		if (channel is null)
 		{
 			return;
@@ -44,25 +53,18 @@ public sealed class NotificationService
 		var content = notification.Content
 			?.CaseInsReplace(NotificationUtils.USER_MENTION, user?.Mention ?? VariableInvalidUser)
 			?.CaseInsReplace(NotificationUtils.USER_STRING, user?.Format() ?? VariableInvalidUser);
-		var embed = notification.EmbedEmpty() ? null : notification.BuildWrapper();
+		var embedWrapper = notification.EmbedEmpty() ? null : notification.BuildWrapper();
 
-		_MessageQueue.Enqueue((channel, new SendMessageArgs
+		_MessageQueue.Enqueue((channel, new(embedWrapper)
 		{
 			Content = content,
-			Embed = embed,
 			AllowedMentions = NotificationUtils.UserMentions,
 		}));
 	}
 
 	private Task OnUserJoined(SocketGuildUser user)
-		=> OnEvent(Notification.Welcome, user);
+		=> OnEvent(Notification.Welcome, user.Guild, user);
 
-	private Task OnUserLeft(SocketUser user)
-	{
-		if (user is SocketGuildUser sgu)
-		{
-			return OnEvent(Notification.Goodbye, sgu);
-		}
-		return Task.CompletedTask;
-	}
+	private Task OnUserLeft(SocketGuild guild, SocketUser user)
+		=> OnEvent(Notification.Goodbye, guild, user);
 }

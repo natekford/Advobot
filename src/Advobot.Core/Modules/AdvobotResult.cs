@@ -29,7 +29,7 @@ public class AdvobotResult : RuntimeResult
 	/// <summary>
 	/// The file to post with the message.
 	/// </summary>
-	public TextFileInfo? File { get; private set; }
+	public FileAttachment? File { get; private set; }
 	/// <summary>
 	/// Where to send this result to. If this is null, the default context channel will be used instead.
 	/// </summary>
@@ -88,12 +88,7 @@ public class AdvobotResult : RuntimeResult
 		{
 			return new(null, reason);
 		}
-
-		return Success(new TextFileInfo
-		{
-			Name = "Message_Too_Long",
-			Text = reason,
-		});
+		return Success(MessageUtils.CreateTextFile("Message_Too_Long", reason));
 	}
 
 	/// <summary>
@@ -109,7 +104,7 @@ public class AdvobotResult : RuntimeResult
 	/// </summary>
 	/// <param name="file"></param>
 	/// <returns></returns>
-	public static AdvobotResult Success(TextFileInfo file)
+	public static AdvobotResult Success(FileAttachment file)
 		=> Success(Constants.ZERO_WIDTH_SPACE).WithFile(file);
 
 	/// <summary>
@@ -132,11 +127,10 @@ public class AdvobotResult : RuntimeResult
 			}
 		}
 
-		return await destination.SendMessageAsync(new SendMessageArgs
+		return await destination.SendMessageAsync(new SendMessageArgs(Embed)
 		{
 			Content = Reason,
-			Embed = Embed,
-			File = File,
+			Files = File.HasValue ? new List<FileAttachment> { File.Value } : null,
 		}).CAF();
 	}
 
@@ -163,7 +157,7 @@ public class AdvobotResult : RuntimeResult
 	/// </summary>
 	/// <param name="file"></param>
 	/// <returns></returns>
-	public AdvobotResult WithFile(TextFileInfo? file)
+	public AdvobotResult WithFile(FileAttachment? file)
 	{
 		File = file;
 		return this;

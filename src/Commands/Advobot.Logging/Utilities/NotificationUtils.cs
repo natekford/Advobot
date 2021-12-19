@@ -50,9 +50,8 @@ public static class NotificationUtils
 
 	public static SendMessageArgs ToMessageArgs(this EmbedWrapper embed)
 	{
-		return new()
+		return new(embed)
 		{
-			Embed = embed,
 			AllowedMentions = UserMentions,
 		};
 	}

@@ -11,7 +11,29 @@ namespace Advobot.Utilities;
 /// </summary>
 public static class MessageUtils
 {
+	private const string TOO_LONG = $"{Constants.ZERO_WIDTH_SPACE}Response is too long; sent as text file instead.";
 	private static readonly TimeSpan OldestAllowed = TimeSpan.FromDays(13.9);
+
+	/// <summary>
+	/// Creates a text file attachment in memory.
+	/// </summary>
+	/// <param name="fileName"></param>
+	/// <param name="content"></param>
+	/// <returns></returns>
+	public static FileAttachment CreateTextFile(string fileName, string content)
+	{
+		var sanitized = fileName.Replace(' ', '_').TrimEnd('_');
+		var newFileName = $"{sanitized}_{DateTime.UtcNow:yyyyMMdd_hhmmss}.txt";
+
+		// We are not disposing the writer since the created FileAttachment
+		// should get disposed, which disposes the base stream
+		var writer = new StreamWriter(new MemoryStream());
+		writer.Write(content);
+		writer.Flush();
+		writer.BaseStream.Seek(0, SeekOrigin.Begin);
+
+		return new(writer.BaseStream, newFileName);
+	}
 
 	/// <summary>
 	/// Removes the given count of messages from a channel.
@@ -118,9 +140,17 @@ public static class MessageUtils
 		this IMessageChannel channel,
 		SendMessageArgs args)
 	{
-		if (args.Content is null && args.Embed is null && args.File is null)
+		if (args.Content is null && args.Embeds is null && args.Files is null)
 		{
 			throw new ArgumentNullException("A sendable value must exist (content, embed, or file).");
+		}
+		if (args.Embeds?.Length > 10)
+		{
+			throw new ArgumentOutOfRangeException("Cannot have more than 10 embeds.");
+		}
+		if (args.Files?.Count > 9)
+		{
+			throw new ArgumentOutOfRangeException("Cannot have more than 9 files. 1 is always reserved for errors.");
 		}
 		if (channel is null)
 		{
@@ -131,22 +161,26 @@ public static class MessageUtils
 			throw new ArgumentNullException(nameof(channel));
 		}
 
-		// Make sure all the information from the embed that didn't fit goes in the text file
-		if (args.Embed?.Errors?.Count > 0)
-		{
-			args.File ??= new();
-			args.File.Name ??= "Embed_Errors";
-			args.File.Text += $"Embed Errors:\n{args.Embed}\n\n{args.File.Text}";
-		}
-
-		// Make sure the content removes annoying parts
+		// Make sure the content is sanitized, and any overly long messages are added
+		// to the error file
 		args.Content = args.Content.Sanitize();
 		if (args.Content.Length > 2000)
 		{
-			args.File ??= new();
-			args.File.Name ??= "Long_Message";
-			args.File.Text += $"Message Content:\n{args.Content}\n\n{args.File.Text}";
-			args.Content = $"{Constants.ZERO_WIDTH_SPACE}Response is too long; sent as text file instead.";
+			args.Errors ??= new(new MemoryStream());
+			args.Errors.WriteLine("Message Content:");
+			args.Errors.WriteLine(args.Content);
+			args.Errors.WriteLine();
+			args.Content = TOO_LONG;
+		}
+
+		// If there are any errors, add them to the files to be sent
+		if (args.Errors is not null)
+		{
+			args.Files ??= new(1);
+
+			args.Errors.Flush();
+			args.Errors.BaseStream.Seek(0, SeekOrigin.Begin);
+			args.Files.Add(new FileAttachment(args.Errors.BaseStream, "Errors.txt"));
 		}
 
 		// Can clear the content if it's going to only be a zero length space
@@ -154,44 +188,40 @@ public static class MessageUtils
 		// Otherwise there will be unecessary empty space
 		if (!args.AllowZeroWidthLengthMessages
 			&& args.Content == Constants.ZERO_WIDTH_SPACE
-			&& (args.Embed != null || args.File != null))
+			&& (args.Embeds?.Length > 0 || args.Files?.Count > 0))
 		{
 			args.Content = "";
 		}
 
 		try
 		{
-			var built = args.Embed?.Build();
 			// If the file name and text exists, then attempt to send as a file
-			if (args.File != null
-				&& !string.IsNullOrWhiteSpace(args.File.Name)
-				&& !string.IsNullOrWhiteSpace(args.File.Text))
+			if (args.Files?.Count > 0)
 			{
-				using var stream = new MemoryStream();
-				using var writer = new StreamWriter(stream);
-
-				writer.Write(args.File.Text);
-				writer.Flush();
-				stream.Seek(0, SeekOrigin.Begin);
-
-				return await channel.SendFileAsync(
-					stream,
-					args.File.Name,
+				return await channel.SendFilesAsync(
+					args.Files,
 					args.Content,
 					args.IsTTS,
-					built,
+					null,
 					args.Options,
-					args.IsSpoiler,
-					args.AllowedMentions
+					args.AllowedMentions,
+					args.MessageReference,
+					args.Components,
+					args.Stickers,
+					args.Embeds
 				).CAF();
 			}
 
 			return await channel.SendMessageAsync(
 				args.Content,
 				args.IsTTS,
-				built,
+				null,
 				args.Options,
-				args.AllowedMentions
+				args.AllowedMentions,
+				args.MessageReference,
+				args.Components,
+				args.Stickers,
+				args.Embeds
 			).CAF();
 		}
 		// If the message fails to send, then return the error
@@ -205,21 +235,32 @@ public static class MessageUtils
 				args.AllowedMentions
 			).CAF();
 		}
+		finally
+		{
+			if (args.Files?.Count > 0)
+			{
+				foreach (var file in args.Files)
+				{
+					file.Dispose();
+				}
+			}
+			args.Errors?.Dispose();
+		}
 	}
 
 	private static string Sanitize(this string? content)
 	{
 		const string SPACE = Constants.ZERO_WIDTH_SPACE;
 		const string EVERYONE = "everyone";
-		const string SANITIZED_EVERYONE = SPACE + EVERYONE;
+		const string EVERYONE_CLEAN = SPACE + EVERYONE;
 		const string HERE = "here";
-		const string SANITIZED_HERE = SPACE + HERE;
+		const string HERE_CLEAN = SPACE + HERE;
 		const string INVITE = "discord.gg";
-		const string SANITIZED_INVITE = INVITE + SPACE;
+		const string INVITE_CLEAN = INVITE + SPACE;
 		const string INVITE_2 = "discordapp.com/invite";
-		const string SANITIZED_INVITE_2 = INVITE_2 + SPACE;
+		const string INVITE_2_CLEAN = INVITE_2 + SPACE;
 		const string INVITE_3 = "discord.com";
-		const string SANITIZED_INVITE_3 = INVITE_3 + SPACE;
+		const string INVITE_3_CLEAN = INVITE_3 + SPACE;
 
 		if (content == null)
 		{
@@ -231,11 +272,11 @@ public static class MessageUtils
 		}
 
 		return content
-			.Replace(EVERYONE, SANITIZED_EVERYONE)
-			.Replace(HERE, SANITIZED_HERE)
-			.CaseInsReplace(INVITE, SANITIZED_INVITE)
-			.CaseInsReplace(INVITE_2, SANITIZED_INVITE_2)
-			.CaseInsReplace(INVITE_3, SANITIZED_INVITE_3);
+			.Replace(EVERYONE, EVERYONE_CLEAN)
+			.Replace(HERE, HERE_CLEAN)
+			.CaseInsReplace(INVITE, INVITE_CLEAN)
+			.CaseInsReplace(INVITE_2, INVITE_2_CLEAN)
+			.CaseInsReplace(INVITE_3, INVITE_3_CLEAN);
 	}
 }
 
@@ -254,6 +295,7 @@ public sealed class DeleteMessageArgs
 	public IMessage? FromMessage { get; set; }
 	/// <summary>
 	/// The current time.
+	/// This is used to ensure messages older than 14 days aren't bulk deleted.
 	/// </summary>
 	public DateTimeOffset Now { get; set; } = DateTimeOffset.UtcNow;
 	/// <summary>
@@ -274,9 +316,11 @@ public sealed class SendMessageArgs
 	/// <summary>
 	/// The allowed mentions of the message. By default this is None.
 	/// </summary>
-	public AllowedMentions? AllowedMentions { get; set; } = new();
+	public AllowedMentions? AllowedMentions { get; set; } = AllowedMentions.None;
 	/// <summary>
-	/// Whether or not to allow null channels. If true, a null message will be returned. If false, an exception will occur.
+	/// Whether or not to allow null channels.
+	/// If true, a null message will be returned.
+	/// If false, an exception will occur.
 	/// </summary>
 	public bool AllowNullChannel { get; set; }
 	/// <summary>
@@ -284,27 +328,76 @@ public sealed class SendMessageArgs
 	/// </summary>
 	public bool AllowZeroWidthLengthMessages { get; set; }
 	/// <summary>
+	/// The message component to use for interaction.
+	/// If this is null, no interaction will be sent.
+	/// </summary>
+	public MessageComponent? Components { get; set; }
+	/// <summary>
 	/// The content of the message. If this is null, no message will be sent.
 	/// </summary>
 	public string? Content { get; set; }
 	/// <summary>
-	/// The embed of the message. If this is null, no embed will be sent.
+	/// The embeds of the message.
+	/// If this is null, no embeds will be sent.
+	/// There is a maximum of 10 embeds allowed.
 	/// </summary>
-	public EmbedWrapper? Embed { get; set; }
+	public Embed[]? Embeds { get; set; }
 	/// <summary>
-	/// The file of the message. If this is null, a file will only be sent if there are errors.
+	/// Any errors which have occurred while validating the message arguments.
 	/// </summary>
-	public TextFileInfo? File { get; set; }
+	public StreamWriter? Errors { get; set; }
 	/// <summary>
-	/// Whether or not this message should be spoilered.
+	/// The files of the message.
+	/// If this is null, a file will only be sent if there are errors.
+	/// There is a maximum of 9 files allowed,
+	/// 1 is always reserved for sending <see cref="Errors"/>.
 	/// </summary>
-	public bool IsSpoiler { get; set; }
+	public List<FileAttachment>? Files { get; set; }
 	/// <summary>
 	/// Whether or not this message should use text to speech.
 	/// </summary>
 	public bool IsTTS { get; set; }
 	/// <summary>
+	/// The message to reply to. If this is null, no message is being replied to.
+	/// </summary>
+	public MessageReference? MessageReference { get; set; }
+	/// <summary>
 	/// Request options to use when sending the message.
 	/// </summary>
 	public RequestOptions? Options { get; set; }
+	/// <summary>
+	/// The stickers to send with this message.
+	/// If this is null, no stickers will be sent.
+	/// </summary>
+	public ISticker[]? Stickers { get; set; }
+
+	/// <summary>
+	/// Creates an instance of <see cref="SendMessageArgs"/>.
+	/// </summary>
+	public SendMessageArgs()
+	{
+	}
+
+	/// <summary>
+	/// Creates an instance of <see cref="SendMessageArgs"/> and adds all errors from
+	/// the passed in embed to <see cref="Errors"/>.
+	/// </summary>
+	/// <param name="embed"></param>
+	public SendMessageArgs(EmbedWrapper? embed)
+	{
+		if (embed is null)
+		{
+			return;
+		}
+
+		// Make sure any errors get put into the error file
+		if (embed.Errors?.Count > 0)
+		{
+			Errors ??= new(new MemoryStream());
+			Errors.WriteLine("Embed Errors:");
+			Errors.WriteLine(embed.ToString());
+			Errors.WriteLine();
+		}
+		Embeds = new[] { embed.Build() };
+	}
 }
