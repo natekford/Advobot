@@ -4,7 +4,7 @@ namespace Advobot.MyCommands.Database;
 
 public interface IMyCommandsDatabase
 {
-	Task<DetectLanguageConfig> GetDetectLanguageConfig();
+	Task<DetectLanguageConfig> GetDetectLanguageConfigAsync();
 
-	Task<int> UpsertDetectLanguageConfig(DetectLanguageConfig config);
+	Task<int> UpsertDetectLanguageConfigAsync(DetectLanguageConfig config);
 }

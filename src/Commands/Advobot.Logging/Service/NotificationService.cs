@@ -1,5 +1,4 @@
-﻿using Advobot.Classes;
-using Advobot.Logging.Database;
+﻿using Advobot.Logging.Database;
 using Advobot.Logging.Utilities;
 using Advobot.Utilities;
 

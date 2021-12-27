@@ -24,6 +24,7 @@ public class FakeGuildUser : FakeUser, IGuildUser
 	public DateTimeOffset? PremiumSince => throw new NotImplementedException();
 	public DateTimeOffset? RequestToSpeakTimestamp => throw new NotImplementedException();
 	public IReadOnlyCollection<ulong> RoleIds => _RoleIds;
+	public DateTimeOffset? TimedOutUntil => throw new NotImplementedException();
 	public IVoiceChannel VoiceChannel { get; set; }
 	public string VoiceSessionId { get; set; }
 	IGuild IGuildUser.Guild => Guild;
@@ -87,5 +88,11 @@ public class FakeGuildUser : FakeUser, IGuildUser
 	}
 
 	public Task RemoveRolesAsync(IEnumerable<ulong> roleIds, RequestOptions? options = null)
+		=> throw new NotImplementedException();
+
+	public Task RemoveTimeOutAsync(RequestOptions options = null)
+		=> throw new NotImplementedException();
+
+	public Task SetTimeOutAsync(TimeSpan span, RequestOptions options = null)
 		=> throw new NotImplementedException();
 }

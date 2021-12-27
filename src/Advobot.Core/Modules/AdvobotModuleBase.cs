@@ -1,5 +1,4 @@
 ﻿using Advobot.Attributes.Preconditions;
-using Advobot.Classes;
 using Advobot.Interactivity;
 using Advobot.Interactivity.Criterions;
 using Advobot.Interactivity.TryParsers;

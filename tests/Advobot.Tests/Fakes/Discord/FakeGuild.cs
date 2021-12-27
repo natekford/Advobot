@@ -58,6 +58,7 @@ public sealed class FakeGuild : FakeSnowflake, IGuild
 	public int MaxBitrate => throw new NotImplementedException();
 	public int? MaxMembers => throw new NotImplementedException();
 	public int? MaxPresences => throw new NotImplementedException();
+	public ulong MaxUploadLimit => throw new NotImplementedException();
 	public int? MaxVideoChannelUsers => throw new NotImplementedException();
 	public MfaLevel MfaLevel => throw new NotImplementedException();
 	public string Name => "Fake Guild";

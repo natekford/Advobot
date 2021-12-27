@@ -101,7 +101,7 @@ public sealed class Users : ModuleBase
 		public async Task<RuntimeResult> Command(
 			IGuildUser user,
 			[Remainder]
-				ModerationReason reason = default
+			ModerationReason reason = default
 		)
 		{
 			var isGive = !user.IsDeafened;
@@ -141,7 +141,7 @@ public sealed class Users : ModuleBase
 		public Task<RuntimeResult> ClearNickname(
 			IRole target,
 			[OverrideTypeReader(typeof(BypassUserLimitTypeReader))]
-				bool bypass = false
+			bool bypass = false
 		)
 		{
 			Task UpdateAsync(IGuildUser user, RequestOptions options)
@@ -387,7 +387,7 @@ public sealed class Users : ModuleBase
 		public async Task<RuntimeResult> Command(
 			IGuildUser user,
 			[Remainder]
-				ModerationReason reason = default
+			ModerationReason reason = default
 		)
 		{
 			var role = await MuteRoleProvider.GetMuteRoleAsync(Context.Guild).CAF();
@@ -440,7 +440,7 @@ public sealed class Users : ModuleBase
 		[LocalizedAlias(nameof(Aliases.Fake))]
 		public async Task<RuntimeResult> Fake(
 			[PruneDays]
-				int days
+			int days
 		)
 		{
 			var amt = await Context.Guild.PruneUsersAsync(days, simulate: true, GenerateRequestOptions()).CAF();
@@ -450,7 +450,7 @@ public sealed class Users : ModuleBase
 		[LocalizedCommand(nameof(Groups.Real))]
 		public async Task<RuntimeResult> Real(
 			[PruneDays]
-				int days
+			int days
 		)
 		{
 			var amt = await Context.Guild.PruneUsersAsync(days, simulate: false, GenerateRequestOptions()).CAF();
@@ -524,7 +524,7 @@ public sealed class Users : ModuleBase
 					? Context.Message
 					: null,
 				Predicate = user is null
-					? default
+					? null
 					: x => x.Author.Id == user?.Id,
 			}).CAF();
 			return Responses.Users.RemovedMessages(channel, user, deleted);
@@ -576,7 +576,7 @@ public sealed class Users : ModuleBase
 		public async Task<RuntimeResult> Command(
 			IBan ban,
 			[Remainder]
-				ModerationReason reason = default
+			ModerationReason reason = default
 		)
 		{
 			await Punisher.HandleAsync(new Punishments.Ban(Context.Guild, ban.User.Id, false)
@@ -599,7 +599,7 @@ public sealed class Users : ModuleBase
 		public async Task<RuntimeResult> Command(
 			IGuildUser user,
 			[Remainder]
-				ModerationReason reason = default
+			ModerationReason reason = default
 		)
 		{
 			var isGive = !user.IsMuted;

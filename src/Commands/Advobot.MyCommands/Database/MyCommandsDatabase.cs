@@ -13,14 +13,14 @@ public sealed class MyCommandsDatabase : DatabaseBase<SQLiteConnection>, IMyComm
 	{
 	}
 
-	public async Task<DetectLanguageConfig> GetDetectLanguageConfig()
+	public async Task<DetectLanguageConfig> GetDetectLanguageConfigAsync()
 	{
 		return await GetOneAsync<DetectLanguageConfig>(@"
 				SELECT * From DetectLanguageConfig
 			", new object()).CAF() ?? new DetectLanguageConfig();
 	}
 
-	public Task<int> UpsertDetectLanguageConfig(DetectLanguageConfig config)
+	public Task<int> UpsertDetectLanguageConfigAsync(DetectLanguageConfig config)
 	{
 		return ModifyAsync(@"
 				INSERT INTO DetectLanguageConfig

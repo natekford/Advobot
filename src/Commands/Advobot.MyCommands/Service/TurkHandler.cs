@@ -5,7 +5,6 @@ using AdvorangesUtils;
 using DetectLanguage;
 
 using Discord;
-using Discord.Rest;
 using Discord.WebSocket;
 
 using System.Net;
@@ -14,7 +13,7 @@ namespace Advobot.MyCommands.Service;
 
 public sealed class TurkHandler
 {
-	private static readonly TimeSpan _MaxAge = TimeSpan.FromDays(7);
+	private static readonly TimeSpan _DontBanIfOlderThan = TimeSpan.FromDays(7);
 	private readonly IMyCommandsDatabase _Db;
 	private readonly HashSet<ulong> _Ids = new();
 	private string? _APIKey;
@@ -29,20 +28,20 @@ public sealed class TurkHandler
 
 	private async Task OnGuildMemberUpdated(
 		Cacheable<SocketGuildUser, ulong> _,
-		SocketGuildUser after)
+		SocketGuildUser user)
 	{
-		if (after.Guild.Id != 199339772118827008
-			|| after.Activities.OfType<CustomStatusGame>().SingleOrDefault()
+		if (user.Guild.Id != 199339772118827008
+			|| user.Activities.OfType<CustomStatusGame>().SingleOrDefault()
 				is not CustomStatusGame status // Need a custom status
 			|| status.State is null // Need custom text
-			|| !after.JoinedAt.HasValue // If no join date then assume old user
-			|| DateTime.UtcNow - after.JoinedAt.Value > _MaxAge
-			|| _Ids.Contains(after.Id))
+			|| !user.JoinedAt.HasValue // If no join date then assume old user
+			|| DateTime.UtcNow - user.JoinedAt?.UtcDateTime > _DontBanIfOlderThan
+			|| _Ids.Contains(user.Id))
 		{
 			return;
 		}
 
-		var config = await _Db.GetDetectLanguageConfig().CAF();
+		var config = await _Db.GetDetectLanguageConfigAsync().CAF();
 		if (config.APIKey == null
 			|| config.CooldownStart?.Day == DateTime.UtcNow.Day)
 		{
@@ -66,7 +65,7 @@ public sealed class TurkHandler
 		catch (DetectLanguageException dle) when (dle.StatusCode == HttpStatusCode.PaymentRequired)
 		{
 			// Ratelimit
-			await _Db.UpsertDetectLanguageConfig(config with
+			await _Db.UpsertDetectLanguageConfigAsync(config with
 			{
 				CooldownStartTicks = DateTime.UtcNow.Ticks,
 			}).CAF();
@@ -78,11 +77,11 @@ public sealed class TurkHandler
 			return;
 		}
 
-		_Ids.Add(after.Id);
+		_Ids.Add(user.Id);
 		if (languages.Any(x => x.confidence > config.ConfidenceLimit && x.language == "tr"))
 		{
 			var reason = @$"turkish activity so probable spammer (""{status.State}"").";
-			await after.BanAsync(reason: reason).CAF();
+			await user.BanAsync(reason: reason).CAF();
 		}
 	}
 }

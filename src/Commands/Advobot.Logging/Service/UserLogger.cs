@@ -95,7 +95,7 @@ public sealed class UserLogger
 		var age = _Time.UtcNow - context.State.User.CreatedAt.ToUniversalTime();
 		if (age.TotalHours < 24)
 		{
-			description += $"\n**New Account:** {age:hh\\:mm\\:ss} old.";
+			description += $"\n**New Account:** {age:hh\\:mm\\:ss}";
 		}
 
 		_MessageQueue.Enqueue((context.ServerLog, new EmbedWrapper

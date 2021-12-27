@@ -19,7 +19,7 @@ public sealed class DetectLanguageConfig_Tests
 		var db = await GetDatabaseAsync().CAF();
 
 		{
-			var retrieved = await db.GetDetectLanguageConfig().CAF();
+			var retrieved = await db.GetDetectLanguageConfigAsync().CAF();
 			Assert.AreEqual(null, retrieved.APIKey);
 			Assert.AreEqual(new DetectLanguageConfig().ConfidenceLimit, retrieved.ConfidenceLimit);
 			Assert.AreEqual(null, retrieved.CooldownStartTicks);
@@ -27,13 +27,13 @@ public sealed class DetectLanguageConfig_Tests
 		}
 
 		{
-			var updated = await db.GetDetectLanguageConfig().CAF() with
+			var updated = await db.GetDetectLanguageConfigAsync().CAF() with
 			{
 				APIKey = "joe",
 				CooldownStartTicks = 888888888888888
 			};
-			await db.UpsertDetectLanguageConfig(updated).CAF();
-			var retrieved = await db.GetDetectLanguageConfig().CAF();
+			await db.UpsertDetectLanguageConfigAsync(updated).CAF();
+			var retrieved = await db.GetDetectLanguageConfigAsync().CAF();
 			Assert.AreEqual(updated.APIKey, retrieved.APIKey);
 			Assert.AreEqual(updated.ConfidenceLimit, retrieved.ConfidenceLimit);
 			Assert.AreEqual(updated.CooldownStartTicks, retrieved.CooldownStartTicks);

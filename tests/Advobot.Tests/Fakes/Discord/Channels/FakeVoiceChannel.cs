@@ -10,6 +10,7 @@ public sealed class FakeVoiceChannel : FakeGuildChannel, IVoiceChannel
 	public int Bitrate { get; set; }
 	public ulong? CategoryId => ProtectedCategoryId;
 	public string Mention => MentionUtils.MentionChannel(Id);
+	public string RTCRegion => throw new NotImplementedException();
 	public int? UserLimit { get; set; }
 
 	public FakeVoiceChannel(FakeGuild guild) : base(guild)
