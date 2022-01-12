@@ -231,8 +231,8 @@ public sealed class FakeGuild : FakeSnowflake, IGuild
 		=> GetBanAsync(user.Id, options);
 
 	public Task<IBan> GetBanAsync(ulong userId, RequestOptions? options = null)
-		// D.Net throws when not found
-		=> Task.FromResult<IBan>(FakeBans.Single(x => x.User.Id == userId));
+		// D.Net returns null when not found
+		=> Task.FromResult<IBan>(FakeBans.SingleOrDefault(x => x.User.Id == userId)!);
 
 	public Task<IReadOnlyCollection<IBan>> GetBansAsync(RequestOptions? options = null)
 		=> Task.FromResult<IReadOnlyCollection<IBan>>(FakeBans);
