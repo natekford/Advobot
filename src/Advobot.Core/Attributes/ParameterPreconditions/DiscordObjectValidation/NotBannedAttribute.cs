@@ -27,8 +27,7 @@ public sealed class NotBannedAttribute : UInt64ParameterPreconditionAttribute, I
 		ulong value,
 		IServiceProvider services)
 	{
-		var bans = await context.Guild.GetBansAsync().CAF();
-		var exists = bans.Any(x => x.User.Id == value);
-		return this.FromExistence(exists, value, "ban");
+		var ban = await context.Guild.GetBanAsync(value).CAF();
+		return this.FromExistence(ban is not null, value, "ban");
 	}
 }

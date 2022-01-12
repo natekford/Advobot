@@ -26,27 +26,16 @@ public sealed class BanTypeReader : TypeReader
 		string input,
 		IServiceProvider services)
 	{
-		var bans = await context.Guild.GetBansAsync().CAF();
+		var ban = default(IBan?);
 		if (MentionUtils.TryParseUser(input, out var id) || ulong.TryParse(input, out id))
 		{
-			var ban = bans.FirstOrDefault(x => x.User.Id == id);
-			if (ban != null)
-			{
-				return TypeReaderResult.FromSuccess(ban);
-			}
+			ban = await context.Guild.GetBanAsync(id).CAF();
 		}
 
-		var parts = input.Split(new[] { '#' }, 2);
-		if (parts.Length == 2 && ushort.TryParse(parts[1], out var d))
+		if (ban is not null)
 		{
-			var ban = bans.FirstOrDefault(x => x.User.DiscriminatorValue == d && x.User.Username.CaseInsEquals(parts[0]));
-			if (ban != null)
-			{
-				return TypeReaderResult.FromSuccess(ban);
-			}
+			return TypeReaderResult.FromSuccess(ban);
 		}
-
-		var matches = bans.Where(x => x.User.Username.CaseInsEquals(input)).ToArray();
-		return TypeReaderUtils.SingleValidResult(matches, "bans", input);
+		return TypeReaderUtils.ParseFailedResult<IBan>();
 	}
 }
