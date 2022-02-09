@@ -1,11 +1,11 @@
 ﻿using Advobot.Attributes;
-using Advobot.Attributes.ParameterPreconditions.DiscordObjectValidation.Roles;
-using Advobot.Attributes.ParameterPreconditions.Numbers;
-using Advobot.Attributes.Preconditions;
-using Advobot.Attributes.Preconditions.Permissions;
 using Advobot.Classes;
 using Advobot.Localization;
 using Advobot.Modules;
+using Advobot.ParameterPreconditions.DiscordObjectValidation.Roles;
+using Advobot.ParameterPreconditions.Numbers;
+using Advobot.Preconditions;
+using Advobot.Preconditions.Permissions;
 using Advobot.Resources;
 using Advobot.Services.GuildSettingsProvider;
 using Advobot.Services.HelpEntries;

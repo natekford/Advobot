@@ -3,16 +3,15 @@ using Advobot.TypeReaders;
 
 using AdvorangesUtils;
 
-using Discord.Commands;
-
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace Advobot.Tests.Core.TypeReaders;
 
 [TestClass]
-public sealed class BypassUserLimitTypeReader_Tests : TypeReaderTestsBase
+public sealed class BypassUserLimitTypeReader_Tests
+	: TypeReader_Tests<BypassUserLimitTypeReader>
 {
-	protected override TypeReader Instance { get; } = new BypassUserLimitTypeReader();
+	protected override BypassUserLimitTypeReader Instance { get; } = new();
 	protected override string? NotExisting => null;
 
 	[TestMethod]

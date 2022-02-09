@@ -1,5 +1,5 @@
-﻿using Advobot.Attributes.ParameterPreconditions;
-using Advobot.Gacha.Models;
+﻿using Advobot.Gacha.Models;
+using Advobot.ParameterPreconditions;
 using Advobot.Utilities;
 
 using AdvorangesUtils;
@@ -10,7 +10,7 @@ using Discord.Commands;
 namespace Advobot.Gacha.ParameterPreconditions;
 
 [AttributeUsage(AttributeTargets.Parameter, AllowMultiple = false, Inherited = true)]
-public sealed class InGuild : AdvobotParameterPreconditionAttribute
+public sealed class InGuild : AdvobotParameterPrecondition<User>
 {
 	public override string Summary => "In the guild";
 
@@ -18,14 +18,10 @@ public sealed class InGuild : AdvobotParameterPreconditionAttribute
 		ICommandContext context,
 		ParameterInfo parameter,
 		IGuildUser invoker,
-		object value,
+		User value,
 		IServiceProvider services)
 	{
-		if (value is not User user)
-		{
-			return this.FromOnlySupports(value, typeof(User));
-		}
-		if (await context.Guild.GetUserAsync(user.UserId).CAF() != null)
+		if (await context.Guild.GetUserAsync(value.UserId).CAF() != null)
 		{
 			return this.FromSuccess();
 		}

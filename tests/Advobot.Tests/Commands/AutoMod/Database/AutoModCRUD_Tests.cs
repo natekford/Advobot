@@ -13,7 +13,7 @@ namespace Advobot.Tests.Commands.AutoMod.Database;
 
 [TestClass]
 public sealed class AutoModCRUD_Tests
-	: DatabaseTestsBase<AutoModDatabase, FakeSQLiteConnectionString>
+	: Database_Tests<AutoModDatabase, FakeSQLiteConnectionString>
 {
 	private const ulong GUILD_ID = 73;
 	private const ulong ROLE_ID = 1337;

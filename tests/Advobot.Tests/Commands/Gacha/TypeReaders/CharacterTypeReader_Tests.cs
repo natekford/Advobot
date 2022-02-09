@@ -7,18 +7,16 @@ using Advobot.Tests.TestBases;
 
 using AdvorangesUtils;
 
-using Discord.Commands;
-
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace Advobot.Tests.Commands.Gacha.TypeReaders;
 
 [TestClass]
-public sealed class CharacterTypeReader_Tests : TypeReaderTestsBase
+public sealed class CharacterTypeReader_Tests : TypeReader_Tests<CharacterTypeReader>
 {
 	private readonly FakeGachaDatabase _Db = new();
-	protected override TypeReader Instance { get; } = new CharacterTypeReader();
+	protected override CharacterTypeReader Instance { get; } = new();
 
 	[TestMethod]
 	public async Task InvalidMultipleMatches_Test()

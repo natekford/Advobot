@@ -1,7 +1,7 @@
 ﻿using Advobot.Attributes;
-using Advobot.Attributes.Preconditions.Permissions;
 using Advobot.AutoMod.Models;
 using Advobot.Localization;
+using Advobot.Preconditions.Permissions;
 using Advobot.Resources;
 
 using AdvorangesUtils;

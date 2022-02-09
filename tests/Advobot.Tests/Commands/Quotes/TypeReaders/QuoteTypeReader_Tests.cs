@@ -5,18 +5,16 @@ using Advobot.TypeReaders;
 
 using AdvorangesUtils;
 
-using Discord.Commands;
-
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace Advobot.Tests.Commands.Quotes.TypeReaders;
 
 [TestClass]
-public sealed class QuoteTypeReader_Tests : TypeReaderTestsBase
+public sealed class QuoteTypeReader_Tests : TypeReader_Tests<QuoteTypeReader>
 {
 	private readonly FakeQuoteDatabase _Db = new();
-	protected override TypeReader Instance { get; } = new QuoteTypeReader();
+	protected override QuoteTypeReader Instance { get; } = new();
 
 	[TestMethod]
 	public async Task Valid_Test()

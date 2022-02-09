@@ -14,7 +14,7 @@ namespace Advobot.Tests.Commands.Invites.Database;
 
 [TestClass]
 public sealed class Keywords_Tests
-	: DatabaseTestsBase<InviteDatabase, FakeSQLiteConnectionString>
+	: Database_Tests<InviteDatabase, FakeSQLiteConnectionString>
 {
 	[TestMethod]
 	public async Task KeywordInviteGathering_Test()
@@ -60,7 +60,7 @@ public sealed class Keywords_Tests
 	{
 		if (!counts.TryGetValue(word, out var current))
 		{
-			counts.Add(word, current = new HashSet<ulong>());
+			counts.Add(word, current = new());
 		}
 		current.Add(guild.Id);
 		keywords.Add(new Keyword(guild.Id, word));

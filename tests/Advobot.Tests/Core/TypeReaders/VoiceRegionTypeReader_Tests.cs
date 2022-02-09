@@ -5,16 +5,15 @@ using Advobot.TypeReaders;
 using AdvorangesUtils;
 
 using Discord;
-using Discord.Commands;
 
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace Advobot.Tests.Core.TypeReaders;
 
 [TestClass]
-public sealed class VoiceRegionTypeReader_Tests : TypeReaderTestsBase
+public sealed class VoiceRegionTypeReader_Tests : TypeReader_Tests<VoiceRegionTypeReader>
 {
-	protected override TypeReader Instance { get; } = new VoiceRegionTypeReader();
+	protected override VoiceRegionTypeReader Instance { get; } = new();
 
 	[TestMethod]
 	public async Task Valid_Test()

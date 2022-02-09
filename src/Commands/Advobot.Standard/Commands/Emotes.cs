@@ -1,11 +1,11 @@
 ﻿using Advobot.Attributes;
-using Advobot.Attributes.ParameterPreconditions.DiscordObjectValidation.Emotes;
-using Advobot.Attributes.ParameterPreconditions.DiscordObjectValidation.Roles;
-using Advobot.Attributes.ParameterPreconditions.Strings;
-using Advobot.Attributes.Preconditions;
-using Advobot.Attributes.Preconditions.Permissions;
 using Advobot.Localization;
 using Advobot.Modules;
+using Advobot.ParameterPreconditions.DiscordObjectValidation.Emotes;
+using Advobot.ParameterPreconditions.DiscordObjectValidation.Roles;
+using Advobot.ParameterPreconditions.Strings;
+using Advobot.Preconditions;
+using Advobot.Preconditions.Permissions;
 using Advobot.Resources;
 using Advobot.Services.ImageResizing;
 

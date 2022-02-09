@@ -1,4 +1,4 @@
-﻿using Advobot.AutoMod.Attributes.ParameterPreconditions;
+﻿using Advobot.AutoMod.ParameterPreconditions;
 
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
@@ -6,9 +6,9 @@ namespace Advobot.Tests.Commands.AutoMod.ParameterPreconditions;
 
 [TestClass]
 public sealed class NotAlreadyBannedName_Tests
-	: NotAlreadyBannedPhraseAttribute_Tests<NotAlreadyBannedNameAttribute>
+	: NotAlreadyBannedPhrase_Tests<NotAlreadyBannedName>
 {
-	protected override NotAlreadyBannedNameAttribute Instance { get; } = new();
+	protected override NotAlreadyBannedName Instance { get; } = new();
 	protected override bool IsName => true;
 	protected override bool IsRegex => false;
 	protected override bool IsString => false;

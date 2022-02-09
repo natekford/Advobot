@@ -8,9 +8,9 @@ public sealed class FakeClient : IDiscordClient
 {
 	public ConnectionState ConnectionState => throw new NotImplementedException();
 	public ISelfUser CurrentUser { get; set; } = new FakeSelfUser();
-	public FakeApplication FakeApplication { get; set; } = new FakeApplication();
-	public List<FakeGuild> FakeGuilds { get; set; } = new List<FakeGuild>();
-	public List<FakeVoiceRegion> FakeVoiceRegions { get; set; } = new List<FakeVoiceRegion>();
+	public FakeApplication FakeApplication { get; set; } = new();
+	public List<FakeGuild> FakeGuilds { get; set; } = new();
+	public List<FakeVoiceRegion> FakeVoiceRegions { get; set; } = new();
 	public TokenType TokenType => throw new NotImplementedException();
 
 	public Task<IReadOnlyCollection<IApplicationCommand>> BulkOverwriteGlobalApplicationCommand(ApplicationCommandProperties[] properties, RequestOptions options = null)
@@ -23,6 +23,9 @@ public sealed class FakeClient : IDiscordClient
 		=> throw new NotImplementedException();
 
 	public void Dispose()
+		=> throw new NotImplementedException();
+
+	public ValueTask DisposeAsync()
 		=> throw new NotImplementedException();
 
 	public Task<IApplication> GetApplicationInfoAsync(RequestOptions? options = null)

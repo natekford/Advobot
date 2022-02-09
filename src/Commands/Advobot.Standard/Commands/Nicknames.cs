@@ -1,10 +1,10 @@
 ﻿using Advobot.Attributes;
-using Advobot.Attributes.ParameterPreconditions.DiscordObjectValidation.Users;
-using Advobot.Attributes.ParameterPreconditions.Numbers;
-using Advobot.Attributes.ParameterPreconditions.Strings;
-using Advobot.Attributes.Preconditions.Permissions;
 using Advobot.Localization;
 using Advobot.Modules;
+using Advobot.ParameterPreconditions.DiscordObjectValidation.Users;
+using Advobot.ParameterPreconditions.Numbers;
+using Advobot.ParameterPreconditions.Strings;
+using Advobot.Preconditions.Permissions;
 using Advobot.Resources;
 using Advobot.TypeReaders;
 

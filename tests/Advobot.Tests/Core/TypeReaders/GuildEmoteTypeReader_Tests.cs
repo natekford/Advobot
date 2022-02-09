@@ -5,21 +5,20 @@ using Advobot.TypeReaders;
 using AdvorangesUtils;
 
 using Discord;
-using Discord.Commands;
 
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace Advobot.Tests.Core.TypeReaders;
 
 [TestClass]
-public sealed class GuildEmoteTypeReader_Tests : TypeReaderTestsBase
+public sealed class GuildEmoteTypeReader_Tests : TypeReader_Tests<GuildEmoteTypeReader>
 {
 	private readonly GuildEmote _Emote = new EmoteCreationArgs
 	{
 		Id = 73UL,
 		Name = "emote name",
 	}.Build();
-	protected override TypeReader Instance { get; } = new GuildEmoteTypeReader();
+	protected override GuildEmoteTypeReader Instance { get; } = new();
 
 	[TestMethod]
 	public async Task InvalidNotOnThisGuildId_Test()

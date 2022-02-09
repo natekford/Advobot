@@ -28,18 +28,18 @@ public sealed class FakeGuild : FakeSnowflake, IGuild
 	public string DiscoverySplashId => throw new NotImplementedException();
 	public string DiscoverySplashUrl => throw new NotImplementedException();
 	public ulong? EmbedChannelId => throw new NotImplementedException();
-	public List<GuildEmote> Emotes { get; } = new List<GuildEmote>();
+	public List<GuildEmote> Emotes { get; } = new();
 	public ExplicitContentFilterLevel ExplicitContentFilter => throw new NotImplementedException();
-	public List<FakeBan> FakeBans { get; } = new List<FakeBan>();
-	public List<FakeGuildChannel> FakeChannels { get; } = new List<FakeGuildChannel>();
+	public List<FakeBan> FakeBans { get; } = new();
+	public List<FakeGuildChannel> FakeChannels { get; } = new();
 	public FakeClient FakeClient { get; }
 	public FakeGuildUser FakeCurrentUser { get; }
 	public FakeRole FakeEveryoneRole { get; }
-	public List<FakeInviteMetadata> FakeInvites { get; } = new List<FakeInviteMetadata>();
+	public List<FakeInviteMetadata> FakeInvites { get; } = new();
 	public FakeGuildUser FakeOwner { get; set; }
-	public List<FakeRole> FakeRoles { get; } = new List<FakeRole>();
-	public List<FakeGuildUser> FakeUsers { get; } = new List<FakeGuildUser>();
-	public List<FakeWebhook> FakeWebhooks { get; } = new List<FakeWebhook>();
+	public List<FakeRole> FakeRoles { get; } = new();
+	public List<FakeGuildUser> FakeUsers { get; } = new();
+	public List<FakeWebhook> FakeWebhooks { get; } = new();
 	public GuildFeatures Features { get; set; } = new GuildFeaturesCreationArgs().Build();
 	public string IconId => throw new NotImplementedException();
 	public string IconUrl => throw new NotImplementedException();
@@ -94,15 +94,15 @@ public sealed class FakeGuild : FakeSnowflake, IGuild
 		FakeClient = client;
 		FakeClient.FakeGuilds.Add(this);
 		//This has to go before the two created users so they can get it.
-		FakeEveryoneRole = new FakeRole(this)
+		FakeEveryoneRole = new(this)
 		{
 			Id = Id,
 		};
-		FakeCurrentUser = new FakeGuildUser(this)
+		FakeCurrentUser = new(this)
 		{
 			Id = client.CurrentUser.Id,
 		};
-		FakeOwner = new FakeGuildUser(this)
+		FakeOwner = new(this)
 		{
 			Id = Id,
 		};

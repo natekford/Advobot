@@ -4,16 +4,15 @@ using Advobot.TypeReaders;
 using AdvorangesUtils;
 
 using Discord;
-using Discord.Commands;
 
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace Advobot.Tests.Core.TypeReaders;
 
 [TestClass]
-public sealed class InviteTypeReader_Tests : TypeReaderTestsBase
+public sealed class InviteTypeReader_Tests : TypeReader_Tests<InviteTypeReader>
 {
-	protected override TypeReader Instance { get; } = new InviteTypeReader();
+	protected override InviteTypeReader Instance { get; } = new();
 
 	[TestMethod]
 	public async Task Valid_Test()

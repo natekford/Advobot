@@ -1,10 +1,10 @@
 ﻿using Advobot.Attributes;
-using Advobot.Attributes.ParameterPreconditions.DiscordObjectValidation.Users;
-using Advobot.Attributes.Preconditions;
-using Advobot.Attributes.Preconditions.Permissions;
 using Advobot.AutoMod;
 using Advobot.AutoMod.Models;
 using Advobot.Modules;
+using Advobot.ParameterPreconditions.DiscordObjectValidation.Users;
+using Advobot.Preconditions;
+using Advobot.Preconditions.Permissions;
 using Advobot.Utilities;
 
 using AdvorangesUtils;
@@ -83,7 +83,7 @@ public sealed class SpanitchModule : AutoModModuleBase
 		});
 	}
 
-	public sealed class RequireGuildPermissionsOrMickezoor : RequireGuildPermissionsAttribute
+	public sealed class RequireGuildPermissionsOrMickezoor : RequireGuildPermissions
 	{
 		public override string Summary => base.Summary + " or you are Mickezoor";
 

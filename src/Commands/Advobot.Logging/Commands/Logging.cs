@@ -1,10 +1,10 @@
 ﻿using Advobot.Attributes;
-using Advobot.Attributes.ParameterPreconditions.DiscordObjectValidation.Channels;
-using Advobot.Attributes.Preconditions.Permissions;
 using Advobot.Localization;
 using Advobot.Logging.OptionSetters;
 using Advobot.Logging.ParameterPreconditions;
 using Advobot.Logging.Preconditions;
+using Advobot.ParameterPreconditions.DiscordObjectValidation.Channels;
+using Advobot.Preconditions.Permissions;
 using Advobot.Resources;
 
 using AdvorangesUtils;
@@ -81,7 +81,7 @@ public sealed class Logging : ModuleBase
 		[LocalizedAlias(nameof(Aliases.Add))]
 		public async Task<RuntimeResult> Add(
 			[CanModifyChannel(ManageChannels | ManageRoles)]
-				params ITextChannel[] channels
+			params ITextChannel[] channels
 		)
 		{
 			var ids = channels.Select(x => x.Id);
@@ -93,7 +93,7 @@ public sealed class Logging : ModuleBase
 		[LocalizedAlias(nameof(Aliases.Remove))]
 		public async Task<RuntimeResult> Remove(
 			[CanModifyChannel(ManageChannels | ManageRoles)]
-				params ITextChannel[] channels
+			params ITextChannel[] channels
 		)
 		{
 			var ids = channels.Select(x => x.Id);
@@ -114,7 +114,7 @@ public sealed class Logging : ModuleBase
 		[Command]
 		public async Task<RuntimeResult> Command(
 			[NotImageLog, CanModifyChannel(ManageChannels | ManageRoles)]
-				ITextChannel channel)
+			ITextChannel channel)
 		{
 			await Db.UpsertLogChannelAsync(LogType, Context.Guild.Id, channel.Id).CAF();
 			return SetLog(VariableImageLog, channel);
@@ -142,7 +142,7 @@ public sealed class Logging : ModuleBase
 		[Command]
 		public async Task<RuntimeResult> Command(
 			[NotModLog, CanModifyChannel(ManageChannels | ManageRoles)]
-				ITextChannel channel)
+			ITextChannel channel)
 		{
 			await Db.UpsertLogChannelAsync(LogType, Context.Guild.Id, channel.Id).CAF();
 			return SetLog(VariableModLog, channel);
@@ -170,7 +170,7 @@ public sealed class Logging : ModuleBase
 		[Command]
 		public async Task<RuntimeResult> Command(
 			[NotServerLog, CanModifyChannel(ManageChannels | ManageRoles)]
-				ITextChannel channel)
+			ITextChannel channel)
 		{
 			await Db.UpsertLogChannelAsync(LogType, Context.Guild.Id, channel.Id).CAF();
 			return SetLog(VariableServerLog, channel);

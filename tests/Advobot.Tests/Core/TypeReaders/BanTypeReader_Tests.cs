@@ -5,16 +5,15 @@ using Advobot.TypeReaders;
 using AdvorangesUtils;
 
 using Discord;
-using Discord.Commands;
 
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace Advobot.Tests.Core.TypeReaders;
 
 [TestClass]
-public sealed class BanTypeReader_Tests : TypeReaderTestsBase
+public sealed class BanTypeReader_Tests : TypeReader_Tests<BanTypeReader>
 {
-	protected override TypeReader Instance { get; } = new BanTypeReader();
+	protected override BanTypeReader Instance { get; } = new();
 
 	[TestMethod]
 	public async Task InvalidMultipleMatches_Test()

@@ -13,7 +13,7 @@ namespace Advobot.Tests.Commands.Gacha.Database;
 
 [TestClass]
 public sealed class Give_Tests
-	: DatabaseTestsBase<GachaDatabase, FakeSQLiteConnectionString>
+	: Database_Tests<GachaDatabase, FakeSQLiteConnectionString>
 {
 	public const int CHARACTERS_PER_SOURCE = 7;
 	public const ulong GUILD_ID = 73;

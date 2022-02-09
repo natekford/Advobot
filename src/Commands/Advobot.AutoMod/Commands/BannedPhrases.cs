@@ -1,10 +1,10 @@
 ﻿using Advobot.Attributes;
-using Advobot.Attributes.ParameterPreconditions.Strings;
-using Advobot.Attributes.Preconditions.Permissions;
-using Advobot.AutoMod.Attributes.ParameterPreconditions;
 using Advobot.AutoMod.Models;
+using Advobot.AutoMod.ParameterPreconditions;
 using Advobot.AutoMod.TypeReaders;
 using Advobot.Localization;
+using Advobot.ParameterPreconditions.Strings;
+using Advobot.Preconditions.Permissions;
 using Advobot.Punishments;
 using Advobot.Resources;
 

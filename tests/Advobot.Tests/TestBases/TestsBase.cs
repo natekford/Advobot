@@ -9,7 +9,7 @@ namespace Advobot.Tests.TestBases;
 public abstract class TestsBase
 {
 	protected FakeCommandContext Context { get; } = FakeUtils.CreateContext();
-	protected Random Rng { get; } = new Random();
+	protected Random Rng { get; } = new();
 	protected IServiceProvider Services { get; }
 	protected ITime Time => Services.GetRequiredService<ITime>();
 

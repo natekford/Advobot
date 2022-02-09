@@ -4,16 +4,15 @@ using Advobot.TypeReaders;
 using AdvorangesUtils;
 
 using Discord;
-using Discord.Commands;
 
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace Advobot.Tests.Core.TypeReaders;
 
 [TestClass]
-public sealed class ColorTypeReader_Tests : TypeReaderTestsBase
+public sealed class ColorTypeReader_Tests : TypeReader_Tests<ColorTypeReader>
 {
-	protected override TypeReader Instance { get; } = new ColorTypeReader();
+	protected override ColorTypeReader Instance { get; } = new();
 
 	[TestMethod]
 	public async Task ValidEmpty_Test()

@@ -1,8 +1,8 @@
 ﻿using Advobot.Attributes;
-using Advobot.Attributes.ParameterPreconditions.Strings;
-using Advobot.Attributes.Preconditions;
 using Advobot.Localization;
 using Advobot.Modules;
+using Advobot.ParameterPreconditions.Strings;
+using Advobot.Preconditions;
 using Advobot.Resources;
 using Advobot.Services.ImageResizing;
 using Advobot.Utilities;

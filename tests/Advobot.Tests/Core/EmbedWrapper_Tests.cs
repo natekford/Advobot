@@ -21,9 +21,9 @@ public sealed class EmbedWrapper_Tests
 	{
 		static void RunAuthorTest(Action<EmbedWrapper> action)
 		{
-			action(new EmbedWrapper
+			action(new()
 			{
-				Author = new EmbedAuthorBuilder
+				Author = new()
 				{
 					Name = VALID_STRING,
 				},
@@ -73,7 +73,7 @@ public sealed class EmbedWrapper_Tests
 	{
 		static void RunDescriptionTest(Action<EmbedWrapper> action)
 		{
-			action(new EmbedWrapper
+			action(new()
 			{
 				Description = VALID_STRING,
 			});
@@ -129,7 +129,7 @@ public sealed class EmbedWrapper_Tests
 	{
 		static void RunTitleTest(Action<EmbedWrapper> action)
 		{
-			action(new EmbedWrapper
+			action(new()
 			{
 				Title = VALID_STRING,
 			});
@@ -158,29 +158,29 @@ public sealed class EmbedWrapper_Tests
 
 	private void FillWithRandomCrap(EmbedWrapper wrapper)
 	{
-		wrapper.Title = new string('T', EmbedBuilder.MaxTitleLength);
-		wrapper.Description = new string('D', EmbedBuilder.MaxDescriptionLength);
-		wrapper.Author = new EmbedAuthorBuilder
+		wrapper.Title = new('T', EmbedBuilder.MaxTitleLength);
+		wrapper.Description = new('D', EmbedBuilder.MaxDescriptionLength);
+		wrapper.Author = new()
 		{
-			Name = new string('A', EmbedAuthorBuilder.MaxAuthorNameLength),
+			Name = new('A', EmbedAuthorBuilder.MaxAuthorNameLength),
 		};
-		wrapper.Footer = new EmbedFooterBuilder
+		wrapper.Footer = new()
 		{
-			Text = new string('F', EmbedFooterBuilder.MaxFooterTextLength),
+			Text = new('F', EmbedFooterBuilder.MaxFooterTextLength),
 		};
 		wrapper.Fields.Clear();
 		for (var i = 0; i < 10; ++i)
 		{
-			wrapper.Fields.Add(new EmbedFieldBuilder
+			wrapper.Fields.Add(new()
 			{
-				Name = new string('M', EmbedFieldBuilder.MaxFieldNameLength),
+				Name = new('M', EmbedFieldBuilder.MaxFieldNameLength),
 				Value = new string('N', EmbedFieldBuilder.MaxFieldValueLength),
 			});
 		}
 	}
 
 	private void UrlTest(
-				Func<EmbedWrapper, string, (bool, IReadOnlyList<IEmbedError>)> tryAdd,
+		Func<EmbedWrapper, string, (bool, IReadOnlyList<IEmbedError>)> tryAdd,
 		Func<EmbedWrapper, string?> getter)
 	{
 		static void RunUrlTest(Action<EmbedWrapper> action)

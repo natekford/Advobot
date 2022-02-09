@@ -1,7 +1,7 @@
-﻿using Advobot.Attributes.Preconditions;
-using Advobot.Interactivity;
+﻿using Advobot.Interactivity;
 using Advobot.Interactivity.Criterions;
 using Advobot.Interactivity.TryParsers;
+using Advobot.Preconditions;
 using Advobot.Punishments;
 using Advobot.Services.BotSettings;
 using Advobot.Utilities;
@@ -14,7 +14,7 @@ using Discord.Commands;
 namespace Advobot.Modules;
 
 /// <summary>
-/// Shorter way to write the used modulebase and also has every command go through the <see cref="ExtendableCommandValidationAttribute"/> first.
+/// Shorter way to write the used modulebase and also has every command go through the <see cref="ExtendableCommandValidation"/> first.
 /// </summary>
 [ExtendableCommandValidation]
 [RequireContext(ContextType.Guild, Group = nameof(RequireContextAttribute))]
@@ -22,8 +22,8 @@ public abstract class AdvobotModuleBase : ModuleBase<AdvobotCommandContext>
 {
 	private static readonly ICriterion<IMessage>[] _NextIndexCriteria = new ICriterion<IMessage>[]
 	{
-			new EnsureSourceChannelCriterion(),
-			new EnsureSourceUserCriterion(),
+		new EnsureSourceChannelCriterion(),
+		new EnsureSourceUserCriterion(),
 	};
 
 	/// <summary>

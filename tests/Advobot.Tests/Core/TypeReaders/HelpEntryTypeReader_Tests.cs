@@ -5,18 +5,16 @@ using Advobot.TypeReaders;
 
 using AdvorangesUtils;
 
-using Discord.Commands;
-
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace Advobot.Tests.Core.TypeReaders;
 
 [TestClass]
-public sealed class HelpEntryTypeReader_Tests : TypeReaderTestsBase
+public sealed class HelpEntryTypeReader_Tests : TypeReader_Tests<HelpEntryTypeReader>
 {
 	private readonly HelpEntryService _HelpEntries = new();
-	protected override TypeReader Instance { get; } = new HelpEntryTypeReader();
+	protected override HelpEntryTypeReader Instance { get; } = new();
 
 	[TestMethod]
 	public async Task Valid_Test()

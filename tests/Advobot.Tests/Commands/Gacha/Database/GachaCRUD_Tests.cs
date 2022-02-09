@@ -11,7 +11,7 @@ namespace Advobot.Tests.Commands.Gacha.Database;
 
 [TestClass]
 public sealed class GachaCRUD_Tests
-	: DatabaseTestsBase<GachaDatabase, FakeSQLiteConnectionString>
+	: Database_Tests<GachaDatabase, FakeSQLiteConnectionString>
 {
 	[TestMethod]
 	public async Task CharacterCRUD_Test()

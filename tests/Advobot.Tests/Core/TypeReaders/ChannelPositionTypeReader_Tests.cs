@@ -4,16 +4,16 @@ using Advobot.TypeReaders;
 using AdvorangesUtils;
 
 using Discord;
-using Discord.Commands;
 
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace Advobot.Tests.Core.TypeReaders;
 
 [TestClass]
-public sealed class ChannelPositionTypeReader_Tests : TypeReaderTestsBase
+public sealed class ChannelPositionTypeReader_Tests
+	: TypeReader_Tests<ChannelPositionTypeReader<IGuildChannel>>
 {
-	protected override TypeReader Instance { get; } = new ChannelPositionTypeReader<IGuildChannel>();
+	protected override ChannelPositionTypeReader<IGuildChannel> Instance { get; } = new();
 
 	[TestMethod]
 	public async Task InvalidChannel_Test()

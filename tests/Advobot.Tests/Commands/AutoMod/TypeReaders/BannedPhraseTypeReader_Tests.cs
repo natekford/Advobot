@@ -1,5 +1,6 @@
 ﻿using Advobot.AutoMod.Database;
 using Advobot.AutoMod.Models;
+using Advobot.AutoMod.TypeReaders;
 using Advobot.Punishments;
 using Advobot.Tests.Commands.AutoMod;
 using Advobot.Tests.TestBases;
@@ -12,7 +13,8 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 namespace Advobot.Tests.Core.TypeReaders.BannedPhraseTypeReaders;
 
 [TestClass]
-public abstract class BannedPhraseTypeReader_Tests : TypeReaderTestsBase
+public abstract class BannedPhraseTypeReader_Tests<T> : TypeReader_Tests<T>
+	where T : BannedPhraseTypeReaderBase
 {
 	private readonly FakeAutoModDatabase _Db = new();
 

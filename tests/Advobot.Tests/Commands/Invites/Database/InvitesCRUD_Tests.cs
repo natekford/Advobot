@@ -12,7 +12,7 @@ namespace Advobot.Tests.Commands.Invites.Database;
 
 [TestClass]
 public sealed class InvitesCRUD_Tests
-	: DatabaseTestsBase<InviteDatabase, FakeSQLiteConnectionString>
+	: Database_Tests<InviteDatabase, FakeSQLiteConnectionString>
 {
 	[TestMethod]
 	public async Task InviteCRUD_Test()

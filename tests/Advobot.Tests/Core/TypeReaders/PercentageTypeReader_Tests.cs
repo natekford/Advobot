@@ -3,8 +3,6 @@ using Advobot.TypeReaders;
 
 using AdvorangesUtils;
 
-using Discord.Commands;
-
 using ImageMagick;
 
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -12,9 +10,9 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 namespace Advobot.Tests.Core.TypeReaders;
 
 [TestClass]
-public sealed class PercentageTypeReader_Tests : TypeReaderTestsBase
+public sealed class PercentageTypeReader_Tests : TypeReader_Tests<PercentageTypeReader>
 {
-	protected override TypeReader Instance { get; } = new PercentageTypeReader();
+	protected override PercentageTypeReader Instance { get; } = new();
 
 	[TestMethod]
 	public async Task Valid_Test()

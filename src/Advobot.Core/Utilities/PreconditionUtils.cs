@@ -1,5 +1,5 @@
-﻿using Advobot.Attributes.ParameterPreconditions;
-using Advobot.Preconditions;
+﻿using Advobot.ParameterPreconditions;
+using Advobot.Preconditions.Results;
 
 using AdvorangesUtils;
 
@@ -72,16 +72,16 @@ public static class PreconditionUtils
 	}
 
 	/// <summary>
-	/// Creates a <see cref="InvalidInvokingUserPreconditionResult"/>.
+	/// Creates a <see cref="InvalidInvokingUser"/>.
 	/// </summary>
 	/// <param name="_"></param>
 	/// <returns></returns>
 	public static PreconditionResult FromInvalidInvoker(
 		this Attribute _)
-		=> InvalidInvokingUserPreconditionResult.Instance;
+		=> InvalidInvokingUser.Instance;
 
 	/// <summary>
-	/// Creates a <see cref="NotSupportedPreconditionResult"/>.
+	/// Creates a <see cref="NotSupported"/>.
 	/// </summary>
 	/// <param name="_"></param>
 	/// <param name="value"></param>
@@ -91,7 +91,7 @@ public static class PreconditionUtils
 		this Attribute _,
 		object value,
 		Type type)
-		=> new NotSupportedPreconditionResult(value, type);
+		=> new NotSupported(value, type);
 
 	/// <summary>
 	/// Returns <see cref="SuccessInstance"/>.
@@ -183,7 +183,7 @@ public static class PreconditionUtils
 	{
 		if (target == null)
 		{
-			return new UnableToFindPreconditionResult(typeof(T));
+			return new UnableToFind(typeof(T));
 		}
 
 		var bot = await invoker.Guild.GetCurrentUserAsync().CAF();
@@ -196,7 +196,7 @@ public static class PreconditionUtils
 		{
 			if (!permissionsCallback(user, target))
 			{
-				return new LackingPermissionsPreconditionResult(user, target);
+				return new LackingPermissions(user, target);
 			}
 		}
 		return SuccessInstance;

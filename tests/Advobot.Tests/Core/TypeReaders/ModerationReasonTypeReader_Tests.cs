@@ -4,16 +4,15 @@ using Advobot.TypeReaders;
 
 using AdvorangesUtils;
 
-using Discord.Commands;
-
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace Advobot.Tests.Core.TypeReaders;
 
 [TestClass]
-public sealed class ModerationReasonTypeReader_Tests : TypeReaderTestsBase
+public sealed class ModerationReasonTypeReader_Tests
+	: TypeReader_Tests<ModerationReasonTypeReader>
 {
-	protected override TypeReader Instance { get; } = new ModerationReasonTypeReader();
+	protected override ModerationReasonTypeReader Instance { get; } = new();
 	protected override string? NotExisting => null;
 
 	[TestMethod]

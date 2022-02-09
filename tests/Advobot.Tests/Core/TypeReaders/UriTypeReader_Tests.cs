@@ -3,16 +3,14 @@ using Advobot.TypeReaders;
 
 using AdvorangesUtils;
 
-using Discord.Commands;
-
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace Advobot.Tests.Core.TypeReaders;
 
 [TestClass]
-public sealed class UriTypeReader_Tests : TypeReaderTestsBase
+public sealed class UriTypeReader_Tests : TypeReader_Tests<UriTypeReader>
 {
-	protected override TypeReader Instance { get; } = new UriTypeReader();
+	protected override UriTypeReader Instance { get; } = new();
 
 	[TestMethod]
 	public async Task Valid_Test()

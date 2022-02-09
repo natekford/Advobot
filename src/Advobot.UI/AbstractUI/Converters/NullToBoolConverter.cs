@@ -28,8 +28,5 @@ public abstract class NullToBoolConverter
 	/// <returns></returns>
 	/// <exception cref="NotImplementedException"></exception>
 	public object ConvertBack(object _, Type _2, object _3, CultureInfo _4)
-#pragma warning disable RCS1079 // Throwing of new NotImplementedException.
 		=> throw new NotImplementedException();
-
-#pragma warning restore RCS1079 // Throwing of new NotImplementedException.
 }

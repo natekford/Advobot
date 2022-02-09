@@ -1,8 +1,8 @@
 ﻿using Advobot.Attributes;
-using Advobot.Attributes.ParameterPreconditions.DiscordObjectValidation.Roles;
-using Advobot.Attributes.Preconditions.Permissions;
 using Advobot.AutoMod.Models;
 using Advobot.Localization;
+using Advobot.ParameterPreconditions.DiscordObjectValidation.Roles;
+using Advobot.Preconditions.Permissions;
 using Advobot.Resources;
 using Advobot.Utilities;
 
@@ -86,7 +86,7 @@ public sealed class PersistentRoles : ModuleBase
 		public async Task<RuntimeResult> Remove(
 			IGuildUser user,
 			[Remainder, CanModifyRole, NotEveryone, NotManaged]
-				IRole role)
+			IRole role)
 		{
 			if (user.RoleIds.Contains(role.Id))
 			{

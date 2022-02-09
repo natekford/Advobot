@@ -38,15 +38,15 @@ public sealed class NetCoreColorSettings : ColorSettings<ISolidColorBrush, NetCo
 	};
 
 	private static readonly Lazy<IResourceDictionary> _Resources = new(() =>
-		  {
-			  var styles = Application.Current.Styles.OfType<StyleInclude>();
-			  var colors = styles.Single(x =>
-			  {
-				  var src = x.Source;
-				  return src?.ToString().CaseInsContains("BaseLight.xaml") == true;
-			  });
-			  return ((Style)colors.Loaded).Resources;
-		  });
+				{
+					var styles = Application.Current.Styles.OfType<StyleInclude>();
+					var colors = styles.Single(x =>
+					{
+						var src = x.Source;
+						return src?.ToString().CaseInsContains("BaseLight.xaml") == true;
+					});
+					return ((Style)colors.Loaded).Resources;
+				});
 
 	private IBotDirectoryAccessor? _DirectoryAccessor;
 

@@ -1,9 +1,9 @@
 ﻿using Advobot.Attributes;
-using Advobot.Attributes.ParameterPreconditions.DiscordObjectValidation.Channels;
-using Advobot.Attributes.Preconditions.Permissions;
 using Advobot.Localization;
 using Advobot.Logging.Models;
 using Advobot.Logging.OptionSetters;
+using Advobot.ParameterPreconditions.DiscordObjectValidation.Channels;
+using Advobot.Preconditions.Permissions;
 using Advobot.Resources;
 
 using AdvorangesUtils;
@@ -35,7 +35,7 @@ public sealed class Notifications : ModuleBase
 		[LocalizedAlias(nameof(Aliases.Channel))]
 		public async Task<RuntimeResult> Channel(
 			[CanModifyChannel(ManageChannels | ManageRoles)]
-				ITextChannel channel)
+			ITextChannel channel)
 		{
 			await Db.UpsertNotificationChannelAsync(Event, Context.Guild.Id, channel.Id).CAF();
 			return ModifiedChannel(Event, channel);
@@ -96,7 +96,7 @@ public sealed class Notifications : ModuleBase
 		[LocalizedAlias(nameof(Aliases.Channel))]
 		public async Task<RuntimeResult> Channel(
 			[CanModifyChannel(ManageChannels | ManageRoles)]
-				ITextChannel channel)
+			ITextChannel channel)
 		{
 			await Db.UpsertNotificationChannelAsync(Event, Context.Guild.Id, channel.Id).CAF();
 			return ModifiedChannel(Event, channel);

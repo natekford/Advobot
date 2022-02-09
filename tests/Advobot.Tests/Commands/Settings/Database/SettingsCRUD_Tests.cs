@@ -11,7 +11,7 @@ namespace Advobot.Tests.Commands.Settings.Database;
 
 [TestClass]
 public sealed class SettingsCRUD_Tests
-	: DatabaseTestsBase<SettingsDatabase, FakeSQLiteConnectionString>
+	: Database_Tests<SettingsDatabase, FakeSQLiteConnectionString>
 {
 	[TestMethod]
 	public async Task CommandOverridesCRUD_Test()

@@ -4,16 +4,15 @@ using Advobot.TypeReaders;
 using AdvorangesUtils;
 
 using Discord;
-using Discord.Commands;
 
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace Advobot.Tests.Core.TypeReaders;
 
 [TestClass]
-public sealed class GuildTypeReader_Tests : TypeReaderTestsBase
+public sealed class GuildTypeReader_Tests : TypeReader_Tests<GuildTypeReader>
 {
-	protected override TypeReader Instance { get; } = new GuildTypeReader();
+	protected override GuildTypeReader Instance { get; } = new();
 
 	[TestMethod]
 	public async Task ValidId_Test()

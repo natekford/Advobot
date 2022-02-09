@@ -1,1 +1,0 @@
-﻿namespace Advobot.Tests.Core.Attributes.Preconditions.Permissions;

@@ -19,13 +19,13 @@ public class FakeGuildChannel : FakeMessageChannel, IGuildChannel
 
 	public Task AddPermissionOverwriteAsync(IRole role, OverwritePermissions permissions, RequestOptions? options = null)
 	{
-		_Permissions[role.Id] = new Overwrite(role.Id, PermissionTarget.Role, permissions);
+		_Permissions[role.Id] = new(role.Id, PermissionTarget.Role, permissions);
 		return Task.CompletedTask;
 	}
 
 	public Task AddPermissionOverwriteAsync(IUser user, OverwritePermissions permissions, RequestOptions? options = null)
 	{
-		_Permissions[user.Id] = new Overwrite(user.Id, PermissionTarget.User, permissions);
+		_Permissions[user.Id] = new(user.Id, PermissionTarget.User, permissions);
 		return Task.CompletedTask;
 	}
 

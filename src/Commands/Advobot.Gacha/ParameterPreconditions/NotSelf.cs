@@ -1,5 +1,5 @@
-﻿using Advobot.Attributes.ParameterPreconditions;
-using Advobot.Gacha.Models;
+﻿using Advobot.Gacha.Models;
+using Advobot.ParameterPreconditions;
 using Advobot.Utilities;
 
 using Discord;
@@ -8,7 +8,7 @@ using Discord.Commands;
 namespace Advobot.Gacha.ParameterPreconditions;
 
 [AttributeUsage(AttributeTargets.Parameter, AllowMultiple = false, Inherited = true)]
-public sealed class NotSelf : AdvobotParameterPreconditionAttribute
+public sealed class NotSelf : AdvobotParameterPrecondition<User>
 {
 	public override string Summary => "Not the invoker";
 
@@ -16,14 +16,10 @@ public sealed class NotSelf : AdvobotParameterPreconditionAttribute
 		ICommandContext context,
 		ParameterInfo parameter,
 		IGuildUser invoker,
-		object value,
+		User value,
 		IServiceProvider services)
 	{
-		if (value is not User user)
-		{
-			return this.FromOnlySupports(value, typeof(User)).AsTask();
-		}
-		if (user.GuildId == context.User.Id)
+		if (value.GuildId == context.User.Id)
 		{
 			return this.FromSuccess().AsTask();
 		}

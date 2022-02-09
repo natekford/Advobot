@@ -12,7 +12,7 @@ namespace Advobot.Tests.Commands.Gacha.Database;
 
 [TestClass]
 public sealed class ClaimAllCharacters_Tests
-	: DatabaseTestsBase<GachaDatabase, FakeSQLiteConnectionString>
+	: Database_Tests<GachaDatabase, FakeSQLiteConnectionString>
 {
 	public const int CHARACTER_COUNT = SOURCE_COUNT * CHARACTERS_PER_SOURCE;
 	public const int CHARACTERS_PER_SOURCE = 25;

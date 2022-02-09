@@ -13,7 +13,7 @@ namespace Advobot.Tests.Commands.Levels.Database;
 
 [TestClass]
 public sealed class Rank_Tests
-	: DatabaseTestsBase<LevelDatabase, FakeSQLiteConnectionString>
+	: Database_Tests<LevelDatabase, FakeSQLiteConnectionString>
 {
 	private const ulong CHANNEL_ID = 2;
 	private const ulong GUILD_ID = 1;

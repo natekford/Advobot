@@ -1,8 +1,8 @@
 {
-  "profiles": {
-    "Advobot.ConsoleLauncher": {
-      "commandName": "Project",
-      "commandLineArgs": "-instance 1000"
-    }
-  }
+	"profiles": {
+		"Advobot.ConsoleLauncher": {
+			"commandName": "Project",
+			"commandLineArgs": "-instance 1000"
+		}
+	}
 }

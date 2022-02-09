@@ -4,16 +4,16 @@ using Advobot.TypeReaders;
 using AdvorangesUtils;
 
 using Discord;
-using Discord.Commands;
 
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace Advobot.Tests.Core.TypeReaders;
 
 [TestClass]
-public sealed class PermissionsTypeReader_Tests : TypeReaderTestsBase
+public sealed class PermissionsTypeReader_Tests
+	: TypeReader_Tests<PermissionsTypeReader<ChannelPermission>>
 {
-	protected override TypeReader Instance { get; } = new PermissionsTypeReader<ChannelPermission>();
+	protected override PermissionsTypeReader<ChannelPermission> Instance { get; } = new();
 
 	[TestMethod]
 	public async Task InvalidNumber_Test()

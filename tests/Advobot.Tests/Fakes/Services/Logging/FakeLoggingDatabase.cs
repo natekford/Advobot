@@ -33,7 +33,7 @@ public sealed class FakeLoggingDatabase : ILoggingDatabase
 	{
 		if (!_LogChannels.TryGetValue(guildId, out var current))
 		{
-			current = new LogChannels();
+			current = new();
 		}
 
 		_LogChannels[guildId] = current with

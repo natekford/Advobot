@@ -10,7 +10,7 @@ namespace Advobot.Tests.Commands.Logging.Database;
 
 [TestClass]
 public sealed class IgnoredChannels_Tests
-	: DatabaseTestsBase<LoggingDatabase, FakeSQLiteConnectionString>
+	: Database_Tests<LoggingDatabase, FakeSQLiteConnectionString>
 {
 	private const ulong GUILD_ID = ulong.MaxValue;
 

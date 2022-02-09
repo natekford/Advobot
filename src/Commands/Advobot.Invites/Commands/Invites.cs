@@ -1,10 +1,10 @@
 ﻿using Advobot.Attributes;
-using Advobot.Attributes.ParameterPreconditions.DiscordObjectValidation.Invites;
-using Advobot.Attributes.Preconditions.Permissions;
 using Advobot.Classes;
 using Advobot.Invites.Models;
 using Advobot.Invites.Preconditions;
 using Advobot.Localization;
+using Advobot.ParameterPreconditions.DiscordObjectValidation.Invites;
+using Advobot.Preconditions.Permissions;
 using Advobot.Resources;
 
 using AdvorangesUtils;

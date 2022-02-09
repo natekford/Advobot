@@ -12,7 +12,7 @@ namespace Advobot.Tests.Commands.Logging.Database;
 
 [TestClass]
 public sealed class NotificationCRUD_Tests
-	: DatabaseTestsBase<NotificationDatabase, FakeSQLiteConnectionString>
+	: Database_Tests<NotificationDatabase, FakeSQLiteConnectionString>
 {
 	private const ulong CHANNEL_ID = 73;
 	private const string? CONTENT = "uh oh stinky";

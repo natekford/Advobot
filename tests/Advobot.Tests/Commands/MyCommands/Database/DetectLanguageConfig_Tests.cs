@@ -11,7 +11,7 @@ namespace Advobot.Tests.Commands.MyCommands.Database;
 
 [TestClass]
 public sealed class DetectLanguageConfig_Tests
-	: DatabaseTestsBase<MyCommandsDatabase, FakeSQLiteConnectionString>
+	: Database_Tests<MyCommandsDatabase, FakeSQLiteConnectionString>
 {
 	[TestMethod]
 	public async Task DetectLanguageConfigInsertionAndRetrieval_Test()

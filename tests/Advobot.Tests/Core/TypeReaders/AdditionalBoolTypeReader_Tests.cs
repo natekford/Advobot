@@ -3,16 +3,15 @@ using Advobot.TypeReaders;
 
 using AdvorangesUtils;
 
-using Discord.Commands;
-
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace Advobot.Tests.Core.TypeReaders;
 
 [TestClass]
-public sealed class AdditionalBoolTypeReader_Tests : TypeReaderTestsBase
+public sealed class AdditionalBoolTypeReader_Tests
+	: TypeReader_Tests<AdditionalBoolTypeReader>
 {
-	protected override TypeReader Instance { get; } = new AdditionalBoolTypeReader();
+	protected override AdditionalBoolTypeReader Instance { get; } = new();
 
 	[TestMethod]
 	public async Task FalseValues_Test()

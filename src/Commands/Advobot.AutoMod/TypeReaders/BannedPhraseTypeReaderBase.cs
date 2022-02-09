@@ -13,19 +13,6 @@ using static Advobot.Resources.Responses;
 namespace Advobot.AutoMod.TypeReaders;
 
 /// <summary>
-/// A type reader for banned names.
-/// </summary>
-public sealed class BannedNameTypeReader : BannedPhraseTypeReaderBase
-{
-	/// <inheritdoc />
-	protected override string BannedPhraseName => VariableName;
-
-	/// <inheritdoc />
-	protected override bool IsValid(BannedPhrase phrase, string input)
-		=> phrase.IsName && phrase.Phrase == input;
-}
-
-/// <summary>
 /// A type reader for banned phrases.
 /// </summary>
 public abstract class BannedPhraseTypeReaderBase : TypeReader
@@ -56,30 +43,4 @@ public abstract class BannedPhraseTypeReaderBase : TypeReader
 	/// <param name="input"></param>
 	/// <returns></returns>
 	protected abstract bool IsValid(BannedPhrase phrase, string input);
-}
-
-/// <summary>
-/// A type reader for banned regex.
-/// </summary>
-public sealed class BannedRegexTypeReader : BannedPhraseTypeReaderBase
-{
-	/// <inheritdoc />
-	protected override string BannedPhraseName => VariableRegex;
-
-	/// <inheritdoc />
-	protected override bool IsValid(BannedPhrase phrase, string input)
-		=> !phrase.IsName && phrase.IsRegex && phrase.Phrase == input;
-}
-
-/// <summary>
-/// A type reader for banned strings.
-/// </summary>
-public sealed class BannedStringTypeReader : BannedPhraseTypeReaderBase
-{
-	/// <inheritdoc />
-	protected override string BannedPhraseName => VariableString;
-
-	/// <inheritdoc />
-	protected override bool IsValid(BannedPhrase phrase, string input)
-		=> !phrase.IsName && !phrase.IsRegex && phrase.Phrase == input;
 }

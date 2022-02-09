@@ -12,7 +12,7 @@ namespace Advobot.Tests.Commands.Levels.Database;
 
 [TestClass]
 public sealed class LevelsCRUD_Tests
-	: DatabaseTestsBase<LevelDatabase, FakeSQLiteConnectionString>
+	: Database_Tests<LevelDatabase, FakeSQLiteConnectionString>
 {
 	[TestMethod]
 	public async Task UserCRUD_Test()

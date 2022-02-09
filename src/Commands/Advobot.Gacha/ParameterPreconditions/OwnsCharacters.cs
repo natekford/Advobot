@@ -1,6 +1,6 @@
-﻿using Advobot.Attributes.ParameterPreconditions;
-using Advobot.Gacha.Database;
+﻿using Advobot.Gacha.Database;
 using Advobot.Gacha.Models;
+using Advobot.ParameterPreconditions;
 using Advobot.Utilities;
 
 using AdvorangesUtils;
@@ -13,7 +13,7 @@ using Microsoft.Extensions.DependencyInjection;
 namespace Advobot.Gacha.ParameterPreconditions;
 
 [AttributeUsage(AttributeTargets.Parameter, AllowMultiple = false, Inherited = true)]
-public sealed class OwnsCharacters : AdvobotParameterPreconditionAttribute
+public sealed class OwnsCharacters : AdvobotParameterPrecondition<Character>
 {
 	public override string Summary => "Character is owned by the invoker";
 
@@ -21,16 +21,11 @@ public sealed class OwnsCharacters : AdvobotParameterPreconditionAttribute
 		ICommandContext context,
 		ParameterInfo parameter,
 		IGuildUser invoker,
-		object value,
+		Character value,
 		IServiceProvider services)
 	{
-		if (value is not Character character)
-		{
-			return this.FromOnlySupports(value, typeof(Character));
-		}
-
 		var db = services.GetRequiredService<IGachaDatabase>();
-		var claim = await db.GetClaimAsync(context.Guild.Id, character).CAF();
+		var claim = await db.GetClaimAsync(context.Guild.Id, value).CAF();
 		if (claim?.UserId == context.User.Id)
 		{
 			return this.FromSuccess();

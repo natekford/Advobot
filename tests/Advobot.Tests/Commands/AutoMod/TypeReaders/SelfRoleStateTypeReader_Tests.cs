@@ -6,7 +6,6 @@ using Advobot.Tests.TestBases;
 using AdvorangesUtils;
 
 using Discord;
-using Discord.Commands;
 
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -14,10 +13,11 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 namespace Advobot.Tests.Commands.AutoMod.TypeReaders;
 
 [TestClass]
-public sealed class SelfRoleStateTypeReader_Tests : TypeReaderTestsBase
+public sealed class SelfRoleStateTypeReader_Tests
+	: TypeReader_Tests<SelfRoleStateTypeReader>
 {
 	private readonly FakeAutoModDatabase _Db = new();
-	protected override TypeReader Instance { get; } = new SelfRoleStateTypeReader();
+	protected override SelfRoleStateTypeReader Instance { get; } = new();
 
 	[TestMethod]
 	public async Task Valid_Test()

@@ -1,11 +1,10 @@
 ﻿using Advobot.Attributes;
-using Advobot.Attributes.Preconditions.Permissions;
 using Advobot.Localization;
 using Advobot.Modules;
+using Advobot.Preconditions.Permissions;
 using Advobot.Quotes.Database;
 using Advobot.Quotes.Formatting;
 using Advobot.Quotes.Models;
-using Advobot.Quotes.ParameterPreconditions;
 using Advobot.Resources;
 
 using AdvorangesUtils;
@@ -29,7 +28,7 @@ public sealed class Rules : ModuleBase
 		[LocalizedCommand(nameof(Groups.Create))]
 		[LocalizedAlias(nameof(Aliases.Create))]
 		public async Task<RuntimeResult> Create(
-			[Remainder, Rule]
+			[Remainder, ParameterPreconditions.Rule]
 				string value)
 		{
 			var categories = await Db.GetCategoriesAsync(Context.Guild.Id).CAF();
@@ -56,7 +55,7 @@ public sealed class Rules : ModuleBase
 		[LocalizedAlias(nameof(Aliases.ModifyValue))]
 		public async Task<RuntimeResult> ModifyValue(
 			RuleCategory category,
-			[Remainder, Rule]
+			[Remainder, ParameterPreconditions.Rule]
 				string value)
 		{
 			var copy = category with
@@ -126,12 +125,12 @@ public sealed class Rules : ModuleBase
 		[LocalizedAlias(nameof(Aliases.Create))]
 		public async Task<RuntimeResult> Create(
 			RuleCategory category,
-			[Remainder, Rule]
+			[Remainder, ParameterPreconditions.Rule]
 				string value)
 		{
 			var rules = await Db.GetRulesAsync(category).CAF();
 
-			var rule = new Rule
+			var rule = new Models.Rule
 			{
 				GuildId = Context.Guild.Id,
 				Category = category.Category,
@@ -144,7 +143,7 @@ public sealed class Rules : ModuleBase
 
 		[LocalizedCommand(nameof(Groups.Delete))]
 		[LocalizedAlias(nameof(Aliases.Delete))]
-		public async Task<RuntimeResult> Delete(Rule rule)
+		public async Task<RuntimeResult> Delete(Models.Rule rule)
 		{
 			await Db.DeleteRuleAsync(rule).CAF();
 			return RemovedRule(rule);
@@ -153,8 +152,8 @@ public sealed class Rules : ModuleBase
 		[LocalizedCommand(nameof(Groups.ModifyValue))]
 		[LocalizedAlias(nameof(Aliases.ModifyValue))]
 		public async Task<RuntimeResult> ModifyValue(
-			Rule rule,
-			[Remainder, Rule]
+			Models.Rule rule,
+			[Remainder, ParameterPreconditions.Rule]
 				string value)
 		{
 			var copy = rule with
@@ -167,7 +166,7 @@ public sealed class Rules : ModuleBase
 
 		[LocalizedCommand(nameof(Groups.Swap))]
 		[LocalizedAlias(nameof(Aliases.Swap))]
-		public async Task<RuntimeResult> Swap(Rule ruleA, Rule ruleB)
+		public async Task<RuntimeResult> Swap(Models.Rule ruleA, Models.Rule ruleB)
 		{
 			var copyA = ruleA with
 			{
