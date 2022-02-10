@@ -54,7 +54,7 @@ public sealed class RequireNotRecentlyBumped_Tests
 	private async Task BumpAsync()
 	{
 		var invite = await Context.Channel.CreateInviteAsync().CAF();
-		var db = Services.GetRequiredService<IInviteListService>();
+		var db = Services.Value.GetRequiredService<IInviteListService>();
 		await db.AddInviteAsync(invite).CAF();
 	}
 }

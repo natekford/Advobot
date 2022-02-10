@@ -25,5 +25,5 @@ public abstract class TypeReader_Tests<T> : TestsBase
 	}
 
 	protected Task<TypeReaderResult> ReadAsync(string input)
-		=> Instance.ReadAsync(Context, input, Services);
+		=> Instance.ReadAsync(Context, input, Services.Value);
 }

@@ -24,7 +24,7 @@ public sealed class RemovablePunishment_Tests : TestsBase
 
 	public RemovablePunishment_Tests()
 	{
-		_Service = Services.GetRequiredService<RemovablePunishmentService>();
+		_Service = Services.Value.GetRequiredService<RemovablePunishmentService>();
 	}
 
 	[TestMethod]

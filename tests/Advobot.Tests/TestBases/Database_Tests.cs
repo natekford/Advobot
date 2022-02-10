@@ -12,11 +12,11 @@ public abstract class Database_Tests<TDb, TConn> : TestsBase where TDb : class
 {
 	protected async Task<TDb> GetDatabaseAsync()
 	{
-		var starter = Services.GetRequiredService<IConnectionStringFor<TDb>>();
+		var starter = Services.Value.GetRequiredService<IConnectionStringFor<TDb>>();
 		await starter.EnsureCreatedAsync().CAF();
 		starter.MigrateUp();
 
-		return Services.GetRequiredService<TDb>();
+		return Services.Value.GetRequiredService<TDb>();
 	}
 
 	protected override void ModifyServices(IServiceCollection services)

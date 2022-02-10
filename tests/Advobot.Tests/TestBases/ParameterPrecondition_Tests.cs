@@ -19,7 +19,8 @@ public abstract class ParameterPrecondition_Tests<T> : TestsBase
 		object value,
 		ParameterInfo? parameter = null)
 	{
-		var result = await Instance.CheckPermissionsAsync(Context, parameter, value, Services).CAF();
+		var result = await Instance.CheckPermissionsAsync(
+			Context, parameter, value, Services.Value).CAF();
 		Assert.IsFalse(result.IsSuccess);
 		return result;
 	}
@@ -28,7 +29,8 @@ public abstract class ParameterPrecondition_Tests<T> : TestsBase
 		object value,
 		ParameterInfo? parameter = null)
 	{
-		var result = await Instance.CheckPermissionsAsync(Context, parameter, value, Services).CAF();
+		var result = await Instance.CheckPermissionsAsync(
+			Context, parameter, value, Services.Value).CAF();
 		Assert.IsTrue(result.IsSuccess);
 		return result;
 	}
