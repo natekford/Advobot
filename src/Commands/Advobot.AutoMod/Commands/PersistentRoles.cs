@@ -68,7 +68,7 @@ public sealed class PersistentRoles : ModuleBase
 			[Remainder, CanModifyRole, NotEveryone, NotManaged]
 				IRole role)
 		{
-			await user.AddRoleAsync(role, GenerateRequestOptions()).CAF();
+			await user.AddRoleAsync(role, GetOptions()).CAF();
 
 			var persistentRole = new PersistentRole
 			{
@@ -90,7 +90,7 @@ public sealed class PersistentRoles : ModuleBase
 		{
 			if (user.RoleIds.Contains(role.Id))
 			{
-				await user.RemoveRoleAsync(role, GenerateRequestOptions()).CAF();
+				await user.RemoveRoleAsync(role, GetOptions()).CAF();
 			}
 
 			var persistentRole = new PersistentRole

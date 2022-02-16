@@ -8,5 +8,7 @@ public sealed record SelfRole(
 	ulong RoleId
 ) : IGuildChild
 {
-	public SelfRole() : this(default, default, default) { }
+	public const int NO_GROUP = 0;
+
+	public SelfRole() : this(NO_GROUP, default, default) { }
 }

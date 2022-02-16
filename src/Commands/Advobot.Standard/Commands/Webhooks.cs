@@ -40,7 +40,7 @@ public sealed class Webhooks : ModuleBase
 			string name
 		)
 		{
-			var webhook = await channel.CreateWebhookAsync(name, options: GenerateRequestOptions()).CAF();
+			var webhook = await channel.CreateWebhookAsync(name, options: GetOptions()).CAF();
 			return Responses.Snowflakes.Created(webhook);
 		}
 	}
@@ -58,7 +58,7 @@ public sealed class Webhooks : ModuleBase
 				IWebhook webhook
 		)
 		{
-			await webhook.DeleteAsync(GenerateRequestOptions()).CAF();
+			await webhook.DeleteAsync(GetOptions()).CAF();
 			return Responses.Snowflakes.Deleted(webhook);
 		}
 	}
@@ -104,7 +104,7 @@ public sealed class Webhooks : ModuleBase
 			ITextChannel channel
 		)
 		{
-			await webhook.ModifyAsync(x => x.Channel = Optional.Create(channel), GenerateRequestOptions()).CAF();
+			await webhook.ModifyAsync(x => x.Channel = Optional.Create(channel), GetOptions()).CAF();
 			return Responses.Webhooks.ModifiedChannel(webhook, channel);
 		}
 	}
@@ -136,7 +136,7 @@ public sealed class Webhooks : ModuleBase
 				IWebhook webhook
 		)
 		{
-			await webhook.ModifyAsync(x => x.Image = new Image(), GenerateRequestOptions()).CAF();
+			await webhook.ModifyAsync(x => x.Image = new Image(), GetOptions()).CAF();
 			return Responses.Snowflakes.RemovedIcon(webhook);
 		}
 	}
@@ -157,7 +157,7 @@ public sealed class Webhooks : ModuleBase
 			string name
 		)
 		{
-			await webhook.ModifyAsync(x => x.Name = name, GenerateRequestOptions()).CAF();
+			await webhook.ModifyAsync(x => x.Name = name, GetOptions()).CAF();
 			return Responses.Snowflakes.ModifiedName(webhook, name);
 		}
 	}

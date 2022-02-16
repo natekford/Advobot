@@ -245,7 +245,7 @@ public sealed class AutoModService
 		var roles = persistent
 			.Select(x => context.Guild.GetRole(x.RoleId))
 			.Where(x => x != null);
-		await context.User.SmartAddRolesAsync(roles, _PersistentRoles).CAF();
+		await context.User.AddMultipleRolesAsync(roles, _PersistentRoles).CAF();
 		return true;
 	}
 

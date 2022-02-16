@@ -29,7 +29,7 @@ public sealed class Nicknames : ModuleBase
 		public async Task<RuntimeResult> Command(
 			[CanModifyUser] IGuildUser user)
 		{
-			await user.ModifyAsync(x => x.Nickname = user.Username, GenerateRequestOptions()).CAF();
+			await user.ModifyAsync(x => x.Nickname = user.Username, GetOptions()).CAF();
 			return Responses.Nicknames.RemovedNickname(user);
 		}
 
@@ -38,7 +38,7 @@ public sealed class Nicknames : ModuleBase
 			[CanModifyUser] IGuildUser user,
 			[Nickname] string nickname)
 		{
-			await user.ModifyAsync(x => x.Nickname = nickname, GenerateRequestOptions()).CAF();
+			await user.ModifyAsync(x => x.Nickname = nickname, GetOptions()).CAF();
 			return Responses.Nicknames.ModifiedNickname(user, nickname);
 		}
 	}
@@ -56,7 +56,7 @@ public sealed class Nicknames : ModuleBase
 				bool bypass = false
 		)
 		{
-			var options = GenerateRequestOptions();
+			var options = GetOptions();
 			ProgressLogger = new MultiUserActionProgressLogger(
 				Context.Channel,
 				i => Responses.Users.MultiUserActionProgress(i.AmountLeft).Reason,
@@ -89,7 +89,7 @@ public sealed class Nicknames : ModuleBase
 			bool bypass = false
 		)
 		{
-			var options = GenerateRequestOptions();
+			var options = GetOptions();
 			ProgressLogger = new MultiUserActionProgressLogger(
 				Context.Channel,
 				i => Responses.Users.MultiUserActionProgress(i.AmountLeft).Reason,
@@ -122,7 +122,7 @@ public sealed class Nicknames : ModuleBase
 			bool bypass = false
 		)
 		{
-			var options = GenerateRequestOptions();
+			var options = GetOptions();
 			ProgressLogger = new MultiUserActionProgressLogger(
 				Context.Channel,
 				i => Responses.Users.MultiUserActionProgress(i.AmountLeft).Reason,

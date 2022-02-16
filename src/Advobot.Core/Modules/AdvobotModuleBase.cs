@@ -45,7 +45,7 @@ public abstract class AdvobotModuleBase : ModuleBase<AdvobotCommandContext>
 	/// </summary>
 	/// <param name="reason"></param>
 	/// <returns></returns>
-	public RequestOptions GenerateRequestOptions(string? reason = null)
+	public RequestOptions GetOptions(string? reason = null)
 		=> Context.GenerateRequestOptions(reason);
 
 	/// <summary>
@@ -81,7 +81,7 @@ public abstract class AdvobotModuleBase : ModuleBase<AdvobotCommandContext>
 	{
 		var message = await ReplyAsync($"Did you mean any of the following:\n{source.FormatNumberedList(format)}").CAF();
 		var index = await NextIndexAsync(0, source.Count - 1, options).CAF();
-		await message.DeleteAsync(GenerateRequestOptions()).CAF();
+		await message.DeleteAsync(GetOptions()).CAF();
 		return index.HasValue ? source[index.Value] : InteractiveResult<T>.PropagateError(index);
 	}
 

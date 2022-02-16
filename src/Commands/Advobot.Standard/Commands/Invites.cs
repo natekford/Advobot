@@ -44,7 +44,7 @@ public sealed class Invites : ModuleBase
 			CreateInviteArguments? args)
 		{
 			args ??= new();
-			var options = GenerateRequestOptions();
+			var options = GetOptions();
 			var invite = await channel.CreateInviteAsync(args.Time, args.Uses, args.IsTemporary, args.IsUnique, options).CAF();
 			return Responses.Snowflakes.Created(invite);
 		}
@@ -83,7 +83,7 @@ public sealed class Invites : ModuleBase
 		[Command]
 		public async Task<RuntimeResult> Command([FromThisGuild] IInviteMetadata invite)
 		{
-			await invite.DeleteAsync(GenerateRequestOptions()).CAF();
+			await invite.DeleteAsync(GetOptions()).CAF();
 			return Responses.Snowflakes.Deleted(invite);
 		}
 	}
@@ -107,7 +107,7 @@ public sealed class Invites : ModuleBase
 
 			foreach (var invite in filtered)
 			{
-				await invite.DeleteAsync(GenerateRequestOptions()).CAF();
+				await invite.DeleteAsync(GetOptions()).CAF();
 			}
 			return Responses.Invites.DeletedMultipleInvites(filtered);
 		}

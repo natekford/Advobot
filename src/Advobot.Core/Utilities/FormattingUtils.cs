@@ -128,13 +128,13 @@ public static class FormattingUtils
 			: msg.Content.EscapeBackTicks();
 		var author = withMentions
 			? msg.Author.Mention
-			: $"{msg.Author.Format()}";
+			: msg.Author.Format();
 		var channel = withMentions
 			? $"[Link]({msg.GetJumpUrl()})"
 			: $"{msg.Channel.Format()} ({msg.Id})";
 		var sb = new StringBuilder($"{author} {channel} `[{time}]`\n```{text}");
 
-		var currentEmbed = 1;
+		var currentEmbed = default(int);
 		foreach (var embed in msg.Embeds)
 		{
 			if (embed.Description == null && embed.Url == null && !embed.Image.HasValue)
@@ -143,7 +143,8 @@ public static class FormattingUtils
 			}
 
 			var description = embed.Description?.EscapeBackTicks() ?? "No description";
-			sb.Append("Embed ").Append(currentEmbed).Append(": ").Append(description);
+			sb.AppendLineFeed();
+			sb.Append("Embed ").Append(currentEmbed + 1).Append(": ").Append(description);
 			if (embed.Url != null)
 			{
 				sb.Append(" URL: ").Append(embed.Url);
@@ -152,14 +153,13 @@ public static class FormattingUtils
 			{
 				sb.Append(" IURL: ").Append(embed.Image.Value.Url);
 			}
-			sb.AppendLineFeed();
 			++currentEmbed;
 		}
 
 		var attachments = msg.Attachments.Join(x => x.Filename, " + ");
 		if (!string.IsNullOrWhiteSpace(attachments))
 		{
-			sb.AppendLineFeed($" + {attachments.EscapeBackTicks()}");
+			sb.AppendLineFeed().AppendLineFeed($" + {attachments.EscapeBackTicks()}");
 		}
 		return sb.Append("```").ToString();
 	}

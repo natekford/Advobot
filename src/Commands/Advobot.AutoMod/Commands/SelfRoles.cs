@@ -30,25 +30,25 @@ public sealed class SelfRoles : ModuleBase
 		{
 			if (Context.User.Roles.Any(x => x.Id == role.Role.Id))
 			{
-				await Context.User.RemoveRoleAsync(role.Role, GenerateRequestOptions("self role removal")).CAF();
+				await Context.User.RemoveRoleAsync(role.Role, GetOptions("self role removal")).CAF();
 				return RemovedRole(role.Role);
 			}
 
 			// Remove roles the user already has from the group if they're targeting an exclusive group
-			await Context.User.AddRoleAsync(role.Role, GenerateRequestOptions("self role giving")).CAF();
-			if (role.ConflictingRoles.Count == 0)
-			{
-				return AddedRole(role.Role);
-			}
-
 			var conflicting = role.ConflictingRoles
 				.Where(x => Context.User.Roles.Any(y => y.Id == x.Id));
 			if (!conflicting.Any())
 			{
+				await Context.User.AddRoleAsync(role.Role, GetOptions("self role giving")).CAF();
 				return AddedRole(role.Role);
 			}
 
-			await Context.User.SmartRemoveRolesAsync(conflicting, GenerateRequestOptions("self role removal")).CAF();
+			await Context.User.ModifyRolesAsync(
+				rolesToAdd: new[] { role.Role },
+				rolesToRemove: conflicting,
+				GetOptions("self role giving and removal of conflicts")
+			).CAF();
+
 			return AddedRoleAndRemovedOthers(role.Role);
 		}
 	}

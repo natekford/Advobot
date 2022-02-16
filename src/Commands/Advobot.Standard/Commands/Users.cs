@@ -56,7 +56,7 @@ public sealed class Users : ModuleBase
 			await Punisher.HandleAsync(new Punishments.Ban(Context.Guild, userId, true)
 			{
 				Time = reason.Time,
-				Options = GenerateRequestOptions(reason.Reason),
+				Options = GetOptions(reason.Reason),
 			}).CAF();
 			return Responses.Users.Banned(true, user!, reason.Time);
 		}
@@ -108,7 +108,7 @@ public sealed class Users : ModuleBase
 			await Punisher.HandleAsync(new Punishments.Deafen(user, isGive)
 			{
 				Time = reason.Time,
-				Options = GenerateRequestOptions(reason.Reason),
+				Options = GetOptions(reason.Reason),
 			}).CAF();
 			return Responses.Users.Deafened(isGive, user, reason.Time);
 		}
@@ -228,7 +228,7 @@ public sealed class Users : ModuleBase
 			bool bypass,
 			Func<IGuildUser, RequestOptions, Task> update)
 		{
-			var options = GenerateRequestOptions();
+			var options = GetOptions();
 			ProgressLogger = new MultiUserActionProgressLogger(
 				Context.Channel,
 				i => Responses.Users.MultiUserActionProgress(i.AmountLeft).Reason,
@@ -275,7 +275,7 @@ public sealed class Users : ModuleBase
 			await Punisher.HandleAsync(new Punishments.Kick(user)
 			{
 				Time = reason.Time,
-				Options = GenerateRequestOptions(reason.Reason),
+				Options = GetOptions(reason.Reason),
 			}).CAF();
 			return Responses.Users.Kicked(user);
 		}
@@ -301,7 +301,7 @@ public sealed class Users : ModuleBase
 				return Responses.Users.AlreadyInChannel(user, channel);
 			}
 
-			await user.ModifyAsync(x => x.Channel = Optional.Create(channel), GenerateRequestOptions()).CAF();
+			await user.ModifyAsync(x => x.Channel = Optional.Create(channel), GetOptions()).CAF();
 			return Responses.Users.Moved(user, channel);
 		}
 	}
@@ -323,7 +323,7 @@ public sealed class Users : ModuleBase
 			bool bypass
 		)
 		{
-			var options = GenerateRequestOptions();
+			var options = GetOptions();
 			ProgressLogger = new MultiUserActionProgressLogger(
 				Context.Channel,
 				i => Responses.Users.MultiUserActionProgress(i.AmountLeft).Reason,
@@ -397,7 +397,7 @@ public sealed class Users : ModuleBase
 			await Punisher.HandleAsync(new Punishments.RoleMute(user, isGive, role)
 			{
 				Time = reason.Time,
-				Options = GenerateRequestOptions(reason.Reason),
+				Options = GetOptions(reason.Reason),
 			}).CAF();
 			return Responses.Users.Muted(isGive, user, reason.Time);
 		}
@@ -443,7 +443,7 @@ public sealed class Users : ModuleBase
 			int days
 		)
 		{
-			var amt = await Context.Guild.PruneUsersAsync(days, simulate: true, GenerateRequestOptions()).CAF();
+			var amt = await Context.Guild.PruneUsersAsync(days, simulate: true, GetOptions()).CAF();
 			return Responses.Users.FakePruned(days, amt);
 		}
 
@@ -453,7 +453,7 @@ public sealed class Users : ModuleBase
 			int days
 		)
 		{
-			var amt = await Context.Guild.PruneUsersAsync(days, simulate: false, GenerateRequestOptions()).CAF();
+			var amt = await Context.Guild.PruneUsersAsync(days, simulate: false, GetOptions()).CAF();
 			return Responses.Users.Pruned(days, amt);
 		}
 	}
@@ -519,7 +519,7 @@ public sealed class Users : ModuleBase
 			{
 				Now = Time.UtcNow,
 				DeleteCount = deleteCount,
-				Options = GenerateRequestOptions(),
+				Options = GetOptions(),
 				FromMessage = Context.Message.Channel.Id == channel.Id
 					? Context.Message
 					: null,
@@ -559,7 +559,7 @@ public sealed class Users : ModuleBase
 			await Punisher.HandleAsync(new Punishments.Ban(Context.Guild, userId, true)
 			{
 				Time = reason.Time,
-				Options = GenerateRequestOptions(reason.Reason),
+				Options = GetOptions(reason.Reason),
 			}).CAF();
 			return Responses.Users.Banned(true, user!, reason.Time);
 		}
@@ -582,7 +582,7 @@ public sealed class Users : ModuleBase
 			await Punisher.HandleAsync(new Punishments.Ban(Context.Guild, ban.User.Id, false)
 			{
 				Time = reason.Time,
-				Options = GenerateRequestOptions(reason.Reason),
+				Options = GetOptions(reason.Reason),
 			}).CAF();
 			return Responses.Users.Banned(false, ban.User, reason.Time);
 		}
@@ -606,7 +606,7 @@ public sealed class Users : ModuleBase
 			await Punisher.HandleAsync(new Punishments.Mute(user, isGive)
 			{
 				Time = reason.Time,
-				Options = GenerateRequestOptions(reason.Reason),
+				Options = GetOptions(reason.Reason),
 			}).CAF();
 			return Responses.Users.Deafened(isGive, user, reason.Time);
 		}

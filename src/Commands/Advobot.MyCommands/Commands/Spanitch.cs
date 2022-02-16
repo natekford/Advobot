@@ -28,29 +28,41 @@ public sealed class SpanitchModule : AutoModModuleBase
 	private const ulong SPAN_ID = 741058143450300487;
 	private IRole[]? _Roles;
 
-	private RequestOptions Options => GenerateRequestOptions("spanitch");
+	private RequestOptions Options => GetOptions("spanitch");
 	private IRole[] Roles => _Roles ??= new[]
 	{
-			Context.Guild.GetRole(MUTE_ID),
-			Context.Guild.GetRole(SPAN_ID)
-		};
+		Context.Guild.GetRole(MUTE_ID),
+		Context.Guild.GetRole(SPAN_ID)
+	};
 
 	[Command]
 	public async Task<RuntimeResult> Command([CanModifyUser] IGuildUser user)
 	{
-		await user.SmartAddRolesAsync(Roles, Options).CAF();
+		await user.ModifyRolesAsync(
+			rolesToAdd: Roles,
+			rolesToRemove: Array.Empty<IRole>(),
+			Options
+		).CAF();
 		return AdvobotResult.Success("they have been spanitched");
 	}
 
 	[Command("hard")]
 	[Summary("makes it so if they leave the server and rejoin they are still spanitched")]
+	[Priority(1)]
 	public async Task<RuntimeResult> Hard([CanModifyUser] IGuildUser user)
 	{
 		await Command(user).CAF();
+		return await Hard(user.Id).CAF();
+	}
 
-		foreach (var p in CreatePersistentRoles(user))
+	[Command("hard")]
+	[Summary("makes it so if they leave the server and rejoin they are still spanitched")]
+	[Priority(0)]
+	public async Task<RuntimeResult> Hard(ulong user)
+	{
+		foreach (var pRole in CreatePersistentRoles(user))
 		{
-			await Db.AddPersistentRoleAsync(p).CAF();
+			await Db.AddPersistentRoleAsync(pRole).CAF();
 		}
 
 		return AdvobotResult.Success("they have been spanitched hard");
@@ -60,24 +72,28 @@ public sealed class SpanitchModule : AutoModModuleBase
 	[Summary("unspanitches a user")]
 	public async Task<RuntimeResult> Unspanitch([CanModifyUser] IGuildUser user)
 	{
-		await user.SmartRemoveRolesAsync(Roles, Options).CAF();
+		await user.ModifyRolesAsync(
+			rolesToAdd: Array.Empty<IRole>(),
+			rolesToRemove: Roles,
+			Options
+		).CAF();
 
-		foreach (var p in CreatePersistentRoles(user))
+		foreach (var pRole in CreatePersistentRoles(user.Id))
 		{
-			await Db.DeletePersistentRoleAsync(p).CAF();
+			await Db.DeletePersistentRoleAsync(pRole).CAF();
 		}
 
 		return AdvobotResult.Success("they have been unspanitched");
 	}
 
-	private PersistentRole[] CreatePersistentRoles(IGuildUser user)
+	private PersistentRole[] CreatePersistentRoles(ulong user)
 	{
 		return Array.ConvertAll(Roles, x =>
 		{
 			return new PersistentRole
 			{
 				GuildId = Context.Guild.Id,
-				UserId = user.Id,
+				UserId = user,
 				RoleId = x.Id,
 			};
 		});
@@ -117,8 +133,26 @@ public sealed class SpanitchModule : AutoModModuleBase
 			CommandInfo command,
 			IServiceProvider services)
 		{
-			var set = context.Guild.Roles.Select(x => x.Id).ToHashSet();
-			if (set.Contains(MUTE_ID) && set.Contains(SPAN_ID))
+			var hasMute = false;
+			var hasSpan = false;
+			foreach (var role in context.Guild.Roles)
+			{
+				if (role.Id == MUTE_ID)
+				{
+					hasMute = true;
+				}
+				else if (role.Id == SPAN_ID)
+				{
+					hasSpan = true;
+				}
+
+				if (hasMute && hasSpan)
+				{
+					break;
+				}
+			}
+
+			if (hasMute && hasSpan)
 			{
 				return this.FromSuccess().AsTask();
 			}

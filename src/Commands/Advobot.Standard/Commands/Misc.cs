@@ -129,9 +129,9 @@ public sealed class Misc : ModuleBase
 		{
 			var cut = message[..Math.Min(message.Length, 250)];
 			var text = $"From `{Context.User.Format()}`, {role.Mention}: {cut}";
-			await role.ModifyAsync(x => x.Mentionable = true, GenerateRequestOptions()).CAF();
+			await role.ModifyAsync(x => x.Mentionable = true, GetOptions()).CAF();
 			await ReplyAsync(text).CAF();
-			await role.ModifyAsync(x => x.Mentionable = false, GenerateRequestOptions()).CAF();
+			await role.ModifyAsync(x => x.Mentionable = false, GetOptions()).CAF();
 		}
 	}
 

@@ -36,7 +36,7 @@ public sealed class SelfRoleStateTypeReader : RoleTypeReader<IRole>
 		}
 
 		IReadOnlyList<IRole> conflicting = Array.Empty<IRole>();
-		if (selfRole.GroupId != 0)
+		if (selfRole.GroupId != SelfRole.NO_GROUP)
 		{
 			conflicting = await GetConflictingRoles(db, context, selfRole).CAF();
 		}
@@ -51,8 +51,8 @@ public sealed class SelfRoleStateTypeReader : RoleTypeReader<IRole>
 		SelfRole item)
 	{
 		var selfRoles = await db.GetSelfRolesAsync(context.Guild.Id, item.GroupId).CAF();
-		var conflicating = new List<IRole>(selfRoles.Count);
-		var toDelete = new List<ulong>();
+		var conflicting = new List<IRole>(selfRoles.Count);
+		var deletable = new List<ulong>();
 
 		foreach (var selfRole in selfRoles)
 		{
@@ -60,18 +60,18 @@ public sealed class SelfRoleStateTypeReader : RoleTypeReader<IRole>
 			// Role doesn't exist anymore, so go remove it from the db
 			if (role == null)
 			{
-				toDelete.Add(item.RoleId);
+				deletable.Add(item.RoleId);
 			}
 			else if (role.Id != item.RoleId)
 			{
-				conflicating.Add(role);
+				conflicting.Add(role);
 			}
 		}
 
-		if (toDelete.Count != 0)
+		if (deletable.Count != 0)
 		{
-			await db.DeleteSelfRolesAsync(toDelete).CAF();
+			await db.DeleteSelfRolesAsync(deletable).CAF();
 		}
-		return conflicating;
+		return conflicting;
 	}
 }
