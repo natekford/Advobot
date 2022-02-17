@@ -16,6 +16,8 @@ using AdvorangesUtils;
 using Discord;
 using Discord.Commands;
 
+using static Advobot.Standard.Responses.Misc;
+
 namespace Advobot.Standard.Commands;
 
 [Category(nameof(Misc))]
@@ -36,16 +38,16 @@ public sealed class Misc : ModuleBase
 		public async Task<RuntimeResult> Command()
 		{
 			var prefix = await GuildSettings.GetPrefixAsync(Context.Guild).CAF();
-			return Responses.Misc.GeneralHelp(prefix);
+			return GeneralHelp(prefix);
 		}
 
 		[Command, Priority(1)]
 		[LocalizedSummary(nameof(Summaries.HelpModuleHelp))]
 		public Task<RuntimeResult> Command(
 			[LocalizedSummary(nameof(Summaries.HelpVariableCommand))]
-				[LocalizedName(nameof(Parameters.Command))]
-				[Remainder]
-				IModuleHelpEntry helpEntry
+			[LocalizedName(nameof(Parameters.Command))]
+			[Remainder]
+			IModuleHelpEntry helpEntry
 		) => Responses.Misc.Help(helpEntry);
 
 		[Command, Priority(2)]
@@ -65,7 +67,7 @@ public sealed class Misc : ModuleBase
 		[Hidden]
 		public async Task<RuntimeResult> Command(
 			[Remainder]
-				IReadOnlyList<IModuleHelpEntry> helpEntries
+			IReadOnlyList<IModuleHelpEntry> helpEntries
 		)
 		{
 			var entry = await NextItemAtIndexAsync(helpEntries, x => x.Name).CAF();
@@ -92,14 +94,14 @@ public sealed class Misc : ModuleBase
 		public async Task<RuntimeResult> Command()
 		{
 			var prefix = await GuildSettings.GetPrefixAsync(Context.Guild).CAF();
-			return Responses.Misc.GeneralCommandInfo(HelpEntries.GetCategories(), prefix);
+			return GeneralCommandInfo(HelpEntries.GetCategories(), prefix);
 		}
 
 		[Command]
 		public Task<RuntimeResult> Command(Category category)
 		{
 			var entries = HelpEntries.GetHelpEntries(category.Name);
-			return Responses.Misc.CategoryCommands(entries, category.Name);
+			return CategoryCommands(entries, category.Name);
 		}
 	}
 
@@ -161,25 +163,21 @@ public sealed class Misc : ModuleBase
 	public sealed class Test : AdvobotModuleBase
 	{
 		[Command]
-		public async Task Command(int count)
+		public async Task Command()
 		{
-			var embeds = Enumerable.Range(0, count).Select(x =>
+			// do people actually fall for "moderator academy" accounts?
+			var users = Context.Guild.Users
+				.Where(x => x.Username.CaseInsContains("moderator"))
+				.ToList();
+			for (var i = 0; i < users.Count; ++i)
 			{
-				return new EmbedBuilder
+				await users[i].BanAsync(7, "scam accounts").CAF();
+				if (i % 10 == 0)
 				{
-					Description = x.ToString()
-				}.Build();
-			}).ToArray();
-			var files = Enumerable.Range(0, count).Select(x =>
-			{
-				return MessageUtils.CreateTextFile(x.ToString(), x.ToString());
-			}).ToList();
-
-			await Context.Channel.SendMessageAsync(new SendMessageArgs
-			{
-				Embeds = embeds,
-				Files = files,
-			}).CAF();
+					Console.WriteLine($"{users.Count - i} users left to ban.");
+				}
+			}
+			await Context.Channel.SendMessageAsync($"Banned {users.Count} users.").CAF();
 		}
 	}
 }

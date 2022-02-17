@@ -122,8 +122,6 @@ public sealed class AdvobotLauncher
 		CommandAssemblyCollection assemblies,
 		IConfig config)
 	{
-		const GatewayIntents INTENTS = GatewayIntents.All;
-
 		var botSettings = NaiveBotSettings.CreateOrLoad(config);
 		var commandConfig = new CommandServiceConfig
 		{
@@ -136,7 +134,8 @@ public sealed class AdvobotLauncher
 			MessageCacheSize = botSettings.MessageCacheSize,
 			LogLevel = botSettings.LogLevel,
 			AlwaysDownloadUsers = true,
-			GatewayIntents = INTENTS,
+			LogGatewayIntentWarnings = false,
+			GatewayIntents = GatewayIntents.All,
 		});
 		var httpClient = new HttpClient(new HttpClientHandler
 		{
