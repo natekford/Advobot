@@ -1,69 +1,69 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
-  <PropertyGroup>
-    <RootNamespace>Advobot</RootNamespace>
-    <TargetFramework>netstandard2.1</TargetFramework>
-    <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
-    <Nullable>enable</Nullable>
-    <ImplicitUsings>enable</ImplicitUsings>
-    <LangVersion>preview</LangVersion>
-    <Deterministic>false</Deterministic>
-  </PropertyGroup>
+	<PropertyGroup>
+		<RootNamespace>Advobot</RootNamespace>
+		<TargetFramework>netstandard2.1</TargetFramework>
+		<GenerateAssemblyInfo>false</GenerateAssemblyInfo>
+		<Nullable>enable</Nullable>
+		<ImplicitUsings>enable</ImplicitUsings>
+		<LangVersion>preview</LangVersion>
+		<Deterministic>false</Deterministic>
+	</PropertyGroup>
 
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
-    <DocumentationFile>bin\Debug\netstandard2.0\Advobot.Core.xml</DocumentationFile>
-  </PropertyGroup>
+	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
+		<DocumentationFile>bin\Debug\netstandard2.0\Advobot.Core.xml</DocumentationFile>
+	</PropertyGroup>
 
-  <ItemGroup>
-    <PackageReference Include="AdvorangesSettingParser" Version="1.4.0" />
-    <PackageReference Include="AdvorangesUtils" Version="1.1.0">
-      <NoWarn>NU1701</NoWarn>
-    </PackageReference>
-    <PackageReference Include="Discord.Net" Version="3.3.0" />
-    <PackageReference Include="Discord.Net.Commands" Version="3.3.0" />
-    <PackageReference Include="Discord.Net.Core" Version="3.3.0" />
-    <PackageReference Include="Discord.Net.Interactions" Version="3.3.0" />
-    <PackageReference Include="Discord.Net.Rest" Version="3.3.0" />
-    <PackageReference Include="Discord.Net.Webhook" Version="3.3.0" />
-    <PackageReference Include="Discord.Net.WebSocket" Version="3.3.0" />
-    <PackageReference Include="Magick.NET-Q8-AnyCPU" Version="9.1.1" />
-    <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="6.0.0" />
-  </ItemGroup>
+	<ItemGroup>
+		<PackageReference Include="AdvorangesSettingParser" Version="1.4.0" />
+		<PackageReference Include="AdvorangesUtils" Version="1.1.0">
+			<NoWarn>NU1701</NoWarn>
+		</PackageReference>
+		<PackageReference Include="Discord.Net" Version="3.3.0" />
+		<PackageReference Include="Discord.Net.Commands" Version="3.3.0" />
+		<PackageReference Include="Discord.Net.Core" Version="3.3.0" />
+		<PackageReference Include="Discord.Net.Interactions" Version="3.3.0" />
+		<PackageReference Include="Discord.Net.Rest" Version="3.3.0" />
+		<PackageReference Include="Discord.Net.Webhook" Version="3.3.0" />
+		<PackageReference Include="Discord.Net.WebSocket" Version="3.3.0" />
+		<PackageReference Include="Magick.NET-Q8-AnyCPU" Version="9.1.1" />
+		<PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="6.0.0" />
+	</ItemGroup>
 
-  <ItemGroup>
-    <ProjectReference Include="..\Advobot.Resources\Advobot.Resources.csproj" />
-  </ItemGroup>
+	<ItemGroup>
+		<ProjectReference Include="..\Advobot.Resources\Advobot.Resources.csproj" />
+	</ItemGroup>
 
-  <ItemGroup>
-    <Service Include="{508349b6-6b84-4df5-91f0-309beebad82d}" />
-  </ItemGroup>
+	<ItemGroup>
+		<Service Include="{508349b6-6b84-4df5-91f0-309beebad82d}" />
+	</ItemGroup>
 
-  <ItemGroup>
-    <Compile Update="Resources\BotSettingNames.Designer.cs">
-      <DesignTime>True</DesignTime>
-      <AutoGen>True</AutoGen>
-      <DependentUpon>BotSettingNames.resx</DependentUpon>
-    </Compile>
-    <Compile Update="Resources\GuildSettingNames.Designer.cs">
-      <DesignTime>True</DesignTime>
-      <AutoGen>True</AutoGen>
-      <DependentUpon>GuildSettingNames.resx</DependentUpon>
-    </Compile>
-  </ItemGroup>
+	<ItemGroup>
+		<Compile Update="Resources\BotSettingNames.Designer.cs">
+			<DesignTime>True</DesignTime>
+			<AutoGen>True</AutoGen>
+			<DependentUpon>BotSettingNames.resx</DependentUpon>
+		</Compile>
+		<Compile Update="Resources\GuildSettingNames.Designer.cs">
+			<DesignTime>True</DesignTime>
+			<AutoGen>True</AutoGen>
+			<DependentUpon>GuildSettingNames.resx</DependentUpon>
+		</Compile>
+	</ItemGroup>
 
-  <ItemGroup>
-    <EmbeddedResource Update="Resources\BotSettingNames.resx">
-      <Generator>ResXFileCodeGenerator</Generator>
-      <LastGenOutput>BotSettingNames.Designer.cs</LastGenOutput>
-    </EmbeddedResource>
-    <EmbeddedResource Update="Resources\GuildSettingNames.resx">
-      <Generator>ResXFileCodeGenerator</Generator>
-      <LastGenOutput>GuildSettingNames.Designer.cs</LastGenOutput>
-    </EmbeddedResource>
-  </ItemGroup>
+	<ItemGroup>
+		<EmbeddedResource Update="Resources\BotSettingNames.resx">
+			<Generator>ResXFileCodeGenerator</Generator>
+			<LastGenOutput>BotSettingNames.Designer.cs</LastGenOutput>
+		</EmbeddedResource>
+		<EmbeddedResource Update="Resources\GuildSettingNames.resx">
+			<Generator>ResXFileCodeGenerator</Generator>
+			<LastGenOutput>GuildSettingNames.Designer.cs</LastGenOutput>
+		</EmbeddedResource>
+	</ItemGroup>
 
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
-    <DebugType>full</DebugType>
-    <DebugSymbols>true</DebugSymbols>
-    <DefineConstants>TRACE</DefineConstants>
-  </PropertyGroup>
+	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
+		<DebugType>full</DebugType>
+		<DebugSymbols>true</DebugSymbols>
+		<DefineConstants>TRACE</DefineConstants>
+	</PropertyGroup>
 </Project>

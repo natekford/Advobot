@@ -1,35 +1,41 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
-  <PropertyGroup>
-    <TargetFramework>net6.0</TargetFramework>
-    <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
-    <Nullable>enable</Nullable>
-    <ImplicitUsings>enable</ImplicitUsings>
-    <LangVersion>preview</LangVersion>
-    <Deterministic>false</Deterministic>
-  </PropertyGroup>
+	<PropertyGroup>
+		<TargetFramework>net6.0</TargetFramework>
+		<GenerateAssemblyInfo>false</GenerateAssemblyInfo>
+		<Nullable>enable</Nullable>
+		<ImplicitUsings>enable</ImplicitUsings>
+		<LangVersion>preview</LangVersion>
+		<Deterministic>false</Deterministic>
+	</PropertyGroup>
 
-  <ItemGroup>
-    <PackageReference Include="coverlet.msbuild" Version="3.1.2">
-      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
-      <PrivateAssets>all</PrivateAssets>
-    </PackageReference>
-    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.1.0-preview-20211130-02" />
-    <PackageReference Include="MSTest.TestAdapter" Version="2.2.8" />
-    <PackageReference Include="MSTest.TestFramework" Version="2.2.8" />
-  </ItemGroup>
+	<PropertyGroup>
+		<CollectCoverage>true</CollectCoverage>
+		<CoverletOutputFormat>lcov</CoverletOutputFormat>
+		<CoverletOutput>./lcov.info</CoverletOutput>
+	</PropertyGroup>
 
-  <ItemGroup>
-    <ProjectReference Include="..\..\src\Commands\Advobot.AllCommands\Advobot.AllCommands.csproj" />
-  </ItemGroup>
+	<ItemGroup>
+		<PackageReference Include="coverlet.msbuild" Version="3.1.2">
+			<IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+			<PrivateAssets>all</PrivateAssets>
+		</PackageReference>
+		<PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.1.0-preview-20211130-02" />
+		<PackageReference Include="MSTest.TestAdapter" Version="2.2.8" />
+		<PackageReference Include="MSTest.TestFramework" Version="2.2.8" />
+	</ItemGroup>
 
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
-    <DebugType>full</DebugType>
-    <DebugSymbols>true</DebugSymbols>
-    <DefineConstants>TRACE</DefineConstants>
-    <NoWarn>1701;1702;RCS1047;RCS1079;CS8618;CS8619;CS8625;</NoWarn>
-  </PropertyGroup>
+	<ItemGroup>
+		<ProjectReference Include="..\..\src\Commands\Advobot.AllCommands\Advobot.AllCommands.csproj" />
+	</ItemGroup>
 
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
-    <NoWarn>1701;1702;RCS1047;RCS1079</NoWarn>
-  </PropertyGroup>
+	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
+		<DebugType>full</DebugType>
+		<DebugSymbols>true</DebugSymbols>
+		<DefineConstants>TRACE</DefineConstants>
+		<NoWarn>1701;1702;RCS1047;RCS1079;CS8618;CS8619;CS8625;</NoWarn>
+	</PropertyGroup>
+
+	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
+		<NoWarn>1701;1702;RCS1047;RCS1079</NoWarn>
+	</PropertyGroup>
 </Project>

@@ -1,65 +1,65 @@
 <Project Sdk="Microsoft.NET.Sdk">
-  <PropertyGroup>
-    <TargetFramework>netstandard2.1</TargetFramework>
-  </PropertyGroup>
+	<PropertyGroup>
+		<TargetFramework>netstandard2.1</TargetFramework>
+	</PropertyGroup>
 
-  <ItemGroup>
-    <Compile Update="Aliases.Designer.cs">
-      <DesignTime>True</DesignTime>
-      <AutoGen>True</AutoGen>
-      <DependentUpon>Aliases.resx</DependentUpon>
-    </Compile>
-    <Compile Update="Groups.Designer.cs">
-      <DesignTime>True</DesignTime>
-      <AutoGen>True</AutoGen>
-      <DependentUpon>Groups.resx</DependentUpon>
-    </Compile>
-    <Compile Update="Parameters.Designer.cs">
-      <DesignTime>True</DesignTime>
-      <AutoGen>True</AutoGen>
-      <DependentUpon>Parameters.resx</DependentUpon>
-    </Compile>
-    <Compile Update="Responses.Designer.cs">
-      <DesignTime>True</DesignTime>
-      <AutoGen>True</AutoGen>
-      <DependentUpon>Responses.resx</DependentUpon>
-    </Compile>
-    <Compile Update="Summaries.Designer.cs">
-      <DesignTime>True</DesignTime>
-      <AutoGen>True</AutoGen>
-      <DependentUpon>Summaries.resx</DependentUpon>
-    </Compile>
-    <Compile Update="Variables.Designer.cs">
-      <DesignTime>True</DesignTime>
-      <AutoGen>True</AutoGen>
-      <DependentUpon>Variables.resx</DependentUpon>
-    </Compile>
-  </ItemGroup>
+	<ItemGroup>
+		<Compile Update="Aliases.Designer.cs">
+			<DesignTime>True</DesignTime>
+			<AutoGen>True</AutoGen>
+			<DependentUpon>Aliases.resx</DependentUpon>
+		</Compile>
+		<Compile Update="Groups.Designer.cs">
+			<DesignTime>True</DesignTime>
+			<AutoGen>True</AutoGen>
+			<DependentUpon>Groups.resx</DependentUpon>
+		</Compile>
+		<Compile Update="Parameters.Designer.cs">
+			<DesignTime>True</DesignTime>
+			<AutoGen>True</AutoGen>
+			<DependentUpon>Parameters.resx</DependentUpon>
+		</Compile>
+		<Compile Update="Responses.Designer.cs">
+			<DesignTime>True</DesignTime>
+			<AutoGen>True</AutoGen>
+			<DependentUpon>Responses.resx</DependentUpon>
+		</Compile>
+		<Compile Update="Summaries.Designer.cs">
+			<DesignTime>True</DesignTime>
+			<AutoGen>True</AutoGen>
+			<DependentUpon>Summaries.resx</DependentUpon>
+		</Compile>
+		<Compile Update="Variables.Designer.cs">
+			<DesignTime>True</DesignTime>
+			<AutoGen>True</AutoGen>
+			<DependentUpon>Variables.resx</DependentUpon>
+		</Compile>
+	</ItemGroup>
 
-  <ItemGroup>
-    <EmbeddedResource Update="Aliases.resx">
-      <Generator>PublicResXFileCodeGenerator</Generator>
-      <LastGenOutput>Aliases.Designer.cs</LastGenOutput>
-    </EmbeddedResource>
-    <EmbeddedResource Update="Groups.resx">
-      <Generator>PublicResXFileCodeGenerator</Generator>
-      <LastGenOutput>Groups.Designer.cs</LastGenOutput>
-    </EmbeddedResource>
-    <EmbeddedResource Update="Parameters.resx">
-      <Generator>PublicResXFileCodeGenerator</Generator>
-      <LastGenOutput>Parameters.Designer.cs</LastGenOutput>
-    </EmbeddedResource>
-    <EmbeddedResource Update="Responses.resx">
-      <Generator>PublicResXFileCodeGenerator</Generator>
-      <LastGenOutput>Responses.Designer.cs</LastGenOutput>
-    </EmbeddedResource>
-    <EmbeddedResource Update="Summaries.resx">
-      <Generator>PublicResXFileCodeGenerator</Generator>
-      <LastGenOutput>Summaries.Designer.cs</LastGenOutput>
-    </EmbeddedResource>
-    <EmbeddedResource Update="Variables.resx">
-      <Generator>PublicResXFileCodeGenerator</Generator>
-      <LastGenOutput>Variables.Designer.cs</LastGenOutput>
-    </EmbeddedResource>
-  </ItemGroup>
+	<ItemGroup>
+		<EmbeddedResource Update="Aliases.resx">
+			<Generator>PublicResXFileCodeGenerator</Generator>
+			<LastGenOutput>Aliases.Designer.cs</LastGenOutput>
+		</EmbeddedResource>
+		<EmbeddedResource Update="Groups.resx">
+			<Generator>PublicResXFileCodeGenerator</Generator>
+			<LastGenOutput>Groups.Designer.cs</LastGenOutput>
+		</EmbeddedResource>
+		<EmbeddedResource Update="Parameters.resx">
+			<Generator>PublicResXFileCodeGenerator</Generator>
+			<LastGenOutput>Parameters.Designer.cs</LastGenOutput>
+		</EmbeddedResource>
+		<EmbeddedResource Update="Responses.resx">
+			<Generator>PublicResXFileCodeGenerator</Generator>
+			<LastGenOutput>Responses.Designer.cs</LastGenOutput>
+		</EmbeddedResource>
+		<EmbeddedResource Update="Summaries.resx">
+			<Generator>PublicResXFileCodeGenerator</Generator>
+			<LastGenOutput>Summaries.Designer.cs</LastGenOutput>
+		</EmbeddedResource>
+		<EmbeddedResource Update="Variables.resx">
+			<Generator>PublicResXFileCodeGenerator</Generator>
+			<LastGenOutput>Variables.Designer.cs</LastGenOutput>
+		</EmbeddedResource>
+	</ItemGroup>
 </Project>

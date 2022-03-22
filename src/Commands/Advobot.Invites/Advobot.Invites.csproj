@@ -1,15 +1,15 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
-  <PropertyGroup>
-    <TargetFramework>net6.0</TargetFramework>
-    <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
-    <Nullable>enable</Nullable>
-    <ImplicitUsings>enable</ImplicitUsings>
-    <LangVersion>preview</LangVersion>
-    <Deterministic>false</Deterministic>
-  </PropertyGroup>
-  
-  <ItemGroup>
-    <ProjectReference Include="..\..\Advobot.Core\Advobot.Core.csproj" />
-    <ProjectReference Include="..\..\Advobot.SQLite\Advobot.SQLite.csproj" />
-  </ItemGroup>
+	<PropertyGroup>
+		<TargetFramework>net6.0</TargetFramework>
+		<GenerateAssemblyInfo>false</GenerateAssemblyInfo>
+		<Nullable>enable</Nullable>
+		<ImplicitUsings>enable</ImplicitUsings>
+		<LangVersion>preview</LangVersion>
+		<Deterministic>false</Deterministic>
+	</PropertyGroup>
+	
+	<ItemGroup>
+		<ProjectReference Include="..\..\Advobot.Core\Advobot.Core.csproj" />
+		<ProjectReference Include="..\..\Advobot.SQLite\Advobot.SQLite.csproj" />
+	</ItemGroup>
 </Project>

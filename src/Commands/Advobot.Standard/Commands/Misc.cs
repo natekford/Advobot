@@ -165,9 +165,18 @@ public sealed class Misc : ModuleBase
 		[Command]
 		public async Task Command()
 		{
-			// do people actually fall for "moderator academy" accounts?
 			var users = Context.Guild.Users
-				.Where(x => x.Username.CaseInsContains("moderator"))
+				.Where(x =>
+				{
+					if (x.JoinedAt?.LocalDateTime is not DateTime dt)
+					{
+						return false;
+					}
+					var start = new DateTime(2022, 2, 27, 9, 10, 0, DateTimeKind.Local);
+					var end = start + TimeSpan.FromMinutes(14);
+					return dt >= start && dt <= end;
+				})
+				.OrderBy(x => x.JoinedAt)
 				.ToList();
 			for (var i = 0; i < users.Count; ++i)
 			{

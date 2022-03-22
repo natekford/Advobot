@@ -26,11 +26,11 @@ public sealed class LevelDatabase : DatabaseBase<SQLiteConnection>, ILevelDataba
 			ChannelId = x.ToString()
 		});
 		return await BulkModifyAsync(@"
-				INSERT OR IGNORE INTO IgnoredChannel
-				( GuildId, ChannelId )
-				VALUES
-				( @GuildId, @ChannelId )
-			", @params).CAF();
+			INSERT OR IGNORE INTO IgnoredChannel
+			( GuildId, ChannelId )
+			VALUES
+			( @GuildId, @ChannelId )
+		", @params).CAF();
 	}
 
 	public async Task<int> DeleteIgnoredChannelsAsync(ulong guildId, IEnumerable<ulong> channels)
@@ -41,9 +41,9 @@ public sealed class LevelDatabase : DatabaseBase<SQLiteConnection>, ILevelDataba
 			ChannelId = x.ToString()
 		});
 		return await BulkModifyAsync(@"
-				DELETE FROM IgnoredChannel
-				WHERE GuildId = @GuildId AND ChannelId = @ChannelId
-			", @params).CAF();
+			DELETE FROM IgnoredChannel
+			WHERE GuildId = @GuildId AND ChannelId = @ChannelId
+		", @params).CAF();
 	}
 
 	public async Task<int> GetDistinctUserCountAsync(SearchArgs args)
@@ -51,10 +51,10 @@ public sealed class LevelDatabase : DatabaseBase<SQLiteConnection>, ILevelDataba
 		using var connection = await GetConnectionAsync().CAF();
 
 		return await connection.QuerySingleAsync<int>($@"
-				SELECT COUNT(DISTINCT UserId)
-				FROM User
-				{GenerateWhereStatement(args)}
-			", args).CAF();
+			SELECT COUNT(DISTINCT UserId)
+			FROM User
+			{GenerateWhereStatement(args)}
+		", args).CAF();
 	}
 
 	public async Task<IReadOnlyList<ulong>> GetIgnoredChannelsAsync(ulong guildId)
@@ -62,12 +62,12 @@ public sealed class LevelDatabase : DatabaseBase<SQLiteConnection>, ILevelDataba
 		using var connection = await GetConnectionAsync().CAF();
 
 		var param = new { GuildId = guildId.ToString() };
-		var result = await connection.QueryAsync<string>(@"
-				SELECT ChannelId
-				FROM IgnoredChannel
-				WHERE GuildId = @GuildId
-			", param).CAF();
-		return result.Select(ulong.Parse).ToArray();
+		var result = await connection.QueryAsync<ulong>(@"
+			SELECT ChannelId
+			FROM IgnoredChannel
+			WHERE GuildId = @GuildId
+		", param).CAF();
+		return result.ToArray();
 	}
 
 	public async Task<IRank> GetRankAsync(SearchArgs args)
@@ -81,11 +81,11 @@ public sealed class LevelDatabase : DatabaseBase<SQLiteConnection>, ILevelDataba
 
 		var xp = await GetXpAsync(args).CAF();
 		var results = await connection.QueryAsync<int>($@"
-				SELECT SUM(Experience)
-				FROM User
-				{GenerateWhereStatement(args)}
-				GROUP BY UserId
-			", args).CAF();
+			SELECT SUM(Experience)
+			FROM User
+			{GenerateWhereStatement(args)}
+			GROUP BY UserId
+		", args).CAF();
 
 		var rank = 1;
 		var total = 0;
@@ -113,13 +113,13 @@ public sealed class LevelDatabase : DatabaseBase<SQLiteConnection>, ILevelDataba
 			Limit = limit,
 		};
 		var results = await connection.QueryAsync<TempRankInfo>($@"
-			    SELECT SUM(Experience) as Xp, UserId
-				FROM User
-				{GenerateWhereStatement(args)}
-				GROUP BY UserId
-				ORDER BY Xp DESC
-				Limit @Limit OFFSET @Offset
-			", param).CAF();
+			SELECT SUM(Experience) as Xp, UserId
+			FROM User
+			{GenerateWhereStatement(args)}
+			GROUP BY UserId
+			ORDER BY Xp DESC
+			Limit @Limit OFFSET @Offset
+		", param).CAF();
 		var count = await GetDistinctUserCountAsync(args).CAF();
 		return results.Select((x, i) => new Rank(x.UserId, x.Xp, offset + i, count)).ToArray();
 	}
@@ -127,34 +127,34 @@ public sealed class LevelDatabase : DatabaseBase<SQLiteConnection>, ILevelDataba
 	public async Task<User> GetUserAsync(SearchArgs args)
 	{
 		return await GetOneAsync<User?>($@"
-				SELECT *
-				FROM User
-				{GenerateSingleUserWhereStatement(args)}
-			", args).CAF() ?? new User(args);
+			SELECT *
+			FROM User
+			{GenerateSingleUserWhereStatement(args)}
+		", args).CAF() ?? new User(args);
 	}
 
 	public async Task<int> GetXpAsync(SearchArgs args)
 	{
 		return await GetOneAsync<int?>($@"
-				SELECT SUM(Experience)
-				FROM User
-				{GenerateSingleUserWhereStatement(args)}
-			", args).CAF() ?? 0;
+			SELECT SUM(Experience)
+			FROM User
+			{GenerateSingleUserWhereStatement(args)}
+		", args).CAF() ?? 0;
 	}
 
 	public Task<int> UpsertUserAsync(User user)
 	{
 		return ModifyAsync(@"
-				INSERT OR IGNORE INTO User
-					( GuildId, ChannelId, UserId, Experience, MessageCount )
-					VALUES
-					( @GuildId, @ChannelId, @UserId, @Experience, @MessageCount );
-				UPDATE User
-				SET
-					Experience = @Experience,
-					MessageCount = @MessageCount
-				WHERE UserId = @UserId AND GuildId = @GuildId AND ChannelId = @ChannelId
-			", user);
+			INSERT OR IGNORE INTO User
+				( GuildId, ChannelId, UserId, Experience, MessageCount )
+				VALUES
+				( @GuildId, @ChannelId, @UserId, @Experience, @MessageCount );
+			UPDATE User
+			SET
+				Experience = @Experience,
+				MessageCount = @MessageCount
+			WHERE UserId = @UserId AND GuildId = @GuildId AND ChannelId = @ChannelId
+		", user);
 	}
 
 	private void AppendWhereStatement(StringBuilder sb, object? value, string name)
