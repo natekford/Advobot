@@ -13,7 +13,6 @@ namespace Advobot.Services.GuildSettingsProvider;
 internal sealed class NaiveGuildSettingsProvider : IGuildSettingsProvider
 {
 	private const string NAME = "Advobot_Mute";
-	private static readonly GuildPermissions Permissions = new(0);
 	private static readonly RequestOptions RoleCreation = new()
 	{
 		AuditLogReason = "Role not found or is higher than my highest role.",
@@ -38,7 +37,14 @@ internal sealed class NaiveGuildSettingsProvider : IGuildSettingsProvider
 				return role;
 			}
 		}
-		return await guild.CreateRoleAsync(NAME, Permissions, null, false, false, RoleCreation).CAF();
+		return await guild.CreateRoleAsync(
+			name: NAME,
+			permissions: GuildPermissions.None,
+			color: null,
+			isHoisted: false,
+			isMentionable: false,
+			options: RoleCreation
+		).CAF();
 	}
 
 	public Task<string> GetPrefixAsync(IGuild guild)

@@ -71,7 +71,14 @@ public sealed class Roles : ModuleBase
 		[Command]
 		public async Task<RuntimeResult> Command([RoleName] string name)
 		{
-			var role = await Context.Guild.CreateRoleAsync(name, new GuildPermissions(0), null, false, GetOptions()).CAF();
+			var role = await Context.Guild.CreateRoleAsync(
+				name: name,
+				permissions: GuildPermissions.None,
+				color: null,
+				isHoisted: false,
+				isMentionable: false,
+				options: GetOptions()
+			).CAF();
 			return Responses.Snowflakes.Created(role);
 		}
 	}
@@ -281,8 +288,15 @@ public sealed class Roles : ModuleBase
 			IRole role)
 		{
 			await role.DeleteAsync(GetOptions()).CAF();
-			await Context.Guild.CreateRoleAsync(role.Name, role.Permissions, role.Color, false, GetOptions()).CAF();
-			await role.ModifyRolePositionAsync(role.Position, GetOptions()).CAF();
+			var copy = await Context.Guild.CreateRoleAsync(
+				name: role.Name,
+				permissions: role.Permissions,
+				color: role.Color,
+				isHoisted: role.IsHoisted,
+				isMentionable: role.IsMentionable,
+				options: GetOptions()
+			).CAF();
+			await copy.ModifyRolePositionAsync(role.Position, GetOptions()).CAF();
 			return Responses.Snowflakes.SoftDeleted(role);
 		}
 	}

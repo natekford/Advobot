@@ -7,6 +7,8 @@ namespace Advobot.Tests.Fakes.Discord.Users;
 public class FakeGuildUser : FakeUser, IGuildUser
 {
 	private readonly HashSet<ulong> _RoleIds = new();
+	public string DisplayAvatarId => throw new NotImplementedException();
+	public string DisplayName => throw new NotImplementedException();
 	public FakeGuild Guild { get; }
 	public string GuildAvatarId => throw new NotImplementedException();
 	public ulong GuildId => Guild.Id;
@@ -19,6 +21,7 @@ public class FakeGuildUser : FakeUser, IGuildUser
 	public bool IsSelfMuted => false;
 	public bool IsStreaming { get; set; }
 	public bool IsSuppressed => false;
+	public bool IsVideoing => throw new NotImplementedException();
 	public DateTimeOffset? JoinedAt => throw new NotImplementedException();
 	public string Nickname { get; set; }
 	public DateTimeOffset? PremiumSince => throw new NotImplementedException();
@@ -57,11 +60,14 @@ public class FakeGuildUser : FakeUser, IGuildUser
 	public Task AddRolesAsync(IEnumerable<ulong> roleIds, RequestOptions? options = null)
 		=> throw new NotImplementedException();
 
+	public string GetDisplayAvatarUrl(ImageFormat format = ImageFormat.Auto, ushort size = 128)
+		=> throw new NotImplementedException();
+
 	public string GetGuildAvatarUrl(ImageFormat format = ImageFormat.Auto, ushort size = 128)
 		=> throw new NotImplementedException();
 
 	public ChannelPermissions GetPermissions(IGuildChannel channel)
-				=> new(PermissionUtils.ResolveChannel(Guild, this, channel, GuildPermissions.RawValue));
+		=> new(PermissionUtils.ResolveChannel(Guild, this, channel, GuildPermissions.RawValue));
 
 	public Task KickAsync(string? reason = null, RequestOptions? options = null)
 	{

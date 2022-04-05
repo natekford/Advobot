@@ -124,7 +124,11 @@ public sealed class Users : ModuleBase
 		[Command]
 		public async Task<RuntimeResult> Command()
 		{
-			var bans = await Context.Guild.GetBansAsync().CAF();
+			var bans = new List<IBan>();
+			await foreach (var list in Context.Guild.GetBansAsync(int.MaxValue))
+			{
+				bans.AddRange(list);
+			}
 			return Responses.Users.DisplayBans(bans);
 		}
 	}

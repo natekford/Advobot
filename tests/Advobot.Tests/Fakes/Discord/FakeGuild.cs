@@ -147,10 +147,7 @@ public sealed class FakeGuild : FakeSnowflake, IGuild
 		return Task.FromResult(emote);
 	}
 
-	public Task<IGuildScheduledEvent> CreateEventAsync(string name, DateTimeOffset startTime, GuildScheduledEventType type, GuildScheduledEventPrivacyLevel privacyLevel = GuildScheduledEventPrivacyLevel.Private, string description = null, DateTimeOffset? endTime = null, ulong? channelId = null, string location = null, RequestOptions options = null)
-		=> throw new NotImplementedException();
-
-	public Task<IGuildIntegration> CreateIntegrationAsync(ulong id, string type, RequestOptions? options = null)
+	public Task<IGuildScheduledEvent> CreateEventAsync(string name, DateTimeOffset startTime, GuildScheduledEventType type, GuildScheduledEventPrivacyLevel privacyLevel = GuildScheduledEventPrivacyLevel.Private, string description = null, DateTimeOffset? endTime = null, ulong? channelId = null, string location = null, Image? coverImage = null, RequestOptions options = null)
 		=> throw new NotImplementedException();
 
 	public Task<IRole> CreateRoleAsync(string name, GuildPermissions? permissions = null, Color? color = null, bool isHoisted = false, RequestOptions? options = null)
@@ -206,8 +203,11 @@ public sealed class FakeGuild : FakeSnowflake, IGuild
 		return Task.CompletedTask;
 	}
 
-	public Task DeleteStickerAsync(ICustomSticker sticker, RequestOptions options = null)
+	public Task DeleteIntegrationAsync(ulong id, RequestOptions options = null)
 		=> throw new NotImplementedException();
+
+	public Task DeleteStickerAsync(ICustomSticker sticker, RequestOptions options = null)
+			=> throw new NotImplementedException();
 
 	public Task DisconnectAsync(IGuildUser user)
 		=> throw new NotImplementedException();
@@ -234,11 +234,17 @@ public sealed class FakeGuild : FakeSnowflake, IGuild
 		// D.Net returns null when not found
 		=> Task.FromResult<IBan>(FakeBans.SingleOrDefault(x => x.User.Id == userId)!);
 
-	public Task<IReadOnlyCollection<IBan>> GetBansAsync(RequestOptions? options = null)
-		=> Task.FromResult<IReadOnlyCollection<IBan>>(FakeBans);
+	public IAsyncEnumerable<IReadOnlyCollection<IBan>> GetBansAsync(int limit = 1000, RequestOptions options = null)
+		=> throw new NotImplementedException();
+
+	public IAsyncEnumerable<IReadOnlyCollection<IBan>> GetBansAsync(ulong fromUserId, Direction dir, int limit = 1000, RequestOptions options = null)
+		=> throw new NotImplementedException();
+
+	public IAsyncEnumerable<IReadOnlyCollection<IBan>> GetBansAsync(IUser fromUser, Direction dir, int limit = 1000, RequestOptions options = null)
+		=> throw new NotImplementedException();
 
 	public Task<IReadOnlyCollection<ICategoryChannel>> GetCategoriesAsync(CacheMode mode = CacheMode.AllowDownload, RequestOptions? options = null)
-		=> throw new NotImplementedException();
+					=> throw new NotImplementedException();
 
 	public Task<IGuildChannel> GetChannelAsync(ulong id, CacheMode mode = CacheMode.AllowDownload, RequestOptions? options = null)
 		=> throw new NotImplementedException();
@@ -264,11 +270,11 @@ public sealed class FakeGuild : FakeSnowflake, IGuild
 	public Task<IReadOnlyCollection<IGuildScheduledEvent>> GetEventsAsync(RequestOptions options = null)
 		=> throw new NotImplementedException();
 
-	public Task<IReadOnlyCollection<IGuildIntegration>> GetIntegrationsAsync(RequestOptions? options = null)
+	public Task<IReadOnlyCollection<IIntegration>> GetIntegrationsAsync(RequestOptions options = null)
 		=> throw new NotImplementedException();
 
 	public Task<IReadOnlyCollection<IInviteMetadata>> GetInvitesAsync(RequestOptions? options = null)
-		=> Task.FromResult<IReadOnlyCollection<IInviteMetadata>>(FakeInvites);
+			=> Task.FromResult<IReadOnlyCollection<IInviteMetadata>>(FakeInvites);
 
 	public Task<IGuildUser> GetOwnerAsync(CacheMode mode = CacheMode.AllowDownload, RequestOptions? options = null)
 		=> Task.FromResult<IGuildUser>(FakeOwner);
