@@ -12,6 +12,28 @@ namespace Advobot.Utilities;
 public static class DiscordUtils
 {
 	/// <summary>
+	/// Creates a role with a name and no permissions/color.
+	/// </summary>
+	/// <param name="guild"></param>
+	/// <param name="name"></param>
+	/// <param name="options"></param>
+	/// <returns></returns>
+	public static Task<IRole> CreateEmptyRoleAsync(
+		this IGuild guild,
+		string name,
+		RequestOptions? options = null)
+	{
+		return guild.CreateRoleAsync(
+			name: name,
+			permissions: GuildPermissions.None,
+			color: null,
+			isHoisted: false,
+			isMentionable: false,
+			options: options
+		);
+	}
+
+	/// <summary>
 	/// Generates a default request options explaining who invoked the command for the audit log.
 	/// </summary>
 	/// <param name="context"></param>

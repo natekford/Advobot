@@ -129,14 +129,7 @@ public sealed class Channels : ModuleBase
 		)
 		{
 			var options = GetOptions();
-			var role = await Context.Guild.CreateRoleAsync(
-				name: name,
-				permissions: GuildPermissions.None,
-				color: null,
-				isHoisted: false,
-				isMentionable: false,
-				options: options
-			).CAF();
+			var role = await Context.Guild.CreateEmptyRoleAsync(name, options).CAF();
 			var channel = await Context.Guild.CreateVoiceChannelAsync(name, null, options).CAF();
 			await channel.AddPermissionOverwriteAsync(Context.Guild.EveryoneRole, _Deny).CAF();
 			await channel.AddPermissionOverwriteAsync(role, _Allow).CAF();

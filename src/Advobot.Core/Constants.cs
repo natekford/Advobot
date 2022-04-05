@@ -21,9 +21,9 @@ public static class Constants
 	[EditorBrowsable(EditorBrowsableState.Never)]
 	public const string ASSEMBLY_CONFIGURATION
 #if DEBUG
-			= "Debug";
+		= "Debug";
 #else
-			= "Release";
+		= "Release";
 #endif
 	/// <summary>
 	/// The emoji to use for an allowed permission. ✅
@@ -38,7 +38,7 @@ public static class Constants
 	/// The current year.
 	/// </summary>
 	[EditorBrowsable(EditorBrowsableState.Never)]
-	public const string ASSEMBLY_COPYRIGHT = "Copyright © 2021";
+	public const string ASSEMBLY_COPYRIGHT = "Copyright © 2022";
 	/// <summary>
 	/// The bot's neutral resources language.
 	/// </summary>

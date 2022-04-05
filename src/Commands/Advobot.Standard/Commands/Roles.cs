@@ -71,14 +71,7 @@ public sealed class Roles : ModuleBase
 		[Command]
 		public async Task<RuntimeResult> Command([RoleName] string name)
 		{
-			var role = await Context.Guild.CreateRoleAsync(
-				name: name,
-				permissions: GuildPermissions.None,
-				color: null,
-				isHoisted: false,
-				isMentionable: false,
-				options: GetOptions()
-			).CAF();
+			var role = await Context.Guild.CreateEmptyRoleAsync(name, GetOptions()).CAF();
 			return Responses.Snowflakes.Created(role);
 		}
 	}

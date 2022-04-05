@@ -37,14 +37,7 @@ internal sealed class NaiveGuildSettingsProvider : IGuildSettingsProvider
 				return role;
 			}
 		}
-		return await guild.CreateRoleAsync(
-			name: NAME,
-			permissions: GuildPermissions.None,
-			color: null,
-			isHoisted: false,
-			isMentionable: false,
-			options: RoleCreation
-		).CAF();
+		return await guild.CreateEmptyRoleAsync(NAME, RoleCreation).CAF();
 	}
 
 	public Task<string> GetPrefixAsync(IGuild guild)

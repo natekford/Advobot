@@ -1,6 +1,7 @@
 ﻿using Advobot.Services.BotSettings;
 using Advobot.Services.GuildSettingsProvider;
 using Advobot.Settings.Database;
+using Advobot.Utilities;
 
 using AdvorangesUtils;
 
@@ -50,14 +51,7 @@ public class GuildSettingsProvider : IGuildSettingsProvider
 			}
 		}
 
-		var newRole = await guild.CreateRoleAsync(
-			name: NAME,
-			permissions: GuildPermissions.None,
-			color: null,
-			isHoisted: false,
-			isMentionable: false,
-			options: RoleCreation
-		).CAF();
+		var newRole = await guild.CreateEmptyRoleAsync(NAME, RoleCreation);
 		await _Db.UpsertGuildSettingsAsync(settings with
 		{
 			MuteRoleId = newRole.Id,
