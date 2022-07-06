@@ -6,7 +6,10 @@ using Advobot.Services.Time;
 using AdvorangesUtils;
 
 using Discord;
+using Discord.Net;
 using Discord.WebSocket;
+
+using System.Net.WebSockets;
 
 namespace Advobot.Logging.Service;
 
@@ -59,13 +62,20 @@ public sealed class LoggingService
 			ConsoleUtils.WriteLine(message.Message, name: message.Source);
 		}
 
-		if (message.Exception is GatewayReconnectException)
+		switch (message.Exception)
 		{
-			ConsoleUtils.WriteLine("Gateway reconnection requested.", ConsoleColor.Yellow, message.Source);
-		}
-		else
-		{
-			message.Exception?.Write();
+			case GatewayReconnectException _:
+				ConsoleUtils.WriteLine("Gateway reconnection requested.", ConsoleColor.Yellow, message.Source);
+				break;
+
+			case WebSocketClosedException _:
+			case WebSocketException _:
+				ConsoleUtils.WriteLine(message.Exception.Message, ConsoleColor.Yellow, message.Source);
+				break;
+
+			default:
+				message.Exception?.Write();
+				break;
 		}
 
 		return Task.CompletedTask;
