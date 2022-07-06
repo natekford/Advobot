@@ -14,10 +14,12 @@ namespace Advobot.Settings.Service;
 public class GuildSettingsProvider : IGuildSettingsProvider
 {
 	private const string NAME = "Advobot_Mute";
-	private static readonly RequestOptions RoleCreation = new()
+
+	private static readonly RequestOptions _RoleCreation = new()
 	{
 		AuditLogReason = "Role not found or is higher than my highest role.",
 	};
+
 	private readonly ISettingsDatabase _Db;
 	private readonly IBotSettings _Settings;
 
@@ -51,7 +53,7 @@ public class GuildSettingsProvider : IGuildSettingsProvider
 			}
 		}
 
-		var newRole = await guild.CreateEmptyRoleAsync(NAME, RoleCreation);
+		var newRole = await guild.CreateEmptyRoleAsync(NAME, _RoleCreation);
 		await _Db.UpsertGuildSettingsAsync(settings with
 		{
 			MuteRoleId = newRole.Id,
