@@ -14,7 +14,8 @@ public sealed class MyCommandsInstantiator : ICommandAssemblyInstantiator
 		services
 			.AddSingleton<IMyCommandsDatabase, MyCommandsDatabase>()
 			.AddSQLiteFileDatabaseConnectionStringFor<MyCommandsDatabase>("MyCommands.db")
-			.AddSingleton<TurkHandler>();
+			.AddSingleton<TurkHandler>()
+			.AddSingleton<Ashman99ReactionHandler>();
 
 		return Task.CompletedTask;
 	}

@@ -9,6 +9,7 @@ namespace Advobot.Tests.Fakes.Discord.Channels;
 public sealed class FakeTextChannel : FakeGuildChannel, ITextChannel
 {
 	public ulong? CategoryId => ProtectedCategoryId;
+	public ThreadArchiveDuration DefaultArchiveDuration => throw new NotImplementedException();
 	public bool IsNsfw { get; set; }
 	public string Mention => $"<#{Id}>";
 	public int SlowModeInterval { get; set; }

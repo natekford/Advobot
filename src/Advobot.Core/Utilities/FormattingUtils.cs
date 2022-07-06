@@ -87,8 +87,8 @@ public static class FormattingUtils
 
 		var channelType = channel switch
 		{
-			IMessageChannel _ => "text",
 			IVoiceChannel _ => "voice",
+			IMessageChannel _ => "text",
 			ICategoryChannel _ => "category",
 			_ => "unknown",
 		};
