@@ -74,7 +74,7 @@ public sealed class LoggingService
 				break;
 
 			default:
-				message.Exception?.Write();
+				message.Exception?.Write(message.Source);
 				break;
 		}
 
