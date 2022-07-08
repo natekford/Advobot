@@ -38,7 +38,7 @@ public sealed class ClientLogger
 	private static readonly Action<ILogger, ulong, double, Exception?> _TooManyBots
 		= LoggerMessage.Define<ulong, double>(
 			LogLevel.Warning,
-			new EventId(5, "TooManyBots"),
+			new EventId(5, "OnTooManyBots"),
 			"Too many bots in guild: {Guild} ({Percentage}%)"
 		);
 

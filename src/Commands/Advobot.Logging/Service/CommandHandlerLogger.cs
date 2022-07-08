@@ -20,11 +20,6 @@ public sealed class CommandHandlerLogger
 	private readonly IBotSettings _BotSettings;
 	private readonly ILoggingDatabase _Db;
 	private readonly ILogger _Logger;
-	private readonly InformationMatrixFormattingArgs _ResultFormattingArgs = new()
-	{
-		InformationSeparator = "\n\t",
-		TitleFormatter = x => x.FormatTitle() + ":",
-	};
 
 	public CommandHandlerLogger(
 		ILogger logger,
@@ -51,8 +46,22 @@ public sealed class CommandHandlerLogger
 			return;
 		}
 
-		var color = result.IsSuccess ? ConsoleColor.Green : ConsoleColor.Red;
-		ConsoleUtils.WriteLine(FormatResult(command, context, result), color);
+		var info = new
+		{
+			Guild = context.Guild.Id,
+			Channel = context.Channel.Id,
+			User = context.User.Id,
+			Command = command.Aliases[0],
+			Content = context.Message.Content,
+			Elapsed = context is IElapsed elapsed
+				? elapsed.Elapsed.Milliseconds : (int?)null,
+			Error = result.IsSuccess ? null : result.ErrorReason,
+		};
+		_Logger.LogInformation(
+			eventId: new EventId(1, nameof(OnCommandInvoked)),
+			message: "Command executed. {@Info}",
+			args: info
+		);
 
 		if (result is AdvobotResult advobotResult)
 		{
@@ -94,27 +103,5 @@ public sealed class CommandHandlerLogger
 			$"Prefix: {_BotSettings.Prefix}; " +
 			$"Launch Time: {ProcessInfoUtils.GetUptime().TotalMilliseconds:n}ms");
 		return Task.CompletedTask;
-	}
-
-	private string FormatResult(CommandInfo command, ICommandContext context, IResult result)
-	{
-		var time = context.Message.CreatedAt.UtcDateTime.ToReadable();
-		if (context is IElapsed elapsed)
-		{
-			time += $" ({elapsed.Elapsed.Milliseconds}ms)";
-		}
-
-		var info = new InformationMatrix();
-		var collection = info.CreateCollection();
-		collection.Add("Command", command.Aliases[0]);
-		collection.Add("Guild", context.Guild.Format());
-		collection.Add("Channel", context.Channel.Format());
-		collection.Add("Time", time);
-		collection.Add("Text", context.Message.Content);
-		if (!result.IsSuccess && result.ErrorReason != null)
-		{
-			collection.Add("Error", result.ErrorReason);
-		}
-		return info.ToString(_ResultFormattingArgs);
 	}
 }

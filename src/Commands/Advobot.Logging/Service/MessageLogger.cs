@@ -10,6 +10,8 @@ using AdvorangesUtils;
 using Discord;
 using Discord.WebSocket;
 
+using Microsoft.Extensions.Logging;
+
 using System.Collections.Concurrent;
 using System.Text;
 
@@ -22,6 +24,7 @@ public sealed class MessageLogger
 	private const int MAX_FIELD_LENGTH = EmbedFieldBuilder.MaxFieldValueLength - 50;
 	private const int MAX_FIELD_LINES = MAX_DESCRIPTION_LENGTH / 2;
 
+	private readonly ILogger _Logger;
 	private readonly MessageSenderQueue _MessageQueue;
 	private ConcurrentDictionary<ulong, (ConcurrentBag<IMessage>, ITextChannel)> _Messages = new();
 
@@ -32,8 +35,12 @@ public sealed class MessageLogger
 	private readonly LogHandler<MessageEditState> _MessageUpdated;
 	#endregion Handlers
 
-	public MessageLogger(ILoggingDatabase db, MessageSenderQueue queue)
+	public MessageLogger(
+		ILogger logger,
+		ILoggingDatabase db,
+		MessageSenderQueue queue)
 	{
+		_Logger = logger;
 		_MessageQueue = queue;
 
 		_MessageDeleted = new(LogAction.MessageDeleted, db)

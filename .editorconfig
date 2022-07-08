@@ -5,3 +5,6 @@ dotnet_diagnostic.RCS1197.severity = none
 
 # CA1822: Mark members as static
 dotnet_diagnostic.CA1822.severity = none
+
+# IDE0037: Use inferred member name
+dotnet_diagnostic.IDE0037.severity = none

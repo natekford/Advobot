@@ -43,7 +43,7 @@ public sealed class LoggingService
 		commandHandler.Ready += _CommandHandlerLogger.OnReady;
 		commandHandler.Log += OnLogMessageSent;
 
-		_MessageLogger = new(_Db, queue);
+		_MessageLogger = new(_Logger, _Db, queue);
 		client.MessageDeleted += _MessageLogger.OnMessageDeleted;
 		client.MessagesBulkDeleted += _MessageLogger.OnMessagesBulkDeleted;
 		client.MessageReceived += _MessageLogger.OnMessageReceived;
