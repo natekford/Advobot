@@ -10,6 +10,7 @@
 
 	<ItemGroup>
 		<ProjectReference Include="..\..\Advobot.Core\Advobot.Core.csproj" />
+		<ProjectReference Include="..\..\Advobot.Serilog\Advobot.Serilog.csproj" />
 		<ProjectReference Include="..\..\Advobot.SQLite\Advobot.SQLite.csproj" />
 	</ItemGroup>
 </Project>

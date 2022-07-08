@@ -12,7 +12,7 @@ namespace Advobot.Logging.Database;
 
 public sealed class LoggingDatabase : DatabaseBase<SQLiteConnection>, ILoggingDatabase
 {
-	public LoggingDatabase(IConnectionStringFor<LoggingDatabase> conn) : base(conn)
+	public LoggingDatabase(IConnectionString<LoggingDatabase> conn) : base(conn)
 	{
 	}
 

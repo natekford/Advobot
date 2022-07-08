@@ -9,7 +9,7 @@ namespace Advobot.Settings.Database;
 
 public sealed class SettingsDatabase : DatabaseBase<SQLiteConnection>, ISettingsDatabase
 {
-	public SettingsDatabase(IConnectionStringFor<SettingsDatabase> conn) : base(conn)
+	public SettingsDatabase(IConnectionString<SettingsDatabase> conn) : base(conn)
 	{
 	}
 

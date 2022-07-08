@@ -3,13 +3,10 @@ using Advobot.Services.BotSettings;
 using Advobot.Services.Commands;
 using Advobot.Services.Time;
 
-using AdvorangesUtils;
-
 using Discord;
-using Discord.Net;
 using Discord.WebSocket;
 
-using System.Net.WebSockets;
+using Microsoft.Extensions.Logging;
 
 namespace Advobot.Logging.Service;
 
@@ -18,10 +15,12 @@ public sealed class LoggingService
 	private readonly ClientLogger _ClientLogger;
 	private readonly CommandHandlerLogger _CommandHandlerLogger;
 	private readonly ILoggingDatabase _Db;
+	private readonly ILogger _Logger;
 	private readonly MessageLogger _MessageLogger;
 	private readonly UserLogger _UserLogger;
 
 	public LoggingService(
+		ILogger<LoggingService> logger,
 		ILoggingDatabase db,
 		BaseSocketClient client,
 		ICommandHandlerService commandHandler,
@@ -29,16 +28,17 @@ public sealed class LoggingService
 		MessageSenderQueue queue,
 		ITime time)
 	{
+		_Logger = logger;
 		_Db = db;
 
-		_ClientLogger = new(client);
+		_ClientLogger = new(_Logger, client);
 		client.GuildAvailable += _ClientLogger.OnGuildAvailable;
 		client.GuildUnavailable += _ClientLogger.OnGuildUnavailable;
 		client.JoinedGuild += _ClientLogger.OnJoinedGuild;
 		client.LeftGuild += _ClientLogger.OnLeftGuild;
 		client.Log += OnLogMessageSent;
 
-		_CommandHandlerLogger = new(_Db, botSettings);
+		_CommandHandlerLogger = new(_Logger, _Db, botSettings);
 		commandHandler.CommandInvoked += _CommandHandlerLogger.OnCommandInvoked;
 		commandHandler.Ready += _CommandHandlerLogger.OnReady;
 		commandHandler.Log += OnLogMessageSent;
@@ -57,24 +57,33 @@ public sealed class LoggingService
 
 	private Task OnLogMessageSent(LogMessage message)
 	{
-		if (!string.IsNullOrWhiteSpace(message.Message))
+		var id = new EventId(1, message.Source);
+		var e = message.Exception;
+		var msg = message.Message;
+#pragma warning disable CA2254 // Template should be a static expression
+		switch (message.Severity)
 		{
-			ConsoleUtils.WriteLine(message.Message, name: message.Source);
-		}
+			case LogSeverity.Critical:
+				_Logger.LogCritical(id, e, msg);
+				break;
 
-		if (message.Exception is GatewayReconnectException)
-		{
-			ConsoleUtils.WriteLine("Gateway reconnection requested.", ConsoleColor.Yellow, message.Source);
+			case LogSeverity.Error:
+				_Logger.LogError(id, e, msg);
+				break;
+
+			case LogSeverity.Info:
+				_Logger.LogInformation(id, e, msg);
+				break;
+
+			case LogSeverity.Warning:
+				_Logger.LogWarning(id, e, msg);
+				break;
+
+			default:
+				_Logger.LogDebug(id, e, msg);
+				break;
 		}
-		else if (message.Exception.InnerException is Exception ie
-			&& ie is WebSocketClosedException or WebSocketException)
-		{
-			ConsoleUtils.WriteLine(ie.Message, ConsoleColor.Yellow, message.Source);
-		}
-		else
-		{
-			message.Exception?.Write(message.Source);
-		}
+#pragma warning restore CA2254 // Template should be a static expression
 
 		return Task.CompletedTask;
 	}

@@ -57,6 +57,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Advobot.Resources", "src\Ad
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Advobot.MyCommands", "src\Commands\Advobot.MyCommands\Advobot.MyCommands.csproj", "{45BFF840-7735-42A5-B295-F7296EFCB07A}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Advobot.Serilog", "src\Advobot.Serilog\Advobot.Serilog.csproj", "{18CCFBB9-5747-41B2-8E2F-9E1BDDD17171}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -127,6 +129,10 @@ Global
 		{45BFF840-7735-42A5-B295-F7296EFCB07A}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{45BFF840-7735-42A5-B295-F7296EFCB07A}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{45BFF840-7735-42A5-B295-F7296EFCB07A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{18CCFBB9-5747-41B2-8E2F-9E1BDDD17171}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{18CCFBB9-5747-41B2-8E2F-9E1BDDD17171}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{18CCFBB9-5747-41B2-8E2F-9E1BDDD17171}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{18CCFBB9-5747-41B2-8E2F-9E1BDDD17171}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

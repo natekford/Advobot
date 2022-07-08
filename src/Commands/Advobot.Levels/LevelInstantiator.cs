@@ -14,7 +14,7 @@ public sealed class LevelInstantiator : ICommandAssemblyInstantiator
 		services
 			.AddSingleton<LevelServiceConfig>()
 			.AddSingleton<ILevelDatabase, LevelDatabase>()
-			.AddSQLiteFileDatabaseConnectionStringFor<LevelDatabase>("Levels.db")
+			.AddSQLiteFileDatabaseConnectionString<LevelDatabase>("Levels.db")
 			.AddSingleton<ILevelService, LevelService>();
 
 		return Task.CompletedTask;
@@ -22,7 +22,7 @@ public sealed class LevelInstantiator : ICommandAssemblyInstantiator
 
 	public Task ConfigureServicesAsync(IServiceProvider services)
 	{
-		services.GetRequiredService<IConnectionStringFor<LevelDatabase>>().MigrateUp();
+		services.GetRequiredService<IConnectionString<LevelDatabase>>().MigrateUp();
 
 		return Task.CompletedTask;
 	}

@@ -15,7 +15,7 @@ public sealed class SettingsInstantiator : ICommandAssemblyInstantiator
 	{
 		services
 			.AddSingleton<ISettingsDatabase, SettingsDatabase>()
-			.AddSQLiteFileDatabaseConnectionStringFor<SettingsDatabase>("GuildSettings.db")
+			.AddSQLiteFileDatabaseConnectionString<SettingsDatabase>("GuildSettings.db")
 			.AddSingleton<ICommandValidator, CommandValidator>()
 			.ReplaceWithSingleton<IGuildSettingsProvider, GuildSettingsProvider>();
 
@@ -24,7 +24,7 @@ public sealed class SettingsInstantiator : ICommandAssemblyInstantiator
 
 	public Task ConfigureServicesAsync(IServiceProvider services)
 	{
-		services.GetRequiredService<IConnectionStringFor<SettingsDatabase>>().MigrateUp();
+		services.GetRequiredService<IConnectionString<SettingsDatabase>>().MigrateUp();
 
 		return Task.CompletedTask;
 	}

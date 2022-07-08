@@ -3,7 +3,7 @@
 /// <summary>
 /// Used for starting a SQLite database from a system file.
 /// </summary>
-public sealed class SQLiteSystemFileDatabaseConnectionString : IConnectionStringFor<object>
+public sealed class SQLiteSystemFileDatabaseConnectionString : IConnectionString<object>
 {
 	public string ConnectionString { get; }
 	public string Location { get; }

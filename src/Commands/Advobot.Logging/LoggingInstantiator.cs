@@ -2,6 +2,7 @@
 using Advobot.Logging.Database;
 using Advobot.Logging.OptionSetters;
 using Advobot.Logging.Service;
+using Advobot.Serilog;
 using Advobot.SQLite;
 using Advobot.Utilities;
 
@@ -15,11 +16,13 @@ public sealed class LoggingInstantiator : ICommandAssemblyInstantiator
 	{
 		services
 			.AddSingleton<ILoggingDatabase, LoggingDatabase>()
-			.AddSQLiteFileDatabaseConnectionStringFor<LoggingDatabase>("Logging.db")
+			.AddSQLiteFileDatabaseConnectionString<LoggingDatabase>("Logging.db")
 			.AddSingleton<LoggingService>()
+			.AddLogger<LoggingService>("Logging")
 			.AddSingleton<INotificationDatabase, NotificationDatabase>()
-			.AddSQLiteFileDatabaseConnectionStringFor<NotificationDatabase>("Notification.db")
+			.AddSQLiteFileDatabaseConnectionString<NotificationDatabase>("Notification.db")
 			.AddSingleton<NotificationService>()
+			.AddLogger<NotificationService>("Notification")
 			.AddSingleton<MessageSenderQueue>()
 			.AddDefaultOptionsSetter<LogActionsResetter>()
 			.AddDefaultOptionsSetter<WelcomeNotificationResetter>()
@@ -30,8 +33,8 @@ public sealed class LoggingInstantiator : ICommandAssemblyInstantiator
 
 	public Task ConfigureServicesAsync(IServiceProvider services)
 	{
-		services.GetRequiredService<IConnectionStringFor<LoggingDatabase>>().MigrateUp();
-		services.GetRequiredService<IConnectionStringFor<NotificationDatabase>>().MigrateUp();
+		services.GetRequiredService<IConnectionString<LoggingDatabase>>().MigrateUp();
+		services.GetRequiredService<IConnectionString<NotificationDatabase>>().MigrateUp();
 		services.GetRequiredService<MessageSenderQueue>().Start();
 
 		return Task.CompletedTask;

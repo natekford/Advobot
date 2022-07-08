@@ -14,7 +14,7 @@ public sealed class RemovablePunishmentDatabase : DatabaseBase<SQLiteConnection>
 			WHERE GuildId = @GuildId AND UserId = @UserId AND PunishmentType = @PunishmentType
 		";
 
-	public RemovablePunishmentDatabase(IConnectionStringFor<RemovablePunishmentDatabase> conn) : base(conn)
+	public RemovablePunishmentDatabase(IConnectionString<RemovablePunishmentDatabase> conn) : base(conn)
 	{
 	}
 

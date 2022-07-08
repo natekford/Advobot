@@ -2,7 +2,7 @@
 
 namespace Advobot.Tests.Fakes.Database;
 
-public sealed class FakeSQLiteConnectionString : IConnectionStringFor<object>
+public sealed class FakeSQLiteConnectionString : IConnectionString<object>
 {
 	public string ConnectionString { get; }
 	public string Id { get; }

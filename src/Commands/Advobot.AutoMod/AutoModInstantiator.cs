@@ -13,9 +13,9 @@ public sealed class AutoModInstantiator : ICommandAssemblyInstantiator
 	{
 		services
 			.AddSingleton<IAutoModDatabase, AutoModDatabase>()
-			.AddSQLiteFileDatabaseConnectionStringFor<AutoModDatabase>("AutoMod.db")
+			.AddSQLiteFileDatabaseConnectionString<AutoModDatabase>("AutoMod.db")
 			.AddSingleton<IRemovablePunishmentDatabase, RemovablePunishmentDatabase>()
-			.AddSQLiteFileDatabaseConnectionStringFor<RemovablePunishmentDatabase>("RemovablePunishments.db")
+			.AddSQLiteFileDatabaseConnectionString<RemovablePunishmentDatabase>("RemovablePunishments.db")
 			.AddSingleton<AutoModService>()
 			.AddSingleton<MassBanRecentJoinsService>()
 			.AddSingleton<RemovablePunishmentService>();
@@ -25,8 +25,8 @@ public sealed class AutoModInstantiator : ICommandAssemblyInstantiator
 
 	public Task ConfigureServicesAsync(IServiceProvider services)
 	{
-		services.GetRequiredService<IConnectionStringFor<AutoModDatabase>>().MigrateUp();
-		services.GetRequiredService<IConnectionStringFor<RemovablePunishmentDatabase>>().MigrateUp();
+		services.GetRequiredService<IConnectionString<AutoModDatabase>>().MigrateUp();
+		services.GetRequiredService<IConnectionString<RemovablePunishmentDatabase>>().MigrateUp();
 
 		return Task.CompletedTask;
 	}

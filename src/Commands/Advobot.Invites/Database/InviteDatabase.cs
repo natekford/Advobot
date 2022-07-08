@@ -9,7 +9,7 @@ namespace Advobot.Invites.Database;
 
 public sealed class InviteDatabase : DatabaseBase<SQLiteConnection>
 {
-	public InviteDatabase(IConnectionStringFor<InviteDatabase> conn) : base(conn)
+	public InviteDatabase(IConnectionString<InviteDatabase> conn) : base(conn)
 	{
 	}
 

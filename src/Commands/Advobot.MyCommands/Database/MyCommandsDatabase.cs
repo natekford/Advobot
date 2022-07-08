@@ -9,7 +9,7 @@ namespace Advobot.MyCommands.Database;
 
 public sealed class MyCommandsDatabase : DatabaseBase<SQLiteConnection>, IMyCommandsDatabase
 {
-	public MyCommandsDatabase(IConnectionStringFor<MyCommandsDatabase> conn) : base(conn)
+	public MyCommandsDatabase(IConnectionString<MyCommandsDatabase> conn) : base(conn)
 	{
 	}
 

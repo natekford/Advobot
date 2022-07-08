@@ -11,21 +11,27 @@ using AdvorangesUtils;
 using Discord;
 using Discord.Commands;
 
+using Microsoft.Extensions.Logging;
+
 namespace Advobot.Logging.Service;
 
 public sealed class CommandHandlerLogger
 {
 	private readonly IBotSettings _BotSettings;
 	private readonly ILoggingDatabase _Db;
-
+	private readonly ILogger _Logger;
 	private readonly InformationMatrixFormattingArgs _ResultFormattingArgs = new()
 	{
 		InformationSeparator = "\n\t",
 		TitleFormatter = x => x.FormatTitle() + ":",
 	};
 
-	public CommandHandlerLogger(ILoggingDatabase db, IBotSettings botSettings)
+	public CommandHandlerLogger(
+		ILogger logger,
+		ILoggingDatabase db,
+		IBotSettings botSettings)
 	{
+		_Logger = logger;
 		_Db = db;
 		_BotSettings = botSettings;
 	}

@@ -9,7 +9,7 @@ namespace Advobot.Quotes.Database;
 
 public sealed class QuoteDatabase : DatabaseBase<SQLiteConnection>, IQuoteDatabase
 {
-	public QuoteDatabase(IConnectionStringFor<QuoteDatabase> conn) : base(conn)
+	public QuoteDatabase(IConnectionString<QuoteDatabase> conn) : base(conn)
 	{
 	}
 

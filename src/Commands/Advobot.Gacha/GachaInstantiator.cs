@@ -19,7 +19,7 @@ public sealed class GachaInstantiation : ICommandAssemblyInstantiator
 	{
 		services
 			.AddSingleton<IGachaDatabase, GachaDatabase>()
-			.AddSQLiteFileDatabaseConnectionStringFor<GachaDatabase>("Gacha.db")
+			.AddSQLiteFileDatabaseConnectionString<GachaDatabase>("Gacha.db")
 			.AddSingleton<DisplayManager>()
 			.AddSingleton<ExchangeManager>()
 			.AddSingleton<IInteractionManager, InteractionManager>()
@@ -31,7 +31,7 @@ public sealed class GachaInstantiation : ICommandAssemblyInstantiator
 
 	public async Task ConfigureServicesAsync(IServiceProvider services)
 	{
-		services.GetRequiredService<IConnectionStringFor<GachaDatabase>>().MigrateUp();
+		services.GetRequiredService<IConnectionString<GachaDatabase>>().MigrateUp();
 
 		var db = services.GetRequiredService<IGachaDatabase>();
 		//TODO: move to interface

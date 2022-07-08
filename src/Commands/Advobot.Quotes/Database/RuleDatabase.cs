@@ -53,7 +53,7 @@ public sealed class RuleDatabase : DatabaseBase<SQLiteConnection>
 			WHERE GuildId = @GuildId AND Category = @Category AND Position = @Position
 		";
 
-	public RuleDatabase(IConnectionStringFor<RuleDatabase> conn) : base(conn)
+	public RuleDatabase(IConnectionString<RuleDatabase> conn) : base(conn)
 	{
 	}
 

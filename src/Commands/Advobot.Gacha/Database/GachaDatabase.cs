@@ -67,7 +67,7 @@ public sealed class GachaDatabase : DatabaseBase<SQLiteConnection>, IGachaDataba
 		MaxAllowedCloseness = 2,
 	};
 
-	public GachaDatabase(ITime time, IConnectionStringFor<GachaDatabase> conn) : base(conn)
+	public GachaDatabase(ITime time, IConnectionString<GachaDatabase> conn) : base(conn)
 	{
 		_Time = time;
 	}

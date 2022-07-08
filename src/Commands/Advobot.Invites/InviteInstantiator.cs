@@ -13,7 +13,7 @@ public sealed class InviteInstantiator : ICommandAssemblyInstantiator
 	{
 		services
 			.AddSingleton<InviteDatabase>()
-			.AddSQLiteFileDatabaseConnectionStringFor<InviteDatabase>("Invites.db")
+			.AddSQLiteFileDatabaseConnectionString<InviteDatabase>("Invites.db")
 			.AddSingleton<IInviteListService, InviteListService>();
 
 		return Task.CompletedTask;
@@ -21,7 +21,7 @@ public sealed class InviteInstantiator : ICommandAssemblyInstantiator
 
 	public Task ConfigureServicesAsync(IServiceProvider services)
 	{
-		services.GetRequiredService<IConnectionStringFor<InviteDatabase>>().MigrateUp();
+		services.GetRequiredService<IConnectionString<InviteDatabase>>().MigrateUp();
 
 		return Task.CompletedTask;
 	}

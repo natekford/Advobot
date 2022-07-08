@@ -9,7 +9,7 @@ namespace Advobot.AutoMod.Database;
 
 public sealed class AutoModDatabase : DatabaseBase<SQLiteConnection>, IAutoModDatabase
 {
-	public AutoModDatabase(IConnectionStringFor<AutoModDatabase> conn) : base(conn)
+	public AutoModDatabase(IConnectionString<AutoModDatabase> conn) : base(conn)
 	{
 	}
 

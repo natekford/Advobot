@@ -14,7 +14,7 @@ namespace Advobot.Levels.Database;
 
 public sealed class LevelDatabase : DatabaseBase<SQLiteConnection>, ILevelDatabase
 {
-	public LevelDatabase(IConnectionStringFor<LevelDatabase> conn) : base(conn)
+	public LevelDatabase(IConnectionString<LevelDatabase> conn) : base(conn)
 	{
 	}
 

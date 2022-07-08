@@ -9,7 +9,7 @@ namespace Advobot.Logging.Database;
 
 public sealed class NotificationDatabase : DatabaseBase<SQLiteConnection>, INotificationDatabase
 {
-	public NotificationDatabase(IConnectionStringFor<NotificationDatabase> conn) : base(conn)
+	public NotificationDatabase(IConnectionString<NotificationDatabase> conn) : base(conn)
 	{
 	}
 

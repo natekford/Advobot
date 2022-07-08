@@ -12,7 +12,7 @@ public abstract class Database_Tests<TDb, TConn> : TestsBase where TDb : class
 {
 	protected async Task<TDb> GetDatabaseAsync()
 	{
-		var starter = Services.Value.GetRequiredService<IConnectionStringFor<TDb>>();
+		var starter = Services.Value.GetRequiredService<IConnectionString<TDb>>();
 		await starter.EnsureCreatedAsync().CAF();
 		starter.MigrateUp();
 
@@ -23,7 +23,7 @@ public abstract class Database_Tests<TDb, TConn> : TestsBase where TDb : class
 	{
 		services
 			.AddSingleton<TDb>()
-			.AddSingleton<IConnectionStringFor<TDb>, FakeSQLiteConnectionString>()
+			.AddSingleton<IConnectionString<TDb>, FakeSQLiteConnectionString>()
 			.AddSingleton<ITime, DefaultTime>();
 	}
 }

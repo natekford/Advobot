@@ -24,7 +24,7 @@ public static class SQLiteUtils
 	/// </summary>
 	/// <typeparam name="T"></typeparam>
 	/// <param name="connection"></param>
-	public static void MigrateUp<T>(this IConnectionStringFor<T> connection)
+	public static void MigrateUp<T>(this IConnectionString<T> connection)
 		=> connection.CreateMigrationRunner().MigrateUp();
 
 	/// <summary>
@@ -33,7 +33,7 @@ public static class SQLiteUtils
 	/// <typeparam name="T"></typeparam>
 	/// <param name="connection"></param>
 	/// <param name="version"></param>
-	public static void MigrateDown<T>(this IConnectionStringFor<T> connection, long version)
+	public static void MigrateDown<T>(this IConnectionString<T> connection, long version)
 		=> connection.CreateMigrationRunner().MigrateDown(version);
 
 	/// <summary>
@@ -77,7 +77,7 @@ public static class SQLiteUtils
 	/// <param name="services"></param>
 	/// <param name="fileName"></param>
 	/// <returns></returns>
-	public static IServiceCollection AddSQLiteFileDatabaseConnectionStringFor<T>(
+	public static IServiceCollection AddSQLiteFileDatabaseConnectionString<T>(
 		this IServiceCollection services,
 		string fileName)
 	{
@@ -86,12 +86,12 @@ public static class SQLiteUtils
 			var accessor = x.GetRequiredService<IBotDirectoryAccessor>();
 			var path = accessor.ValidateDbPath("SQLite", fileName).FullName;
 			var conn = new SQLiteSystemFileDatabaseConnectionString(path);
-			return (IConnectionStringFor<T>)(IConnectionStringFor<object>)conn;
+			return (IConnectionString<T>)(IConnectionString<object>)conn;
 		});
 	}
 
 	private static IMigrationRunner CreateMigrationRunner<T>(
-		this IConnectionStringFor<T> connection)
+		this IConnectionString<T> connection)
 	{
 		return new ServiceCollection()
 			.AddFluentMigratorCore()
@@ -103,9 +103,9 @@ public static class SQLiteUtils
 				.ScanIn(typeof(T).Assembly).For.Migrations();
 			})
 #if DEBUG
-				.AddLogging(x => x.AddFluentMigratorConsole())
+			.AddLogging(x => x.AddFluentMigratorConsole())
 #endif
-				.BuildServiceProvider(false)
+			.BuildServiceProvider(false)
 			.GetRequiredService<IMigrationRunner>();
 	}
 }

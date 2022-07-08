@@ -13,7 +13,7 @@ public sealed class MyCommandsInstantiator : ICommandAssemblyInstantiator
 	{
 		services
 			.AddSingleton<IMyCommandsDatabase, MyCommandsDatabase>()
-			.AddSQLiteFileDatabaseConnectionStringFor<MyCommandsDatabase>("MyCommands.db")
+			.AddSQLiteFileDatabaseConnectionString<MyCommandsDatabase>("MyCommands.db")
 			.AddSingleton<TurkHandler>()
 			.AddSingleton<Ashman99ReactionHandler>();
 
@@ -22,7 +22,7 @@ public sealed class MyCommandsInstantiator : ICommandAssemblyInstantiator
 
 	public Task ConfigureServicesAsync(IServiceProvider services)
 	{
-		services.GetRequiredService<IConnectionStringFor<MyCommandsDatabase>>().MigrateUp();
+		services.GetRequiredService<IConnectionString<MyCommandsDatabase>>().MigrateUp();
 
 		return Task.CompletedTask;
 	}
