@@ -57,7 +57,6 @@ public static class SQLiteUtils
 	/// Gets the table names of a SQLite database.
 	/// </summary>
 	/// <param name="connection"></param>
-	/// <param name="query"></param>
 	/// <returns></returns>
 	public static async Task<IReadOnlyList<string>> GetTableNames(
 		this SQLiteConnection connection)

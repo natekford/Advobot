@@ -5,8 +5,12 @@
 /// </summary>
 public sealed class SQLiteSystemFileDatabaseConnectionString : IConnectionString<object>
 {
+	/// <inheritdoc />
 	public string ConnectionString { get; }
-	public string Location { get; }
+	/// <summary>
+	/// The path of the SQLite database.
+	/// </summary>
+	public string Path { get; }
 
 	/// <summary>
 	/// Creates an instance of <see cref="SQLiteSystemFileDatabaseConnectionString"/>.
@@ -14,17 +18,17 @@ public sealed class SQLiteSystemFileDatabaseConnectionString : IConnectionString
 	/// <param name="path"></param>
 	public SQLiteSystemFileDatabaseConnectionString(string path)
 	{
-		Location = path;
-		ConnectionString = $"Data Source={Location}";
+		Path = path;
+		ConnectionString = $"Data Source={Path}";
 	}
 
 	/// <inheritdoc />
 	public Task EnsureCreatedAsync()
 	{
-		if (!File.Exists(Location))
+		if (!File.Exists(Path))
 		{
-			Directory.CreateDirectory(Path.GetDirectoryName(Location));
-			File.Create(Location).Dispose();
+			Directory.CreateDirectory(System.IO.Path.GetDirectoryName(Path));
+			File.Create(Path).Dispose();
 		}
 		return Task.CompletedTask;
 	}
