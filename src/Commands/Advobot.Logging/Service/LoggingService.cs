@@ -62,20 +62,18 @@ public sealed class LoggingService
 			ConsoleUtils.WriteLine(message.Message, name: message.Source);
 		}
 
-		switch (message.Exception)
+		if (message.Exception is GatewayReconnectException)
 		{
-			case GatewayReconnectException _:
-				ConsoleUtils.WriteLine("Gateway reconnection requested.", ConsoleColor.Yellow, message.Source);
-				break;
-
-			case WebSocketClosedException _:
-			case WebSocketException _:
-				ConsoleUtils.WriteLine(message.Exception.Message, ConsoleColor.Yellow, message.Source);
-				break;
-
-			default:
-				message.Exception?.Write(message.Source);
-				break;
+			ConsoleUtils.WriteLine("Gateway reconnection requested.", ConsoleColor.Yellow, message.Source);
+		}
+		else if (message.Exception.InnerException is Exception ie
+			&& ie is WebSocketClosedException or WebSocketException)
+		{
+			ConsoleUtils.WriteLine(ie.Message, ConsoleColor.Yellow, message.Source);
+		}
+		else
+		{
+			message.Exception?.Write(message.Source);
 		}
 
 		return Task.CompletedTask;
