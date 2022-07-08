@@ -25,7 +25,7 @@ public sealed class LoggingService
 		BaseSocketClient client,
 		ICommandHandlerService commandHandler,
 		IBotSettings botSettings,
-		MessageSenderQueue queue,
+		MessageQueue queue,
 		ITime time)
 	{
 		_Logger = logger;
@@ -49,7 +49,7 @@ public sealed class LoggingService
 		client.MessageReceived += _MessageLogger.OnMessageReceived;
 		client.MessageUpdated += _MessageLogger.OnMessageUpdated;
 
-		_UserLogger = new(_Db, client, queue, time);
+		_UserLogger = new(_Logger, _Db, client, queue, time);
 		client.UserJoined += _UserLogger.OnUserJoined;
 		client.UserLeft += _UserLogger.OnUserLeft;
 		client.UserUpdated += _UserLogger.OnUserUpdated;

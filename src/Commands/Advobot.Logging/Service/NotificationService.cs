@@ -13,12 +13,12 @@ namespace Advobot.Logging.Service;
 public sealed class NotificationService
 {
 	private readonly INotificationDatabase _Db;
-	private readonly MessageSenderQueue _MessageQueue;
+	private readonly MessageQueue _MessageQueue;
 
 	public NotificationService(
 		INotificationDatabase db,
 		BaseSocketClient client,
-		MessageSenderQueue queue)
+		MessageQueue queue)
 	{
 		_Db = db;
 		_MessageQueue = queue;

@@ -1,17 +1,10 @@
-﻿using Advobot.Utilities;
-
-using Discord;
-using Discord.WebSocket;
-
-using Microsoft.Extensions.DependencyInjection;
+﻿using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 
 using Serilog;
 using Serilog.Core;
 using Serilog.Extensions.Logging;
 using Serilog.Formatting.Json;
-
-using System.Globalization;
 
 namespace Advobot.Serilog;
 

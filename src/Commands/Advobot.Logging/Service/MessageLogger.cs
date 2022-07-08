@@ -25,7 +25,7 @@ public sealed class MessageLogger
 	private const int MAX_FIELD_LINES = MAX_DESCRIPTION_LENGTH / 2;
 
 	private readonly ILogger _Logger;
-	private readonly MessageSenderQueue _MessageQueue;
+	private readonly MessageQueue _MessageQueue;
 	private ConcurrentDictionary<ulong, (ConcurrentBag<IMessage>, ITextChannel)> _Messages = new();
 
 	#region Handlers
@@ -38,7 +38,7 @@ public sealed class MessageLogger
 	public MessageLogger(
 		ILogger logger,
 		ILoggingDatabase db,
-		MessageSenderQueue queue)
+		MessageQueue queue)
 	{
 		_Logger = logger;
 		_MessageQueue = queue;
@@ -109,10 +109,21 @@ public sealed class MessageLogger
 			return Task.CompletedTask;
 		}
 
-		var state = context.State;
-		foreach (var image in ImageLogItem.GetAllImages(state.Message))
+		var info = new
 		{
-			var jump = state.Message.GetJumpUrl();
+			Guild = context.Guild.Id,
+			Channel = context.State.Channel.Id,
+			Message = context.State.Message.Id,
+		};
+		foreach (var image in ImageLogItem.GetAllImages(context.State.Message))
+		{
+			_Logger.LogInformation(
+				eventId: new EventId(1, nameof(HandleImageLoggingAsync)),
+				message: "Logging image {Image} for {@Info}",
+				image, info
+			);
+
+			var jump = context.State.Message.GetJumpUrl();
 			var description = $"[Message]({jump}), [Embed Source]({image.Url})";
 			if (image.ImageUrl != null)
 			{
@@ -124,11 +135,11 @@ public sealed class MessageLogger
 				Description = description,
 				Color = EmbedWrapper.Attachment,
 				ImageUrl = image.ImageUrl,
-				Author = state.User.CreateAuthor(),
+				Author = context.State.User.CreateAuthor(),
 				Footer = new()
 				{
 					Text = image.Footer,
-					IconUrl = state.User.GetAvatarUrl()
+					IconUrl = context.State.User.GetAvatarUrl()
 				},
 			}.ToMessageArgs()));
 		}
@@ -141,6 +152,17 @@ public sealed class MessageLogger
 		{
 			return Task.CompletedTask;
 		}
+
+		_Logger.LogInformation(
+			eventId: new EventId(2, nameof(HandleMessageDeletedLogging)),
+			message: "Logging deleted message {@Info}",
+			new
+			{
+				Guild = context.Guild.Id,
+				Channel = context.State.Channel.Id,
+				Message = context.State.Message.Id,
+			}
+		);
 
 		_Messages
 			.GetOrAdd(context.Guild.Id, _ => (new(), context.ServerLog))
@@ -211,6 +233,17 @@ public sealed class MessageLogger
 			};
 		}
 
+		_Logger.LogInformation(
+			eventId: new EventId(3, nameof(HandleMessageEditedLoggingAsync)),
+			message: "Logging edited message {@Info}",
+			new
+			{
+				Guild = context.Guild.Id,
+				Channel = context.State.Channel.Id,
+				Message = context.State.Message.Id,
+			}
+		);
+
 		_MessageQueue.Enqueue((context.ServerLog, sendMessageArgs));
 		return Task.CompletedTask;
 	}
@@ -222,12 +255,33 @@ public sealed class MessageLogger
 			return Task.CompletedTask;
 		}
 
+		_Logger.LogInformation(
+			eventId: new EventId(2, nameof(HandleMessageDeletedLogging)),
+			message: "Logging {Count} deleted messages {@Info}",
+			context.State.Messages.Count, new
+			{
+				Guild = context.Guild.Id,
+				Channel = context.State.Channel.Id,
+				Message = context.State.Message.Id,
+			}
+		);
+
 		return PrintDeletedMessagesAsync(context.ServerLog, context.State.Messages);
 	}
 
 	private Task PrintDeletedMessagesAsync(ITextChannel log, IEnumerable<IMessage> messages)
 	{
 		var ordered = messages.OrderBy(x => x.Id).ToList();
+
+		_Logger.LogInformation(
+			eventId: new EventId(4, nameof(PrintDeletedMessagesAsync)),
+			message: "Printing {Count} deleted messages {@Info}",
+			ordered.Count, new
+			{
+				Guild = log.Guild.Id,
+				Channel = log.Id,
+			}
+		);
 
 		//Needs to be not a lot of messages to fit in an embed
 		var inEmbed = ordered.Count < 10;

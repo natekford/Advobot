@@ -23,7 +23,7 @@ public sealed class LoggingInstantiator : ICommandAssemblyInstantiator
 			.AddSQLiteFileDatabaseConnectionString<NotificationDatabase>("Notification.db")
 			.AddSingleton<NotificationService>()
 			.AddLogger<NotificationService>("Notification")
-			.AddSingleton<MessageSenderQueue>()
+			.AddSingleton<MessageQueue>()
 			.AddDefaultOptionsSetter<LogActionsResetter>()
 			.AddDefaultOptionsSetter<WelcomeNotificationResetter>()
 			.AddDefaultOptionsSetter<GoodbyeNotificationResetter>();
@@ -35,7 +35,7 @@ public sealed class LoggingInstantiator : ICommandAssemblyInstantiator
 	{
 		services.GetRequiredService<IConnectionString<LoggingDatabase>>().MigrateUp();
 		services.GetRequiredService<IConnectionString<NotificationDatabase>>().MigrateUp();
-		services.GetRequiredService<MessageSenderQueue>().Start();
+		services.GetRequiredService<MessageQueue>().Start();
 
 		return Task.CompletedTask;
 	}

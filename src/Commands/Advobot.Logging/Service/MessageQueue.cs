@@ -8,9 +8,8 @@ using System.Collections.Concurrent;
 
 namespace Advobot.Logging.Service;
 
-public sealed class MessageSenderQueue
+public sealed class MessageQueue
 {
-	// TODO: switch to batches of embeds when d.net updates to allow multiple per msg
 	private readonly ConcurrentQueue<(ITextChannel, SendMessageArgs)> _Messages = new();
 	private bool _IsRunning;
 	public TimeSpan Delay { get; set; } = TimeSpan.FromSeconds(0.25);

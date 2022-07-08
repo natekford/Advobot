@@ -11,6 +11,8 @@ using AdvorangesUtils;
 using Discord;
 using Discord.WebSocket;
 
+using Microsoft.Extensions.Logging;
+
 using System.Collections.Concurrent;
 
 namespace Advobot.Logging.Service;
@@ -19,7 +21,8 @@ public sealed class UserLogger
 {
 	private readonly BaseSocketClient _Client;
 	private readonly ConcurrentDictionary<ulong, InviteCache> _Invites = new();
-	private readonly MessageSenderQueue _MessageQueue;
+	private readonly ILogger _Logger;
+	private readonly MessageQueue _MessageQueue;
 	private readonly ITime _Time;
 
 	#region Handlers
@@ -29,11 +32,13 @@ public sealed class UserLogger
 	#endregion Handlers
 
 	public UserLogger(
+		ILogger logger,
 		ILoggingDatabase db,
 		BaseSocketClient client,
-		MessageSenderQueue queue,
+		MessageQueue queue,
 		ITime time)
 	{
+		_Logger = logger;
 		_Client = client;
 		_MessageQueue = queue;
 		_Time = time;
@@ -83,6 +88,12 @@ public sealed class UserLogger
 			return;
 		}
 
+		_Logger.LogInformation(
+			eventId: new EventId(1, nameof(HandleJoinLogging)),
+			message: "Logging {User} joining {Guild}",
+			context.State.User.Id, context.Guild.Id
+		);
+
 		var description = $"**ID:** {context.State.User.Id}";
 
 		var cache = _Invites.GetOrAdd(context.Guild.Id, _ => new());
@@ -117,6 +128,12 @@ public sealed class UserLogger
 			return Task.CompletedTask;
 		}
 
+		_Logger.LogInformation(
+			eventId: new EventId(2, nameof(HandleLeftLogging)),
+			message: "Logging {User} leaving {Guild}",
+			context.State.User.Id, context.Guild.Id
+		);
+
 		var description = $"**ID:** {context.State.User.Id}";
 
 		if ((context.State.User as IGuildUser)?.JoinedAt is DateTimeOffset joinedAt)
@@ -144,6 +161,12 @@ public sealed class UserLogger
 		{
 			return Task.CompletedTask;
 		}
+
+		_Logger.LogInformation(
+			eventId: new EventId(3, nameof(HandleUsernameUpdated)),
+			message: "Logging {User} username updated in {Guild}",
+			context.State.User.Id, context.Guild.Id
+		);
 
 		_MessageQueue.Enqueue((context.ServerLog, new EmbedWrapper
 		{
