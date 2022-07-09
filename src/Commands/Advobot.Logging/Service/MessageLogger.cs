@@ -109,20 +109,18 @@ public sealed class MessageLogger
 			return Task.CompletedTask;
 		}
 
-		var info = new
-		{
-			Guild = context.Guild.Id,
-			Channel = context.State.Channel.Id,
-			Message = context.State.Message.Id,
-		};
+		_Logger.LogInformation(
+			eventId: new EventId(1, nameof(HandleImageLoggingAsync)),
+			message: "Logging images for {@Info}",
+			new
+			{
+				Guild = context.Guild.Id,
+				Channel = context.State.Channel.Id,
+				Message = context.State.Message.Id,
+			}
+		);
 		foreach (var image in ImageLogItem.GetAllImages(context.State.Message))
 		{
-			_Logger.LogInformation(
-				eventId: new EventId(1, nameof(HandleImageLoggingAsync)),
-				message: "Logging image {Image} for {@Info}",
-				image, info
-			);
-
 			var jump = context.State.Message.GetJumpUrl();
 			var description = $"[Message]({jump}), [Embed Source]({image.Url})";
 			if (image.ImageUrl != null)
@@ -257,12 +255,11 @@ public sealed class MessageLogger
 
 		_Logger.LogInformation(
 			eventId: new EventId(2, nameof(HandleMessageDeletedLogging)),
-			message: "Logging {Count} deleted messages {@Info}",
+			message: "Logging {Count} deleted messages for {@Info}",
 			context.State.Messages.Count, new
 			{
 				Guild = context.Guild.Id,
 				Channel = context.State.Channel.Id,
-				Message = context.State.Message.Id,
 			}
 		);
 

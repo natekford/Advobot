@@ -3,15 +3,17 @@ using Microsoft.Extensions.Logging;
 
 using Serilog;
 using Serilog.Core;
+using Serilog.Events;
 using Serilog.Extensions.Logging;
 using Serilog.Formatting.Json;
+using Serilog.Sinks.SystemConsole.Themes;
 
 namespace Advobot.Serilog;
 
 /// <summary>
-/// Utilities for adding Serilog to a project.
+/// Utilities for Serilog.
 /// </summary>
-public static class LoggingExtensions
+public static class LoggingUtils
 {
 	/// <summary>
 	/// Adds a logger for <typeparamref name="T"/> to <paramref name="services"/>.
@@ -36,8 +38,8 @@ public static class LoggingExtensions
 	/// <returns></returns>
 	public static ILogger<T> CreateLogger<T>(string name)
 	{
-		var logger = CreateSerilog(name);
-		return new SerilogLoggerFactory(logger).CreateLogger<T>();
+		var serilog = CreateSerilog(name);
+		return new SerilogLoggerFactory(serilog).CreateLogger<T>();
 	}
 
 	/// <summary>
@@ -49,10 +51,14 @@ public static class LoggingExtensions
 	{
 		return new LoggerConfiguration()
 			.Enrich.FromLogContext()
-			.MinimumLevel.Verbose()
+			.MinimumLevel.Debug()
 			.WriteTo.File(
 				formatter: new JsonFormatter(),
-				path: $"{fileName}_Logs.txt"
+				path: Path.Combine("Logs", $"{fileName}.txt")
+			)
+			.WriteTo.Console(
+				restrictedToMinimumLevel: LogEventLevel.Warning,
+				theme: AnsiConsoleTheme.Code
 			)
 			.CreateLogger();
 	}

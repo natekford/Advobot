@@ -6,6 +6,8 @@ using AdvorangesUtils;
 
 using Discord.WebSocket;
 
+using Microsoft.Extensions.Logging;
+
 using static Advobot.Resources.Responses;
 
 namespace Advobot.Logging.Service;
@@ -13,13 +15,16 @@ namespace Advobot.Logging.Service;
 public sealed class NotificationService
 {
 	private readonly INotificationDatabase _Db;
+	private readonly ILogger _Logger;
 	private readonly MessageQueue _MessageQueue;
 
 	public NotificationService(
+		ILogger<NotificationService> logger,
 		INotificationDatabase db,
 		BaseSocketClient client,
 		MessageQueue queue)
 	{
+		_Logger = logger;
 		_Db = db;
 		_MessageQueue = queue;
 
@@ -40,6 +45,17 @@ public sealed class NotificationService
 		{
 			return;
 		}
+
+		_Logger.LogInformation(
+			eventId: new EventId(1, nameof(OnEvent)),
+			message: "Sending event of type {Event} to {@Info}",
+			notifType, new
+			{
+				Guild = guild.Id,
+				Channel = channel.Id,
+				User = user.Id,
+			}
+		);
 
 		var content = notification.Content
 			?.CaseInsReplace(NotificationUtils.USER_MENTION, user?.Mention ?? VariableInvalidUser)

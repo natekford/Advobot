@@ -62,10 +62,10 @@ public static class SQLiteUtils
 		this SQLiteConnection connection)
 	{
 		var result = await connection.QueryAsync<string>(@"
-				SELECT name FROM sqlite_master
-				WHERE type='table'
-				ORDER BY name;
-			").CAF();
+			SELECT name FROM sqlite_master
+			WHERE type='table'
+			ORDER BY name;
+		").CAF();
 		return result.ToArray();
 	}
 
