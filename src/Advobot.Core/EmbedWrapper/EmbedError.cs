@@ -5,31 +5,6 @@ using System.Reflection;
 
 namespace Advobot.Classes;
 
-/// <summary>
-/// An error which occurs when attempting to modify an <see cref="EmbedWrapper"/>.
-/// </summary>
-public interface IEmbedError
-{
-	/// <summary>
-	/// The property which had an error.
-	/// </summary>
-	public string PropertyPath { get; }
-	/// <summary>
-	/// The reason for this error.
-	/// </summary>
-	public string? Reason { get; }
-	/// <summary>
-	/// The value that gave an error.
-	/// </summary>
-	public object? Value { get; }
-}
-
-internal interface IRemainingEmbedError : IEmbedError
-{
-	bool IsNewLines { get; }
-	int RemainingLength { get; }
-}
-
 internal static class EmbedUtils
 {
 	//TODO: make into class
@@ -186,7 +161,7 @@ internal class EmbedError<TEmbedBuilder, TProperty> : IEmbedError
 	/// </summary>
 	/// <returns></returns>
 	public override string ToString()
-		=> $"{PropertyPath}: '{Value?.ToString() ?? "null"}' is invalid. Reason: {Reason}";
+		=> ;
 
 	public IEmbedError WithInvalidUrl()
 		=> WithReason("Invalid url.");
@@ -217,34 +192,4 @@ internal class EmbedError<TEmbedBuilder, TProperty> : IEmbedError
 
 	public IRemainingEmbedError WithRemainingNewLines(int r)
 		=> new RemainingEmbedError(this, r, $"Remaining new lines is {r}.", newLines: true);
-}
-
-internal class RemainingEmbedError : IRemainingEmbedError
-{
-	/// <inheritdoc />
-	public bool IsNewLines { get; }
-	/// <inheritdoc />
-	public string PropertyPath { get; }
-	/// <inheritdoc />
-	public string? Reason { get; }
-	/// <inheritdoc />
-	public int RemainingLength { get; }
-	/// <inheritdoc />
-	public object? Value { get; }
-
-	/// <summary>
-	/// Creates an instance of <see cref="RemainingEmbedError"/>.
-	/// </summary>
-	/// <param name="error"></param>
-	/// <param name="remainingLength"></param>
-	/// <param name="reason"></param>
-	/// <param name="newLines"></param>
-	public RemainingEmbedError(IEmbedError error, int remainingLength, string reason, bool newLines = false)
-	{
-		RemainingLength = remainingLength;
-		IsNewLines = newLines;
-		Reason = reason;
-		PropertyPath = error.PropertyPath;
-		Value = error.Value;
-	}
 }

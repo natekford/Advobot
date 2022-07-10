@@ -1,9 +1,10 @@
-﻿using AdvorangesUtils;
+﻿using Advobot.EmbedWrapper;
+
+using AdvorangesUtils;
 
 using Discord;
 
 using System.Collections.Immutable;
-using System.Linq.Expressions;
 
 namespace Advobot.Classes;
 
@@ -24,7 +25,7 @@ public sealed class EmbedWrapper
 	public const int MAX_FIELD_LINES = 5;
 
 	private readonly EmbedBuilder _Builder;
-	private readonly List<IEmbedError> _Errors = new();
+	private readonly List<EmbedException> _Errors = new();
 
 	/// <summary>
 	/// The color to use for attachments on a message.
@@ -81,7 +82,7 @@ public sealed class EmbedWrapper
 	/// <summary>
 	/// Any errors which have happened when building the embed.
 	/// </summary>
-	public IReadOnlyList<IEmbedError> Errors
+	public IReadOnlyList<EmbedException> Errors
 		=> _Errors.ToImmutableList();
 	/// <summary>
 	/// The fields of the embed.
@@ -104,9 +105,11 @@ public sealed class EmbedWrapper
 			for (var i = 0; i < Math.Min(value.Count, MAX_FIELDS); ++i)
 			{
 				var f = value[i];
-				if (!TryAddField(f.Name, f.Value?.ToString(), f.IsInline, out _))
+				if (!TryAddField(f.Name, f.Value?.ToString(), f.IsInline, out var errors))
 				{
-					throw new InvalidOperationException($"Unable to add field at index {i}");
+					var joined = errors.Join(x => x.ToString(), "\n");
+					var msg = $"Unable to add field at index {i}.\n{joined}";
+					throw new InvalidOperationException(msg);
 				}
 			}
 		}
@@ -211,19 +214,16 @@ public sealed class EmbedWrapper
 		string? name,
 		string? url,
 		string? iconUrl,
-		out IReadOnlyList<IEmbedError> errors)
+		out IReadOnlyList<EmbedException> errors)
 	{
-		const int LENGTH = EmbedAuthorBuilder.MaxAuthorNameLength;
-
-		var remaining = GetRemainingLength(nameof(Author));
-		errors = new RuleHandler(_Errors)
+		errors = Validate()
 			.Property<EmbedAuthorBuilder, string?>(x => x.Name, name)
-				.Rule(v => v?.Length > LENGTH, e => e.WithMax(LENGTH))
-				.Rule(v => v?.Length > remaining, e => e.WithRemaining(remaining))
+				.Max(EmbedAuthorBuilder.MaxAuthorNameLength)
+				.Remaining(GetRemainingLength(nameof(Author)))
 			.Property<EmbedAuthorBuilder, string?>(x => x.Url, url)
-				.Rule(v => v?.IsValidUrl() == false, e => e.WithInvalidUrl())
+				.InvalidUrl()
 			.Property<EmbedAuthorBuilder, string?>(x => x.IconUrl, iconUrl)
-				.Rule(v => v?.IsValidUrl() == false, e => e.WithInvalidUrl())
+				.InvalidUrl()
 			.End();
 		return SetIfSuccess(errors, () =>
 		{
@@ -244,7 +244,7 @@ public sealed class EmbedWrapper
 	/// <returns></returns>
 	public bool TryAddAuthor(
 		IUser user,
-		out IReadOnlyList<IEmbedError> errors)
+		out IReadOnlyList<EmbedException> errors)
 		=> TryAddAuthor(user?.Username, user?.GetAvatarUrl(), user?.GetAvatarUrl(), out errors);
 
 	/// <summary>
@@ -255,17 +255,13 @@ public sealed class EmbedWrapper
 	/// <returns></returns>
 	public bool TryAddDescription(
 		string? description,
-		out IReadOnlyList<IEmbedError> errors)
+		out IReadOnlyList<EmbedException> errors)
 	{
-		const int LENGTH = EmbedBuilder.MaxDescriptionLength;
-		const int LINES = MAX_DESCRIPTION_LINES;
-
-		var remaining = GetRemainingLength(nameof(Description));
-		errors = new RuleHandler(_Errors)
+		errors = Validate()
 			.Property<EmbedBuilder, string?>(x => x.Description, description)
-				.Rule(v => v?.Length > LENGTH, e => e.WithMax(LENGTH))
-				.Rule(v => v?.Length > remaining, e => e.WithRemaining(remaining))
-				.Rule(v => v?.CountLineBreaks() > LINES, e => e.WithMax(LINES))
+				.Max(EmbedBuilder.MaxDescriptionLength)
+				.Remaining(GetRemainingLength(nameof(Description)))
+				.MaxLines(MAX_DESCRIPTION_LINES)
 			.End();
 		return SetIfSuccess(errors, () => _Builder.Description = description);
 	}
@@ -282,28 +278,26 @@ public sealed class EmbedWrapper
 		string? name,
 		string? value,
 		bool inline,
-		out IReadOnlyList<IEmbedError> errors)
+		out IReadOnlyList<EmbedException> errors)
 	{
-		const int VALUE_LENGTH = EmbedFieldBuilder.MaxFieldValueLength;
-		const int NAME_LENGTH = EmbedFieldBuilder.MaxFieldNameLength;
 		const int MAX_FIELDS = EmbedBuilder.MaxFieldCount;
 		const int LINES = MAX_FIELD_LINES;
 
 		var remaining = GetRemainingLength(null);
-		errors = new RuleHandler(_Errors)
+		errors = Validate()
 			.Property<EmbedBuilder, int>(_ => _Builder.Fields.Count, _Builder.Fields.Count + 1)
 				.Rule(v => v > MAX_FIELDS, e => e.WithMax(MAX_FIELDS))
 			.Property<EmbedFieldBuilder, string?>(x => x.Name, name)
 				.Rule(v => string.IsNullOrWhiteSpace(v), e => e.WithNotEmpty())
-				.Rule(v => v?.Length > NAME_LENGTH, e => e.WithMax(NAME_LENGTH))
-				.Rule(v => v?.Length > remaining, e => e.WithRemaining(remaining))
+				.Max(EmbedFieldBuilder.MaxFieldNameLength)
+				.Remaining(remaining)
 			.Property<EmbedFieldBuilder, string?>(x => (string)x.Value, value)
 				.Rule(v => string.IsNullOrWhiteSpace(v), e => e.WithNotEmpty())
-				.Rule(v => v?.Length > VALUE_LENGTH, e => e.WithMax(VALUE_LENGTH))
-				.Rule(v => v?.Length > remaining, e => e.WithRemaining(remaining))
+				.Max(EmbedFieldBuilder.MaxFieldValueLength)
+				.Remaining(remaining)
 				.Rule(v => v?.CountLineBreaks() > LINES, e => e.WithMax(LINES))
 			.Property<EmbedFieldBuilder, string?>(x => x.Name + (string)x.Value, name + value)
-				.Rule(v => v?.Length > remaining, e => e.WithRemaining(remaining))
+				.Remaining(remaining)
 			.End();
 		return SetIfSuccess(errors, () =>
 		{
@@ -326,17 +320,14 @@ public sealed class EmbedWrapper
 	public bool TryAddFooter(
 		string? text,
 		string? iconUrl,
-		out IReadOnlyList<IEmbedError> errors)
+		out IReadOnlyList<EmbedException> errors)
 	{
-		const int LENGTH = EmbedFooterBuilder.MaxFooterTextLength;
-
-		var remaining = GetRemainingLength(nameof(Footer));
-		errors = new RuleHandler(_Errors)
+		errors = Validate()
 			.Property<EmbedFooterBuilder, string?>(x => x.Text, text)
-				.Rule(v => v?.Length > LENGTH, e => e.WithMax(LENGTH))
-				.Rule(v => v?.Length > remaining, e => e.WithRemaining(remaining))
+				.Max(EmbedFooterBuilder.MaxFooterTextLength)
+				.Remaining(GetRemainingLength(nameof(Footer)))
 			.Property<EmbedFooterBuilder, string?>(x => x.IconUrl, iconUrl)
-				.Rule(v => v?.IsValidUrl() == false, e => e.WithInvalidUrl())
+				.InvalidUrl()
 			.End();
 		return SetIfSuccess(errors, () =>
 		{
@@ -356,11 +347,11 @@ public sealed class EmbedWrapper
 	/// <returns></returns>
 	public bool TryAddImageUrl(
 		string? imageUrl,
-		out IReadOnlyList<IEmbedError> errors)
+		out IReadOnlyList<EmbedException> errors)
 	{
-		errors = new RuleHandler(_Errors)
+		errors = Validate()
 			.Property<EmbedBuilder, string?>(x => x.ImageUrl, imageUrl)
-				.Rule(v => v?.IsValidUrl() == false, e => e.WithInvalidUrl())
+				.InvalidUrl()
 			.End();
 		return SetIfSuccess(errors, () => _Builder.ImageUrl = imageUrl);
 	}
@@ -373,11 +364,11 @@ public sealed class EmbedWrapper
 	/// <returns></returns>
 	public bool TryAddThumbnailUrl(
 		string? thumbnailUrl,
-		out IReadOnlyList<IEmbedError> errors)
+		out IReadOnlyList<EmbedException> errors)
 	{
-		errors = new RuleHandler(_Errors)
+		errors = Validate()
 			.Property<EmbedBuilder, string?>(x => x.ThumbnailUrl, thumbnailUrl)
-				.Rule(v => v?.IsValidUrl() == false, e => e.WithInvalidUrl())
+				.InvalidUrl()
 			.End();
 		return SetIfSuccess(errors, () => _Builder.ThumbnailUrl = thumbnailUrl);
 	}
@@ -390,15 +381,12 @@ public sealed class EmbedWrapper
 	/// <returns></returns>
 	public bool TryAddTitle(
 		string? title,
-		out IReadOnlyList<IEmbedError> errors)
+		out IReadOnlyList<EmbedException> errors)
 	{
-		const int LENGTH = EmbedBuilder.MaxTitleLength;
-
-		var remaining = GetRemainingLength(nameof(Title));
-		errors = new RuleHandler(_Errors)
+		errors = Validate()
 			.Property<EmbedBuilder, string?>(x => x.Title, title)
-				.Rule(v => v?.Length > LENGTH, e => e.WithMax(LENGTH))
-				.Rule(v => v?.Length > remaining, e => e.WithRemaining(remaining))
+				.Max(EmbedBuilder.MaxTitleLength)
+				.Remaining(GetRemainingLength(nameof(Title)))
 			.End();
 		return SetIfSuccess(errors, () => _Builder.Title = title);
 	}
@@ -411,11 +399,11 @@ public sealed class EmbedWrapper
 	/// <returns></returns>
 	public bool TryAddUrl(
 		string? url,
-		out IReadOnlyList<IEmbedError> errors)
+		out IReadOnlyList<EmbedException> errors)
 	{
-		errors = new RuleHandler(_Errors)
+		errors = Validate()
 			.Property<EmbedBuilder, string?>(x => x.Url, url)
-				.Rule(v => v?.IsValidUrl() == false, e => e.WithInvalidUrl())
+				.InvalidUrl()
 			.End();
 		return SetIfSuccess(errors, () => _Builder.Url = url);
 	}
@@ -434,20 +422,20 @@ public sealed class EmbedWrapper
 		string name,
 		string value,
 		bool inline,
-		out IReadOnlyList<IEmbedError> errors)
+		out IReadOnlyList<EmbedException> errors)
 	{
 		if (!TryRemoveField(index, out var field, out errors))
 		{
 			return false;
 		}
-		//If the field fails to be added then the old value has to be reinserted
+		// If the field fails to be added then the old value has to be reinserted
 		if (!TryAddField(name, value, inline, out errors))
 		{
 			_Builder.Fields.Insert(index, field);
 			return false;
 		}
 
-		//Newest field is in the list, but wrong position now
+		// Newest field is in the list, but wrong position now
 		var newField = _Builder.Fields.Last();
 		_Builder.Fields.RemoveAt(_Builder.Fields.Count - 1);
 		_Builder.Fields.Insert(index, newField);
@@ -464,10 +452,9 @@ public sealed class EmbedWrapper
 	public bool TryRemoveField(
 		int index,
 		out EmbedFieldBuilder? field,
-		out IReadOnlyList<IEmbedError> errors)
+		out IReadOnlyList<EmbedException> errors)
 	{
-		field = default;
-		errors = new RuleHandler(_Errors)
+		errors = Validate()
 			.Property<EmbedBuilder, int>(x => x.Fields.Count, index)
 				.Rule(v => v < 0, e => e.WithMustBePositive())
 				.Rule(_ => _Builder.Fields.Count == 0, e => e.WithNone())
@@ -475,6 +462,7 @@ public sealed class EmbedWrapper
 			.End();
 		if (errors.Count > 0)
 		{
+			field = default;
 			return false;
 		}
 
@@ -497,7 +485,7 @@ public sealed class EmbedWrapper
 		};
 	}
 
-	private bool SetIfSuccess(IReadOnlyCollection<IEmbedError> errors, Action setter)
+	private bool SetIfSuccess(IReadOnlyCollection<EmbedException> errors, Action setter)
 	{
 		var success = errors.Count == 0;
 		if (success)
@@ -507,64 +495,6 @@ public sealed class EmbedWrapper
 		return success;
 	}
 
-	private sealed class PropertyHandler<TEmbed, T>
-	{
-		private readonly List<IEmbedError> _GlobalErrors;
-		private readonly RuleHandler _Parent;
-		private readonly Expression<Func<TEmbed, T>> _Property;
-		private readonly List<IEmbedError> _PropertyErrors;
-		private readonly T _Value;
-
-		public PropertyHandler(
-			RuleHandler parent,
-			List<IEmbedError> globalErrors,
-			List<IEmbedError> propertyErrors,
-			T value,
-			Expression<Func<TEmbed, T>> property)
-		{
-			_Parent = parent;
-			_GlobalErrors = globalErrors;
-			_PropertyErrors = propertyErrors;
-			_Value = value;
-			_Property = property;
-		}
-
-		public IReadOnlyList<IEmbedError> End()
-			=> _PropertyErrors;
-
-		public PropertyHandler<TEmbed2, T2> Property<TEmbed2, T2>(
-			Expression<Func<TEmbed2, T2>> p,
-			T2 v)
-			=> _Parent.Property(p, v);
-
-		public PropertyHandler<TEmbed, T> Rule(
-			Func<T, bool> invalidation,
-			Func<EmbedError<TEmbed, T>, IEmbedError> addReason)
-		{
-			if (invalidation.Invoke(_Value))
-			{
-				var initial = new EmbedError<TEmbed, T>(_Property, _Value);
-				var reasoned = addReason.Invoke(initial);
-				_GlobalErrors.Add(reasoned);
-				_PropertyErrors.Add(reasoned);
-			}
-			return this;
-		}
-	}
-
-	private sealed class RuleHandler
-	{
-		private readonly List<IEmbedError> _Errors = new();
-		private readonly List<IEmbedError> _GlobalErrors;
-
-		public RuleHandler(List<IEmbedError> globalErrors)
-		{
-			_GlobalErrors = globalErrors;
-		}
-
-		public PropertyHandler<TEmbed, T> Property<TEmbed, T>(
-			Expression<Func<TEmbed, T>> p,
-			T v)
-			=> new(this, _GlobalErrors, _Errors, v, p);
-	}
+	private EmbedValidator Validate()
+		=> new(_Errors);
 }

@@ -188,6 +188,17 @@ public sealed class MessageLogger
 			return Task.CompletedTask;
 		}
 
+		_Logger.LogInformation(
+			eventId: new EventId(3, nameof(HandleMessageEditedLoggingAsync)),
+			message: "Logging edited message {@Info}",
+			new
+			{
+				Guild = context.Guild.Id,
+				Channel = context.State.Channel.Id,
+				Message = context.State.Message.Id,
+			}
+		);
+
 		static (bool, string) FormatContent(IMessage? message)
 		{
 			if (message is null)
@@ -230,17 +241,6 @@ public sealed class MessageLogger
 				},
 			};
 		}
-
-		_Logger.LogInformation(
-			eventId: new EventId(3, nameof(HandleMessageEditedLoggingAsync)),
-			message: "Logging edited message {@Info}",
-			new
-			{
-				Guild = context.Guild.Id,
-				Channel = context.State.Channel.Id,
-				Message = context.State.Message.Id,
-			}
-		);
 
 		_MessageQueue.Enqueue((context.ServerLog, sendMessageArgs));
 		return Task.CompletedTask;
