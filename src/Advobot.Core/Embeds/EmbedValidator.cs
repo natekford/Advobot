@@ -5,8 +5,9 @@ namespace Advobot.Embeds;
 internal sealed class EmbedValidator
 {
 	private readonly Action _Setter;
+	private List<EmbedException>? _Errors;
 
-	public List<EmbedException> Errors { get; } = new();
+	public List<EmbedException> Errors => _Errors ??= new();
 	public List<EmbedException> GlobalErrors { get; }
 
 	public EmbedValidator(Action setter, List<EmbedException> globalErrors)

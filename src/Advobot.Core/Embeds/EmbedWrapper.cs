@@ -3,6 +3,7 @@
 using Discord;
 
 using System.Collections.Immutable;
+using System.Runtime.CompilerServices;
 
 namespace Advobot.Embeds;
 
@@ -12,7 +13,6 @@ namespace Advobot.Embeds;
 /// </summary>
 public sealed class EmbedWrapper
 {
-	//TODO: rewrite
 	/// <summary>
 	/// The maximum length in lines a description can be before it won't render on mobile.
 	/// </summary>
@@ -22,8 +22,8 @@ public sealed class EmbedWrapper
 	/// </summary>
 	public const int MAX_FIELD_LINES = 5;
 
-	private readonly EmbedBuilder _Builder;
-	private readonly List<EmbedException> _GlobalErrors = new();
+	private readonly EmbedBuilder _Embed;
+	private readonly List<EmbedException> _Errors = new();
 
 	/// <summary>
 	/// The color to use for attachments on a message.
@@ -53,113 +53,147 @@ public sealed class EmbedWrapper
 	/// The color to use for users being modified.
 	/// </summary>
 	public static Color UserEdit { get; } = new Color(051, 051, 255);
-	/// <summary>
-	/// The author of the embed.
-	/// </summary>
-	public EmbedAuthorBuilder Author
+
+	/// <inheritdoc cref="EmbedBuilder.Author"/>
+	public EmbedAuthorBuilder? Author
 	{
-		get => _Builder.Author;
-		set => _Builder.Author = value;
+		get => _Embed.Author;
+		set
+		{
+			if (value is null)
+			{
+				_Embed.Author = null;
+				return;
+			}
+			if (!TryAddAuthor(value.Name, value.Url, value.IconUrl, out var errors))
+			{
+				Throw(errors);
+			}
+		}
 	}
-	/// <summary>
-	/// The color of the embed.
-	/// </summary>
+	/// <inheritdoc cref="EmbedBuilder.Color"/>
 	public Color? Color
 	{
-		get => _Builder.Color;
-		set => _Builder.Color = value;
+		get => _Embed.Color;
+		set => _Embed.Color = value;
 	}
-	/// <summary>
-	/// The description of the embed.
-	/// </summary>
+	/// <inheritdoc cref="EmbedBuilder.Description"/>
 	public string? Description
 	{
-		get => _Builder.Description;
-		set => _Builder.Description = value;
+		get => _Embed.Description;
+		set
+		{
+			if (!TryAddDescription(value, out var errors))
+			{
+				Throw(errors);
+			}
+		}
 	}
 	/// <summary>
 	/// Any errors which have happened when building the embed.
 	/// </summary>
 	public IReadOnlyList<EmbedException> Errors
-		=> _GlobalErrors.ToImmutableList();
-	/// <summary>
-	/// The fields of the embed.
-	/// </summary>
+		=> _Errors.ToImmutableArray();
+	/// <inheritdoc cref="EmbedBuilder.Fields"/>
 	public List<EmbedFieldBuilder> Fields
 	{
-		get => _Builder.Fields;
+		get => _Embed.Fields;
 		set
 		{
-			const int MAX_FIELDS = EmbedBuilder.MaxFieldCount;
-
-			if (value.Count > MAX_FIELDS)
+			if (value is null)
 			{
-				throw new InvalidOperationException("Too many fields provided.");
+				throw new ArgumentNullException(nameof(Fields));
+			}
+			if (value.Count > EmbedBuilder.MaxFieldCount)
+			{
+				throw new ArgumentException("Too many fields provided.");
 			}
 
-			//Have to clear and do it step by step instead of temp list
-			//Because TryAddField adds to the builder if success and also checks against total embed length
-			_Builder.Fields.Clear();
-			for (var i = 0; i < Math.Min(value.Count, MAX_FIELDS); ++i)
+			// Have to clear and do it step by step instead of temp list
+			// Because TryAddField adds to the builder if success and also checks against total embed length
+			_Embed.Fields.Clear();
+			for (var i = 0; i < Math.Min(value.Count, EmbedBuilder.MaxFieldCount); ++i)
 			{
 				var f = value[i];
 				if (!TryAddField(f.Name, f.Value?.ToString(), f.IsInline, out var errors))
 				{
-					throw new InvalidOperationException(
-						message: $"Unable to add field at index {i}.",
-						innerException: new AggregateException(errors)
-					);
+					Throw(errors, $"{nameof(Fields)}[{i}]");
 				}
 			}
 		}
 	}
-	/// <summary>
-	/// The footer of the embed.
-	/// </summary>
-	public EmbedFooterBuilder Footer
+	/// <inheritdoc cref="EmbedBuilder.Footer"/>
+	public EmbedFooterBuilder? Footer
 	{
-		get => _Builder.Footer;
-		set => _Builder.Footer = value;
+		get => _Embed.Footer;
+		set
+		{
+			if (value is null)
+			{
+				_Embed.Footer = null;
+				return;
+			}
+			if (!TryAddFooter(value.Text, value.IconUrl, out var errors))
+			{
+				Throw(errors);
+			}
+		}
 	}
-	/// <summary>
-	/// The image url of the embed.
-	/// </summary>
+	/// <inheritdoc cref="EmbedBuilder.ImageUrl"/>
 	public string? ImageUrl
 	{
-		get => _Builder.ImageUrl;
-		set => _Builder.ImageUrl = value;
+		get => _Embed.ImageUrl;
+		set
+		{
+			if (!TryAddImageUrl(value, out var errors))
+			{
+				Throw(errors);
+			}
+		}
 	}
-	/// <summary>
-	/// The thumnail url of the embed.
-	/// </summary>
+	/// <inheritdoc cref="EmbedBuilder.Length"/>
+	public int Length => _Embed.Length;
+	/// <inheritdoc cref="EmbedBuilder.ThumbnailUrl"/>
 	public string? ThumbnailUrl
 	{
-		get => _Builder.ThumbnailUrl;
-		set => _Builder.ThumbnailUrl = value;
+		get => _Embed.ThumbnailUrl;
+		set
+		{
+			if (!TryAddThumbnailUrl(value, out var errors))
+			{
+				Throw(errors);
+			}
+		}
 	}
-	/// <summary>
-	/// The timestamp of the embed.
-	/// </summary>
+	/// <inheritdoc cref="EmbedBuilder.Timestamp"/>
 	public DateTimeOffset? Timestamp
 	{
-		get => _Builder.Timestamp;
-		set => _Builder.Timestamp = value;
+		get => _Embed.Timestamp;
+		set => _Embed.Timestamp = value;
 	}
-	/// <summary>
-	/// The title of the embed.
-	/// </summary>
+	/// <inheritdoc cref="EmbedBuilder.Title"/>
 	public string? Title
 	{
-		get => _Builder.Title;
-		set => _Builder.Title = value;
+		get => _Embed.Title;
+		set
+		{
+			if (!TryAddTitle(value, out var errors))
+			{
+				Throw(errors);
+			}
+		}
 	}
-	/// <summary>
-	/// The url of the embed.
-	/// </summary>
+	/// <inheritdoc cref="EmbedBuilder.Url"/>
 	public string? Url
 	{
-		get => _Builder.Url;
-		set => _Builder.Url = value;
+		get => _Embed.Url;
+		set
+		{
+			if (!TryAddUrl(value, out var errors))
+			{
+				Throw(errors);
+			}
+		}
 	}
 
 	/// <summary>
@@ -167,7 +201,7 @@ public sealed class EmbedWrapper
 	/// </summary>
 	public EmbedWrapper()
 	{
-		_Builder = new()
+		_Embed = new()
 		{
 			Color = Base,
 			Timestamp = DateTimeOffset.UtcNow
@@ -177,10 +211,10 @@ public sealed class EmbedWrapper
 	/// <summary>
 	/// Creates an instance of <see cref="EmbedWrapper"/>.
 	/// </summary>
-	/// <param name="builder"></param>
-	public EmbedWrapper(EmbedBuilder builder)
+	/// <param name="embed"></param>
+	public EmbedWrapper(EmbedBuilder embed)
 	{
-		_Builder = builder;
+		_Embed = embed;
 	}
 
 	/// <summary>
@@ -195,11 +229,11 @@ public sealed class EmbedWrapper
 	/// </summary>
 	/// <returns></returns>
 	public Embed Build()
-		=> _Builder.Build();
+		=> _Embed.Build();
 
 	/// <inheritdoc />
 	public override string ToString()
-		=> _GlobalErrors.Join(x => $"{x.PropertyPath}:\n{x.Value}", "\n\n");
+		=> _Errors.Join(x => $"{x.PropertyPath}:\n{x.Value}", "\n\n");
 
 	/// <summary>
 	/// Attempts to modify the author. Does nothing if fails.
@@ -217,7 +251,7 @@ public sealed class EmbedWrapper
 	{
 		return CreateValidator(() =>
 		{
-			_Builder.Author = new EmbedAuthorBuilder
+			_Embed.Author = new EmbedAuthorBuilder
 			{
 				Name = name,
 				Url = url,
@@ -244,7 +278,7 @@ public sealed class EmbedWrapper
 		string? description,
 		out IReadOnlyList<EmbedException> errors)
 	{
-		return CreateValidator(() => _Builder.Description = description)
+		return CreateValidator(() => _Embed.Description = description)
 		.Property<EmbedBuilder, string?>(x => x.Description, description)
 			.Max(EmbedBuilder.MaxDescriptionLength)
 			.Remaining(GetRemainingLength(nameof(Description)))
@@ -269,14 +303,14 @@ public sealed class EmbedWrapper
 		var remaining = GetRemainingLength(null);
 		return CreateValidator(() =>
 		{
-			_Builder.Fields.Add(new EmbedFieldBuilder
+			_Embed.Fields.Add(new EmbedFieldBuilder
 			{
 				Name = name,
 				Value = value,
 				IsInline = inline
 			});
 		})
-		.Property<EmbedBuilder, int>(_ => _Builder.Fields.Count, _Builder.Fields.Count + 1)
+		.Property<EmbedBuilder, int>(_ => _Embed.Fields.Count, _Embed.Fields.Count + 1)
 			.Max(EmbedBuilder.MaxFieldCount)
 		.Validator.Property<EmbedFieldBuilder, string?>(x => x.Name, name)
 			.NotEmpty()
@@ -306,7 +340,7 @@ public sealed class EmbedWrapper
 	{
 		return CreateValidator(() =>
 		{
-			_Builder.Footer = new EmbedFooterBuilder
+			_Embed.Footer = new EmbedFooterBuilder
 			{
 				Text = text,
 				IconUrl = iconUrl
@@ -330,7 +364,7 @@ public sealed class EmbedWrapper
 		string? imageUrl,
 		out IReadOnlyList<EmbedException> errors)
 	{
-		return CreateValidator(() => _Builder.ImageUrl = imageUrl)
+		return CreateValidator(() => _Embed.ImageUrl = imageUrl)
 		.Property<EmbedBuilder, string?>(x => x.ImageUrl, imageUrl)
 			.ValidUrl()
 		.Validator.Finalize(out errors);
@@ -346,7 +380,7 @@ public sealed class EmbedWrapper
 		string? thumbnailUrl,
 		out IReadOnlyList<EmbedException> errors)
 	{
-		return CreateValidator(() => _Builder.ThumbnailUrl = thumbnailUrl)
+		return CreateValidator(() => _Embed.ThumbnailUrl = thumbnailUrl)
 		.Property<EmbedBuilder, string?>(x => x.ThumbnailUrl, thumbnailUrl)
 			.ValidUrl()
 		.Validator.Finalize(out errors);
@@ -362,7 +396,7 @@ public sealed class EmbedWrapper
 		string? title,
 		out IReadOnlyList<EmbedException> errors)
 	{
-		return CreateValidator(() => _Builder.Title = title)
+		return CreateValidator(() => _Embed.Title = title)
 		.Property<EmbedBuilder, string?>(x => x.Title, title)
 			.Max(EmbedBuilder.MaxTitleLength)
 			.Remaining(GetRemainingLength(nameof(Title)))
@@ -379,25 +413,33 @@ public sealed class EmbedWrapper
 		string? url,
 		out IReadOnlyList<EmbedException> errors)
 	{
-		return CreateValidator(() => _Builder.Url = url)
+		return CreateValidator(() => _Embed.Url = url)
 		.Property<EmbedBuilder, string?>(x => x.Url, url)
 			.ValidUrl()
 		.Validator.Finalize(out errors);
 	}
 
+	private static void Throw(
+		IReadOnlyList<EmbedException> errors,
+		[CallerMemberName] string property = "")
+	{
+		var innerException = new AggregateException(errors);
+		throw new ArgumentException($"Unable to set {property}.", innerException);
+	}
+
 	private EmbedValidator CreateValidator(Action setter)
-		=> new(setter, _GlobalErrors);
+			=> new(setter, _Errors);
 
 	private int GetRemainingLength(string? propertyToDisregard)
 	{
-		//Gotten from https://github.com/RogueException/Discord.Net/blob/7837c4862cab32ecc432b3c6794277d92d89647d/src/Discord.Net.Core/Entities/Messages/Embed.cs#L60
-		return EmbedBuilder.MaxEmbedLength - _Builder.Length + propertyToDisregard switch
+		// Gotten from https://github.com/RogueException/Discord.Net/blob/7837c4862cab32ecc432b3c6794277d92d89647d/src/Discord.Net.Core/Entities/Messages/Embed.cs#L60
+		return EmbedBuilder.MaxEmbedLength - Length + propertyToDisregard switch
 		{
-			nameof(Title) => _Builder.Title?.Length ?? 0,
-			nameof(Author) => _Builder.Author?.Name?.Length ?? 0,
-			nameof(Description) => _Builder.Description?.Length ?? 0,
-			nameof(Footer) => _Builder.Footer?.Text?.Length ?? 0,
-			nameof(Fields) => _Builder.Fields.Sum(f => f.Name.Length + f.Value.ToString().Length),
+			nameof(Title) => _Embed.Title?.Length ?? 0,
+			nameof(Author) => _Embed.Author?.Name?.Length ?? 0,
+			nameof(Description) => _Embed.Description?.Length ?? 0,
+			nameof(Footer) => _Embed.Footer?.Text?.Length ?? 0,
+			nameof(Fields) => _Embed.Fields.Sum(f => f.Name.Length + f.Value.ToString().Length),
 			_ => 0,
 		};
 	}
