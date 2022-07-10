@@ -1,4 +1,4 @@
-﻿using Advobot.Classes;
+﻿using Advobot.Embeds;
 
 using Discord;
 
@@ -180,7 +180,7 @@ public sealed class EmbedWrapper_Tests
 	}
 
 	private void UrlTest(
-		Func<EmbedWrapper, string, (bool, IReadOnlyList<IEmbedError>)> tryAdd,
+		Func<EmbedWrapper, string, (bool, IReadOnlyList<Exception>)> tryAdd,
 		Func<EmbedWrapper, string?> getter)
 	{
 		static void RunUrlTest(Action<EmbedWrapper> action)

@@ -1,4 +1,4 @@
-﻿using Advobot.Classes;
+﻿using Advobot.Embeds;
 using Advobot.Logging.Context;
 using Advobot.Logging.Context.Users;
 using Advobot.Logging.Database;
@@ -43,15 +43,15 @@ public sealed class UserLogger
 		_MessageQueue = queue;
 		_Time = time;
 
-		_UserJoined = new(LogAction.UserJoined, db)
+		_UserJoined = new(LogAction.UserJoined, logger, db)
 		{
 			HandleJoinLogging,
 		};
-		_UserLeft = new(LogAction.UserLeft, db)
+		_UserLeft = new(LogAction.UserLeft, logger, db)
 		{
 			HandleLeftLogging,
 		};
-		_UserUpdated = new(LogAction.UserUpdated, db)
+		_UserUpdated = new(LogAction.UserUpdated, logger, db)
 		{
 			HandleUsernameUpdated,
 		};

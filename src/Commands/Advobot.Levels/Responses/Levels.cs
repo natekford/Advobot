@@ -1,4 +1,4 @@
-﻿using Advobot.Classes;
+﻿using Advobot.Embeds;
 using Advobot.Levels.Database;
 using Advobot.Levels.Metadata;
 using Advobot.Modules;

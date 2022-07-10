@@ -4,6 +4,8 @@ using AdvorangesUtils;
 
 using Discord;
 
+using Microsoft.Extensions.Logging;
+
 using System.Collections;
 
 namespace Advobot.Logging.Context;
@@ -14,14 +16,17 @@ public sealed class LogHandler<T> : ICollection<Func<ILogContext<T>, Task>>
 	private readonly ICollection<Func<ILogContext<T>, Task>> _Actions =
 		new List<Func<ILogContext<T>, Task>>();
 
+	private readonly ILoggingDatabase _Db;
+	private readonly ILogger _Logger;
+
 	public LogAction Action { get; }
 	public int Count => _Actions.Count;
-	public ILoggingDatabase Db { get; }
 	public bool IsReadOnly => _Actions.IsReadOnly;
 
-	public LogHandler(LogAction action, ILoggingDatabase db)
+	public LogHandler(LogAction action, ILogger logger, ILoggingDatabase db)
 	{
-		Db = db;
+		_Logger = logger;
+		_Db = db;
 		Action = action;
 	}
 
@@ -48,7 +53,7 @@ public sealed class LogHandler<T> : ICollection<Func<ILogContext<T>, Task>>
 			return;
 		}
 
-		var canLog = await state.CanLog(Db, context).CAF();
+		var canLog = await state.CanLog(_Db, context).CAF();
 		if (!canLog)
 		{
 			return;
@@ -65,7 +70,12 @@ public sealed class LogHandler<T> : ICollection<Func<ILogContext<T>, Task>>
 				}
 				catch (Exception e)
 				{
-					e.Write();
+					_Logger.LogWarning(
+						eventId: new EventId(1, Action.ToString()),
+						exception: e,
+						message: "Exception occurred during logging to Discord. Info: {@Info}",
+						context.State
+					);
 				}
 			}
 		});
@@ -86,13 +96,13 @@ public sealed class LogHandler<T> : ICollection<Func<ILogContext<T>, Task>>
 		}
 
 		// Action is disabled so don't bother logging
-		var actions = await Db.GetLogActionsAsync(guild.Id).CAF();
+		var actions = await _Db.GetLogActionsAsync(guild.Id).CAF();
 		if (!actions.Contains(Action))
 		{
 			return null;
 		}
 
-		var channels = await Db.GetLogChannelsAsync(guild.Id).CAF();
+		var channels = await _Db.GetLogChannelsAsync(guild.Id).CAF();
 		var imageLog = await guild.GetTextChannelAsync(channels.ImageLogId).CAF();
 		var modLog = await guild.GetTextChannelAsync(channels.ModLogId).CAF();
 		var serverLog = await guild.GetTextChannelAsync(channels.ServerLogId).CAF();

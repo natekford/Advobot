@@ -1,4 +1,7 @@
-﻿using Microsoft.Extensions.DependencyInjection;
+﻿using Discord;
+using Discord.WebSocket;
+
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 
 using Serilog;
@@ -52,6 +55,7 @@ public static class LoggingUtils
 		return new LoggerConfiguration()
 			.Enrich.FromLogContext()
 			.MinimumLevel.Debug()
+			.Destructure.With(DiscordObjectDestructuringPolicy.Instance)
 			.WriteTo.File(
 				formatter: new JsonFormatter(),
 				path: Path.Combine("Logs", $"{fileName}.txt")
@@ -61,5 +65,32 @@ public static class LoggingUtils
 				theme: AnsiConsoleTheme.Code
 			)
 			.CreateLogger();
+	}
+
+	private sealed class DiscordObjectDestructuringPolicy : IDestructuringPolicy
+	{
+		public static DiscordObjectDestructuringPolicy Instance { get; } = new();
+
+		public bool TryDestructure(
+			object value,
+			ILogEventPropertyValueFactory propertyValueFactory,
+			out LogEventPropertyValue? result)
+		{
+			// Guild, Channel, User, Message
+			if (value is IEntity<ulong> entity)
+			{
+				result = propertyValueFactory.CreatePropertyValue(entity.Id);
+				return true;
+			}
+			// Invite
+			else if (value is IEntity<string> entity2)
+			{
+				result = propertyValueFactory.CreatePropertyValue(entity2.Id);
+				return true;
+			}
+
+			result = null;
+			return false;
+		}
 	}
 }

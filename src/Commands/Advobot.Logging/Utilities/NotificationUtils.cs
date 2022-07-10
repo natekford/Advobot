@@ -1,4 +1,4 @@
-﻿using Advobot.Classes;
+﻿using Advobot.Embeds;
 using Advobot.Utilities;
 
 using Discord;

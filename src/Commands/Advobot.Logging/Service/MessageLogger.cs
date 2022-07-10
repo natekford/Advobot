@@ -1,4 +1,4 @@
-﻿using Advobot.Classes;
+﻿using Advobot.Embeds;
 using Advobot.Logging.Context;
 using Advobot.Logging.Context.Messages;
 using Advobot.Logging.Database;
@@ -43,19 +43,19 @@ public sealed class MessageLogger
 		_Logger = logger;
 		_MessageQueue = queue;
 
-		_MessageDeleted = new(LogAction.MessageDeleted, db)
+		_MessageDeleted = new(LogAction.MessageDeleted, logger, db)
 		{
 			HandleMessageDeletedLogging,
 		};
-		_MessagesBulkDeleted = new(LogAction.MessageDeleted, db)
+		_MessagesBulkDeleted = new(LogAction.MessageDeleted, logger, db)
 		{
 			HandleMessagesBulkDeletedLogging,
 		};
-		_MessageReceived = new(LogAction.MessageReceived, db)
+		_MessageReceived = new(LogAction.MessageReceived, logger, db)
 		{
 			HandleImageLoggingAsync,
 		};
-		_MessageUpdated = new(LogAction.MessageUpdated, db)
+		_MessageUpdated = new(LogAction.MessageUpdated, logger, db)
 		{
 			HandleMessageEditedLoggingAsync,
 			HandleMessageEditedImageLoggingAsync,
@@ -188,6 +188,17 @@ public sealed class MessageLogger
 			return Task.CompletedTask;
 		}
 
+		_Logger.LogInformation(
+			eventId: new EventId(3, nameof(HandleMessageEditedLoggingAsync)),
+			message: "Logging edited message {@Info}",
+			new
+			{
+				Guild = context.Guild.Id,
+				Channel = context.State.Channel.Id,
+				Message = context.State.Message.Id,
+			}
+		);
+
 		static (bool, string) FormatContent(IMessage? message)
 		{
 			if (message is null)
@@ -230,17 +241,6 @@ public sealed class MessageLogger
 				},
 			};
 		}
-
-		_Logger.LogInformation(
-			eventId: new EventId(3, nameof(HandleMessageEditedLoggingAsync)),
-			message: "Logging edited message {@Info}",
-			new
-			{
-				Guild = context.Guild.Id,
-				Channel = context.State.Channel.Id,
-				Message = context.State.Message.Id,
-			}
-		);
 
 		_MessageQueue.Enqueue((context.ServerLog, sendMessageArgs));
 		return Task.CompletedTask;
