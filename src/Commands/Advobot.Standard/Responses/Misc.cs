@@ -1,4 +1,5 @@
 ﻿using Advobot.Classes;
+using Advobot.Embeds;
 using Advobot.Formatting;
 using Advobot.Modules;
 using Advobot.Services.HelpEntries;

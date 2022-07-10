@@ -1,11 +1,11 @@
-﻿using Advobot.Classes;
-
-using Discord;
+﻿using Discord;
 
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 using System.Linq.Expressions;
 using System.Runtime.CompilerServices;
+
+using Advobot.Embeds;
 
 namespace Advobot.Tests.Core;
 
@@ -46,9 +46,7 @@ public sealed class GetPropertyPath_Tests
 	[TestMethod]
 	public void ArrayAccessWithConstantPlusMethod_Test()
 	{
-#pragma warning disable IDE0057 // Use range operator
 		var expr = (Expression<Func<Nested, int>>)(x => x.Nest["abc".Substring(1)].Value);
-#pragma warning restore IDE0057 // Use range operator
 		var path = expr.GetPropertyPath();
 		Assert.AreEqual("Nest[\"abc\".Substring(1)].Value", path);
 	}

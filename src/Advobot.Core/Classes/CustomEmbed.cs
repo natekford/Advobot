@@ -1,4 +1,5 @@
-﻿using Advobot.TypeReaders;
+﻿using Advobot.Embeds;
+using Advobot.TypeReaders;
 
 using Discord;
 using Discord.Commands;

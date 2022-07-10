@@ -1,4 +1,4 @@
-﻿namespace Advobot.Classes;
+﻿namespace Advobot.Embeds;
 
 /// <summary>
 /// An error which occurs when attempting to modify an <see cref="EmbedWrapper"/>.

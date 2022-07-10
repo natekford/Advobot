@@ -3,9 +3,9 @@
 using System.Linq.Expressions;
 using System.Reflection;
 
-namespace Advobot.Classes;
+namespace Advobot.Embeds;
 
-internal static class EmbedUtils
+internal static class PropertyPathUtils
 {
 	//TODO: make into class
 	//options: no param expression names or yes param expression names
@@ -128,68 +128,4 @@ internal static class EmbedUtils
 
 	private static string GetFromUnary(this UnaryExpression unary)
 		=> unary.Operand.GetFromAny();
-}
-
-/// <summary>
-/// Provides information about why something failed to add to an embed.
-/// </summary>
-internal class EmbedError<TEmbedBuilder, TProperty> : IEmbedError
-{
-	/// <inheritdoc />
-	public string PropertyPath { get; }
-	/// <inheritdoc />
-	public string? Reason { get; private set; }
-	/// <inheritdoc />
-	public TProperty Value { get; }
-
-	//IEmbedError
-	object? IEmbedError.Value => Value;
-
-	/// <summary>
-	/// Creates an instance of <see cref="EmbedError{TEmbedBuilder, TProperty}"/>.
-	/// </summary>
-	/// <param name="property"></param>
-	/// <param name="value"></param>
-	public EmbedError(Expression<Func<TEmbedBuilder, TProperty>> property, TProperty value)
-	{
-		PropertyPath = property.GetPropertyPath();
-		Value = value;
-	}
-
-	/// <summary>
-	/// Returns the errors saying the property path, value, and reason.
-	/// </summary>
-	/// <returns></returns>
-	public override string ToString()
-		=> ;
-
-	public IEmbedError WithInvalidUrl()
-		=> WithReason("Invalid url.");
-
-	public IRemainingEmbedError WithMax(int m)
-		=> new RemainingEmbedError(this, m, $"Max length is {m}.");
-
-	public IEmbedError WithMustBePositive()
-		=> WithReason("Cannot be less than zero.");
-
-	public IEmbedError WithNone()
-		=> WithReason("None to remove.");
-
-	public IEmbedError WithNotEmpty()
-		=> WithReason("Cannot be null or empty.");
-
-	public IEmbedError WithOutOfBounds()
-		=> WithReason("Out of bounds.");
-
-	public IEmbedError WithReason(string reason)
-	{
-		Reason = reason;
-		return this;
-	}
-
-	public IRemainingEmbedError WithRemaining(int r)
-		=> new RemainingEmbedError(this, r, $"Remaining length is {r}.");
-
-	public IRemainingEmbedError WithRemainingNewLines(int r)
-		=> new RemainingEmbedError(this, r, $"Remaining new lines is {r}.", newLines: true);
 }

@@ -1,12 +1,10 @@
-﻿using Advobot.EmbedWrapper;
-
-using AdvorangesUtils;
+﻿using AdvorangesUtils;
 
 using Discord;
 
 using System.Collections.Immutable;
 
-namespace Advobot.Classes;
+namespace Advobot.Embeds;
 
 /// <summary>
 /// Wrapper class for <see cref="EmbedBuilder"/>.
@@ -25,7 +23,7 @@ public sealed class EmbedWrapper
 	public const int MAX_FIELD_LINES = 5;
 
 	private readonly EmbedBuilder _Builder;
-	private readonly List<EmbedException> _Errors = new();
+	private readonly List<EmbedException> _GlobalErrors = new();
 
 	/// <summary>
 	/// The color to use for attachments on a message.
@@ -83,7 +81,7 @@ public sealed class EmbedWrapper
 	/// Any errors which have happened when building the embed.
 	/// </summary>
 	public IReadOnlyList<EmbedException> Errors
-		=> _Errors.ToImmutableList();
+		=> _GlobalErrors.ToImmutableList();
 	/// <summary>
 	/// The fields of the embed.
 	/// </summary>
@@ -107,9 +105,10 @@ public sealed class EmbedWrapper
 				var f = value[i];
 				if (!TryAddField(f.Name, f.Value?.ToString(), f.IsInline, out var errors))
 				{
-					var joined = errors.Join(x => x.ToString(), "\n");
-					var msg = $"Unable to add field at index {i}.\n{joined}";
-					throw new InvalidOperationException(msg);
+					throw new InvalidOperationException(
+						message: $"Unable to add field at index {i}.",
+						innerException: new AggregateException(errors)
+					);
 				}
 			}
 		}
@@ -200,7 +199,7 @@ public sealed class EmbedWrapper
 
 	/// <inheritdoc />
 	public override string ToString()
-		=> _Errors.Join(x => $"{x.PropertyPath}:\n{x.Value}", "\n\n");
+		=> _GlobalErrors.Join(x => $"{x.PropertyPath}:\n{x.Value}", "\n\n");
 
 	/// <summary>
 	/// Attempts to modify the author. Does nothing if fails.
@@ -216,16 +215,7 @@ public sealed class EmbedWrapper
 		string? iconUrl,
 		out IReadOnlyList<EmbedException> errors)
 	{
-		errors = Validate()
-			.Property<EmbedAuthorBuilder, string?>(x => x.Name, name)
-				.Max(EmbedAuthorBuilder.MaxAuthorNameLength)
-				.Remaining(GetRemainingLength(nameof(Author)))
-			.Property<EmbedAuthorBuilder, string?>(x => x.Url, url)
-				.InvalidUrl()
-			.Property<EmbedAuthorBuilder, string?>(x => x.IconUrl, iconUrl)
-				.InvalidUrl()
-			.End();
-		return SetIfSuccess(errors, () =>
+		return CreateValidator(() =>
 		{
 			_Builder.Author = new EmbedAuthorBuilder
 			{
@@ -233,19 +223,16 @@ public sealed class EmbedWrapper
 				Url = url,
 				IconUrl = iconUrl
 			};
-		});
+		})
+		.Property<EmbedAuthorBuilder, string?>(x => x.Name, name)
+			.Max(EmbedAuthorBuilder.MaxAuthorNameLength)
+			.Remaining(GetRemainingLength(nameof(Author)))
+		.Validator.Property<EmbedAuthorBuilder, string?>(x => x.Url, url)
+			.ValidUrl()
+		.Validator.Property<EmbedAuthorBuilder, string?>(x => x.IconUrl, iconUrl)
+			.ValidUrl()
+		.Validator.Finalize(out errors);
 	}
-
-	/// <summary>
-	/// Attempts to modify the author using a user. Does nothing if fails.
-	/// </summary>
-	/// <param name="user"></param>
-	/// <param name="errors"></param>
-	/// <returns></returns>
-	public bool TryAddAuthor(
-		IUser user,
-		out IReadOnlyList<EmbedException> errors)
-		=> TryAddAuthor(user?.Username, user?.GetAvatarUrl(), user?.GetAvatarUrl(), out errors);
 
 	/// <summary>
 	/// Attempts to modify the description. Does nothing if fails.
@@ -257,13 +244,12 @@ public sealed class EmbedWrapper
 		string? description,
 		out IReadOnlyList<EmbedException> errors)
 	{
-		errors = Validate()
-			.Property<EmbedBuilder, string?>(x => x.Description, description)
-				.Max(EmbedBuilder.MaxDescriptionLength)
-				.Remaining(GetRemainingLength(nameof(Description)))
-				.MaxLines(MAX_DESCRIPTION_LINES)
-			.End();
-		return SetIfSuccess(errors, () => _Builder.Description = description);
+		return CreateValidator(() => _Builder.Description = description)
+		.Property<EmbedBuilder, string?>(x => x.Description, description)
+			.Max(EmbedBuilder.MaxDescriptionLength)
+			.Remaining(GetRemainingLength(nameof(Description)))
+			.MaxLines(MAX_DESCRIPTION_LINES)
+		.Validator.Finalize(out errors);
 	}
 
 	/// <summary>
@@ -280,26 +266,8 @@ public sealed class EmbedWrapper
 		bool inline,
 		out IReadOnlyList<EmbedException> errors)
 	{
-		const int MAX_FIELDS = EmbedBuilder.MaxFieldCount;
-		const int LINES = MAX_FIELD_LINES;
-
 		var remaining = GetRemainingLength(null);
-		errors = Validate()
-			.Property<EmbedBuilder, int>(_ => _Builder.Fields.Count, _Builder.Fields.Count + 1)
-				.Rule(v => v > MAX_FIELDS, e => e.WithMax(MAX_FIELDS))
-			.Property<EmbedFieldBuilder, string?>(x => x.Name, name)
-				.Rule(v => string.IsNullOrWhiteSpace(v), e => e.WithNotEmpty())
-				.Max(EmbedFieldBuilder.MaxFieldNameLength)
-				.Remaining(remaining)
-			.Property<EmbedFieldBuilder, string?>(x => (string)x.Value, value)
-				.Rule(v => string.IsNullOrWhiteSpace(v), e => e.WithNotEmpty())
-				.Max(EmbedFieldBuilder.MaxFieldValueLength)
-				.Remaining(remaining)
-				.Rule(v => v?.CountLineBreaks() > LINES, e => e.WithMax(LINES))
-			.Property<EmbedFieldBuilder, string?>(x => x.Name + (string)x.Value, name + value)
-				.Remaining(remaining)
-			.End();
-		return SetIfSuccess(errors, () =>
+		return CreateValidator(() =>
 		{
 			_Builder.Fields.Add(new EmbedFieldBuilder
 			{
@@ -307,7 +275,21 @@ public sealed class EmbedWrapper
 				Value = value,
 				IsInline = inline
 			});
-		});
+		})
+		.Property<EmbedBuilder, int>(_ => _Builder.Fields.Count, _Builder.Fields.Count + 1)
+			.Max(EmbedBuilder.MaxFieldCount)
+		.Validator.Property<EmbedFieldBuilder, string?>(x => x.Name, name)
+			.NotEmpty()
+			.Max(EmbedFieldBuilder.MaxFieldNameLength)
+			.Remaining(remaining)
+		.Validator.Property<EmbedFieldBuilder, string?>(x => (string)x.Value, value)
+			.NotEmpty()
+			.Max(EmbedFieldBuilder.MaxFieldValueLength)
+			.Remaining(remaining)
+			.MaxLines(MAX_FIELD_LINES)
+		.Validator.Property<EmbedFieldBuilder, string?>(x => x.Name + (string)x.Value, name + value)
+			.Remaining(remaining)
+		.Validator.Finalize(out errors);
 	}
 
 	/// <summary>
@@ -322,21 +304,20 @@ public sealed class EmbedWrapper
 		string? iconUrl,
 		out IReadOnlyList<EmbedException> errors)
 	{
-		errors = Validate()
-			.Property<EmbedFooterBuilder, string?>(x => x.Text, text)
-				.Max(EmbedFooterBuilder.MaxFooterTextLength)
-				.Remaining(GetRemainingLength(nameof(Footer)))
-			.Property<EmbedFooterBuilder, string?>(x => x.IconUrl, iconUrl)
-				.InvalidUrl()
-			.End();
-		return SetIfSuccess(errors, () =>
+		return CreateValidator(() =>
 		{
 			_Builder.Footer = new EmbedFooterBuilder
 			{
 				Text = text,
 				IconUrl = iconUrl
 			};
-		});
+		})
+		.Property<EmbedFooterBuilder, string?>(x => x.Text, text)
+			.Max(EmbedFooterBuilder.MaxFooterTextLength)
+			.Remaining(GetRemainingLength(nameof(Footer)))
+		.Validator.Property<EmbedFooterBuilder, string?>(x => x.IconUrl, iconUrl)
+			.ValidUrl()
+		.Validator.Finalize(out errors);
 	}
 
 	/// <summary>
@@ -349,11 +330,10 @@ public sealed class EmbedWrapper
 		string? imageUrl,
 		out IReadOnlyList<EmbedException> errors)
 	{
-		errors = Validate()
-			.Property<EmbedBuilder, string?>(x => x.ImageUrl, imageUrl)
-				.InvalidUrl()
-			.End();
-		return SetIfSuccess(errors, () => _Builder.ImageUrl = imageUrl);
+		return CreateValidator(() => _Builder.ImageUrl = imageUrl)
+		.Property<EmbedBuilder, string?>(x => x.ImageUrl, imageUrl)
+			.ValidUrl()
+		.Validator.Finalize(out errors);
 	}
 
 	/// <summary>
@@ -366,11 +346,10 @@ public sealed class EmbedWrapper
 		string? thumbnailUrl,
 		out IReadOnlyList<EmbedException> errors)
 	{
-		errors = Validate()
-			.Property<EmbedBuilder, string?>(x => x.ThumbnailUrl, thumbnailUrl)
-				.InvalidUrl()
-			.End();
-		return SetIfSuccess(errors, () => _Builder.ThumbnailUrl = thumbnailUrl);
+		return CreateValidator(() => _Builder.ThumbnailUrl = thumbnailUrl)
+		.Property<EmbedBuilder, string?>(x => x.ThumbnailUrl, thumbnailUrl)
+			.ValidUrl()
+		.Validator.Finalize(out errors);
 	}
 
 	/// <summary>
@@ -383,12 +362,11 @@ public sealed class EmbedWrapper
 		string? title,
 		out IReadOnlyList<EmbedException> errors)
 	{
-		errors = Validate()
-			.Property<EmbedBuilder, string?>(x => x.Title, title)
-				.Max(EmbedBuilder.MaxTitleLength)
-				.Remaining(GetRemainingLength(nameof(Title)))
-			.End();
-		return SetIfSuccess(errors, () => _Builder.Title = title);
+		return CreateValidator(() => _Builder.Title = title)
+		.Property<EmbedBuilder, string?>(x => x.Title, title)
+			.Max(EmbedBuilder.MaxTitleLength)
+			.Remaining(GetRemainingLength(nameof(Title)))
+		.Validator.Finalize(out errors);
 	}
 
 	/// <summary>
@@ -401,75 +379,14 @@ public sealed class EmbedWrapper
 		string? url,
 		out IReadOnlyList<EmbedException> errors)
 	{
-		errors = Validate()
-			.Property<EmbedBuilder, string?>(x => x.Url, url)
-				.InvalidUrl()
-			.End();
-		return SetIfSuccess(errors, () => _Builder.Url = url);
+		return CreateValidator(() => _Builder.Url = url)
+		.Property<EmbedBuilder, string?>(x => x.Url, url)
+			.ValidUrl()
+		.Validator.Finalize(out errors);
 	}
 
-	/// <summary>
-	/// Attempts to modify a field. Does nothing if fails.
-	/// </summary>
-	/// <param name="index"></param>
-	/// <param name="name"></param>
-	/// <param name="value"></param>
-	/// <param name="inline"></param>
-	/// <param name="errors"></param>
-	/// <returns></returns>
-	public bool TryModifyField(
-		int index,
-		string name,
-		string value,
-		bool inline,
-		out IReadOnlyList<EmbedException> errors)
-	{
-		if (!TryRemoveField(index, out var field, out errors))
-		{
-			return false;
-		}
-		// If the field fails to be added then the old value has to be reinserted
-		if (!TryAddField(name, value, inline, out errors))
-		{
-			_Builder.Fields.Insert(index, field);
-			return false;
-		}
-
-		// Newest field is in the list, but wrong position now
-		var newField = _Builder.Fields.Last();
-		_Builder.Fields.RemoveAt(_Builder.Fields.Count - 1);
-		_Builder.Fields.Insert(index, newField);
-		return true;
-	}
-
-	/// <summary>
-	/// Attempts to remove a field. Does nothing if fails.
-	/// </summary>
-	/// <param name="index"></param>
-	/// <param name="field"></param>
-	/// <param name="errors"></param>
-	/// <returns></returns>
-	public bool TryRemoveField(
-		int index,
-		out EmbedFieldBuilder? field,
-		out IReadOnlyList<EmbedException> errors)
-	{
-		errors = Validate()
-			.Property<EmbedBuilder, int>(x => x.Fields.Count, index)
-				.Rule(v => v < 0, e => e.WithMustBePositive())
-				.Rule(_ => _Builder.Fields.Count == 0, e => e.WithNone())
-				.Rule(v => _Builder.Fields.Count - 1 < v, e => e.WithOutOfBounds())
-			.End();
-		if (errors.Count > 0)
-		{
-			field = default;
-			return false;
-		}
-
-		field = _Builder.Fields[index];
-		_Builder.Fields.RemoveAt(index);
-		return true;
-	}
+	private EmbedValidator CreateValidator(Action setter)
+		=> new(setter, _GlobalErrors);
 
 	private int GetRemainingLength(string? propertyToDisregard)
 	{
@@ -484,17 +401,4 @@ public sealed class EmbedWrapper
 			_ => 0,
 		};
 	}
-
-	private bool SetIfSuccess(IReadOnlyCollection<EmbedException> errors, Action setter)
-	{
-		var success = errors.Count == 0;
-		if (success)
-		{
-			setter.Invoke();
-		}
-		return success;
-	}
-
-	private EmbedValidator Validate()
-		=> new(_Errors);
 }
