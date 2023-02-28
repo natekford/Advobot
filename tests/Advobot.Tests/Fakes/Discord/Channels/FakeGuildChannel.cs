@@ -6,6 +6,7 @@ public class FakeGuildChannel : FakeMessageChannel, IGuildChannel
 {
 	protected readonly Dictionary<ulong, Overwrite> _Permissions = new();
 	public FakeGuild FakeGuild { get; }
+	public ChannelFlags Flags => throw new NotImplementedException();
 	public ulong GuildId => FakeGuild.Id;
 	public IReadOnlyCollection<Overwrite> PermissionOverwrites => _Permissions.Values;
 	public int Position { get; set; }

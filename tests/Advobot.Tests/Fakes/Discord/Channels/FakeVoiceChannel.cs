@@ -40,6 +40,12 @@ public sealed class FakeVoiceChannel : FakeGuildChannel, IVoiceChannel
 	public Task<IInviteMetadata> CreateInviteToStreamAsync(IUser user, int? maxAge = 86400, int? maxUses = null, bool isTemporary = false, bool isUnique = false, RequestOptions options = null)
 		=> throw new NotImplementedException();
 
+	public Task DeleteMessagesAsync(IEnumerable<IMessage> messages, RequestOptions options = null)
+		=> throw new NotImplementedException();
+
+	public Task DeleteMessagesAsync(IEnumerable<ulong> messageIds, RequestOptions options = null)
+		=> throw new NotImplementedException();
+
 	public Task DisconnectAsync()
 		=> throw new NotImplementedException();
 

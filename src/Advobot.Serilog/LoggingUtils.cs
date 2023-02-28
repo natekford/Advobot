@@ -11,6 +11,8 @@ using Serilog.Extensions.Logging;
 using Serilog.Formatting.Json;
 using Serilog.Sinks.SystemConsole.Themes;
 
+using System.Diagnostics.CodeAnalysis;
+
 namespace Advobot.Serilog;
 
 /// <summary>
@@ -74,7 +76,7 @@ public static class LoggingUtils
 		public bool TryDestructure(
 			object value,
 			ILogEventPropertyValueFactory propertyValueFactory,
-			out LogEventPropertyValue? result)
+			[NotNullWhen(true)] out LogEventPropertyValue? result)
 		{
 			// Guild, Channel, User, Message
 			if (value is IEntity<ulong> entity)

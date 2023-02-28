@@ -55,6 +55,9 @@ public sealed class FakeTextChannel : FakeGuildChannel, ITextChannel
 	public Task DeleteMessagesAsync(IEnumerable<ulong> messageIds, RequestOptions? options = null)
 		=> throw new NotImplementedException();
 
+	public Task<IReadOnlyCollection<IThreadChannel>> GetActiveThreadsAsync(RequestOptions options = null)
+		=> throw new NotImplementedException();
+
 	public Task<ICategoryChannel?> GetCategoryAsync(CacheMode mode = CacheMode.AllowDownload, RequestOptions? options = null)
 	{
 		var match = FakeGuild.FakeChannels.SingleOrDefault(x => x.Id == CategoryId);

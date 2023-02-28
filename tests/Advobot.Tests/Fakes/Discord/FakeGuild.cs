@@ -150,6 +150,9 @@ public sealed class FakeGuild : FakeSnowflake, IGuild
 	public Task<IGuildScheduledEvent> CreateEventAsync(string name, DateTimeOffset startTime, GuildScheduledEventType type, GuildScheduledEventPrivacyLevel privacyLevel = GuildScheduledEventPrivacyLevel.Private, string description = null, DateTimeOffset? endTime = null, ulong? channelId = null, string location = null, Image? coverImage = null, RequestOptions options = null)
 		=> throw new NotImplementedException();
 
+	public Task<IForumChannel> CreateForumChannelAsync(string name, Action<ForumChannelProperties> func = null, RequestOptions options = null)
+		=> throw new NotImplementedException();
+
 	public Task<IRole> CreateRoleAsync(string name, GuildPermissions? permissions = null, Color? color = null, bool isHoisted = false, RequestOptions? options = null)
 	{
 		var role = new FakeRole(this)
@@ -207,7 +210,7 @@ public sealed class FakeGuild : FakeSnowflake, IGuild
 		=> throw new NotImplementedException();
 
 	public Task DeleteStickerAsync(ICustomSticker sticker, RequestOptions options = null)
-			=> throw new NotImplementedException();
+		=> throw new NotImplementedException();
 
 	public Task DisconnectAsync(IGuildUser user)
 		=> throw new NotImplementedException();
@@ -221,7 +224,7 @@ public sealed class FakeGuild : FakeSnowflake, IGuild
 	public Task<IApplicationCommand> GetApplicationCommandAsync(ulong id, CacheMode mode = CacheMode.AllowDownload, RequestOptions options = null)
 		=> throw new NotImplementedException();
 
-	public Task<IReadOnlyCollection<IApplicationCommand>> GetApplicationCommandsAsync(RequestOptions options = null)
+	public Task<IReadOnlyCollection<IApplicationCommand>> GetApplicationCommandsAsync(bool withLocalizations = false, string locale = null, RequestOptions options = null)
 		=> throw new NotImplementedException();
 
 	public Task<IReadOnlyCollection<IAuditLogEntry>> GetAuditLogsAsync(int limit = 100, CacheMode mode = CacheMode.AllowDownload, RequestOptions? options = null, ulong? beforeId = null, ulong? userId = null, ActionType? actionType = null)
@@ -244,7 +247,7 @@ public sealed class FakeGuild : FakeSnowflake, IGuild
 		=> throw new NotImplementedException();
 
 	public Task<IReadOnlyCollection<ICategoryChannel>> GetCategoriesAsync(CacheMode mode = CacheMode.AllowDownload, RequestOptions? options = null)
-					=> throw new NotImplementedException();
+		=> throw new NotImplementedException();
 
 	public Task<IGuildChannel> GetChannelAsync(ulong id, CacheMode mode = CacheMode.AllowDownload, RequestOptions? options = null)
 		=> throw new NotImplementedException();
@@ -274,7 +277,7 @@ public sealed class FakeGuild : FakeSnowflake, IGuild
 		=> throw new NotImplementedException();
 
 	public Task<IReadOnlyCollection<IInviteMetadata>> GetInvitesAsync(RequestOptions? options = null)
-			=> Task.FromResult<IReadOnlyCollection<IInviteMetadata>>(FakeInvites);
+		=> Task.FromResult<IReadOnlyCollection<IInviteMetadata>>(FakeInvites);
 
 	public Task<IGuildUser> GetOwnerAsync(CacheMode mode = CacheMode.AllowDownload, RequestOptions? options = null)
 		=> Task.FromResult<IGuildUser>(FakeOwner);
