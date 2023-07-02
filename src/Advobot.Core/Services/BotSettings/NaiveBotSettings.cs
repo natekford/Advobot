@@ -47,7 +47,6 @@ internal sealed class NaiveBotSettings : IBotSettings
 		var settings = IOUtils.DeserializeFromFile<NaiveBotSettings>(StaticGetPath(config)) ?? new NaiveBotSettings();
 		settings.BaseBotDirectory = config.BaseBotDirectory;
 		settings.RestartArguments = config.RestartArguments;
-		//asdf
 		return settings;
 	}
 
