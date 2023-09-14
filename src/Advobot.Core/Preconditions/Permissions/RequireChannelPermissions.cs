@@ -7,14 +7,8 @@ namespace Advobot.Preconditions.Permissions;
 /// Verifies the invoking user's permissions on the context channel.
 /// </summary>
 [AttributeUsage(AttributeTargets.Class | AttributeTargets.Method, AllowMultiple = false, Inherited = true)]
-public class RequireChannelPermissions : RequirePermissions
+public class RequireChannelPermissions(params ChannelPermission[] permissions) : RequirePermissions(permissions.Cast<Enum>())
 {
-	/// <summary>
-	/// Creates an instance of <see cref="RequireGuildPermissions"/>.
-	/// </summary>
-	/// <param name="permissions"></param>
-	public RequireChannelPermissions(params ChannelPermission[] permissions)
-		: base(permissions.Cast<Enum>()) { }
 
 	/// <inheritdoc />
 	public override Task<Enum?> GetUserPermissionsAsync(

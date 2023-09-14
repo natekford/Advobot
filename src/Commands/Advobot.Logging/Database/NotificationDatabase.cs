@@ -7,12 +7,8 @@ using System.Data.SQLite;
 
 namespace Advobot.Logging.Database;
 
-public sealed class NotificationDatabase : DatabaseBase<SQLiteConnection>, INotificationDatabase
+public sealed class NotificationDatabase(IConnectionString<NotificationDatabase> conn) : DatabaseBase<SQLiteConnection>(conn), INotificationDatabase
 {
-	public NotificationDatabase(IConnectionString<NotificationDatabase> conn) : base(conn)
-	{
-	}
-
 	public async Task<CustomNotification?> GetAsync(
 		Notification notification,
 		ulong guildId)

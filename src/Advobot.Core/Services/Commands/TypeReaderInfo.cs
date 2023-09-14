@@ -10,17 +10,11 @@ using System.Reflection;
 namespace Advobot.Services.Commands;
 
 [DebuggerDisplay("{DebuggerDisplay,nq}")]
-internal readonly struct TypeReaderInfo
+internal readonly struct TypeReaderInfo(TypeReader instance, TypeReaderTargetTypeAttribute attribute)
 {
-	public TypeReader Instance { get; }
-	public IReadOnlyList<Type> TargetTypes { get; }
+	public TypeReader Instance { get; } = instance;
+	public IReadOnlyList<Type> TargetTypes { get; } = attribute.TargetTypes;
 	private string DebuggerDisplay => TargetTypes.Join(x => x.FullName, ", ");
-
-	public TypeReaderInfo(TypeReader instance, TypeReaderTargetTypeAttribute attribute)
-	{
-		Instance = instance;
-		TargetTypes = attribute.TargetTypes;
-	}
 }
 
 internal static class TypeReaderInfoUtils

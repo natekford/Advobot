@@ -231,8 +231,8 @@ public static class OverwriteUtils
 
 	private static IReadOnlyList<ChannelPermission> GetPermissions(IGuildChannel channel) => channel switch
 	{
-		ITextChannel _ => _Text,
 		IVoiceChannel _ => _Voice,
+		ITextChannel _ => _Text,
 		ICategoryChannel _ => _Category,
 		_ => throw new ArgumentException(nameof(channel)),
 	};

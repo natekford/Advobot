@@ -10,12 +10,8 @@ using System.Data.SQLite;
 
 namespace Advobot.Logging.Database;
 
-public sealed class LoggingDatabase : DatabaseBase<SQLiteConnection>, ILoggingDatabase
+public sealed class LoggingDatabase(IConnectionString<LoggingDatabase> conn) : DatabaseBase<SQLiteConnection>(conn), ILoggingDatabase
 {
-	public LoggingDatabase(IConnectionString<LoggingDatabase> conn) : base(conn)
-	{
-	}
-
 	public Task<int> AddIgnoredChannelsAsync(ulong guildId, IEnumerable<ulong> channels)
 	{
 		var @params = channels.Select(x => new

@@ -9,23 +9,16 @@ using Discord;
 
 namespace Advobot.Gacha.Displays;
 
-public class SourceDisplay : PaginatedDisplay
+public class SourceDisplay(
+	IGachaDatabase db,
+	ITime time,
+	IInteractionManager interaction,
+	int id,
+	Source source,
+	IReadOnlyList<Character> characters) : PaginatedDisplay(db, time, interaction, id, characters.Count, GachaConstants.CharactersPerPage)
 {
-	private readonly IReadOnlyList<Character> _Characters;
-	private readonly Source _Source;
-
-	public SourceDisplay(
-		IGachaDatabase db,
-		ITime time,
-		IInteractionManager interaction,
-		int id,
-		Source source,
-		IReadOnlyList<Character> characters)
-		: base(db, time, interaction, id, characters.Count, GachaConstants.CharactersPerPage)
-	{
-		_Source = source;
-		_Characters = characters;
-	}
+	private readonly IReadOnlyList<Character> _Characters = characters;
+	private readonly Source _Source = source;
 
 	protected override Task<Embed> GenerateEmbedAsync()
 		=> Task.FromResult(GenerateEmbed());

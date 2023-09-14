@@ -7,12 +7,8 @@ using System.Data.SQLite;
 
 namespace Advobot.Invites.Database;
 
-public sealed class InviteDatabase : DatabaseBase<SQLiteConnection>
+public sealed class InviteDatabase(IConnectionString<InviteDatabase> conn) : DatabaseBase<SQLiteConnection>(conn)
 {
-	public InviteDatabase(IConnectionString<InviteDatabase> conn) : base(conn)
-	{
-	}
-
 	public Task AddInviteAsync(ListedInvite invite)
 	{
 		return ModifyAsync(@"

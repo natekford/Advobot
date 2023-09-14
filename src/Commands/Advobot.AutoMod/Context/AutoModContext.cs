@@ -18,28 +18,20 @@ public static class AutoModContext
 		return new PrivateAutoModContext(user!, userMessage, channel);
 	}
 
-	private sealed class PrivateAutoModContext : IAutoModMessageContext
+	private sealed class PrivateAutoModContext(
+		IGuildUser user,
+		IUserMessage? message,
+		ITextChannel? channel) : IAutoModMessageContext
 	{
-		private readonly ITextChannel? _Channel;
-		private readonly IUserMessage? _Message;
-		public IGuild Guild { get; }
-		public IGuildUser User { get; }
+		private readonly ITextChannel? _Channel = channel;
+		private readonly IUserMessage? _Message = message;
+		public IGuild Guild { get; } = user.Guild;
+		public IGuildUser User { get; } = user;
 
 		ITextChannel IAutoModMessageContext.Channel
 			=> _Channel ?? throw InvalidContext<IAutoModMessageContext>();
 		IUserMessage IAutoModMessageContext.Message
 			=> _Message ?? throw InvalidContext<IAutoModMessageContext>();
-
-		public PrivateAutoModContext(
-			IGuildUser user,
-			IUserMessage? message,
-			ITextChannel? channel)
-		{
-			Guild = user.Guild;
-			User = user;
-			_Message = message;
-			_Channel = channel;
-		}
 
 		private InvalidOperationException InvalidContext<T>()
 			=> new($"Invalid {typeof(T).Name}.");

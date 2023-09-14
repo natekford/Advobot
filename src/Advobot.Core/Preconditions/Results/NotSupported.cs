@@ -5,28 +5,21 @@ namespace Advobot.Preconditions.Results;
 /// <summary>
 /// Result indicating an invalid type was passed in. (Generic attributes would be helpful)
 /// </summary>
-public class NotSupported : PreconditionResult
+/// <remarks>
+/// Creates an instance of <see cref="NotSupported"/>.
+/// </remarks>
+/// <param name="value"></param>
+/// <param name="supportedType"></param>
+public class NotSupported(object value, Type supportedType) : PreconditionResult(CommandError.ParseFailed, GenerateReason(value, supportedType))
 {
 	/// <summary>
 	/// The types which are supported by the precondition.
 	/// </summary>
-	public Type SupportedType { get; }
+	public Type SupportedType { get; } = supportedType;
 	/// <summary>
 	/// The value which is not of the correct type.
 	/// </summary>
-	public object Value { get; }
-
-	/// <summary>
-	/// Creates an instance of <see cref="NotSupported"/>.
-	/// </summary>
-	/// <param name="value"></param>
-	/// <param name="supportedType"></param>
-	public NotSupported(object value, Type supportedType)
-		: base(CommandError.ParseFailed, GenerateReason(value, supportedType))
-	{
-		Value = value;
-		SupportedType = supportedType;
-	}
+	public object Value { get; } = value;
 
 	private static string GenerateReason(object value, Type supportedType)
 	{

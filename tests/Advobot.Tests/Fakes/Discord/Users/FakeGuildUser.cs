@@ -9,6 +9,7 @@ public class FakeGuildUser : FakeUser, IGuildUser
 	private readonly HashSet<ulong> _RoleIds = new();
 	public string DisplayAvatarId => throw new NotImplementedException();
 	public string DisplayName => throw new NotImplementedException();
+	public GuildUserFlags Flags => throw new NotImplementedException();
 	public FakeGuild Guild { get; }
 	public string GuildAvatarId => throw new NotImplementedException();
 	public ulong GuildId => Guild.Id;

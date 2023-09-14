@@ -6,18 +6,15 @@ using Discord;
 
 namespace Advobot.Tests.Fakes.Discord.Channels;
 
-public sealed class FakeTextChannel : FakeGuildChannel, ITextChannel
+public sealed class FakeTextChannel(FakeGuild guild) : FakeGuildChannel(guild), ITextChannel
 {
 	public ulong? CategoryId => ProtectedCategoryId;
 	public ThreadArchiveDuration DefaultArchiveDuration => throw new NotImplementedException();
+	public int DefaultSlowModeInterval => throw new NotImplementedException();
 	public bool IsNsfw { get; set; }
 	public string Mention => $"<#{Id}>";
 	public int SlowModeInterval { get; set; }
 	public string Topic { get; set; }
-
-	public FakeTextChannel(FakeGuild guild) : base(guild)
-	{
-	}
 
 	public Task<IInviteMetadata> CreateInviteAsync(int? maxAge = 86400, int? maxUses = null, bool isTemporary = false, bool isUnique = false, RequestOptions? options = null)
 	{

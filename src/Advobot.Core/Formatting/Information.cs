@@ -3,28 +3,22 @@
 /// <summary>
 /// Holds a title and value.
 /// </summary>
-public sealed class Information
+/// <remarks>
+/// Creates an instance of <see cref="Information"/>.
+/// </remarks>
+/// <param name="title"></param>
+/// <param name="value"></param>
+public sealed class Information(string title, string value)
 {
 	/// <summary>
 	/// The name of this information.
 	/// </summary>
-	public string Title { get; }
+	public string Title { get; } = title;
 
 	/// <summary>
 	/// The value of this information.
 	/// </summary>
-	public string Value { get; }
-
-	/// <summary>
-	/// Creates an instance of <see cref="Information"/>.
-	/// </summary>
-	/// <param name="title"></param>
-	/// <param name="value"></param>
-	public Information(string title, string value)
-	{
-		Title = title;
-		Value = value;
-	}
+	public string Value { get; } = value;
 
 	/// <inheritdoc />
 	public override string ToString()

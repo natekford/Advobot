@@ -8,31 +8,19 @@ namespace Advobot.CommandAssemblies;
 /// Holds an assembly and the attribute marking it as a command assembly.
 /// </summary>
 [DebuggerDisplay("{DebuggerDisplay,nq}")]
-public readonly struct CommandAssembly
+public readonly struct CommandAssembly(Assembly assembly, CommandAssemblyAttribute attribute)
 {
 	/// <summary>
 	/// The assembly marked as a command assembly.
 	/// </summary>
-	public Assembly Assembly { get; }
+	public Assembly Assembly { get; } = assembly;
 	/// <summary>
 	/// The instantiator to use for this command assembly.
 	/// </summary>
-	public ICommandAssemblyInstantiator? Instantiator { get; }
+	public ICommandAssemblyInstantiator? Instantiator { get; } = attribute.Instantiator;
 	/// <summary>
 	/// The cultures this command assembly supports.
 	/// </summary>
-	public IReadOnlyList<CultureInfo> SupportedCultures { get; }
+	public IReadOnlyList<CultureInfo> SupportedCultures { get; } = attribute.SupportedCultures;
 	private string DebuggerDisplay => Assembly.GetName().Name;
-
-	/// <summary>
-	/// Creates an instance of <see cref="CommandAssembly"/>.
-	/// </summary>
-	/// <param name="assembly"></param>
-	/// <param name="attribute"></param>
-	public CommandAssembly(Assembly assembly, CommandAssemblyAttribute attribute)
-	{
-		Assembly = assembly;
-		Instantiator = attribute.Instantiator;
-		SupportedCultures = attribute.SupportedCultures;
-	}
 }

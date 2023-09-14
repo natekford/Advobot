@@ -7,11 +7,8 @@ using Discord.Commands;
 
 namespace Advobot.Gacha.Interaction;
 
-public sealed class MessageHandler : InteractionHandlerBase
+public sealed class MessageHandler(IInteractionManager manager, Display display) : InteractionHandlerBase(manager, display)
 {
-	public MessageHandler(IInteractionManager manager, Display display)
-		: base(manager, display) { }
-
 	public override Task StartAsync()
 	{
 		Manager.MessageReceived += HandleAsync;

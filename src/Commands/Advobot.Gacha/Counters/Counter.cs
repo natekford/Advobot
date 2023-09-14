@@ -2,15 +2,10 @@
 
 namespace Advobot.Gacha.Counters;
 
-public sealed class Counter : ICounter<ulong>
+public sealed class Counter(int defaultAmount) : ICounter<ulong>
 {
 	private readonly ConcurrentDictionary<ulong, int> _AmountLeft = new();
-	private readonly int _DefaultAmount;
-
-	public Counter(int defaultAmount)
-	{
-		_DefaultAmount = defaultAmount;
-	}
+	private readonly int _DefaultAmount = defaultAmount;
 
 	public bool CanDo(ulong id)
 		=> _AmountLeft.GetOrAdd(id, _DefaultAmount) > 0;

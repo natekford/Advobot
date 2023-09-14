@@ -150,9 +150,10 @@ public abstract class AdvobotModuleBase : ModuleBase<AdvobotCommandContext>
 		RequestOptions? options = null,
 		AllowedMentions? allowedMentions = null,
 		MessageReference? messageReference = null,
-		MessageComponent? component = null,
+		MessageComponent? components = null,
 		ISticker[]? stickers = null,
-		Embed[]? embeds = null)
+		Embed[]? embeds = null,
+		MessageFlags flags = MessageFlags.None)
 	{
 		if (embed is not null)
 		{

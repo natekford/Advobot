@@ -5,16 +5,13 @@ namespace Advobot.Punishments;
 /// <summary>
 /// Mutes a user.
 /// </summary>
-public sealed class Mute : GuildUserPunishmentBase
+/// <remarks>
+/// Creates an instance of <see cref="Mute"/>.
+/// </remarks>
+/// <param name="user"></param>
+/// <param name="isGive"></param>
+public sealed class Mute(IGuildUser user, bool isGive) : GuildUserPunishmentBase(user, isGive, PunishmentType.VoiceMute)
 {
-	/// <summary>
-	/// Creates an instance of <see cref="Mute"/>.
-	/// </summary>
-	/// <param name="user"></param>
-	/// <param name="isGive"></param>
-	public Mute(IGuildUser user, bool isGive) : base(user, isGive, PunishmentType.VoiceMute)
-	{
-	}
 
 	/// <inheritdoc/>
 	protected internal override Task ExecuteAsync()

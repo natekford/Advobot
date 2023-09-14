@@ -10,6 +10,7 @@ public class FakeUser : FakeSnowflake, IUser
 	public string AvatarId => throw new NotImplementedException();
 	public string Discriminator => DiscriminatorValue.ToString();
 	public ushort DiscriminatorValue { get; set; } = (ushort)new Random().Next(1, 10000);
+	public string GlobalName { get; set; } = "Fake Global Name";
 	public bool IsBot { get; set; }
 	public bool IsWebhook { get; set; }
 	public string Mention => MentionUtils.MentionUser(Id);

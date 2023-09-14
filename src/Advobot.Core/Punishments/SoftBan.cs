@@ -7,16 +7,13 @@ namespace Advobot.Punishments;
 /// <summary>
 /// Softbans a user.
 /// </summary>
-public sealed class SoftBan : PunishmentBase
+/// <remarks>
+/// Creates an instance of <see cref="Kick"/>.
+/// </remarks>
+/// <param name="guild"></param>
+/// <param name="userId"></param>
+public sealed class SoftBan(IGuild guild, ulong userId) : PunishmentBase(guild, userId, true, PunishmentType.Kick)
 {
-	/// <summary>
-	/// Creates an instance of <see cref="Kick"/>.
-	/// </summary>
-	/// <param name="guild"></param>
-	/// <param name="userId"></param>
-	public SoftBan(IGuild guild, ulong userId) : base(guild, userId, true, PunishmentType.Kick)
-	{
-	}
 
 	/// <inheritdoc/>
 	protected internal override async Task ExecuteAsync()

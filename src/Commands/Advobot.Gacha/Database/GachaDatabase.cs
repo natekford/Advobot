@@ -16,7 +16,7 @@ using Image = Advobot.Gacha.Models.Image;
 
 namespace Advobot.Gacha.Database;
 
-public sealed class GachaDatabase : DatabaseBase<SQLiteConnection>, IGachaDatabase
+public sealed class GachaDatabase(ITime time, IConnectionString<GachaDatabase> conn) : DatabaseBase<SQLiteConnection>(conn), IGachaDatabase
 {
 	private const string INSERT_CHAR = @"
 			INSERT INTO Character
@@ -55,7 +55,7 @@ public sealed class GachaDatabase : DatabaseBase<SQLiteConnection>, IGachaDataba
 			( @WishId, @GuildId, @UserId, @CharacterId )
 		";
 
-	private readonly ITime _Time;
+	private readonly ITime _Time = time;
 	public CloseIds CharacterIds { get; } = new()
 	{
 		IncludeWhenContains = false,
@@ -66,11 +66,6 @@ public sealed class GachaDatabase : DatabaseBase<SQLiteConnection>, IGachaDataba
 		IncludeWhenContains = false,
 		MaxAllowedCloseness = 2,
 	};
-
-	public GachaDatabase(ITime time, IConnectionString<GachaDatabase> conn) : base(conn)
-	{
-		_Time = time;
-	}
 
 	public Task<int> AddCharacterAsync(Character character)
 	{

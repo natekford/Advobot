@@ -99,14 +99,9 @@ public sealed class SpanitchModule : AutoModModuleBase
 		});
 	}
 
-	public sealed class RequireGuildPermissionsOrMickezoor : RequireGuildPermissions
+	public sealed class RequireGuildPermissionsOrMickezoor(params GuildPermission[] permissions) : RequireGuildPermissions(permissions)
 	{
 		public override string Summary => base.Summary + " or you are Mickezoor";
-
-		public RequireGuildPermissionsOrMickezoor(params GuildPermission[] permissions)
-			: base(permissions)
-		{
-		}
 
 		public override async Task<PreconditionResult> CheckPermissionsAsync(
 			ICommandContext context,

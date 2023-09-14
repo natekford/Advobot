@@ -13,29 +13,20 @@ using System.Collections.Concurrent;
 
 namespace Advobot.Gacha.Displays;
 
-public sealed class DisplayManager
+public sealed class DisplayManager(
+	IGachaDatabase db,
+	BaseSocketClient client,
+	ICounterService counters,
+	IInteractionManager interaction,
+	ITime time)
 {
-	private readonly BaseSocketClient _Client;
-	private readonly ICounterService _Counters;
-	private readonly IGachaDatabase _Db;
+	private readonly BaseSocketClient _Client = client;
+	private readonly ICounterService _Counters = counters;
+	private readonly IGachaDatabase _Db = db;
 
 	private readonly ConcurrentDictionary<ulong, int> _Ids = new();
-	private readonly IInteractionManager _Interaction;
-	private readonly ITime _Time;
-
-	public DisplayManager(
-		IGachaDatabase db,
-		BaseSocketClient client,
-		ICounterService counters,
-		IInteractionManager interaction,
-		ITime time)
-	{
-		_Db = db;
-		_Client = client;
-		_Counters = counters;
-		_Interaction = interaction;
-		_Time = time;
-	}
+	private readonly IInteractionManager _Interaction = interaction;
+	private readonly ITime _Time = time;
 
 	public async Task<CharacterDisplay> CreateCharacterDisplayAsync(IGuild guild, Character character)
 	{

@@ -2,22 +2,15 @@
 
 namespace Advobot.Embeds;
 
-internal sealed class EmbedPropertyValidator<TEmbed, T>
+internal sealed class EmbedPropertyValidator<TEmbed, T>(
+	EmbedValidator validator,
+	Expression<Func<TEmbed, T>> property,
+	T value)
 {
-	private readonly string _PropertyPath;
-	private readonly T _Value;
+	private readonly string _PropertyPath = property.GetPropertyPath();
+	private readonly T _Value = value;
 
-	public EmbedValidator Validator { get; }
-
-	public EmbedPropertyValidator(
-		EmbedValidator validator,
-		Expression<Func<TEmbed, T>> property,
-		T value)
-	{
-		Validator = validator;
-		_Value = value;
-		_PropertyPath = property.GetPropertyPath();
-	}
+	public EmbedValidator Validator { get; } = validator;
 
 	public EmbedPropertyValidator<TEmbed, T> Rule(
 		Func<T, bool> validation,

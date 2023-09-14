@@ -20,15 +20,9 @@ public sealed class CloseIds : CloseWords<CloseIds.NameAndId>
 	internal void Add(long id, string name)
 		=> _MutableSource.Add(new NameAndId(name, id));
 
-	public readonly struct NameAndId : INameable
+	public readonly struct NameAndId(string name, long id) : INameable
 	{
-		public long Id { get; }
-		public string Name { get; }
-
-		public NameAndId(string name, long id)
-		{
-			Name = name;
-			Id = id;
-		}
+		public long Id { get; } = id;
+		public string Name { get; } = name;
 	}
 }

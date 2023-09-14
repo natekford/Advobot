@@ -7,25 +7,15 @@ using System.Reflection;
 namespace Advobot.Services.HelpEntries;
 
 [DebuggerDisplay("{DebuggerDisplay,nq}")]
-internal sealed class ParameterHelpEntry : IParameterHelpEntry
+internal sealed class ParameterHelpEntry(Discord.Commands.ParameterInfo parameter) : IParameterHelpEntry
 {
-	public bool IsOptional { get; }
-	public string Name { get; }
-	public IReadOnlyList<string> NamedArguments { get; }
-	public IReadOnlyList<IParameterPrecondition> Preconditions { get; }
-	public string Summary { get; }
-	public Type Type { get; }
+	public bool IsOptional { get; } = parameter.IsOptional;
+	public string Name { get; } = parameter.Name;
+	public IReadOnlyList<string> NamedArguments { get; } = GetNamedArgumentNames(parameter.Type);
+	public IReadOnlyList<IParameterPrecondition> Preconditions { get; } = parameter.Preconditions.OfType<IParameterPrecondition>().ToImmutableArray();
+	public string Summary { get; } = parameter.Summary;
+	public Type Type { get; } = parameter.Type;
 	private string DebuggerDisplay => $"{Name} ({Type.Name})";
-
-	public ParameterHelpEntry(Discord.Commands.ParameterInfo parameter)
-	{
-		Name = parameter.Name;
-		Summary = parameter.Summary;
-		Type = parameter.Type;
-		IsOptional = parameter.IsOptional;
-		NamedArguments = GetNamedArgumentNames(parameter.Type);
-		Preconditions = parameter.Preconditions.OfType<IParameterPrecondition>().ToImmutableArray();
-	}
 
 	private static IReadOnlyList<string> GetNamedArgumentNames(Type type)
 	{

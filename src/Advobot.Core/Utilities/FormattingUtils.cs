@@ -359,27 +359,21 @@ public static class FormattingUtils
 	/// <summary>
 	/// Contains the original value and a newly formatted value.
 	/// </summary>
-	public readonly struct MarkdownFormattedArg
+	/// <remarks>
+	/// Creates an instance of <see cref="MarkdownFormattedArg"/>.
+	/// </remarks>
+	/// <param name="original"></param>
+	/// <param name="current"></param>
+	public readonly struct MarkdownFormattedArg(string original, string current)
 	{
 		/// <summary>
 		/// The original value.
 		/// </summary>
-		public string Original { get; }
+		public string Original { get; } = original;
 		/// <summary>
 		/// The newly created value.
 		/// </summary>
-		public string Value { get; }
-
-		/// <summary>
-		/// Creates an instance of <see cref="MarkdownFormattedArg"/>.
-		/// </summary>
-		/// <param name="original"></param>
-		/// <param name="current"></param>
-		public MarkdownFormattedArg(string original, string current)
-		{
-			Original = original;
-			Value = current;
-		}
+		public string Value { get; } = current;
 
 		/// <inheritdoc />
 		public override string ToString()

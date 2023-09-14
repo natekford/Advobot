@@ -10,25 +10,18 @@ using System.Collections;
 
 namespace Advobot.Logging.Context;
 
-public sealed class LogHandler<T> : ICollection<Func<ILogContext<T>, Task>>
+public sealed class LogHandler<T>(LogAction action, ILogger logger, ILoggingDatabase db) : ICollection<Func<ILogContext<T>, Task>>
 	where T : ILogState
 {
 	private readonly ICollection<Func<ILogContext<T>, Task>> _Actions =
 		new List<Func<ILogContext<T>, Task>>();
 
-	private readonly ILoggingDatabase _Db;
-	private readonly ILogger _Logger;
+	private readonly ILoggingDatabase _Db = db;
+	private readonly ILogger _Logger = logger;
 
-	public LogAction Action { get; }
+	public LogAction Action { get; } = action;
 	public int Count => _Actions.Count;
 	public bool IsReadOnly => _Actions.IsReadOnly;
-
-	public LogHandler(LogAction action, ILogger logger, ILoggingDatabase db)
-	{
-		_Logger = logger;
-		_Db = db;
-		Action = action;
-	}
 
 	public void Add(Func<ILogContext<T>, Task> item)
 		=> _Actions.Add(item);
@@ -116,29 +109,19 @@ public sealed class LogHandler<T> : ICollection<Func<ILogContext<T>, Task>>
 		return new(state, guild, bot, imageLog, modLog, serverLog);
 	}
 
-	private sealed class LogContext : ILogContext<T>
+	private sealed class LogContext(
+		T state,
+		IGuild guild,
+		IGuildUser bot,
+		ITextChannel? imageLog,
+		ITextChannel? modLog,
+		ITextChannel? serverLog) : ILogContext<T>
 	{
-		public IGuildUser Bot { get; }
-		public IGuild Guild { get; }
-		public ITextChannel? ImageLog { get; }
-		public ITextChannel? ModLog { get; }
-		public ITextChannel? ServerLog { get; }
-		public T State { get; }
-
-		public LogContext(
-			T state,
-			IGuild guild,
-			IGuildUser bot,
-			ITextChannel? imageLog,
-			ITextChannel? modLog,
-			ITextChannel? serverLog)
-		{
-			State = state;
-			Guild = guild;
-			Bot = bot;
-			ImageLog = imageLog;
-			ModLog = modLog;
-			ServerLog = serverLog;
-		}
+		public IGuildUser Bot { get; } = bot;
+		public IGuild Guild { get; } = guild;
+		public ITextChannel? ImageLog { get; } = imageLog;
+		public ITextChannel? ModLog { get; } = modLog;
+		public ITextChannel? ServerLog { get; } = serverLog;
+		public T State { get; } = state;
 	}
 }

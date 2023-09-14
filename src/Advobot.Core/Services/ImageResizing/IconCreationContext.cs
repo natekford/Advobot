@@ -13,7 +13,20 @@ namespace Advobot.Services.ImageResizing;
 /// <summary>
 /// Creates an icon for the specified callback.
 /// </summary>
-public sealed class IconCreationContext : ImageContextBase
+/// <remarks>
+/// Creates an instance of <see cref="IconCreationContext"/>.
+/// </remarks>
+/// <param name="context"></param>
+/// <param name="url"></param>
+/// <param name="args"></param>
+/// <param name="type"></param>
+/// <param name="callback"></param>
+public sealed class IconCreationContext(
+	ICommandContext context,
+	Uri url,
+	UserProvidedImageArgs? args,
+	string type,
+	Func<ICommandContext, MemoryStream, Task> callback) : ImageContextBase(context, url, args ?? new UserProvidedImageArgs())
 {
 	private static readonly ImmutableArray<MagickFormat> _ValidFormats = ImmutableArray.Create(new[]
 	{
@@ -22,33 +35,13 @@ public sealed class IconCreationContext : ImageContextBase
 			MagickFormat.Jpeg
 		});
 
-	private readonly Func<ICommandContext, MemoryStream, Task> _Callback;
+	private readonly Func<ICommandContext, MemoryStream, Task> _Callback = callback;
 
 	/// <inheritdoc />
 	public override long MaxAllowedLengthInBytes => 10000000;
 
 	/// <inheritdoc />
-	public override string Type { get; }
-
-	/// <summary>
-	/// Creates an instance of <see cref="IconCreationContext"/>.
-	/// </summary>
-	/// <param name="context"></param>
-	/// <param name="url"></param>
-	/// <param name="args"></param>
-	/// <param name="type"></param>
-	/// <param name="callback"></param>
-	public IconCreationContext(
-		ICommandContext context,
-		Uri url,
-		UserProvidedImageArgs? args,
-		string type,
-		Func<ICommandContext, MemoryStream, Task> callback)
-		: base(context, url, args ?? new UserProvidedImageArgs())
-	{
-		Type = type;
-		_Callback = callback;
-	}
+	public override string Type { get; } = type;
 
 	/// <inheritdoc />
 	public override IResult CanUseFormat(MagickFormat format)

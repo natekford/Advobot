@@ -14,21 +14,14 @@ using Microsoft.Extensions.Logging;
 
 namespace Advobot.Logging.Service;
 
-public sealed class CommandHandlerLogger
+public sealed class CommandHandlerLogger(
+	ILogger logger,
+	ILoggingDatabase db,
+	IBotSettings botSettings)
 {
-	private readonly IBotSettings _BotSettings;
-	private readonly ILoggingDatabase _Db;
-	private readonly ILogger _Logger;
-
-	public CommandHandlerLogger(
-		ILogger logger,
-		ILoggingDatabase db,
-		IBotSettings botSettings)
-	{
-		_Logger = logger;
-		_Db = db;
-		_BotSettings = botSettings;
-	}
+	private readonly IBotSettings _BotSettings = botSettings;
+	private readonly ILoggingDatabase _Db = db;
+	private readonly ILogger _Logger = logger;
 
 	public async Task OnCommandInvoked(CommandInfo command, ICommandContext context, IResult result)
 	{

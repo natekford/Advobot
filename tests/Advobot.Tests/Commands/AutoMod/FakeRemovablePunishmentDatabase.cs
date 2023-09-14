@@ -48,17 +48,10 @@ public sealed class FakeRemovablePunishmentDatabase : IRemovablePunishmentDataba
 		return Task.FromResult<IReadOnlyList<RemovablePunishment>>(list);
 	}
 
-	private readonly struct Key
+	private readonly struct Key(RemovablePunishment punishment)
 	{
-		public ulong GuildId { get; }
-		public PunishmentType PunishmentType { get; }
-		public ulong UserId { get; }
-
-		public Key(RemovablePunishment punishment)
-		{
-			GuildId = punishment.GuildId;
-			UserId = punishment.UserId;
-			PunishmentType = punishment.PunishmentType;
-		}
+		public ulong GuildId { get; } = punishment.GuildId;
+		public PunishmentType PunishmentType { get; } = punishment.PunishmentType;
+		public ulong UserId { get; } = punishment.UserId;
 	}
 }

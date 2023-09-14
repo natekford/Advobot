@@ -111,16 +111,10 @@ public sealed class LevelService : ILevelService
 		ConsoleUtils.DebugWrite($"Successfully removed {xp} xp from {context.User.Format()}.");
 	}
 
-	private readonly struct Key
+	private readonly struct Key(IGuildUser user)
 	{
-		public ulong GuildId { get; }
-		public ulong UserId { get; }
-
-		public Key(IGuildUser user)
-		{
-			GuildId = user.Guild.Id;
-			UserId = user.Id;
-		}
+		public ulong GuildId { get; } = user.Guild.Id;
+		public ulong UserId { get; } = user.Id;
 	}
 
 	private sealed class MessageHash
@@ -146,20 +140,14 @@ public sealed class LevelService : ILevelService
 		}
 	}
 
-	private sealed class RuntimeInfo
+	private sealed class RuntimeInfo(ITime time, LevelServiceConfig config)
 	{
-		private readonly LevelServiceConfig _Config;
+		private readonly LevelServiceConfig _Config = config;
 		private readonly ConcurrentQueue<MessageHash> _Messages = new();
-		private readonly ITime _Time;
+		private readonly ITime _Time = time;
 
 		public IReadOnlyList<MessageHash> Messages => _Messages.ToArray();
 		public DateTimeOffset Time { get; private set; } = DateTimeOffset.MinValue;
-
-		public RuntimeInfo(ITime time, LevelServiceConfig config)
-		{
-			_Time = time;
-			_Config = config;
-		}
 
 		public bool TryAdd(IUserMessage message, ITextChannel channel, int xp)
 		{

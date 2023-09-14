@@ -3,19 +3,14 @@
 /// <summary>
 /// A category in the help entry service.
 /// </summary>
-public readonly struct Category
+/// <remarks>
+/// Creates an instance of <see cref="Category"/>.
+/// </remarks>
+/// <param name="name"></param>
+public readonly struct Category(string name)
 {
 	/// <summary>
 	/// The name of the category.
 	/// </summary>
-	public string Name { get; }
-
-	/// <summary>
-	/// Creates an instance of <see cref="Category"/>.
-	/// </summary>
-	/// <param name="name"></param>
-	public Category(string name)
-	{
-		Name = name;
-	}
+	public string Name { get; } = name;
 }

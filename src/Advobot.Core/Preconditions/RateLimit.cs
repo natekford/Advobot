@@ -33,7 +33,7 @@ public enum TimeUnit
 /// Limits the rate a command can be used.
 /// </summary>
 [AttributeUsage(AttributeTargets.Class | AttributeTargets.Method, AllowMultiple = false, Inherited = true)]
-public sealed class RateLimit : PreconditionAttribute, IPrecondition
+public sealed class RateLimit(TimeUnit unit, double value) : PreconditionAttribute, IPrecondition
 {
 	private static readonly ConcurrentDictionary<(ulong, ulong), DateTimeOffset> _Times = new();
 
@@ -43,33 +43,21 @@ public sealed class RateLimit : PreconditionAttribute, IPrecondition
 	/// <summary>
 	/// The actual timespan.
 	/// </summary>
-	public TimeSpan Time { get; }
+	public TimeSpan Time { get; } = unit switch
+	{
+		TimeUnit.Seconds => TimeSpan.FromSeconds(value),
+		TimeUnit.Minutes => TimeSpan.FromMinutes(value),
+		TimeUnit.Hours => TimeSpan.FromHours(value),
+		_ => throw new ArgumentOutOfRangeException(nameof(unit)),
+	};
 	/// <summary>
 	/// The passed in units.
 	/// </summary>
-	public TimeUnit Unit { get; }
+	public TimeUnit Unit { get; } = unit;
 	/// <summary>
 	/// The passed in value.
 	/// </summary>
-	public double Value { get; }
-
-	/// <summary>
-	/// Creates an instance of <see cref="RateLimit"/>.
-	/// </summary>
-	/// <param name="unit">What unit to use for time.</param>
-	/// <param name="value">How many to use.</param>
-	public RateLimit(TimeUnit unit, double value)
-	{
-		Unit = unit;
-		Value = value;
-		Time = unit switch
-		{
-			TimeUnit.Seconds => TimeSpan.FromSeconds(value),
-			TimeUnit.Minutes => TimeSpan.FromMinutes(value),
-			TimeUnit.Hours => TimeSpan.FromHours(value),
-			_ => throw new ArgumentOutOfRangeException(nameof(unit)),
-		};
-	}
+	public double Value { get; } = value;
 
 	/// <inheritdoc />
 	public override Task<PreconditionResult> CheckPermissionsAsync(

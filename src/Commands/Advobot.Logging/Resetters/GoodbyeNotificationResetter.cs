@@ -2,11 +2,7 @@
 
 namespace Advobot.Logging.OptionSetters;
 
-public sealed class GoodbyeNotificationResetter : NotificationResetter
+public sealed class GoodbyeNotificationResetter(INotificationDatabase db) : NotificationResetter(db)
 {
 	protected override Notification Event => Notification.Goodbye;
-
-	public GoodbyeNotificationResetter(INotificationDatabase db) : base(db)
-	{
-	}
 }

@@ -5,16 +5,13 @@ namespace Advobot.Punishments;
 /// <summary>
 /// Deafens a user.
 /// </summary>
-public sealed class Deafen : GuildUserPunishmentBase
+/// <remarks>
+/// Creates an instance of <see cref="Deafen"/>.
+/// </remarks>
+/// <param name="user"></param>
+/// <param name="isGive"></param>
+public sealed class Deafen(IGuildUser user, bool isGive) : GuildUserPunishmentBase(user, isGive, PunishmentType.Deafen)
 {
-	/// <summary>
-	/// Creates an instance of <see cref="Deafen"/>.
-	/// </summary>
-	/// <param name="user"></param>
-	/// <param name="isGive"></param>
-	public Deafen(IGuildUser user, bool isGive) : base(user, isGive, PunishmentType.Deafen)
-	{
-	}
 
 	/// <inheritdoc/>
 	protected internal override Task ExecuteAsync()

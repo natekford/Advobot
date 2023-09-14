@@ -17,15 +17,20 @@ namespace Advobot.Services.ImageResizing;
 /// <summary>
 /// Runs image resizing in background threads. The arguments get enqueued, then the image is resized, and finally the callback is invoked in order to use the resized image.
 /// </summary>
-internal sealed class ImageResizer : IImageResizer
+/// <remarks>
+/// Creates an instance of <see cref="ImageResizer"/>.
+/// </remarks>
+/// <param name="client"></param>
+/// <param name="threads"></param>
+internal sealed class ImageResizer(HttpClient client, int threads) : IImageResizer
 {
 	private static readonly string? _FfmpegLocation = FindFfmpeg();
 	private const long _MaxDownloadLengthInBytes = 10000000;
 
 	private readonly ConcurrentQueue<IImageContext> _Args = new();
 	private readonly ConcurrentDictionary<ulong, byte> _CurrentlyProcessing = new();
-	private readonly SemaphoreSlim _SemaphoreSlim;
-	private readonly HttpClient _Client;
+	private readonly SemaphoreSlim _SemaphoreSlim = new(threads);
+	private readonly HttpClient _Client = client;
 
 	/// <inheritdoc />
 	public int QueueCount => _Args.Count;
@@ -35,17 +40,6 @@ internal sealed class ImageResizer : IImageResizer
 	/// </summary>
 	/// <param name="client"></param>
 	public ImageResizer(HttpClient client) : this(client, 10) { }
-
-	/// <summary>
-	/// Creates an instance of <see cref="ImageResizer"/>.
-	/// </summary>
-	/// <param name="client"></param>
-	/// <param name="threads"></param>
-	public ImageResizer(HttpClient client, int threads)
-	{
-		_Client = client;
-		_SemaphoreSlim = new(threads);
-	}
 
 	/// <inheritdoc />
 	public IEnumerable<IImageContext> GetQueuedArguments()

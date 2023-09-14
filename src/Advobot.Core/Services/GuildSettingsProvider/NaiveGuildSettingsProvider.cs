@@ -10,19 +10,14 @@ using System.Globalization;
 namespace Advobot.Services.GuildSettingsProvider;
 
 [Replacable]
-internal sealed class NaiveGuildSettingsProvider : IGuildSettingsProvider
+internal sealed class NaiveGuildSettingsProvider(IBotSettings settings) : IGuildSettingsProvider
 {
 	private const string NAME = "Advobot_Mute";
 	private static readonly RequestOptions RoleCreation = new()
 	{
 		AuditLogReason = "Role not found or is higher than my highest role.",
 	};
-	private readonly IBotSettings _Settings;
-
-	public NaiveGuildSettingsProvider(IBotSettings settings)
-	{
-		_Settings = settings;
-	}
+	private readonly IBotSettings _Settings = settings;
 
 	public Task<CultureInfo> GetCultureAsync(IGuild guild)
 		=> Task.FromResult(guild.PreferredCulture);

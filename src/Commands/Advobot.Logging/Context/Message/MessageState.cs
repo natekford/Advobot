@@ -6,20 +6,13 @@ using Discord;
 
 namespace Advobot.Logging.Context.Messages;
 
-public class MessageState : ILogState
+public class MessageState(IMessage message) : ILogState
 {
-	public ITextChannel Channel { get; }
+	public ITextChannel Channel { get; } = (message?.Channel as ITextChannel)!;
 	public IGuild Guild => User.Guild;
 	public bool IsValid => !(Channel is null || Message is null || User is null);
-	public IUserMessage Message { get; }
-	public IGuildUser User { get; }
-
-	public MessageState(IMessage message)
-	{
-		Message = (message as IUserMessage)!;
-		User = (message?.Author as IGuildUser)!;
-		Channel = (message?.Channel as ITextChannel)!;
-	}
+	public IUserMessage Message { get; } = (message as IUserMessage)!;
+	public IGuildUser User { get; } = (message?.Author as IGuildUser)!;
 
 	public virtual async Task<bool> CanLog(ILoggingDatabase db, ILogContext context)
 	{

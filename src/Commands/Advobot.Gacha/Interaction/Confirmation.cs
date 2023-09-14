@@ -1,14 +1,8 @@
 ﻿namespace Advobot.Gacha.Interaction;
 
-public sealed class Confirmation : IInteraction
+public sealed class Confirmation(string name, bool value) : IInteraction
 {
-	public string Name { get; }
+	public string Name { get; } = name;
 
-	public bool Value { get; }
-
-	public Confirmation(string name, bool value)
-	{
-		Name = name;
-		Value = value;
-	}
+	public bool Value { get; } = value;
 }

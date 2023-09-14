@@ -11,15 +11,10 @@ using System.Collections.ObjectModel;
 
 namespace Advobot.Gacha.Trading;
 
-public sealed class ExchangeManager
+public sealed class ExchangeManager(IGachaDatabase db)
 {
-	private readonly IGachaDatabase _Db;
+	private readonly IGachaDatabase _Db = db;
 	private readonly ConcurrentDictionary<(ulong, ulong), Exchange> _Dictionary = new();
-
-	public ExchangeManager(IGachaDatabase db)
-	{
-		_Db = db;
-	}
 
 	public bool AddExchange(ExchangeMethod method, User receiver, IEnumerable<Character> characters)
 	{
@@ -57,14 +52,9 @@ public sealed class ExchangeManager
 		return true;
 	}
 
-	private sealed class Exchange : Collection<Trade>
+	private sealed class Exchange(ExchangeMethod method) : Collection<Trade>
 	{
-		public ExchangeMethod Method { get; }
-
-		public Exchange(ExchangeMethod method)
-		{
-			Method = method;
-		}
+		public ExchangeMethod Method { get; } = method;
 
 		protected override void InsertItem(int index, Trade item)
 		{

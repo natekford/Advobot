@@ -11,7 +11,7 @@ using System.Globalization;
 
 namespace Advobot.Settings.Service;
 
-public class GuildSettingsProvider : IGuildSettingsProvider
+public class GuildSettingsProvider(ISettingsDatabase db, IBotSettings settings) : IGuildSettingsProvider
 {
 	private const string NAME = "Advobot_Mute";
 
@@ -20,14 +20,8 @@ public class GuildSettingsProvider : IGuildSettingsProvider
 		AuditLogReason = "Role not found or is higher than my highest role.",
 	};
 
-	private readonly ISettingsDatabase _Db;
-	private readonly IBotSettings _Settings;
-
-	public GuildSettingsProvider(ISettingsDatabase db, IBotSettings settings)
-	{
-		_Db = db;
-		_Settings = settings;
-	}
+	private readonly ISettingsDatabase _Db = db;
+	private readonly IBotSettings _Settings = settings;
 
 	public async Task<CultureInfo> GetCultureAsync(IGuild guild)
 	{

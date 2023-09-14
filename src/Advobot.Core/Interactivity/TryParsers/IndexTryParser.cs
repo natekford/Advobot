@@ -5,21 +5,15 @@ namespace Advobot.Interactivity.TryParsers;
 /// <summary>
 /// Attempts to parse an index from a message.
 /// </summary>
-public sealed class IndexTryParser : IMessageTryParser<int>
+/// <remarks>
+/// Creates an instance of <see cref="IndexTryParser"/>.
+/// </remarks>
+/// <param name="minVal"></param>
+/// <param name="maxVal"></param>
+public sealed class IndexTryParser(int minVal, int maxVal) : IMessageTryParser<int>
 {
-	private readonly int _MaxVal;
-	private readonly int _MinVal;
-
-	/// <summary>
-	/// Creates an instance of <see cref="IndexTryParser"/>.
-	/// </summary>
-	/// <param name="minVal"></param>
-	/// <param name="maxVal"></param>
-	public IndexTryParser(int minVal, int maxVal)
-	{
-		_MinVal = minVal;
-		_MaxVal = maxVal;
-	}
+	private readonly int _MaxVal = maxVal;
+	private readonly int _MinVal = minVal;
 
 	/// <inheritdoc />
 	public ValueTask<Optional<int>> TryParseAsync(IMessage message)

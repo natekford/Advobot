@@ -2,25 +2,16 @@
 
 namespace Advobot.Gacha.Metadata;
 
-public readonly struct CharacterMetadata : IMetadata<Character>
+public readonly struct CharacterMetadata(
+	Source source,
+	Character character,
+	AmountAndRank claims,
+	AmountAndRank likes,
+	AmountAndRank wishes) : IMetadata<Character>
 {
-	public AmountAndRank Claims { get; }
-	public Character Data { get; }
-	public AmountAndRank Likes { get; }
-	public Source Source { get; }
-	public AmountAndRank Wishes { get; }
-
-	public CharacterMetadata(
-		Source source,
-		Character character,
-		AmountAndRank claims,
-		AmountAndRank likes,
-		AmountAndRank wishes)
-	{
-		Source = source;
-		Data = character;
-		Claims = claims;
-		Likes = likes;
-		Wishes = wishes;
-	}
+	public AmountAndRank Claims { get; } = claims;
+	public Character Data { get; } = character;
+	public AmountAndRank Likes { get; } = likes;
+	public Source Source { get; } = source;
+	public AmountAndRank Wishes { get; } = wishes;
 }

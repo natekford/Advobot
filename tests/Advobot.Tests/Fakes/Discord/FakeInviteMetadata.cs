@@ -7,19 +7,19 @@ namespace Advobot.Tests.Fakes.Discord;
 
 public sealed class FakeInviteMetadata : IInviteMetadata
 {
+	public IApplication Application => throw new NotImplementedException();
 	public ulong ChannelId => FakeChannel.Id;
 	public string ChannelName => FakeChannel.Name;
-
 	public ChannelType ChannelType => FakeChannel switch
 	{
-		ITextChannel _ => ChannelType.Text,
 		IVoiceChannel _ => ChannelType.Voice,
+		ITextChannel _ => ChannelType.Text,
 		ICategoryChannel _ => ChannelType.Category,
 		_ => throw new ArgumentOutOfRangeException(nameof(FakeChannel)),
 	};
-
 	public string Code { get; set; }
 	public DateTimeOffset? CreatedAt { get; } = DateTimeOffset.UtcNow;
+	public DateTimeOffset? ExpiresAt => throw new NotImplementedException();
 	public FakeGuildChannel FakeChannel { get; }
 	public FakeGuild FakeGuild => FakeChannel.FakeGuild;
 	public FakeGuildUser FakeInviter { get; }

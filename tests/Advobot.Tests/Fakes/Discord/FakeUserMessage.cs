@@ -5,12 +5,9 @@ using Discord;
 
 namespace Advobot.Tests.Fakes.Discord;
 
-public class FakeUserMessage : FakeMessage, IUserMessage
+public class FakeUserMessage(FakeMessageChannel channel, FakeUser author, string content) : FakeMessage(channel, author, content), IUserMessage
 {
 	public IUserMessage ReferencedMessage => throw new NotImplementedException();
-
-	public FakeUserMessage(FakeMessageChannel channel, FakeUser author, string content)
-		: base(channel, author, content) { }
 
 	public Task CrosspostAsync(RequestOptions? options = null)
 		=> throw new NotImplementedException();

@@ -11,14 +11,9 @@ using Discord.Commands;
 
 namespace Advobot.Settings.Service;
 
-public class CommandValidator : ICommandValidator
+public class CommandValidator(ISettingsDatabase db) : ICommandValidator
 {
-	private readonly ISettingsDatabase _Db;
-
-	public CommandValidator(ISettingsDatabase db)
-	{
-		_Db = db;
-	}
+	private readonly ISettingsDatabase _Db = db;
 
 	public async Task<PreconditionResult> CanInvokeAsync(
 		ICommandContext context,

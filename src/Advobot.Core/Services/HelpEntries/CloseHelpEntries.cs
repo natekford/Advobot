@@ -5,14 +5,12 @@ namespace Advobot.Services.HelpEntries;
 /// <summary>
 /// Implementation of <see cref="CloseWords{T}"/> which searches through help entries.
 /// </summary>
-internal sealed class CloseHelpEntries : CloseWords<IModuleHelpEntry>
+/// <remarks>
+/// Creates an instance of <see cref="CloseHelpEntries"/>.
+/// </remarks>
+/// <param name="source"></param>
+internal sealed class CloseHelpEntries(IReadOnlyList<IModuleHelpEntry> source) : CloseWords<IModuleHelpEntry>(source, x => x.Name)
 {
-	/// <summary>
-	/// Creates an instance of <see cref="CloseHelpEntries"/>.
-	/// </summary>
-	/// <param name="source"></param>
-	public CloseHelpEntries(IReadOnlyList<IModuleHelpEntry> source)
-		: base(source, x => x.Name) { }
 
 	/// <inheritdoc />
 	protected override CloseWord<IModuleHelpEntry> FindCloseness(string search, IModuleHelpEntry obj)

@@ -1,17 +1,9 @@
 ﻿namespace Advobot.Levels.Metadata;
 
-public sealed class Rank : IRank
+public sealed class Rank(ulong userId, int xp, int position, int total) : IRank
 {
-	public int Experience { get; }
-	public int Position { get; }
-	public int TotalRankCount { get; }
-	public ulong UserId { get; }
-
-	public Rank(ulong userId, int xp, int position, int total)
-	{
-		UserId = userId;
-		Experience = xp;
-		Position = position;
-		TotalRankCount = total;
-	}
+	public int Experience { get; } = xp;
+	public int Position { get; } = position;
+	public int TotalRankCount { get; } = total;
+	public ulong UserId { get; } = userId;
 }

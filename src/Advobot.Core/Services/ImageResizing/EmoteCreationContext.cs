@@ -15,7 +15,18 @@ namespace Advobot.Services.ImageResizing;
 /// <summary>
 /// Creates an emote on the specified guild.
 /// </summary>
-public sealed class EmoteCreationContext : ImageContextBase
+/// <remarks>
+/// Creates an instance of <see cref="EmoteCreationContext"/>.
+/// </remarks>
+/// <param name="context"></param>
+/// <param name="url"></param>
+/// <param name="args"></param>
+/// <param name="name"></param>
+public sealed class EmoteCreationContext(
+	ICommandContext context,
+	Uri url,
+	UserProvidedImageArgs args,
+	string name) : ImageContextBase(context, url, args)
 {
 	private static readonly ImmutableArray<MagickFormat> _AllValidFormats
 		= _ValidStaticFormats.Concat(_ValidGifFormats).ToImmutableArray();
@@ -39,27 +50,10 @@ public sealed class EmoteCreationContext : ImageContextBase
 	/// <summary>
 	/// The name to give an emote.
 	/// </summary>
-	public string Name { get; }
+	public string Name { get; } = name;
 
 	/// <inheritdoc />
 	public override string Type => "Emote";
-
-	/// <summary>
-	/// Creates an instance of <see cref="EmoteCreationContext"/>.
-	/// </summary>
-	/// <param name="context"></param>
-	/// <param name="url"></param>
-	/// <param name="args"></param>
-	/// <param name="name"></param>
-	public EmoteCreationContext(
-		ICommandContext context,
-		Uri url,
-		UserProvidedImageArgs args,
-		string name)
-		: base(context, url, args)
-	{
-		Name = name;
-	}
 
 	/// <inheritdoc />
 	public override IResult CanUseFormat(MagickFormat format)

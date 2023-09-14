@@ -3,12 +3,7 @@
 namespace Advobot.Gacha.Interaction;
 
 [AttributeUsage(AttributeTargets.Field, AllowMultiple = false, Inherited = true)]
-public sealed class UnicodeRepresentationAttribute : Attribute
+public sealed class UnicodeRepresentationAttribute(string unicode) : Attribute
 {
-	public string Name { get; }
-
-	public UnicodeRepresentationAttribute(string unicode)
-	{
-		Name = new Emoji(unicode).Name;
-	}
+	public string Name { get; } = new Emoji(unicode).Name;
 }

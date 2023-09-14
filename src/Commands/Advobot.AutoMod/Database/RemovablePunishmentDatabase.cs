@@ -7,16 +7,12 @@ using System.Data.SQLite;
 
 namespace Advobot.AutoMod.Database;
 
-public sealed class RemovablePunishmentDatabase : DatabaseBase<SQLiteConnection>, IRemovablePunishmentDatabase
+public sealed class RemovablePunishmentDatabase(IConnectionString<RemovablePunishmentDatabase> conn) : DatabaseBase<SQLiteConnection>(conn), IRemovablePunishmentDatabase
 {
 	private const string DELETE_REMOVABLE_PUNISHMENT_SQL = @"
 			DELETE FROM RemovablePunishment
 			WHERE GuildId = @GuildId AND UserId = @UserId AND PunishmentType = @PunishmentType
 		";
-
-	public RemovablePunishmentDatabase(IConnectionString<RemovablePunishmentDatabase> conn) : base(conn)
-	{
-	}
 
 	public Task<int> AddRemovablePunishmentAsync(RemovablePunishment punishment)
 	{

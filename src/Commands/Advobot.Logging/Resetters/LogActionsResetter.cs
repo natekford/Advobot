@@ -8,9 +8,9 @@ using Discord.Commands;
 
 namespace Advobot.Logging.OptionSetters;
 
-public sealed class LogActionsResetter : IResetter
+public sealed class LogActionsResetter(ILoggingDatabase db) : IResetter
 {
-	private readonly ILoggingDatabase _Db;
+	private readonly ILoggingDatabase _Db = db;
 
 	public static IReadOnlyList<LogAction> All { get; }
 		= AdvobotUtils.GetValues<LogAction>();
@@ -23,11 +23,6 @@ public sealed class LogActionsResetter : IResetter
 			LogAction.MessageUpdated,
 			LogAction.MessageDeleted
 		};
-
-	public LogActionsResetter(ILoggingDatabase db)
-	{
-		_Db = db;
-	}
 
 	public async Task ResetAsync(ICommandContext context)
 	{

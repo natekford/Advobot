@@ -10,16 +10,16 @@ namespace Advobot.Localization;
 /// Used for a localized alias.
 /// </summary>
 [AttributeUsage(AttributeTargets.Method | AttributeTargets.Class, AllowMultiple = false, Inherited = true)]
-public class LocalizedAliasAttribute : AliasAttribute, ILocalized
+public class LocalizedAliasAttribute(string[] names, ResourceManager resources) : AliasAttribute(Array.ConvertAll(names, x => resources.GetStringEnsured(x))), ILocalized
 {
 	private static readonly ResourceManager _RM = Resources.Aliases.ResourceManager;
 
 	/// <summary>
 	/// The names of the aliases to use for localization.
 	/// </summary>
-	public IReadOnlyList<string> Names { get; }
+	public IReadOnlyList<string> Names { get; } = names;
 	/// <inheritdoc />
-	public ResourceManager ResourceManager { get; }
+	public ResourceManager ResourceManager { get; } = resources;
 
 	/// <summary>
 	/// Creates an instance of <see cref="LocalizedAliasAttribute"/>.
@@ -27,17 +27,5 @@ public class LocalizedAliasAttribute : AliasAttribute, ILocalized
 	/// <param name="names"></param>
 	public LocalizedAliasAttribute(params string[] names) : this(names, _RM)
 	{
-	}
-
-	/// <summary>
-	/// Creates an instance of <see cref="LocalizedAliasAttribute"/>.
-	/// </summary>
-	/// <param name="names"></param>
-	/// <param name="resources"></param>
-	public LocalizedAliasAttribute(string[] names, ResourceManager resources)
-		: base(Array.ConvertAll(names, x => resources.GetStringEnsured(x)))
-	{
-		Names = names;
-		ResourceManager = resources;
 	}
 }

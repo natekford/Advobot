@@ -58,6 +58,7 @@ public sealed class FakeGuild : FakeSnowflake, IGuild
 	public int MaxBitrate => throw new NotImplementedException();
 	public int? MaxMembers => throw new NotImplementedException();
 	public int? MaxPresences => throw new NotImplementedException();
+	public int? MaxStageVideoChannelUsers => throw new NotImplementedException();
 	public ulong MaxUploadLimit => throw new NotImplementedException();
 	public int? MaxVideoChannelUsers => throw new NotImplementedException();
 	public MfaLevel MfaLevel => throw new NotImplementedException();
@@ -76,6 +77,7 @@ public sealed class FakeGuild : FakeSnowflake, IGuild
 	};
 	public ulong? PublicUpdatesChannelId => throw new NotImplementedException();
 	public ulong? RulesChannelId => throw new NotImplementedException();
+	public ulong? SafetyAlertsChannelId => throw new NotImplementedException();
 	public string SplashId => throw new NotImplementedException();
 	public string SplashUrl => throw new NotImplementedException();
 	public IReadOnlyCollection<ICustomSticker> Stickers => throw new NotImplementedException();
@@ -131,6 +133,9 @@ public sealed class FakeGuild : FakeSnowflake, IGuild
 	public Task<IApplicationCommand> CreateApplicationCommandAsync(ApplicationCommandProperties properties, RequestOptions options = null)
 		=> throw new NotImplementedException();
 
+	public Task<IAutoModRule> CreateAutoModRuleAsync(Action<AutoModRuleProperties> props, RequestOptions options = null)
+		=> throw new NotImplementedException();
+
 	public Task<ICategoryChannel> CreateCategoryAsync(string name, Action<GuildChannelProperties>? func = null, RequestOptions? options = null)
 		=> throw new NotImplementedException();
 
@@ -178,6 +183,12 @@ public sealed class FakeGuild : FakeSnowflake, IGuild
 		=> throw new NotImplementedException();
 
 	public Task<ICustomSticker> CreateStickerAsync(string name, string description, IEnumerable<string> tags, Stream stream, string filename, RequestOptions options = null)
+		=> throw new NotImplementedException();
+
+	public Task<ICustomSticker> CreateStickerAsync(string name, Image image, IEnumerable<string> tags, string description = null, RequestOptions options = null)
+		=> throw new NotImplementedException();
+
+	public Task<ICustomSticker> CreateStickerAsync(string name, Stream stream, string filename, IEnumerable<string> tags, string description = null, RequestOptions options = null)
 		=> throw new NotImplementedException();
 
 	public async Task<ITextChannel> CreateTextChannelAsync(string name, Action<TextChannelProperties>? func = null, RequestOptions? options = null)
@@ -230,6 +241,15 @@ public sealed class FakeGuild : FakeSnowflake, IGuild
 	public Task<IReadOnlyCollection<IAuditLogEntry>> GetAuditLogsAsync(int limit = 100, CacheMode mode = CacheMode.AllowDownload, RequestOptions? options = null, ulong? beforeId = null, ulong? userId = null, ActionType? actionType = null)
 		=> throw new NotImplementedException();
 
+	public Task<IReadOnlyCollection<IAuditLogEntry>> GetAuditLogsAsync(int limit = 100, CacheMode mode = CacheMode.AllowDownload, RequestOptions options = null, ulong? beforeId = null, ulong? userId = null, ActionType? actionType = null, ulong? afterId = null)
+		=> throw new NotImplementedException();
+
+	public Task<IAutoModRule> GetAutoModRuleAsync(ulong ruleId, RequestOptions options = null)
+		=> throw new NotImplementedException();
+
+	public Task<IAutoModRule[]> GetAutoModRulesAsync(RequestOptions options = null)
+		=> throw new NotImplementedException();
+
 	public Task<IBan> GetBanAsync(IUser user, RequestOptions? options = null)
 		=> GetBanAsync(user.Id, options);
 
@@ -279,8 +299,11 @@ public sealed class FakeGuild : FakeSnowflake, IGuild
 	public Task<IReadOnlyCollection<IInviteMetadata>> GetInvitesAsync(RequestOptions? options = null)
 		=> Task.FromResult<IReadOnlyCollection<IInviteMetadata>>(FakeInvites);
 
+	public Task<IGuildOnboarding> GetOnboardingAsync(RequestOptions options = null)
+		=> throw new NotImplementedException();
+
 	public Task<IGuildUser> GetOwnerAsync(CacheMode mode = CacheMode.AllowDownload, RequestOptions? options = null)
-		=> Task.FromResult<IGuildUser>(FakeOwner);
+			=> Task.FromResult<IGuildUser>(FakeOwner);
 
 	public Task<ITextChannel> GetPublicUpdatesChannelAsync(CacheMode mode = CacheMode.AllowDownload, RequestOptions? options = null)
 		=> throw new NotImplementedException();
@@ -342,6 +365,9 @@ public sealed class FakeGuild : FakeSnowflake, IGuild
 	public Task<IReadOnlyCollection<IWebhook>> GetWebhooksAsync(RequestOptions? options = null)
 		=> Task.FromResult<IReadOnlyCollection<IWebhook>>(FakeWebhooks);
 
+	public Task<WelcomeScreen> GetWelcomeScreenAsync(RequestOptions options = null)
+		=> throw new NotImplementedException();
+
 	public Task<IGuildChannel> GetWidgetChannelAsync(CacheMode mode = CacheMode.AllowDownload, RequestOptions? options = null)
 		=> throw new NotImplementedException();
 
@@ -352,6 +378,12 @@ public sealed class FakeGuild : FakeSnowflake, IGuild
 		=> throw new NotImplementedException();
 
 	public Task<GuildEmote> ModifyEmoteAsync(GuildEmote emote, Action<EmoteProperties> func, RequestOptions? options = null)
+		=> throw new NotImplementedException();
+
+	public Task<IGuildOnboarding> ModifyOnboardingAsync(Action<GuildOnboardingProperties> props, RequestOptions options = null)
+		=> throw new NotImplementedException();
+
+	public Task<WelcomeScreen> ModifyWelcomeScreenAsync(bool enabled, WelcomeScreenChannelProperties[] channels, string description = null, RequestOptions options = null)
 		=> throw new NotImplementedException();
 
 	public Task ModifyWidgetAsync(Action<GuildWidgetProperties> func, RequestOptions? options = null)

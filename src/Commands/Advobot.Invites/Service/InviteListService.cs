@@ -8,18 +8,12 @@ using Discord;
 
 namespace Advobot.Invites.Service;
 
-public sealed class InviteListService : IInviteListService
+public sealed class InviteListService(
+	InviteDatabase db,
+	ITime time) : IInviteListService
 {
-	private readonly InviteDatabase _Db;
-	private readonly ITime _Time;
-
-	public InviteListService(
-		InviteDatabase db,
-		ITime time)
-	{
-		_Db = db;
-		_Time = time;
-	}
+	private readonly InviteDatabase _Db = db;
+	private readonly ITime _Time = time;
 
 	public Task AddInviteAsync(IInviteMetadata invite)
 	{

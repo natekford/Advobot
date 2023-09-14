@@ -34,7 +34,7 @@ public static class RuleDatabaseUtils
 	}
 }
 
-public sealed class RuleDatabase : DatabaseBase<SQLiteConnection>
+public sealed class RuleDatabase(IConnectionString<RuleDatabase> conn) : DatabaseBase<SQLiteConnection>(conn)
 {
 	private const string DELETE_RULE = @"
 			DELETE FROM Rule
@@ -52,10 +52,6 @@ public sealed class RuleDatabase : DatabaseBase<SQLiteConnection>
 				Value = @Value
 			WHERE GuildId = @GuildId AND Category = @Category AND Position = @Position
 		";
-
-	public RuleDatabase(IConnectionString<RuleDatabase> conn) : base(conn)
-	{
-	}
 
 	public Task<int> DeleteRuleAsync(Rule rule)
 		=> ModifyAsync(DELETE_RULE, rule);

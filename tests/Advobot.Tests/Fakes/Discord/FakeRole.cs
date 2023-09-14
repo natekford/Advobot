@@ -7,6 +7,7 @@ public sealed class FakeRole : FakeSnowflake, IRole
 	private readonly FakeGuild _Guild;
 	public Color Color { get; set; }
 	public Emoji Emoji { get; set; }
+	public RoleFlags Flags => throw new NotImplementedException();
 	public IGuild Guild => _Guild;
 	public string Icon { get; set; }
 	public bool IsHoisted { get; set; }

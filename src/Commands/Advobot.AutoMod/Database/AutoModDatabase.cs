@@ -7,12 +7,8 @@ using System.Data.SQLite;
 
 namespace Advobot.AutoMod.Database;
 
-public sealed class AutoModDatabase : DatabaseBase<SQLiteConnection>, IAutoModDatabase
+public sealed class AutoModDatabase(IConnectionString<AutoModDatabase> conn) : DatabaseBase<SQLiteConnection>(conn), IAutoModDatabase
 {
-	public AutoModDatabase(IConnectionString<AutoModDatabase> conn) : base(conn)
-	{
-	}
-
 	public Task<int> AddPersistentRoleAsync(PersistentRole role)
 	{
 		return ModifyAsync(@"

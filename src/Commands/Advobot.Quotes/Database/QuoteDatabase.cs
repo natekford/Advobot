@@ -7,12 +7,8 @@ using System.Data.SQLite;
 
 namespace Advobot.Quotes.Database;
 
-public sealed class QuoteDatabase : DatabaseBase<SQLiteConnection>, IQuoteDatabase
+public sealed class QuoteDatabase(IConnectionString<QuoteDatabase> conn) : DatabaseBase<SQLiteConnection>(conn), IQuoteDatabase
 {
-	public QuoteDatabase(IConnectionString<QuoteDatabase> conn) : base(conn)
-	{
-	}
-
 	public Task<int> AddQuoteAsync(Quote quote)
 	{
 		return ModifyAsync(@"

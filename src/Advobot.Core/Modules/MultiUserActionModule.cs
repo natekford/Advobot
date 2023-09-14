@@ -96,7 +96,12 @@ public abstract class MultiUserActionModule : AdvobotModuleBase
 	/// <summary>
 	/// Event arguments for the status of the multi user action.
 	/// </summary>
-	public class MultiUserActionProgressArgs : EventArgs
+	/// <remarks>
+	/// Creates an instance of <see cref="MultiUserActionProgressArgs"/>.
+	/// </remarks>
+	/// <param name="total"></param>
+	/// <param name="current"></param>
+	public class MultiUserActionProgressArgs(int total, int current) : EventArgs
 	{
 		/// <summary>
 		/// The amount of users left to modify.
@@ -105,7 +110,7 @@ public abstract class MultiUserActionModule : AdvobotModuleBase
 		/// <summary>
 		/// The amount of users this has already modified.
 		/// </summary>
-		public int CurrentProgress { get; }
+		public int CurrentProgress { get; } = current;
 		/// <summary>
 		/// Whether this is the end of the multi user action.
 		/// </summary>
@@ -117,46 +122,28 @@ public abstract class MultiUserActionModule : AdvobotModuleBase
 		/// <summary>
 		/// The total amount of users this is currently targetting.
 		/// </summary>
-		public int TotalUsers { get; }
-
-		/// <summary>
-		/// Creates an instance of <see cref="MultiUserActionProgressArgs"/>.
-		/// </summary>
-		/// <param name="total"></param>
-		/// <param name="current"></param>
-		public MultiUserActionProgressArgs(int total, int current)
-		{
-			TotalUsers = total;
-			CurrentProgress = current;
-		}
+		public int TotalUsers { get; } = total;
 	}
 
 	/// <summary>
 	/// Logs progress for multi user actions.
 	/// </summary>
-	public class MultiUserActionProgressLogger : IAsyncProgress<MultiUserActionProgressArgs>
+	/// <remarks>
+	/// Creates an instance of <see cref="MultiUserActionProgressLogger"/>.
+	/// </remarks>
+	/// <param name="channel"></param>
+	/// <param name="createResult"></param>
+	/// <param name="options"></param>
+	public class MultiUserActionProgressLogger(
+		IMessageChannel channel,
+		Func<MultiUserActionProgressArgs, string> createResult,
+		RequestOptions? options = null) : IAsyncProgress<MultiUserActionProgressArgs>
 	{
-		private readonly IMessageChannel _Channel;
-		private readonly Func<MultiUserActionProgressArgs, string> _CreateResult;
-		private readonly RequestOptions? _Options;
+		private readonly IMessageChannel _Channel = channel ?? throw new ArgumentNullException(nameof(channel));
+		private readonly Func<MultiUserActionProgressArgs, string> _CreateResult = createResult ?? throw new ArgumentNullException(nameof(createResult));
+		private readonly RequestOptions? _Options = options;
 		private bool HasException;
 		private IUserMessage? message;
-
-		/// <summary>
-		/// Creates an instance of <see cref="MultiUserActionProgressLogger"/>.
-		/// </summary>
-		/// <param name="channel"></param>
-		/// <param name="createResult"></param>
-		/// <param name="options"></param>
-		public MultiUserActionProgressLogger(
-			IMessageChannel channel,
-			Func<MultiUserActionProgressArgs, string> createResult,
-			RequestOptions? options = null)
-		{
-			_Channel = channel ?? throw new ArgumentNullException(nameof(channel));
-			_CreateResult = createResult ?? throw new ArgumentNullException(nameof(createResult));
-			_Options = options;
-		}
 
 		/// <summary>
 		/// Logs the information passed in to the channel and updates a message.

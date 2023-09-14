@@ -7,7 +7,7 @@ namespace Advobot.CommandAssemblies;
 /// Specifies the assembly is one that holds commands.
 /// </summary>
 [AttributeUsage(AttributeTargets.Assembly, AllowMultiple = false, Inherited = true)]
-public sealed class CommandAssemblyAttribute : Attribute
+public sealed class CommandAssemblyAttribute(params string[] supportedCultures) : Attribute
 {
 	private Type? _InstatiatorType;
 
@@ -53,14 +53,5 @@ public sealed class CommandAssemblyAttribute : Attribute
 	/// <summary>
 	/// The cultures this command assembly supports.
 	/// </summary>
-	public IReadOnlyList<CultureInfo> SupportedCultures { get; }
-
-	/// <summary>
-	/// Creates an instance of <see cref="CommandAssemblyAttribute"/>.
-	/// </summary>
-	/// <param name="supportedCultures"></param>
-	public CommandAssemblyAttribute(params string[] supportedCultures)
-	{
-		SupportedCultures = supportedCultures.Select(CultureInfo.GetCultureInfo).ToImmutableArray();
-	}
+	public IReadOnlyList<CultureInfo> SupportedCultures { get; } = supportedCultures.Select(CultureInfo.GetCultureInfo).ToImmutableArray();
 }

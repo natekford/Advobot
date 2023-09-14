@@ -8,16 +8,11 @@ using Discord;
 
 namespace Advobot.Tests.Commands.Invites;
 
-public sealed class FakeInviteListService : IInviteListService
+public sealed class FakeInviteListService(ITime time) : IInviteListService
 {
 	private readonly Dictionary<ulong, ListedInvite> _Invites = new();
 	private readonly Dictionary<string, List<ulong>> _Keywords = new(StringComparer.OrdinalIgnoreCase);
-	private readonly ITime _Time;
-
-	public FakeInviteListService(ITime time)
-	{
-		_Time = time;
-	}
+	private readonly ITime _Time = time;
 
 	public Task AddInviteAsync(IInviteMetadata invite)
 	{

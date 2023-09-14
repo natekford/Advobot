@@ -20,19 +20,14 @@ public static class Localized
 /// Holds different instances of <typeparamref name="T"/> based on <see cref="CultureInfo.CurrentUICulture"/>.
 /// </summary>
 /// <typeparam name="T"></typeparam>
-public sealed class Localized<T>
+/// <remarks>
+/// Creates an instance of <see cref="Localized{T}"/>.
+/// </remarks>
+/// <param name="valueFactory"></param>
+public sealed class Localized<T>(Func<CultureInfo, T> valueFactory)
 {
 	private readonly ConcurrentDictionary<CultureInfo, T> _Source = new();
-	private readonly Func<CultureInfo, T> _ValueFactory;
-
-	/// <summary>
-	/// Creates an instance of <see cref="Localized{T}"/>.
-	/// </summary>
-	/// <param name="valueFactory"></param>
-	public Localized(Func<CultureInfo, T> valueFactory)
-	{
-		_ValueFactory = valueFactory;
-	}
+	private readonly Func<CultureInfo, T> _ValueFactory = valueFactory;
 
 	/// <summary>
 	/// Gets or adds a value for the current culture.

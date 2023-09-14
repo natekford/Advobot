@@ -3,9 +3,9 @@
 namespace Advobot.Tests;
 
 [DebuggerDisplay("Average = {Average}")]
-internal sealed class SpeedTest
+internal sealed class SpeedTest(Action func)
 {
-	public Action Function;
+	public Action Function = func;
 	public int Iterations = 10;
 	public int Times = 100000;
 	private readonly List<Stopwatch> _Watches = new();
@@ -15,11 +15,6 @@ internal sealed class SpeedTest
 	public long Max => _Watches.Max(s => s.ElapsedMilliseconds);
 
 	public long Min => _Watches.Min(s => s.ElapsedMilliseconds);
-
-	public SpeedTest(Action func)
-	{
-		Function = func;
-	}
 
 	public void Test()
 	{

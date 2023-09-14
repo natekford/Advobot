@@ -2,17 +2,11 @@
 
 namespace Advobot.Logging.Context.Messages;
 
-public class MessagesBulkDeletedState : MessageDeletedState
+public class MessagesBulkDeletedState(IEnumerable<Cacheable<IMessage, ulong>> messages) : MessageDeletedState(messages.First())
 {
-	public IReadOnlyList<IMessage> Messages { get; }
-
-	public MessagesBulkDeletedState(IEnumerable<Cacheable<IMessage, ulong>> messages)
-		: base(messages.First())
-	{
-		Messages = messages
+	public IReadOnlyList<IMessage> Messages { get; } = messages
 			.Where(x => x.HasValue)
 			.Select(x => x.Value)
 			.OrderBy(x => x.Id)
 			.ToArray();
-	}
 }

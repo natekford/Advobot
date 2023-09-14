@@ -4,27 +4,21 @@ using Discord;
 
 namespace Advobot.Tests.Fakes.Discord.Users;
 
-public sealed class FakeWebhook : FakeSnowflake, IWebhook
+public sealed class FakeWebhook(FakeTextChannel channel, FakeUser user) : FakeSnowflake, IWebhook
 {
 	public ulong? ApplicationId => throw new NotImplementedException();
 	public string AvatarId => throw new NotImplementedException();
-	public ulong ChannelId => FakeChannel.Id;
-	public FakeTextChannel FakeChannel { get; private set; }
-	public FakeGuild FakeGuild { get; }
-	public FakeUser FakeUser { get; }
+	public ulong? ChannelId => FakeChannel.Id;
+	public FakeTextChannel FakeChannel { get; private set; } = channel;
+	public FakeGuild FakeGuild { get; } = channel.FakeGuild;
+	public FakeUser FakeUser { get; } = user;
 	public ulong? GuildId => FakeGuild.Id;
 	public string Name { get; set; }
 	public string Token => throw new NotImplementedException();
-	ITextChannel IWebhook.Channel => FakeChannel;
+	public WebhookType Type => throw new NotImplementedException();
+	IIntegrationChannel IWebhook.Channel => FakeChannel;
 	IUser IWebhook.Creator => FakeUser;
 	IGuild IWebhook.Guild => FakeGuild;
-
-	public FakeWebhook(FakeTextChannel channel, FakeUser user)
-	{
-		FakeChannel = channel;
-		FakeGuild = channel.FakeGuild;
-		FakeUser = user;
-	}
 
 	public Task DeleteAsync(RequestOptions? options = null)
 		=> throw new NotImplementedException();

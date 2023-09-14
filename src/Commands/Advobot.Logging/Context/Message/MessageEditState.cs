@@ -2,12 +2,7 @@
 
 namespace Advobot.Logging.Context.Messages;
 
-public class MessageEditState : MessageState
+public class MessageEditState(Cacheable<IMessage, ulong> before, IMessage message) : MessageState(message)
 {
-	public IMessage? Before { get; set; }
-
-	public MessageEditState(Cacheable<IMessage, ulong> before, IMessage message) : base(message)
-	{
-		Before = before.Value;
-	}
+	public IMessage? Before { get; set; } = before.Value;
 }

@@ -7,12 +7,8 @@ using System.Data.SQLite;
 
 namespace Advobot.MyCommands.Database;
 
-public sealed class MyCommandsDatabase : DatabaseBase<SQLiteConnection>, IMyCommandsDatabase
+public sealed class MyCommandsDatabase(IConnectionString<MyCommandsDatabase> conn) : DatabaseBase<SQLiteConnection>(conn), IMyCommandsDatabase
 {
-	public MyCommandsDatabase(IConnectionString<MyCommandsDatabase> conn) : base(conn)
-	{
-	}
-
 	public async Task<DetectLanguageConfig> GetDetectLanguageConfigAsync()
 	{
 		return await GetOneAsync<DetectLanguageConfig>(@"

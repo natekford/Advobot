@@ -4,10 +4,10 @@ using Discord;
 
 namespace Advobot.Tests.Utilities;
 
-public sealed class SnowflakeGenerator
+public sealed class SnowflakeGenerator(TimeSpan incrementationTime)
 {
 	private static long _LastTimeStamp = DateTimeOffset.UtcNow.Ticks;
-	private readonly TimeSpan _IncrementationTime;
+	private readonly TimeSpan _IncrementationTime = incrementationTime;
 	private DateTimeOffset _Now = DateTimeOffset.Now;
 
 	private static DateTimeOffset UtcNow
@@ -23,11 +23,6 @@ public sealed class SnowflakeGenerator
 			} while (Interlocked.CompareExchange(ref _LastTimeStamp, newValue, original) != original);
 			return newValue.CreateUtcDTOFromTicks();
 		}
-	}
-
-	public SnowflakeGenerator(TimeSpan incrementationTime)
-	{
-		_IncrementationTime = incrementationTime;
 	}
 
 	public static ulong UTCNext()

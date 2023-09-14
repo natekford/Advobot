@@ -10,16 +10,16 @@ namespace Advobot.Localization;
 /// Used for a localized summary.
 /// </summary>
 [AttributeUsage(AttributeTargets.Method | AttributeTargets.Class | AttributeTargets.Parameter, AllowMultiple = false, Inherited = true)]
-public class LocalizedSummaryAttribute : SummaryAttribute, ILocalized
+public class LocalizedSummaryAttribute(string name, ResourceManager resources) : SummaryAttribute(resources.GetStringEnsured(name)), ILocalized
 {
 	private static readonly ResourceManager _RM = Resources.Summaries.ResourceManager;
 
 	/// <summary>
 	/// The name of the summary to use for localization.
 	/// </summary>
-	public string Name { get; }
+	public string Name { get; } = name;
 	/// <inheritdoc />
-	public ResourceManager ResourceManager { get; }
+	public ResourceManager ResourceManager { get; } = resources;
 
 	/// <summary>
 	/// Creates an instance of <see cref="LocalizedSummaryAttribute"/>.
@@ -27,17 +27,5 @@ public class LocalizedSummaryAttribute : SummaryAttribute, ILocalized
 	/// <param name="name"></param>
 	public LocalizedSummaryAttribute(string name) : this(name, _RM)
 	{
-	}
-
-	/// <summary>
-	/// Creates an instance of <see cref="LocalizedSummaryAttribute"/>.
-	/// </summary>
-	/// <param name="name"></param>
-	/// <param name="resources"></param>
-	public LocalizedSummaryAttribute(string name, ResourceManager resources)
-		: base(resources.GetStringEnsured(name))
-	{
-		Name = name;
-		ResourceManager = resources;
 	}
 }

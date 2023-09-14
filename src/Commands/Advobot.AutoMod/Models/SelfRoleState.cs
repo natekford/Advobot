@@ -2,16 +2,9 @@
 
 namespace Advobot.AutoMod.Models;
 
-public sealed class SelfRoleState
+public sealed class SelfRoleState(int group, IRole role, IReadOnlyList<IRole> conflictingRoles)
 {
-	public IReadOnlyList<IRole> ConflictingRoles { get; }
-	public int Group { get; }
-	public IRole Role { get; }
-
-	public SelfRoleState(int group, IRole role, IReadOnlyList<IRole> conflictingRoles)
-	{
-		Group = group;
-		Role = role;
-		ConflictingRoles = conflictingRoles;
-	}
+	public IReadOnlyList<IRole> ConflictingRoles { get; } = conflictingRoles;
+	public int Group { get; } = group;
+	public IRole Role { get; } = role;
 }

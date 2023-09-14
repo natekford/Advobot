@@ -7,7 +7,14 @@ namespace Advobot.Punishments;
 /// <summary>
 /// Punishes based off of <see cref="IPunishmentContext.Type"/>.
 /// </summary>
-public sealed class DynamicPunishmentContext : PunishmentBase
+/// <remarks>
+/// Creates an instance of <see cref="DynamicPunishmentContext"/>.
+/// </remarks>
+/// <param name="guild"></param>
+/// <param name="userId"></param>
+/// <param name="isGive"></param>
+/// <param name="type"></param>
+public sealed class DynamicPunishmentContext(IGuild guild, ulong userId, bool isGive, PunishmentType type) : PunishmentBase(guild, userId, isGive, type)
 {
 	/// <summary>
 	/// The id of the role.
@@ -16,18 +23,6 @@ public sealed class DynamicPunishmentContext : PunishmentBase
 	{
 		get => Role?.Id ?? 0;
 		set => Role = Guild.GetRole(value);
-	}
-
-	/// <summary>
-	/// Creates an instance of <see cref="DynamicPunishmentContext"/>.
-	/// </summary>
-	/// <param name="guild"></param>
-	/// <param name="userId"></param>
-	/// <param name="isGive"></param>
-	/// <param name="type"></param>
-	public DynamicPunishmentContext(IGuild guild, ulong userId, bool isGive, PunishmentType type)
-		: base(guild, userId, isGive, type)
-	{
 	}
 
 	/// <inheritdoc/>

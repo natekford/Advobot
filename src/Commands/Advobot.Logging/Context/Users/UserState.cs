@@ -4,20 +4,14 @@ using Discord;
 
 namespace Advobot.Logging.Context.Users;
 
-public class UserState : ILogState
+public class UserState(IGuild guild, IUser user) : ILogState
 {
-	public IGuild Guild { get; }
+	public IGuild Guild { get; } = guild;
 	public bool IsValid => User is not null;
-	public IUser User { get; }
+	public IUser User { get; } = user;
 
 	public UserState(IGuildUser user) : this(user.Guild, user)
 	{
-	}
-
-	public UserState(IGuild guild, IUser user)
-	{
-		Guild = guild;
-		User = user;
 	}
 
 	// Only log if it wasn't this bot that was affected

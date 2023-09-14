@@ -6,16 +6,10 @@ using Microsoft.Extensions.Logging;
 
 namespace Advobot.Logging.Service;
 
-public sealed class ClientLogger
+public sealed class ClientLogger(ILogger logger, BaseSocketClient client)
 {
-	private readonly BaseSocketClient _Client;
-	private readonly ILogger _Logger;
-
-	public ClientLogger(ILogger logger, BaseSocketClient client)
-	{
-		_Logger = logger;
-		_Client = client;
-	}
+	private readonly BaseSocketClient _Client = client;
+	private readonly ILogger _Logger = logger;
 
 	public Task OnGuildAvailable(SocketGuild guild)
 	{

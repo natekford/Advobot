@@ -8,7 +8,12 @@ namespace Advobot.Classes.CloseWords;
 /// Gathers objects with similar names to the passed in input.
 /// </summary>
 /// <typeparam name="T"></typeparam>
-public class CloseWords<T>
+/// <remarks>
+/// Creates an instance of <see cref="CloseWords{T}"/>.
+/// </remarks>
+/// <param name="source"></param>
+/// <param name="getName"></param>
+public class CloseWords<T>(IReadOnlyList<T> source, Func<T, string> getName)
 {
 	/// <summary>
 	/// Mark as close if the supplied text is within searched text.
@@ -25,22 +30,11 @@ public class CloseWords<T>
 	/// <summary>
 	/// Gets the name of the object.
 	/// </summary>
-	protected Func<T, string> GetName { get; }
+	protected Func<T, string> GetName { get; } = getName;
 	/// <summary>
 	/// What to search through.
 	/// </summary>
-	protected IReadOnlyList<T> Source { get; }
-
-	/// <summary>
-	/// Creates an instance of <see cref="CloseWords{T}"/>.
-	/// </summary>
-	/// <param name="source"></param>
-	/// <param name="getName"></param>
-	public CloseWords(IReadOnlyList<T> source, Func<T, string> getName)
-	{
-		Source = source;
-		GetName = getName;
-	}
+	protected IReadOnlyList<T> Source { get; } = source;
 
 	/// <summary>
 	/// Creates an instance of <see cref="CloseWords{T}"/>.

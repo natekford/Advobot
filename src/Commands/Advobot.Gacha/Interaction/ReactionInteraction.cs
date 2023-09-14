@@ -7,11 +7,8 @@ using Discord.WebSocket;
 
 namespace Advobot.Gacha.Interaction;
 
-public sealed class ReactionHandler : InteractionHandlerBase
+public sealed class ReactionHandler(IInteractionManager manager, Display display) : InteractionHandlerBase(manager, display)
 {
-	public ReactionHandler(IInteractionManager manager, Display display)
-		: base(manager, display) { }
-
 	public override Task StartAsync()
 	{
 		Manager.ReactionReceived += HandleAsync;

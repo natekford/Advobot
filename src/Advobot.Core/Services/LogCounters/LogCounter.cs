@@ -8,7 +8,11 @@ namespace Advobot.Services.LogCounters;
 /// <summary>
 /// Used in logging. Holds the name of what is being logged and the count.
 /// </summary>
-internal sealed class LogCounter : ILogCounter, INotifyPropertyChanged
+/// <remarks>
+/// Creates an instance of <see cref="LogCounter"/>.
+/// </remarks>
+/// <param name="caller"></param>
+internal sealed class LogCounter([CallerMemberName] string caller = "") : ILogCounter, INotifyPropertyChanged
 {
 	private int _Count;
 
@@ -20,19 +24,10 @@ internal sealed class LogCounter : ILogCounter, INotifyPropertyChanged
 	/// <summary>
 	/// The title of the log counter.
 	/// </summary>
-	public string Name { get; }
+	public string Name { get; } = caller;
 
 	/// <inheritdoc />
 	public event PropertyChangedEventHandler? PropertyChanged;
-
-	/// <summary>
-	/// Creates an instance of <see cref="LogCounter"/>.
-	/// </summary>
-	/// <param name="caller"></param>
-	public LogCounter([CallerMemberName] string caller = "")
-	{
-		Name = caller;
-	}
 
 	/// <summary>
 	/// Add a specified amount to the counter.

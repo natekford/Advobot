@@ -10,16 +10,9 @@ namespace Advobot.Preconditions.Permissions;
 /// Admin will always be added to the list of valid permissions.
 /// </remarks>
 [AttributeUsage(AttributeTargets.Class | AttributeTargets.Method, AllowMultiple = false, Inherited = true)]
-public class RequireGuildPermissions : RequirePermissions
+public class RequireGuildPermissions(params GuildPermission[] permissions) : RequirePermissions(permissions.Cast<Enum>().Append(_Admin))
 {
 	private static readonly Enum _Admin = GuildPermission.Administrator;
-
-	/// <summary>
-	/// Creates an instance of <see cref="RequireGuildPermissions"/>.
-	/// </summary>
-	/// <param name="permissions"></param>
-	public RequireGuildPermissions(params GuildPermission[] permissions)
-		: base(permissions.Cast<Enum>().Append(_Admin)) { }
 
 	/// <inheritdoc />
 	public override Task<Enum?> GetUserPermissionsAsync(

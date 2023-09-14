@@ -2,21 +2,16 @@
 
 namespace Advobot.Tests.Fakes.Discord.Channels;
 
-public class FakeGuildChannel : FakeMessageChannel, IGuildChannel
+public class FakeGuildChannel(FakeGuild guild) : FakeMessageChannel, IGuildChannel
 {
 	protected readonly Dictionary<ulong, Overwrite> _Permissions = new();
-	public FakeGuild FakeGuild { get; }
+	public FakeGuild FakeGuild { get; } = guild;
 	public ChannelFlags Flags => throw new NotImplementedException();
 	public ulong GuildId => FakeGuild.Id;
 	public IReadOnlyCollection<Overwrite> PermissionOverwrites => _Permissions.Values;
 	public int Position { get; set; }
 	IGuild IGuildChannel.Guild => FakeGuild;
 	protected ulong? ProtectedCategoryId { get; set; }
-
-	public FakeGuildChannel(FakeGuild guild)
-	{
-		FakeGuild = guild;
-	}
 
 	public Task AddPermissionOverwriteAsync(IRole role, OverwritePermissions permissions, RequestOptions? options = null)
 	{

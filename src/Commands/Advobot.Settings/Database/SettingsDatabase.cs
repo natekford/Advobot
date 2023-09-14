@@ -7,12 +7,8 @@ using System.Data.SQLite;
 
 namespace Advobot.Settings.Database;
 
-public sealed class SettingsDatabase : DatabaseBase<SQLiteConnection>, ISettingsDatabase
+public sealed class SettingsDatabase(IConnectionString<SettingsDatabase> conn) : DatabaseBase<SQLiteConnection>(conn), ISettingsDatabase
 {
-	public SettingsDatabase(IConnectionString<SettingsDatabase> conn) : base(conn)
-	{
-	}
-
 	public Task<int> DeleteCommandOverridesAsync(IEnumerable<CommandOverride> overrides)
 	{
 		return BulkModifyAsync(@"

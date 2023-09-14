@@ -9,12 +9,12 @@ using static Advobot.Gacha.Interaction.InteractionType;
 
 namespace Advobot.Gacha.Interaction;
 
-public sealed class InteractionManager : IInteractionManager
+public sealed class InteractionManager(BaseSocketClient client, bool useReactions = true) : IInteractionManager
 {
-	private readonly BaseSocketClient _Client;
-	private readonly bool _UseReactions;
+	private readonly BaseSocketClient _Client = client;
+	private readonly bool _UseReactions = useReactions;
 
-	public IDictionary<InteractionType, IInteraction> Interactions { get; set; }
+	public IDictionary<InteractionType, IInteraction> Interactions { get; set; } = DefaultInteractions(useReactions);
 
 	//IInteractionManager
 	IReadOnlyDictionary<InteractionType, IInteraction> IInteractionManager.Interactions
@@ -42,13 +42,6 @@ public sealed class InteractionManager : IInteractionManager
 
 	public InteractionManager(BaseSocketClient client) : this(client, true)
 	{
-	}
-
-	public InteractionManager(BaseSocketClient client, bool useReactions = true)
-	{
-		_UseReactions = useReactions;
-		_Client = client;
-		Interactions = DefaultInteractions(useReactions);
 	}
 
 	public IInteractionHandler CreateInteractionHandler(Display display)

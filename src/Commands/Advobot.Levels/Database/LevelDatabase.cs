@@ -12,12 +12,8 @@ using System.Text;
 
 namespace Advobot.Levels.Database;
 
-public sealed class LevelDatabase : DatabaseBase<SQLiteConnection>, ILevelDatabase
+public sealed class LevelDatabase(IConnectionString<LevelDatabase> conn) : DatabaseBase<SQLiteConnection>(conn), ILevelDatabase
 {
-	public LevelDatabase(IConnectionString<LevelDatabase> conn) : base(conn)
-	{
-	}
-
 	public async Task<int> AddIgnoredChannelsAsync(ulong guildId, IEnumerable<ulong> channels)
 	{
 		var @params = channels.Select(x => new
