@@ -22,6 +22,12 @@ public sealed class FakeClient : IDiscordClient
 	public Task<IGuild> CreateGuildAsync(string name, IVoiceRegion region, Stream? jpegIcon = null, RequestOptions? options = null)
 		=> throw new NotImplementedException();
 
+	public Task<IEntitlement> CreateTestEntitlementAsync(ulong skuId, ulong ownerId, SubscriptionOwnerType ownerType, RequestOptions options = null)
+		=> throw new NotImplementedException();
+
+	public Task DeleteTestEntitlementAsync(ulong entitlementId, RequestOptions options = null)
+		=> throw new NotImplementedException();
+
 	public void Dispose()
 		=> throw new NotImplementedException();
 
@@ -41,6 +47,9 @@ public sealed class FakeClient : IDiscordClient
 		=> throw new NotImplementedException();
 
 	public Task<IReadOnlyCollection<IDMChannel>> GetDMChannelsAsync(CacheMode mode = CacheMode.AllowDownload, RequestOptions? options = null)
+		=> throw new NotImplementedException();
+
+	public IAsyncEnumerable<IReadOnlyCollection<IEntitlement>> GetEntitlementsAsync(int? limit = 100, ulong? afterId = null, ulong? beforeId = null, bool excludeEnded = false, ulong? guildId = null, ulong? userId = null, ulong[] skuIds = null, RequestOptions options = null)
 		=> throw new NotImplementedException();
 
 	public Task<IApplicationCommand> GetGlobalApplicationCommandAsync(ulong id, RequestOptions options = null)
@@ -77,6 +86,9 @@ public sealed class FakeClient : IDiscordClient
 		=> throw new NotImplementedException();
 
 	public Task<int> GetRecommendedShardCountAsync(RequestOptions? options = null)
+		=> throw new NotImplementedException();
+
+	public Task<IReadOnlyCollection<SKU>> GetSKUsAsync(RequestOptions options = null)
 		=> throw new NotImplementedException();
 
 	public Task<IUser> GetUserAsync(ulong id, CacheMode mode = CacheMode.AllowDownload, RequestOptions? options = null)

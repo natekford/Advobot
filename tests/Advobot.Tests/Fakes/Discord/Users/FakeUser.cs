@@ -7,6 +7,8 @@ public class FakeUser : FakeSnowflake, IUser
 	public IReadOnlyCollection<ClientType> ActiveClients => throw new NotImplementedException();
 	public IReadOnlyCollection<IActivity> Activities => throw new NotImplementedException();
 	public IActivity Activity => throw new NotImplementedException();
+	public string AvatarDecorationHash => throw new NotImplementedException();
+	public ulong? AvatarDecorationSkuId => throw new NotImplementedException();
 	public string AvatarId => throw new NotImplementedException();
 	public string Discriminator => DiscriminatorValue.ToString();
 	public ushort DiscriminatorValue { get; set; } = (ushort)new Random().Next(1, 10000);
@@ -21,9 +23,15 @@ public class FakeUser : FakeSnowflake, IUser
 	public Task<IDMChannel> CreateDMChannelAsync(RequestOptions options = null)
 		=> throw new NotImplementedException();
 
+	public string GetAvatarDecorationUrl()
+		=> throw new NotImplementedException();
+
 	public string GetAvatarUrl(ImageFormat format = ImageFormat.Auto, ushort size = 128)
 		=> CDN.GetUserAvatarUrl(Id, AvatarId, size, format);
 
 	public string GetDefaultAvatarUrl()
 		=> CDN.GetDefaultUserAvatarUrl(DiscriminatorValue);
+
+	public string GetDisplayAvatarUrl(ImageFormat format = ImageFormat.Auto, ushort size = 128)
+		=> throw new NotImplementedException();
 }

@@ -5,7 +5,8 @@ using Discord.Audio;
 
 namespace Advobot.Tests.Fakes.Discord.Channels;
 
-public sealed class FakeVoiceChannel(FakeGuild guild) : FakeGuildChannel(guild), IVoiceChannel
+public sealed class FakeVoiceChannel(FakeGuild guild)
+	: FakeGuildChannel(guild), IVoiceChannel
 {
 	public int Bitrate { get; set; }
 	public ulong? CategoryId => ProtectedCategoryId;
@@ -95,6 +96,9 @@ public sealed class FakeVoiceChannel(FakeGuild guild) : FakeGuildChannel(guild),
 		=> throw new NotImplementedException();
 
 	public Task ModifyAsync(Action<TextChannelProperties> func, RequestOptions options = null)
+		=> throw new NotImplementedException();
+
+	public Task SetStatusAsync(string status, RequestOptions options = null)
 		=> throw new NotImplementedException();
 
 	public async Task SyncPermissionsAsync(RequestOptions? options = null)

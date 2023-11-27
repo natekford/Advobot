@@ -8,7 +8,8 @@ using static Discord.MentionUtils;
 
 namespace Advobot.Tests.Fakes.Discord;
 
-public class FakeMessage(FakeMessageChannel channel, FakeUser author, string content) : FakeSnowflake, IMessage
+public class FakeMessage(FakeMessageChannel channel, FakeUser author, string content)
+	: FakeSnowflake, IMessage
 {
 	public MessageActivity Activity => throw new NotImplementedException();
 	public MessageApplication Application => throw new NotImplementedException();
@@ -47,7 +48,7 @@ public class FakeMessage(FakeMessageChannel channel, FakeUser author, string con
 	public Task DeleteAsync(RequestOptions? options = null)
 		=> throw new NotImplementedException();
 
-	public IAsyncEnumerable<IReadOnlyCollection<IUser>> GetReactionUsersAsync(IEmote emoji, int limit, RequestOptions? options = null)
+	public IAsyncEnumerable<IReadOnlyCollection<IUser>> GetReactionUsersAsync(IEmote emoji, int limit, RequestOptions options = null, ReactionType type = ReactionType.Normal)
 		=> throw new NotImplementedException();
 
 	public Task RemoveAllReactionsAsync(RequestOptions? options = null)

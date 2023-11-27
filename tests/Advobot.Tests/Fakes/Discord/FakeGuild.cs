@@ -52,6 +52,8 @@ public sealed class FakeGuild : FakeSnowflake, IGuild
 			base.Id = value;
 		}
 	}
+	public GuildIncidentsData IncidentsData => throw new NotImplementedException();
+	public GuildInventorySettings? InventorySettings => throw new NotImplementedException();
 	public bool IsBoostProgressBarEnabled => throw new NotImplementedException();
 	public bool IsEmbeddable => throw new NotImplementedException();
 	public bool IsWidgetEnabled => throw new NotImplementedException();
@@ -158,6 +160,9 @@ public sealed class FakeGuild : FakeSnowflake, IGuild
 	public Task<IForumChannel> CreateForumChannelAsync(string name, Action<ForumChannelProperties> func = null, RequestOptions options = null)
 		=> throw new NotImplementedException();
 
+	public Task<IMediaChannel> CreateMediaChannelAsync(string name, Action<ForumChannelProperties> func = null, RequestOptions options = null)
+		=> throw new NotImplementedException();
+
 	public Task<IRole> CreateRoleAsync(string name, GuildPermissions? permissions = null, Color? color = null, bool isHoisted = false, RequestOptions? options = null)
 	{
 		var role = new FakeRole(this)
@@ -171,6 +176,9 @@ public sealed class FakeGuild : FakeSnowflake, IGuild
 	}
 
 	public Task<IRole> CreateRoleAsync(string name, GuildPermissions? permissions = null, Color? color = null, bool isHoisted = false, bool isMentionable = false, RequestOptions? options = null)
+		=> throw new NotImplementedException();
+
+	public Task<IRole> CreateRoleAsync(string name, GuildPermissions? permissions = null, Color? color = null, bool isHoisted = false, bool isMentionable = false, RequestOptions options = null, Image? icon = null, Emoji emoji = null)
 		=> throw new NotImplementedException();
 
 	public Task<IStageChannel> CreateStageChannelAsync(string name, Action<VoiceChannelProperties> func = null, RequestOptions options = null)
@@ -293,17 +301,29 @@ public sealed class FakeGuild : FakeSnowflake, IGuild
 	public Task<IReadOnlyCollection<IGuildScheduledEvent>> GetEventsAsync(RequestOptions options = null)
 		=> throw new NotImplementedException();
 
+	public Task<IForumChannel> GetForumChannelAsync(ulong id, CacheMode mode = CacheMode.AllowDownload, RequestOptions options = null)
+		=> throw new NotImplementedException();
+
+	public Task<IReadOnlyCollection<IForumChannel>> GetForumChannelsAsync(CacheMode mode = CacheMode.AllowDownload, RequestOptions options = null)
+		=> throw new NotImplementedException();
+
 	public Task<IReadOnlyCollection<IIntegration>> GetIntegrationsAsync(RequestOptions options = null)
 		=> throw new NotImplementedException();
 
 	public Task<IReadOnlyCollection<IInviteMetadata>> GetInvitesAsync(RequestOptions? options = null)
 		=> Task.FromResult<IReadOnlyCollection<IInviteMetadata>>(FakeInvites);
 
+	public Task<IMediaChannel> GetMediaChannelAsync(ulong id, CacheMode mode = CacheMode.AllowDownload, RequestOptions options = null)
+		=> throw new NotImplementedException();
+
+	public Task<IReadOnlyCollection<IMediaChannel>> GetMediaChannelsAsync(CacheMode mode = CacheMode.AllowDownload, RequestOptions options = null)
+		=> throw new NotImplementedException();
+
 	public Task<IGuildOnboarding> GetOnboardingAsync(RequestOptions options = null)
 		=> throw new NotImplementedException();
 
 	public Task<IGuildUser> GetOwnerAsync(CacheMode mode = CacheMode.AllowDownload, RequestOptions? options = null)
-			=> Task.FromResult<IGuildUser>(FakeOwner);
+		=> Task.FromResult<IGuildUser>(FakeOwner);
 
 	public Task<ITextChannel> GetPublicUpdatesChannelAsync(CacheMode mode = CacheMode.AllowDownload, RequestOptions? options = null)
 		=> throw new NotImplementedException();
@@ -378,6 +398,9 @@ public sealed class FakeGuild : FakeSnowflake, IGuild
 		=> throw new NotImplementedException();
 
 	public Task<GuildEmote> ModifyEmoteAsync(GuildEmote emote, Action<EmoteProperties> func, RequestOptions? options = null)
+		=> throw new NotImplementedException();
+
+	public Task<GuildIncidentsData> ModifyIncidentActionsAsync(Action<GuildIncidentsDataProperties> props, RequestOptions options = null)
 		=> throw new NotImplementedException();
 
 	public Task<IGuildOnboarding> ModifyOnboardingAsync(Action<GuildOnboardingProperties> props, RequestOptions options = null)
