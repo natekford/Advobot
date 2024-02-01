@@ -1,10 +1,5 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 	<PropertyGroup>
-		<TargetFramework>net6.0</TargetFramework>
-		<GenerateAssemblyInfo>false</GenerateAssemblyInfo>
-		<Nullable>enable</Nullable>
-		<ImplicitUsings>enable</ImplicitUsings>
-		<LangVersion>preview</LangVersion>
 		<Deterministic>false</Deterministic>
 	</PropertyGroup>
 
@@ -12,6 +7,7 @@
 		<CollectCoverage>true</CollectCoverage>
 		<CoverletOutputFormat>lcov</CoverletOutputFormat>
 		<CoverletOutput>./lcov.info</CoverletOutput>
+		<NeutralLanguage>en-US</NeutralLanguage>
 	</PropertyGroup>
 
 	<ItemGroup>
@@ -27,15 +23,4 @@
 	<ItemGroup>
 		<ProjectReference Include="..\..\src\Commands\Advobot.AllCommands\Advobot.AllCommands.csproj" />
 	</ItemGroup>
-
-	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
-		<DebugType>full</DebugType>
-		<DebugSymbols>true</DebugSymbols>
-		<DefineConstants>TRACE</DefineConstants>
-		<NoWarn>1701;1702;RCS1047;RCS1079;CS8618;CS8619;CS8625;</NoWarn>
-	</PropertyGroup>
-
-	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
-		<NoWarn>1701;1702;RCS1047;RCS1079</NoWarn>
-	</PropertyGroup>
 </Project>
