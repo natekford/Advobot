@@ -12,9 +12,7 @@ public abstract class ImageResizerModule : AdvobotModuleBase
 	/// <summary>
 	/// The resizer to use.
 	/// </summary>
-#pragma warning disable CS8618 // Non-nullable field is uninitialized.
-	public IImageResizer Resizer { get; set; }
-#pragma warning restore CS8618 // Non-nullable field is uninitialized.
+	public IImageResizer Resizer { get; set; } = null!;
 
 	/// <summary>
 	/// Queues the arguments and returns the position the arguments have been queued in.

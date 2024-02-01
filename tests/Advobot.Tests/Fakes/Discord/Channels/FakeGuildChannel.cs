@@ -4,7 +4,7 @@ namespace Advobot.Tests.Fakes.Discord.Channels;
 
 public class FakeGuildChannel(FakeGuild guild) : FakeMessageChannel, IGuildChannel
 {
-	protected readonly Dictionary<ulong, Overwrite> _Permissions = new();
+	protected readonly Dictionary<ulong, Overwrite> _Permissions = [];
 	public FakeGuild FakeGuild { get; } = guild;
 	public ChannelFlags Flags => throw new NotImplementedException();
 	public ulong GuildId => FakeGuild.Id;

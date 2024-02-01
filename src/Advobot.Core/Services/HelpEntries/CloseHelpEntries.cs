@@ -11,7 +11,6 @@ namespace Advobot.Services.HelpEntries;
 /// <param name="source"></param>
 internal sealed class CloseHelpEntries(IReadOnlyList<IModuleHelpEntry> source) : CloseWords<IModuleHelpEntry>(source, x => x.Name)
 {
-
 	/// <inheritdoc />
 	protected override CloseWord<IModuleHelpEntry> FindCloseness(string search, IModuleHelpEntry obj)
 	{

@@ -48,7 +48,10 @@ public sealed class DisplayManager(
 	{
 		var id = GetDisplayId(guild);
 		var checker = _Counters.GetClaims(guild);
-		var character = await _Db.GetUnclaimedCharacter(guild.Id).CAF();
+#warning deal with this
+		var character = await _Db.GetUnclaimedCharacter(guild.Id).CAF()
+			?? throw new InvalidOperationException("Unable to find an unclaimed character.");
+
 		var source = await _Db.GetSourceAsync(character.SourceId).CAF();
 		var wishes = await _Db.GetWishesAsync(guild.Id, character).CAF();
 		var images = await _Db.GetImagesAsync(character).CAF();

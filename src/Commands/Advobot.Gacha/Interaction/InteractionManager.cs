@@ -53,15 +53,15 @@ public sealed class InteractionManager(BaseSocketClient client, bool useReaction
 		return new MessageHandler(this, display);
 	}
 
-	private static IDictionary<InteractionType, IInteraction> DefaultInteractions(bool useReactions)
+	private static Dictionary<InteractionType, IInteraction> DefaultInteractions(bool useReactions)
 	{
-		return new Dictionary<InteractionType, IInteraction>
-			{
-				{ Claim, new Confirmation(Claim.GetRepresentation(useReactions), true) },
-				{ Left, new Movement(Left.GetRepresentation(useReactions), 1) },
-				{ Right, new Movement(Right.GetRepresentation(useReactions), -1) },
-				{ Confirm, new Confirmation(Confirm.GetRepresentation(useReactions), true) },
-				{ Deny, new Confirmation(Deny.GetRepresentation(useReactions), false) },
-			};
+		return new()
+		{
+			{ Claim, new Confirmation(Claim.GetRepresentation(useReactions), true) },
+			{ Left, new Movement(Left.GetRepresentation(useReactions), 1) },
+			{ Right, new Movement(Right.GetRepresentation(useReactions), -1) },
+			{ Confirm, new Confirmation(Confirm.GetRepresentation(useReactions), true) },
+			{ Deny, new Confirmation(Deny.GetRepresentation(useReactions), false) },
+		};
 	}
 }

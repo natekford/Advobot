@@ -143,26 +143,26 @@ public sealed class Gets : AdvobotResult
 			},
 		};
 
-		embed.TryAddField("Users", FormatLogCounters(new[]
-		{
-				logging.UserJoins,
-				logging.UserLeaves,
-				logging.UserChanges
-			}), true, out _);
-		embed.TryAddField("Messages", FormatLogCounters(new[]
-		{
-				logging.MessageEdits,
-				logging.MessageDeletes,
-				logging.Images,
-				logging.Animated,
-				logging.Files
-			}), true, out _);
-		embed.TryAddField("Commands", FormatLogCounters(new[]
-		{
-				logging.AttemptedCommands,
-				logging.SuccessfulCommands,
-				logging.FailedCommands
-			}), true, out _);
+		embed.TryAddField("Users", FormatLogCounters(
+		[
+			logging.UserJoins,
+			logging.UserLeaves,
+			logging.UserChanges
+		]), true, out _);
+		embed.TryAddField("Messages", FormatLogCounters(
+		[
+			logging.MessageEdits,
+			logging.MessageDeletes,
+			logging.Images,
+			logging.Animated,
+			logging.Files
+		]), true, out _);
+		embed.TryAddField("Commands", FormatLogCounters(
+		[
+			logging.AttemptedCommands,
+			logging.SuccessfulCommands,
+			logging.FailedCommands
+		]), true, out _);
 		return Success(embed);
 	}
 

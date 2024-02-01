@@ -74,8 +74,8 @@ public sealed class Misc : AdvobotResult
 			Title = MiscTitleGeneralHelp,
 			Description = description,
 			Footer = new() { Text = MiscFooterHelp },
-			Fields = new()
-			{
+			Fields =
+			[
 				new()
 				{
 					Name = MiscTitleBasicSyntax,
@@ -97,7 +97,7 @@ public sealed class Misc : AdvobotResult
 					),
 					IsInline = false,
 				},
-			},
+			],
 		});
 	}
 
@@ -234,12 +234,8 @@ public sealed class Misc : AdvobotResult
 		Type command,
 		string args = "")
 	{
-		var attr = command.GetCustomAttribute<GroupAttribute>();
-		if (attr == null)
-		{
-			throw new ArgumentException("Group is null.", nameof(command));
-		}
-
+		var attr = command.GetCustomAttribute<GroupAttribute>()
+			?? throw new ArgumentException("Group is null.", nameof(command));
 		return $"{prefix}{attr.Prefix} {args}".WithBlock();
 	}
 }

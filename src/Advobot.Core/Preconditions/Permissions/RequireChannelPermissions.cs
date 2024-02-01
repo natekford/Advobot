@@ -9,7 +9,6 @@ namespace Advobot.Preconditions.Permissions;
 [AttributeUsage(AttributeTargets.Class | AttributeTargets.Method, AllowMultiple = false, Inherited = true)]
 public class RequireChannelPermissions(params ChannelPermission[] permissions) : RequirePermissions(permissions.Cast<Enum>())
 {
-
 	/// <inheritdoc />
 	public override Task<Enum?> GetUserPermissionsAsync(
 		ICommandContext context,

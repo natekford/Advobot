@@ -62,6 +62,4 @@ public class GiveDisplay : PaginatedDisplay
 		=> $"{_Giver.Mention} giving {_Trades.Count} characters to {_Receiver.Mention}";
 }
 
-internal class ConfirmationDisplay
-{
-}
+internal class ConfirmationDisplay;

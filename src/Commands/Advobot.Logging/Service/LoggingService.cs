@@ -60,7 +60,6 @@ public sealed class LoggingService
 		var id = new EventId(1, message.Source);
 		var e = message.Exception;
 		var msg = message.Message;
-#pragma warning disable CA2254 // Template should be a static expression
 		switch (message.Severity)
 		{
 			case LogSeverity.Critical:
@@ -83,7 +82,6 @@ public sealed class LoggingService
 				_Logger.LogDebug(id, e, msg);
 				break;
 		}
-#pragma warning restore CA2254 // Template should be a static expression
 
 		return Task.CompletedTask;
 	}

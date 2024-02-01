@@ -11,7 +11,6 @@ namespace Advobot.Punishments;
 /// <param name="user"></param>
 public sealed class Kick(IGuildUser user) : GuildUserPunishmentBase(user, true, PunishmentType.Kick)
 {
-
 	/// <inheritdoc />
 	protected internal override Task ExecuteAsync()
 		=> User.KickAsync(Options?.AuditLogReason, Options);

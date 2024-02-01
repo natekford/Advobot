@@ -8,22 +8,22 @@ namespace Advobot.Preconditions.Permissions;
 [AttributeUsage(AttributeTargets.Class | AttributeTargets.Method, AllowMultiple = false, Inherited = true)]
 public sealed class RequireGenericGuildPermissions : RequireGuildPermissions
 {
-	private static readonly GuildPermission[] _GenericPerms = new[]
-	{
-			GuildPermission.KickMembers,
-			GuildPermission.BanMembers,
-			GuildPermission.Administrator,
-			GuildPermission.ManageChannels,
-			GuildPermission.ManageGuild,
-			GuildPermission.ManageMessages,
-			GuildPermission.MuteMembers,
-			GuildPermission.DeafenMembers,
-			GuildPermission.MoveMembers,
-			GuildPermission.ManageNicknames,
-			GuildPermission.ManageRoles,
-			GuildPermission.ManageWebhooks,
-			GuildPermission.ManageEmojisAndStickers,
-		};
+	private static readonly GuildPermission[] _GenericPerms =
+	[
+		GuildPermission.KickMembers,
+		GuildPermission.BanMembers,
+		GuildPermission.Administrator,
+		GuildPermission.ManageChannels,
+		GuildPermission.ManageGuild,
+		GuildPermission.ManageMessages,
+		GuildPermission.MuteMembers,
+		GuildPermission.DeafenMembers,
+		GuildPermission.MoveMembers,
+		GuildPermission.ManageNicknames,
+		GuildPermission.ManageRoles,
+		GuildPermission.ManageWebhooks,
+		GuildPermission.ManageEmojisAndStickers,
+	];
 
 	/// <inheritdoc />
 	public override string Summary

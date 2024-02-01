@@ -11,10 +11,10 @@ namespace Advobot.ParameterPreconditions.DiscordObjectValidation.Users;
 [AttributeUsage(AttributeTargets.Parameter, AllowMultiple = false, Inherited = true)]
 public sealed class CanBeMoved : AdvobotParameterPrecondition<IGuildUser>
 {
-	private static readonly ChannelPermission[] _MoveMembers = new[]
-	{
+	private static readonly ChannelPermission[] _MoveMembers =
+	[
 		ChannelPermission.MoveMembers
-	};
+	];
 
 	/// <inheritdoc />
 	public override string Summary => "Can be moved from their current channel";

@@ -60,7 +60,7 @@ public sealed class Keywords_Tests
 	{
 		if (!counts.TryGetValue(word, out var current))
 		{
-			counts.Add(word, current = new());
+			counts.Add(word, current = []);
 		}
 		current.Add(guild.Id);
 		keywords.Add(new Keyword(guild.Id, word));

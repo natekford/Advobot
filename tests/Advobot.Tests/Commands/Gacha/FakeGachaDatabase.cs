@@ -9,8 +9,8 @@ namespace Advobot.Tests.Commands.Gacha;
 
 public sealed class FakeGachaDatabase : IGachaDatabase
 {
-	private readonly List<Character> _Characters = new();
-	private readonly List<Source> _Sources = new();
+	private readonly List<Character> _Characters = [];
+	private readonly List<Source> _Sources = [];
 	public CloseIds CharacterIds { get; } = new()
 	{
 		IncludeWhenContains = false,
@@ -91,10 +91,10 @@ public sealed class FakeGachaDatabase : IGachaDatabase
 	public Task<IReadOnlyList<Character>> GetCharactersAsync(Source source)
 		=> throw new NotImplementedException();
 
-	public Task<Claim> GetClaimAsync(User user, Character character)
+	public Task<Claim?> GetClaimAsync(User user, Character character)
 		=> throw new NotImplementedException();
 
-	public Task<Claim> GetClaimAsync(ulong guildId, Character character)
+	public Task<Claim?> GetClaimAsync(ulong guildId, Character character)
 		=> throw new NotImplementedException();
 
 	public Task<IReadOnlyList<Claim>> GetClaimsAsync(User user)
@@ -112,7 +112,7 @@ public sealed class FakeGachaDatabase : IGachaDatabase
 	public Task<IReadOnlyList<Source>> GetSourcesAsync(IEnumerable<long> ids)
 		=> Task.FromResult<IReadOnlyList<Source>>(_Sources.Where(x => ids.Contains(x.SourceId)).ToArray());
 
-	public Task<Character> GetUnclaimedCharacter(ulong guildId)
+	public Task<Character?> GetUnclaimedCharacter(ulong guildId)
 		=> throw new NotImplementedException();
 
 	public Task<User> GetUserAsync(ulong guildId, ulong userId)

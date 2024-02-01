@@ -7,7 +7,7 @@ internal sealed class EmbedValidator(Action setter, List<EmbedException> globalE
 	private readonly Action _Setter = setter;
 	private List<EmbedException>? _Errors;
 
-	public List<EmbedException> Errors => _Errors ??= new();
+	public List<EmbedException> Errors => _Errors ??= [];
 	public List<EmbedException> GlobalErrors { get; } = globalErrors;
 
 	public bool Finalize(out IReadOnlyList<EmbedException> errors)

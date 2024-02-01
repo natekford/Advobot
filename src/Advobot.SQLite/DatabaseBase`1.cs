@@ -58,7 +58,7 @@ public abstract class DatabaseBase<T> where T : DbConnection, new()
 	{
 		//Use a transaction to make bulk modifying way faster in SQLite
 		using var connection = await GetConnectionAsync().CAF();
-		using var transaction = await connection.BeginTransactionAsync().CAF();
+		await using var transaction = await connection.BeginTransactionAsync().CAF();
 
 		var affectedRowCount = await connection.ExecuteAsync(sql, @params, transaction).CAF();
 		transaction.Commit();
@@ -93,8 +93,7 @@ public abstract class DatabaseBase<T> where T : DbConnection, new()
 	/// <param name="sql"></param>
 	/// <param name="param"></param>
 	/// <returns></returns>
-	[return: MaybeNull]
-	protected async Task<TRet> GetOneAsync<TRet>(string sql, object param)
+	protected async Task<TRet?> GetOneAsync<TRet>(string sql, object param)
 	{
 		using var connection = await GetConnectionAsync().CAF();
 		return await connection.QuerySingleOrDefaultAsync<TRet>(sql, param).CAF();

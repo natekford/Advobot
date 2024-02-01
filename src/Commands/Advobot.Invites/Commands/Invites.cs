@@ -89,7 +89,7 @@ public sealed class Invites : ModuleBase
 				{
 					source = source.GetFromCount(UsersMethod, Users, x => x.MemberCount);
 				}
-				return source?.ToArray() ?? Array.Empty<ListedInvite>();
+				return source?.ToArray() ?? [];
 			}
 		}
 	}

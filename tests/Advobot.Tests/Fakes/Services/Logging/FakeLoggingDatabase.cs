@@ -6,7 +6,7 @@ namespace Advobot.Tests.Fakes.Services.Logging;
 
 public sealed class FakeLoggingDatabase : ILoggingDatabase
 {
-	private readonly Dictionary<ulong, LogChannels> _LogChannels = new();
+	private readonly Dictionary<ulong, LogChannels> _LogChannels = [];
 
 	public Task<int> AddIgnoredChannelsAsync(ulong guildId, IEnumerable<ulong> channels)
 		=> throw new NotImplementedException();

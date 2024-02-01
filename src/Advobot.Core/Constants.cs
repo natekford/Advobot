@@ -11,6 +11,15 @@ namespace Advobot;
 public static class Constants
 {
 	/// <summary>
+	/// The emoji to use for an allowed permission. ✅
+	/// </summary>
+	public const string ALLOWED = "\u2705";
+	/// <summary>
+	/// Me.
+	/// </summary>
+	[EditorBrowsable(EditorBrowsableState.Never)]
+	public const string ASSEMBLY_COMPANY = "Advorange";
+	/// <summary>
 	/// Used in AssemblyConfiguration to specify debug or release mode.
 	/// </summary>
 	/// <remarks>
@@ -26,19 +35,10 @@ public static class Constants
 		= "Release";
 #endif
 	/// <summary>
-	/// The emoji to use for an allowed permission. ✅
-	/// </summary>
-	public const string ALLOWED = "\u2705";
-	/// <summary>
-	/// Me.
-	/// </summary>
-	[EditorBrowsable(EditorBrowsableState.Never)]
-	public const string ASSEMBLY_COMPANY = "Advorange";
-	/// <summary>
 	/// The current year.
 	/// </summary>
 	[EditorBrowsable(EditorBrowsableState.Never)]
-	public const string ASSEMBLY_COPYRIGHT = "Copyright © 2022";
+	public const string ASSEMBLY_COPYRIGHT = "Copyright © 2024";
 	/// <summary>
 	/// The bot's neutral resources language.
 	/// </summary>

@@ -1,6 +1,7 @@
 ﻿using Advobot.Attributes;
 using Advobot.AutoMod.Models;
 using Advobot.Localization;
+using Advobot.Modules;
 using Advobot.ParameterPreconditions.DiscordObjectValidation.Roles;
 using Advobot.Preconditions.Permissions;
 using Advobot.Resources;
@@ -39,7 +40,7 @@ public sealed class PersistentRoles : ModuleBase
 			return Display(roles);
 		}
 
-		private RuntimeResult Display(IEnumerable<PersistentRole> roles)
+		private AdvobotResult Display(IEnumerable<PersistentRole> roles)
 		{
 			var grouped = roles
 				.Select(x =>

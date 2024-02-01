@@ -130,12 +130,9 @@ public sealed class LevelService : ILevelService
 			GuildId = channel.Guild.Id;
 			ChannelId = channel.Id;
 			MessageId = message.Id;
-			using (var md5 = MD5.Create())
-			{
-				var bytes = Encoding.UTF8.GetBytes(message.Content);
-				var hashed = md5.ComputeHash(bytes);
-				Hash = BitConverter.ToString(hashed).Replace("-", "").ToLower();
-			}
+			var bytes = Encoding.UTF8.GetBytes(message.Content);
+			var hashed = MD5.HashData(bytes);
+			Hash = BitConverter.ToString(hashed).Replace("-", "").ToLower();
 			Experience = xp;
 		}
 	}

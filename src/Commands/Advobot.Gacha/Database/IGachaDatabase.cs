@@ -39,9 +39,9 @@ public interface IGachaDatabase
 
 	Task<IReadOnlyList<Character>> GetCharactersAsync(Source source);
 
-	Task<Claim> GetClaimAsync(User user, Character character);
+	Task<Claim?> GetClaimAsync(User user, Character character);
 
-	Task<Claim> GetClaimAsync(ulong guildId, Character character);
+	Task<Claim?> GetClaimAsync(ulong guildId, Character character);
 
 	Task<IReadOnlyList<Claim>> GetClaimsAsync(User user);
 
@@ -53,7 +53,7 @@ public interface IGachaDatabase
 
 	Task<IReadOnlyList<Source>> GetSourcesAsync(IEnumerable<long> ids);
 
-	Task<Character> GetUnclaimedCharacter(ulong guildId);
+	Task<Character?> GetUnclaimedCharacter(ulong guildId);
 
 	Task<User> GetUserAsync(ulong guildId, ulong userId);
 

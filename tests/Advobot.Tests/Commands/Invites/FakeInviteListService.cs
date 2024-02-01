@@ -10,7 +10,7 @@ namespace Advobot.Tests.Commands.Invites;
 
 public sealed class FakeInviteListService(ITime time) : IInviteListService
 {
-	private readonly Dictionary<ulong, ListedInvite> _Invites = new();
+	private readonly Dictionary<ulong, ListedInvite> _Invites = [];
 	private readonly Dictionary<string, List<ulong>> _Keywords = new(StringComparer.OrdinalIgnoreCase);
 	private readonly ITime _Time = time;
 
@@ -26,7 +26,7 @@ public sealed class FakeInviteListService(ITime time) : IInviteListService
 	{
 		if (!_Keywords.TryGetValue(word, out var list))
 		{
-			_Keywords[word] = list = new();
+			_Keywords[word] = list = [];
 		}
 		list.Add(guild.Id);
 		return Task.CompletedTask;

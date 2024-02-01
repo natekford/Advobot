@@ -15,10 +15,10 @@ public sealed class GuildFeaturesCreationArgs
 
 	public GuildFeatures Build()
 	{
-		return (GuildFeatures)_Constructor.Invoke(new object?[]
-		{
+		return (GuildFeatures)_Constructor.Invoke(
+		[
 				Value,
-				Experimental
-		});
+			Experimental
+		]);
 	}
 }

@@ -136,7 +136,7 @@ public sealed class UserLogger
 
 		var description = $"**ID:** {context.State.User.Id}";
 
-		if ((context.State.User as IGuildUser)?.JoinedAt is DateTimeOffset joinedAt)
+		if (context.State.User is IGuildUser { JoinedAt: DateTimeOffset joinedAt })
 		{
 			var length = _Time.UtcNow - joinedAt.ToUniversalTime();
 			description += $"\n**Stayed for:** {length:d\\:hh\\:mm\\:ss}";
@@ -173,8 +173,8 @@ public sealed class UserLogger
 			Color = EmbedWrapper.UserEdit,
 			Author = context.State.User.CreateAuthor(),
 			Footer = new() { Text = "Name Changed" },
-			Fields = new()
-			{
+			Fields =
+			[
 				new()
 				{
 					Name = "Before",
@@ -187,7 +187,7 @@ public sealed class UserLogger
 					Value = $"`{context.State.User.Username}`",
 					IsInline = true
 				},
-			},
+			],
 		}.ToMessageArgs()));
 		return Task.CompletedTask;
 	}

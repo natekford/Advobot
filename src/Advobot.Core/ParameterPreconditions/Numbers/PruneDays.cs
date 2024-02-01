@@ -12,5 +12,5 @@ public sealed class PruneDays : RangeParameterPrecondition
 	/// <summary>
 	/// Creates an instance of <see cref="PruneDays"/>.
 	/// </summary>
-	public PruneDays() : base(new[] { 1, 7, 30 }) { }
+	public PruneDays() : base([1, 7, 30]) { }
 }

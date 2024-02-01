@@ -267,7 +267,7 @@ public static class FormattingUtils
 				}
 				else if (x.HasFlag(e))
 				{
-					perms ??= new();
+					perms ??= [];
 					perms.Add(e.ToString());
 				}
 			}

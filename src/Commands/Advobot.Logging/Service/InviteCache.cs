@@ -3,6 +3,7 @@
 using Discord;
 using Discord.Net;
 
+using System.Collections.Concurrent;
 using System.Net;
 
 namespace Advobot.Logging.Service;
@@ -12,7 +13,7 @@ namespace Advobot.Logging.Service;
 /// </summary>
 public sealed class InviteCache
 {
-	private readonly IDictionary<string, int> _Cached = new Dictionary<string, int>();
+	private readonly ConcurrentDictionary<string, int> _Cached = [];
 
 	/// <summary>
 	/// Caches the current invites on this guild.

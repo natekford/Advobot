@@ -34,24 +34,25 @@ public static class RuleDatabaseUtils
 	}
 }
 
-public sealed class RuleDatabase(IConnectionString<RuleDatabase> conn) : DatabaseBase<SQLiteConnection>(conn)
+public sealed class RuleDatabase(IConnectionString<RuleDatabase> conn)
+	: DatabaseBase<SQLiteConnection>(conn)
 {
 	private const string DELETE_RULE = @"
-			DELETE FROM Rule
-			WHERE GuildId = @GuildId AND Category = @Category AND Position = @Position
-		";
+		DELETE FROM Rule
+		WHERE GuildId = @GuildId AND Category = @Category AND Position = @Position
+	";
 	private const string UPSERT_RULE = @"
-			INSERT OR IGNORE INTO Rule
-			( GuildId, Value, Category, Position )
-			VALUES
-			( @GuildId, @Value, @Category, @Position )
-			UPDATE Rule
-			SET
-				Category = @Category,
-				Position = @Position,
-				Value = @Value
-			WHERE GuildId = @GuildId AND Category = @Category AND Position = @Position
-		";
+		INSERT OR IGNORE INTO Rule
+		( GuildId, Value, Category, Position )
+		VALUES
+		( @GuildId, @Value, @Category, @Position )
+		UPDATE Rule
+		SET
+			Category = @Category,
+			Position = @Position,
+			Value = @Value
+		WHERE GuildId = @GuildId AND Category = @Category AND Position = @Position
+	";
 
 	public Task<int> DeleteRuleAsync(Rule rule)
 		=> ModifyAsync(DELETE_RULE, rule);
@@ -59,11 +60,11 @@ public sealed class RuleDatabase(IConnectionString<RuleDatabase> conn) : Databas
 	public Task<int> DeleteRuleCategoryAsync(RuleCategory category)
 	{
 		return ModifyAsync(@"
-				DELETE FROM RuleCategory
-				WHERE GuildId = @GuildId AND Category = @Category;
-				DELETE FROM Rule
-				WHERE GuildId = @GuildId AND Category = @Category
-			", category);
+			DELETE FROM RuleCategory
+			WHERE GuildId = @GuildId AND Category = @Category;
+			DELETE FROM Rule
+			WHERE GuildId = @GuildId AND Category = @Category
+		", category);
 	}
 
 	public Task<int> DeleteRulesAsync(IEnumerable<Rule> rules)
@@ -73,25 +74,25 @@ public sealed class RuleDatabase(IConnectionString<RuleDatabase> conn) : Databas
 	{
 		var param = new { GuildId = guildId.ToString(), };
 		return await GetManyAsync<RuleCategory>(@"
-				SELECT *
-				FROM RuleCategory
-				WHERE GuildId = @GuildId
-				ORDER BY Category ASC
-			", param).CAF();
+			SELECT *
+			FROM RuleCategory
+			WHERE GuildId = @GuildId
+			ORDER BY Category ASC
+		", param).CAF();
 	}
 
-	public async Task<RuleCategory> GetCategoryAsync(ulong guildId, int category)
+	public async Task<RuleCategory?> GetCategoryAsync(ulong guildId, int category)
 	{
 		var param = new
 		{
 			GuildId = guildId.ToString(),
 			Category = category,
 		};
-		return await GetOneAsync<RuleCategory>(@"
-				SELECT *
-				FROM RuleCategory
-				WHERE GuildId = @GuildId AND Category = @Category
-			", param).CAF();
+		return await GetOneAsync<RuleCategory?>(@"
+			SELECT *
+			FROM RuleCategory
+			WHERE GuildId = @GuildId AND Category = @Category
+		", param).CAF();
 	}
 
 	public async Task<Rule?> GetRuleAsync(ulong guildId, int category, int position)
@@ -103,31 +104,31 @@ public sealed class RuleDatabase(IConnectionString<RuleDatabase> conn) : Databas
 			Position = position,
 		};
 		return await GetOneAsync<Rule>(@"
-				SELECT *
-				FROM Rule
-				WHERE GuildId = @GuildId AND Category = @Category AND Position = @Position
-			", param).CAF();
+			SELECT *
+			FROM Rule
+			WHERE GuildId = @GuildId AND Category = @Category AND Position = @Position
+		", param).CAF();
 	}
 
 	public async Task<IReadOnlyList<Rule>> GetRulesAsync(ulong guildId)
 	{
 		var param = new { GuildId = guildId.ToString(), };
 		return await GetManyAsync<Rule>(@"
-				SELECT *
-				FROM Rule
-				WHERE GuildId = @GuildId
-				ORDER BY Position ASC
-			", param).CAF();
+			SELECT *
+			FROM Rule
+			WHERE GuildId = @GuildId
+			ORDER BY Position ASC
+		", param).CAF();
 	}
 
 	public async Task<IReadOnlyList<Rule>> GetRulesAsync(RuleCategory category)
 	{
 		return await GetManyAsync<Rule>(@"
-				SELECT *
-				FROM Rule
-				WHERE GuildId = @GuildId AND Category = @Category
-				ORDER BY Position ASC
-			", category).CAF();
+			SELECT *
+			FROM Rule
+			WHERE GuildId = @GuildId AND Category = @Category
+			ORDER BY Position ASC
+		", category).CAF();
 	}
 
 	public Task<int> UpsertRuleAsync(Rule rule)
@@ -136,15 +137,15 @@ public sealed class RuleDatabase(IConnectionString<RuleDatabase> conn) : Databas
 	public Task<int> UpsertRuleCategoryAsync(RuleCategory category)
 	{
 		return ModifyAsync(@"
-				INSERT OR IGNORE INTO RuleCategory
-				( GuildId, Value, Category )
-				VALUES
-				( @GuildId, @Value, @Category )
-				UPDATE RuleCategory
-				SET
-					Value = @Value
-				WHERE GuildId = @GuildId AND Category = @Category
-			", category);
+			INSERT OR IGNORE INTO RuleCategory
+			( GuildId, Value, Category )
+			VALUES
+			( @GuildId, @Value, @Category )
+			UPDATE RuleCategory
+			SET
+				Value = @Value
+			WHERE GuildId = @GuildId AND Category = @Category
+		", category);
 	}
 
 	public Task<int> UpsertRulesAsync(IEnumerable<Rule> rules)

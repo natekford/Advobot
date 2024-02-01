@@ -37,16 +37,6 @@ public class CloseWords<T>(IReadOnlyList<T> source, Func<T, string> getName)
 	protected IReadOnlyList<T> Source { get; } = source;
 
 	/// <summary>
-	/// Creates an instance of <see cref="CloseWords{T}"/>.
-	/// </summary>
-	/// <param name="source"></param>
-	/// <param name="getName"></param>
-	public CloseWords(IEnumerable<T> source, Func<T, string> getName)
-		: this(source.ToArray(), getName)
-	{
-	}
-
-	/// <summary>
 	/// Returns matches.
 	/// </summary>
 	/// <param name="search"></param>
@@ -89,11 +79,7 @@ public class CloseWords<T>(IReadOnlyList<T> source, Func<T, string> getName)
 	protected static int FindCloseness(string source, string target, int threshold = 10)
 	{
 		static void Swap<T2>(ref T2 arg1, ref T2 arg2)
-		{
-			var temp = arg1;
-			arg1 = arg2;
-			arg2 = temp;
-		}
+			=> (arg2, arg1) = (arg1, arg2);
 
 		/* Damerau Levenshtein Distance: https://en.wikipedia.org/wiki/Damerau–Levenshtein_distance
 		 * Copied nearly verbatim from: https://stackoverflow.com/a/9454016

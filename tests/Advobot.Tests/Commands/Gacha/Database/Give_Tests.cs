@@ -18,7 +18,7 @@ public sealed class Give_Tests
 	public const int CHARACTERS_PER_SOURCE = 7;
 	public const ulong GUILD_ID = 73;
 	public const int SOURCE_COUNT = 1;
-	public static readonly int[] USER_CLAIM_COUNTS = new[] { 5, 2 };
+	public static readonly int[] USER_CLAIM_COUNTS = [5, 2];
 
 	[TestMethod]
 	public async Task GiveMultiple_Test()
@@ -115,11 +115,11 @@ public sealed class Give_Tests
 		var addedUsers = await db.AddUsersAsync(users).CAF();
 		Assert.AreEqual(2, addedUsers);
 
-		var userChars = new[]
+		var userChars = new List<Character>[]
 		{
-				new List<Character>(),
-				new List<Character>(),
-			};
+			[],
+			[],
+		};
 		var claims = new List<Claim>();
 		var c = 0;
 		for (var i = 0; i < users.Length; ++i)

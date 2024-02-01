@@ -6,7 +6,7 @@ namespace Advobot.Tests.Fakes.Discord.Users;
 
 public class FakeGuildUser : FakeUser, IGuildUser
 {
-	private readonly HashSet<ulong> _RoleIds = new();
+	private readonly HashSet<ulong> _RoleIds = [];
 	public string DisplayAvatarId => throw new NotImplementedException();
 	public string DisplayName => throw new NotImplementedException();
 	public GuildUserFlags Flags => throw new NotImplementedException();
@@ -59,9 +59,6 @@ public class FakeGuildUser : FakeUser, IGuildUser
 	}
 
 	public Task AddRolesAsync(IEnumerable<ulong> roleIds, RequestOptions? options = null)
-		=> throw new NotImplementedException();
-
-	public string GetDisplayAvatarUrl(ImageFormat format = ImageFormat.Auto, ushort size = 128)
 		=> throw new NotImplementedException();
 
 	public string GetGuildAvatarUrl(ImageFormat format = ImageFormat.Auto, ushort size = 128)

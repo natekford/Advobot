@@ -23,7 +23,7 @@ public sealed class EmbedWrapper
 	public const int MAX_FIELD_LINES = 5;
 
 	private readonly EmbedBuilder _Embed;
-	private readonly List<EmbedException> _Errors = new();
+	private readonly List<EmbedException> _Errors = [];
 
 	/// <summary>
 	/// The color to use for attachments on a message.

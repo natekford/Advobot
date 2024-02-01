@@ -24,14 +24,12 @@ namespace Advobot.Services.ImageResizing;
 /// <param name="threads"></param>
 internal sealed class ImageResizer(HttpClient client, int threads) : IImageResizer
 {
-	private static readonly string? _FfmpegLocation = FindFfmpeg();
 	private const long _MaxDownloadLengthInBytes = 10000000;
-
+	private static readonly string? _FfmpegLocation = FindFfmpeg();
 	private readonly ConcurrentQueue<IImageContext> _Args = new();
+	private readonly HttpClient _Client = client;
 	private readonly ConcurrentDictionary<ulong, byte> _CurrentlyProcessing = new();
 	private readonly SemaphoreSlim _SemaphoreSlim = new(threads);
-	private readonly HttpClient _Client = client;
-
 	/// <inheritdoc />
 	public int QueueCount => _Args.Count;
 
@@ -40,14 +38,6 @@ internal sealed class ImageResizer(HttpClient client, int threads) : IImageResiz
 	/// </summary>
 	/// <param name="client"></param>
 	public ImageResizer(HttpClient client) : this(client, 10) { }
-
-	/// <inheritdoc />
-	public IEnumerable<IImageContext> GetQueuedArguments()
-		=> _Args.ToArray();
-
-	/// <inheritdoc />
-	public bool IsGuildAlreadyProcessing(ulong guildId)
-		=> _CurrentlyProcessing.ContainsKey(guildId);
 
 	/// <inheritdoc />
 	public void Enqueue(IImageContext context)
@@ -69,7 +59,7 @@ internal sealed class ImageResizer(HttpClient client, int threads) : IImageResiz
 				{
 					await args.ReportAsync("Starting to download the file.").CAF();
 
-					using var ms = new MemoryStream();
+					await using var ms = new MemoryStream();
 					var result = await ResizeImageAsync(ms, _Client, args).CAF();
 					if (!result.IsSuccess)
 					{
@@ -87,6 +77,142 @@ internal sealed class ImageResizer(HttpClient client, int threads) : IImageResiz
 			}
 			_SemaphoreSlim.Release();
 		}).CAF();
+	}
+
+	/// <inheritdoc />
+	public IEnumerable<IImageContext> GetQueuedArguments()
+		=> _Args.ToArray();
+
+	/// <inheritdoc />
+	public bool IsGuildAlreadyProcessing(ulong guildId)
+		=> _CurrentlyProcessing.ContainsKey(guildId);
+
+	private static async Task ConvertMp4ToGifAsync(MemoryStream ms, IImageContext context)
+	{
+		const string Name = "in";
+		var info = new ProcessStartInfo
+		{
+#if DEBUG
+			CreateNoWindow = false,
+#else
+			CreateNoWindow = true,
+#endif
+			UseShellExecute = false,
+			LoadUserProfile = false,
+			RedirectStandardInput = true,
+			RedirectStandardOutput = true,
+			FileName = _FfmpegLocation,
+			Arguments = $@"-f mp4 -i \\.\pipe\{Name} -ss {context.Args.StartInSeconds} -t {context.Args.LengthInSeconds} -vf fps=12,scale=256:256 -f gif pipe:1",
+		};
+		using var process = new Process { StartInfo = info, };
+		//Have to use this pipe and not StandardInput b/c StandardInput hangs
+		await using var inPipe = new NamedPipeServerStream(Name, PipeDirection.Out, 1, PipeTransmissionMode.Byte, PipeOptions.Asynchronous, (int)ms.Length, (int)ms.Length);
+
+		process.Start();
+
+		//Make sure the pipe is connected
+		await inPipe.WaitForConnectionAsync().CAF();
+		//Make sure to start at the beginning of the data to not get a "moov atom not found" error
+		ms.Seek(0, SeekOrigin.Begin);
+		await ms.CopyToAsync(inPipe).CAF();
+		//Flush and close, otherwise hangs
+		inPipe.Flush();
+		inPipe.Close();
+
+		//Clear and overwrite
+		ms.SetLength(0);
+		await process.StandardOutput.BaseStream.CopyToAsync(ms).CAF();
+	}
+
+	private static string? FindFfmpeg()
+	{
+		var windows = Environment.OSVersion.Platform.ToString().CaseInsContains("win");
+		var ffmpeg = windows ? "ffmpeg.exe" : "ffmpeg";
+
+		//Start with every special folder
+		var directories = AdvobotUtils.GetValues<Environment.SpecialFolder>().Select(e =>
+	   {
+		   var p = Path.Combine(Environment.GetFolderPath(e), "ffmpeg");
+		   return Directory.Exists(p) ? new DirectoryInfo(p) : null;
+	   }).Where(x => x != null).ToList();
+		//Look through where the program is stored
+		if (Assembly.GetExecutingAssembly().Location is string assembly)
+		{
+			directories.Add(new DirectoryInfo(Path.GetDirectoryName(assembly)));
+		}
+		//Check path variables
+		foreach (var part in (Environment.GetEnvironmentVariable("PATH") ?? "").Split(windows ? ';' : ':'))
+		{
+			if (!string.IsNullOrWhiteSpace(part))
+			{
+				directories.Add(new DirectoryInfo(part.Trim()));
+			}
+		}
+		//Look through every directory and any subfolders they have called bin
+		foreach (var dir in directories.SelectMany(x => new[] { x, new DirectoryInfo(Path.Combine(x?.FullName, "bin")) }))
+		{
+			if (dir?.Exists != true)
+			{
+				continue;
+			}
+
+			var files = dir.GetFiles(ffmpeg, SearchOption.TopDirectoryOnly);
+			if (files.Length > 0)
+			{
+				return files[0].FullName;
+			}
+		}
+		return null;
+	}
+
+	private static bool ResizeFile(MemoryStream ms, IImageContext context, MagickFormat format)
+	{
+		var shrinkFactor = Math.Sqrt((double)ms.Length / context.MaxAllowedLengthInBytes) * 1.1;
+		void ProcessImage(IMagickImage image)
+		{
+			image.ColorFuzz = context.Args.ColorFuzzing;
+			//Determine the new width and height to give these frames
+			image.Scale(new MagickGeometry
+			{
+				IgnoreAspectRatio = true, //Ignore aspect ratio so all the frames keep the same dimensions
+				Width = (int)Math.Min(128, image.Width / shrinkFactor),
+				Height = (int)Math.Min(128, image.Height / shrinkFactor),
+			});
+		}
+		void Overwrite(Action<MemoryStream> func)
+		{
+			ms.Position = 0;
+			func(ms);
+		}
+
+		//Make sure at start
+		ms.Position = 0;
+		switch (format)
+		{
+			case MagickFormat.Gif:
+				using (var gif = new MagickImageCollection(ms))
+				{
+					foreach (var frame in gif)
+					{
+						ProcessImage(frame);
+					}
+					Overwrite(x => gif.Write(x));
+				}
+				return ms.Length < context.MaxAllowedLengthInBytes;
+
+			case MagickFormat.Jpg:
+			case MagickFormat.Jpeg:
+			case MagickFormat.Png:
+				using (var image = new MagickImage(ms))
+				{
+					ProcessImage(image);
+					Overwrite(x => image.Write(x));
+				}
+				return ms.Length < context.MaxAllowedLengthInBytes;
+
+			default:
+				throw new InvalidOperationException("Invalid image format supplied.");
+		}
 	}
 
 	private static async Task<IResult> ResizeImageAsync(MemoryStream ms, HttpClient client, IImageContext context)
@@ -150,133 +276,5 @@ internal sealed class ImageResizer(HttpClient client, int threads) : IImageResiz
 			return AdvobotResult.Failure("File is empty after shrinking.");
 		}
 		return AdvobotResult.IgnoreSuccess;
-	}
-
-	private static bool ResizeFile(MemoryStream ms, IImageContext context, MagickFormat format)
-	{
-		var shrinkFactor = Math.Sqrt((double)ms.Length / context.MaxAllowedLengthInBytes) * 1.1;
-		void ProcessImage(IMagickImage image)
-		{
-			image.ColorFuzz = context.Args.ColorFuzzing;
-			//Determine the new width and height to give these frames
-			image.Scale(new MagickGeometry
-			{
-				IgnoreAspectRatio = true, //Ignore aspect ratio so all the frames keep the same dimensions
-				Width = (int)Math.Min(128, image.Width / shrinkFactor),
-				Height = (int)Math.Min(128, image.Height / shrinkFactor),
-			});
-		}
-		void Overwrite(Action<MemoryStream> func)
-		{
-			ms.Position = 0;
-			func(ms);
-		}
-
-		//Make sure at start
-		ms.Position = 0;
-		switch (format)
-		{
-			case MagickFormat.Gif:
-				using (var gif = new MagickImageCollection(ms))
-				{
-					foreach (var frame in gif)
-					{
-						ProcessImage(frame);
-					}
-					Overwrite(x => gif.Write(x));
-				}
-				return ms.Length < context.MaxAllowedLengthInBytes;
-
-			case MagickFormat.Jpg:
-			case MagickFormat.Jpeg:
-			case MagickFormat.Png:
-				using (var image = new MagickImage(ms))
-				{
-					ProcessImage(image);
-					Overwrite(x => image.Write(x));
-				}
-				return ms.Length < context.MaxAllowedLengthInBytes;
-
-			default:
-				throw new InvalidOperationException("Invalid image format supplied.");
-		}
-	}
-
-	private static async Task ConvertMp4ToGifAsync(MemoryStream ms, IImageContext context)
-	{
-		const string Name = "in";
-		var info = new ProcessStartInfo
-		{
-#if DEBUG
-			CreateNoWindow = false,
-#else
-				CreateNoWindow = true,
-#endif
-			UseShellExecute = false,
-			LoadUserProfile = false,
-			RedirectStandardInput = true,
-			RedirectStandardOutput = true,
-			FileName = _FfmpegLocation,
-			Arguments = $@"-f mp4 -i \\.\pipe\{Name} -ss {context.Args.StartInSeconds} -t {context.Args.LengthInSeconds} -vf fps=12,scale=256:256 -f gif pipe:1",
-		};
-		using var process = new Process { StartInfo = info, };
-		//Have to use this pipe and not StandardInput b/c StandardInput hangs
-		using var inPipe = new NamedPipeServerStream(Name, PipeDirection.Out, 1, PipeTransmissionMode.Byte, PipeOptions.Asynchronous, (int)ms.Length, (int)ms.Length);
-
-		process.Start();
-
-		//Make sure the pipe is connected
-		await inPipe.WaitForConnectionAsync().CAF();
-		//Make sure to start at the beginning of the data to not get a "moov atom not found" error
-		ms.Seek(0, SeekOrigin.Begin);
-		await ms.CopyToAsync(inPipe).CAF();
-		//Flush and close, otherwise hangs
-		inPipe.Flush();
-		inPipe.Close();
-
-		//Clear and overwrite
-		ms.SetLength(0);
-		await process.StandardOutput.BaseStream.CopyToAsync(ms).CAF();
-	}
-
-	private static string? FindFfmpeg()
-	{
-		var windows = Environment.OSVersion.Platform.ToString().CaseInsContains("win");
-		var ffmpeg = windows ? "ffmpeg.exe" : "ffmpeg";
-
-		//Start with every special folder
-		var directories = AdvobotUtils.GetValues<Environment.SpecialFolder>().Select(e =>
-	   {
-		   var p = Path.Combine(Environment.GetFolderPath(e), "ffmpeg");
-		   return Directory.Exists(p) ? new DirectoryInfo(p) : null;
-	   }).Where(x => x != null).ToList();
-		//Look through where the program is stored
-		if (Assembly.GetExecutingAssembly().Location is string assembly)
-		{
-			directories.Add(new DirectoryInfo(Path.GetDirectoryName(assembly)));
-		}
-		//Check path variables
-		foreach (var part in (Environment.GetEnvironmentVariable("PATH") ?? "").Split(windows ? ';' : ':'))
-		{
-			if (!string.IsNullOrWhiteSpace(part))
-			{
-				directories.Add(new DirectoryInfo(part.Trim()));
-			}
-		}
-		//Look through every directory and any subfolders they have called bin
-		foreach (var dir in directories.SelectMany(x => new[] { x, new DirectoryInfo(Path.Combine(x?.FullName, "bin")) }))
-		{
-			if (dir?.Exists != true)
-			{
-				continue;
-			}
-
-			var files = dir.GetFiles(ffmpeg, SearchOption.TopDirectoryOnly);
-			if (files.Length > 0)
-			{
-				return files[0].FullName;
-			}
-		}
-		return null;
 	}
 }

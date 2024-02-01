@@ -5,7 +5,7 @@ namespace Advobot.Tests.Commands.Quotes;
 
 public sealed class FakeQuoteDatabase : IQuoteDatabase
 {
-	private readonly Dictionary<(ulong, string), Quote> _Quotes = new();
+	private readonly Dictionary<(ulong, string), Quote> _Quotes = [];
 
 	public Task<int> AddQuoteAsync(Quote quote)
 	{

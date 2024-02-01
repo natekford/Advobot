@@ -15,15 +15,12 @@ namespace Advobot.Gacha;
 
 public abstract class GachaExchangeModuleBase : AdvobotModuleBase
 {
-	protected static readonly TimeSpan Timeout = TimeSpan.FromMinutes(3);
 	protected static readonly AcceptTryParser AcceptTryParser = new();
+	protected static readonly TimeSpan Timeout = TimeSpan.FromMinutes(3);
 
+	public ExchangeManager Exchanges { get; set; } = null!;
+	public ITokenHolderService TokenHolder { get; set; } = null!;
 	protected abstract ExchangeMethod Method { get; }
-
-#pragma warning disable CS8618 // Non-nullable field is uninitialized.
-	public ExchangeManager Exchanges { get; set; }
-	public ITokenHolderService TokenHolder { get; set; }
-#pragma warning restore CS8618 // Non-nullable field is uninitialized.
 
 	protected bool AddExchange(User user, IEnumerable<Character> characters)
 		=> Exchanges.AddExchange(Method, user, characters);

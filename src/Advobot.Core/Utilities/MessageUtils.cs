@@ -398,6 +398,6 @@ public sealed class SendMessageArgs
 			Errors.WriteLine(embed.ToString());
 			Errors.WriteLine();
 		}
-		Embeds = new[] { embed.Build() };
+		Embeds = [embed.Build()];
 	}
 }

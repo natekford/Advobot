@@ -12,8 +12,8 @@ namespace Advobot.TypeReaders;
 /// <typeparam name="T"></typeparam>
 public sealed class PermissionsTypeReader<T> : TypeReader where T : struct, Enum
 {
-	private static readonly char[] _SplitChars = new[] { '/', ' ', ',' };
-	private static readonly char[] _TrimChars = new[] { '"' };
+	private static readonly char[] _SplitChars = ['/', ' ', ','];
+	private static readonly char[] _TrimChars = ['"'];
 
 	/// <summary>
 	/// Checks for valid ulong first, then checks permission names.

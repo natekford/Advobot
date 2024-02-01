@@ -24,7 +24,7 @@ public sealed class RemovablePunishmentService
 	// the event from it still fires back into this class
 	// To prevent removing the punishment by itself then again in the batch removal
 	// this hashset prevents that
-	private readonly HashSet<IPunishmentContext> _WillBeBatchRemoved = new();
+	private readonly HashSet<IPunishmentContext> _WillBeBatchRemoved = [];
 
 	public RemovablePunishmentService(
 		IRemovablePunishmentDatabase db,

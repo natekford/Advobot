@@ -130,7 +130,7 @@ public class AdvobotResult : RuntimeResult
 		return await destination.SendMessageAsync(new SendMessageArgs(Embed)
 		{
 			Content = Reason,
-			Files = File.HasValue ? new List<FileAttachment> { File.Value } : null,
+			Files = File.HasValue ? [File.Value] : null,
 		}).CAF();
 	}
 

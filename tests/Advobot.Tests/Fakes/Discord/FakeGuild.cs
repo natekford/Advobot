@@ -28,18 +28,18 @@ public sealed class FakeGuild : FakeSnowflake, IGuild
 	public string DiscoverySplashId => throw new NotImplementedException();
 	public string DiscoverySplashUrl => throw new NotImplementedException();
 	public ulong? EmbedChannelId => throw new NotImplementedException();
-	public List<GuildEmote> Emotes { get; } = new();
+	public List<GuildEmote> Emotes { get; } = [];
 	public ExplicitContentFilterLevel ExplicitContentFilter => throw new NotImplementedException();
-	public List<FakeBan> FakeBans { get; } = new();
-	public List<FakeGuildChannel> FakeChannels { get; } = new();
+	public List<FakeBan> FakeBans { get; } = [];
+	public List<FakeGuildChannel> FakeChannels { get; } = [];
 	public FakeClient FakeClient { get; }
 	public FakeGuildUser FakeCurrentUser { get; }
 	public FakeRole FakeEveryoneRole { get; }
-	public List<FakeInviteMetadata> FakeInvites { get; } = new();
+	public List<FakeInviteMetadata> FakeInvites { get; } = [];
 	public FakeGuildUser FakeOwner { get; set; }
-	public List<FakeRole> FakeRoles { get; } = new();
-	public List<FakeGuildUser> FakeUsers { get; } = new();
-	public List<FakeWebhook> FakeWebhooks { get; } = new();
+	public List<FakeRole> FakeRoles { get; } = [];
+	public List<FakeGuildUser> FakeUsers { get; } = [];
+	public List<FakeWebhook> FakeWebhooks { get; } = [];
 	public GuildFeatures Features { get; set; } = new GuildFeaturesCreationArgs().Build();
 	public string IconId => throw new NotImplementedException();
 	public string IconUrl => throw new NotImplementedException();

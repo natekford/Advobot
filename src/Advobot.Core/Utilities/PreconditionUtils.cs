@@ -186,11 +186,8 @@ public static class PreconditionUtils
 			return new UnableToFind(typeof(T));
 		}
 
-		var bot = await invoker.Guild.GetCurrentUserAsync().CAF();
-		if (bot == null)
-		{
-			throw new InvalidOperationException($"Invalid bot during {typeof(T).Name} validation.");
-		}
+		var bot = await invoker.Guild.GetCurrentUserAsync().CAF()
+			?? throw new InvalidOperationException($"Invalid bot during {typeof(T).Name} validation.");
 
 		foreach (var user in new[] { invoker, bot })
 		{

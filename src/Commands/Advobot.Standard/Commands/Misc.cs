@@ -23,15 +23,37 @@ namespace Advobot.Standard.Commands;
 [Category(nameof(Misc))]
 public sealed class Misc : ModuleBase
 {
+	[LocalizedGroup(nameof(Groups.Commands))]
+	[LocalizedAlias(nameof(Aliases.Commands))]
+	[LocalizedSummary(nameof(Summaries.Commands))]
+	[Meta("ec0f7aef-85d6-4251-9c8e-7c70890f455e", IsEnabled = true, CanToggle = false)]
+	public sealed class Commands : AdvobotModuleBase
+	{
+		public IGuildSettingsProvider GuildSettings { get; set; } = null!;
+		public IHelpEntryService HelpEntries { get; set; } = null!;
+
+		[Command]
+		public async Task<RuntimeResult> Command()
+		{
+			var prefix = await GuildSettings.GetPrefixAsync(Context.Guild).CAF();
+			return GeneralCommandInfo(HelpEntries.GetCategories(), prefix);
+		}
+
+		[Command]
+		public Task<RuntimeResult> Command(Category category)
+		{
+			var entries = HelpEntries.GetHelpEntries(category.Name);
+			return CategoryCommands(entries, category.Name);
+		}
+	}
+
 	[LocalizedGroup(nameof(Groups.Help))]
 	[LocalizedAlias(nameof(Aliases.Help))]
 	[LocalizedSummary(nameof(Summaries.Help))]
 	[Meta("0e89a6fd-5c9c-4008-a912-7c719ea7827d", IsEnabled = true, CanToggle = false)]
 	public sealed class Help : AdvobotModuleBase
 	{
-#pragma warning disable CS8618 // Non-nullable field is uninitialized.
-		public IGuildSettingsProvider GuildSettings { get; set; }
-#pragma warning restore CS8618 // Non-nullable field is uninitialized.
+		public IGuildSettingsProvider GuildSettings { get; set; } = null!;
 
 		[Command]
 		[LocalizedSummary(nameof(Summaries.HelpGeneralHelp))]
@@ -79,32 +101,6 @@ public sealed class Misc : ModuleBase
 		}
 	}
 
-	[LocalizedGroup(nameof(Groups.Commands))]
-	[LocalizedAlias(nameof(Aliases.Commands))]
-	[LocalizedSummary(nameof(Summaries.Commands))]
-	[Meta("ec0f7aef-85d6-4251-9c8e-7c70890f455e", IsEnabled = true, CanToggle = false)]
-	public sealed class Commands : AdvobotModuleBase
-	{
-#pragma warning disable CS8618 // Non-nullable field is uninitialized.
-		public IHelpEntryService HelpEntries { get; set; }
-		public IGuildSettingsProvider GuildSettings { get; set; }
-#pragma warning restore CS8618 // Non-nullable field is uninitialized.
-
-		[Command]
-		public async Task<RuntimeResult> Command()
-		{
-			var prefix = await GuildSettings.GetPrefixAsync(Context.Guild).CAF();
-			return GeneralCommandInfo(HelpEntries.GetCategories(), prefix);
-		}
-
-		[Command]
-		public Task<RuntimeResult> Command(Category category)
-		{
-			var entries = HelpEntries.GetHelpEntries(category.Name);
-			return CategoryCommands(entries, category.Name);
-		}
-	}
-
 	[LocalizedGroup(nameof(Groups.MakeAnEmbed))]
 	[LocalizedAlias(nameof(Aliases.MakeAnEmbed))]
 	[LocalizedSummary(nameof(Summaries.MakeAnEmbed))]
@@ -115,6 +111,24 @@ public sealed class Misc : ModuleBase
 		[Command]
 		public Task<RuntimeResult> Command([Remainder] CustomEmbed args)
 			=> Responses.Misc.MakeAnEmbed(args);
+	}
+
+	[LocalizedGroup(nameof(Groups.MessageBotOwner))]
+	[LocalizedAlias(nameof(Aliases.MessageBotOwner))]
+	[LocalizedSummary(nameof(Summaries.MessageBotOwner))]
+	[Meta("3562f937-4d3c-46aa-afda-70e04040be53", IsEnabled = false)]
+	[RequireGenericGuildPermissions]
+	[RequireAllowedToDmBotOwner]
+	public sealed class MessageBotOwner : AdvobotModuleBase
+	{
+		[Command]
+		public async Task Command([Remainder] string message)
+		{
+			var owner = (await Context.Client.GetApplicationInfoAsync().CAF()).Owner;
+			var cut = message[..Math.Min(message.Length, 250)];
+			var text = $"`{Context.User.Format()}` - `{Context.Guild.Format()}`:\n```\n{cut}```";
+			await owner.SendMessageAsync(text).CAF();
+		}
 	}
 
 	[LocalizedGroup(nameof(Groups.MessageRole))]
@@ -134,24 +148,6 @@ public sealed class Misc : ModuleBase
 			await role.ModifyAsync(x => x.Mentionable = true, GetOptions()).CAF();
 			await ReplyAsync(text).CAF();
 			await role.ModifyAsync(x => x.Mentionable = false, GetOptions()).CAF();
-		}
-	}
-
-	[LocalizedGroup(nameof(Groups.MessageBotOwner))]
-	[LocalizedAlias(nameof(Aliases.MessageBotOwner))]
-	[LocalizedSummary(nameof(Summaries.MessageBotOwner))]
-	[Meta("3562f937-4d3c-46aa-afda-70e04040be53", IsEnabled = false)]
-	[RequireGenericGuildPermissions]
-	[RequireAllowedToDmBotOwner]
-	public sealed class MessageBotOwner : AdvobotModuleBase
-	{
-		[Command]
-		public async Task Command([Remainder] string message)
-		{
-			var owner = (await Context.Client.GetApplicationInfoAsync().CAF()).Owner;
-			var cut = message[..Math.Min(message.Length, 250)];
-			var text = $"`{Context.User.Format()}` - `{Context.Guild.Format()}`:\n```\n{cut}```";
-			await owner.SendMessageAsync(text).CAF();
 		}
 	}
 

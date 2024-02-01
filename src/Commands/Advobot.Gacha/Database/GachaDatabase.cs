@@ -16,44 +16,45 @@ using Image = Advobot.Gacha.Models.Image;
 
 namespace Advobot.Gacha.Database;
 
-public sealed class GachaDatabase(ITime time, IConnectionString<GachaDatabase> conn) : DatabaseBase<SQLiteConnection>(conn), IGachaDatabase
+public sealed class GachaDatabase(ITime time, IConnectionString<GachaDatabase> conn)
+	: DatabaseBase<SQLiteConnection>(conn), IGachaDatabase
 {
 	private const string INSERT_CHAR = @"
-			INSERT INTO Character
-			( CharacterId, SourceId, Name, GenderIcon, Gender, RollType, FlavorText, IsFakeCharacter )
-			VALUES
-			( @CharacterId, @SourceId, @Name, @GenderIcon, @Gender, @RollType, @FlavorText, @IsFakeCharacter )
-		";
+		INSERT INTO Character
+		( CharacterId, SourceId, Name, GenderIcon, Gender, RollType, FlavorText, IsFakeCharacter )
+		VALUES
+		( @CharacterId, @SourceId, @Name, @GenderIcon, @Gender, @RollType, @FlavorText, @IsFakeCharacter )
+	";
 	private const string INSERT_CLAIM = @"
-			INSERT INTO Claim
-			( ClaimId, GuildId, UserId, CharacterId, ImageUrl, IsPrimaryClaim )
-			VALUES
-			( @ClaimId, @GuildId, @UserId, @CharacterId, @ImageUrl, @IsPrimaryClaim )
-		";
+		INSERT INTO Claim
+		( ClaimId, GuildId, UserId, CharacterId, ImageUrl, IsPrimaryClaim )
+		VALUES
+		( @ClaimId, @GuildId, @UserId, @CharacterId, @ImageUrl, @IsPrimaryClaim )
+	";
 	private const string INSERT_IMG = @"
-			INSERT INTO Image
-			( CharacterId, Url )
-			VALUES
-			( @CharacterId, @Url )
-		";
+		INSERT INTO Image
+		( CharacterId, Url )
+		VALUES
+		( @CharacterId, @Url )
+	";
 	private const string INSERT_SRC = @"
-			INSERT INTO Source
-			( SourceId, Name, ThumbnailUrl )
-			VALUES
-			( @SourceId, @Name, @ThumbnailUrl )
-		";
+		INSERT INTO Source
+		( SourceId, Name, ThumbnailUrl )
+		VALUES
+		( @SourceId, @Name, @ThumbnailUrl )
+	";
 	private const string INSERT_USER = @"
-			INSERT INTO User
-			( GuildId, UserId )
-			VALUES
-			( @GuildId, @UserId )
-		";
+		INSERT INTO User
+		( GuildId, UserId )
+		VALUES
+		( @GuildId, @UserId )
+	";
 	private const string INSERT_WISH = @"
-			INSERT INTO Wish
-			( WishId, GuildId, UserId, CharacterId )
-			VALUES
-			( @WishId, @GuildId, @UserId, @CharacterId )
-		";
+		INSERT INTO Wish
+		( WishId, GuildId, UserId, CharacterId )
+		VALUES
+		( @WishId, @GuildId, @UserId, @CharacterId )
+	";
 
 	private readonly ITime _Time = time;
 	public CloseIds CharacterIds { get; } = new()
@@ -117,20 +118,20 @@ public sealed class GachaDatabase(ITime time, IConnectionString<GachaDatabase> c
 
 	public async Task CacheNamesAsync()
 	{
-		using var connection = await GetConnectionAsync().CAF();
+		await using var connection = await GetConnectionAsync().CAF();
 
 		//Cache sources/characters for similar name checking
 		foreach (var source in await connection.QueryAsync<Source>(@"
-				SELECT SourceId, Name
-				FROM Character
-			").CAF())
+			SELECT SourceId, Name
+			FROM Character
+		").CAF())
 		{
 			SourceIds.Add(source.SourceId, source.Name);
 		}
 		foreach (var character in await connection.QueryAsync<Character>(@"
-				SELECT CharacterId, Name
-				FROM Character
-			").CAF())
+			SELECT CharacterId, Name
+			FROM Character
+		").CAF())
 		{
 			CharacterIds.Add(character.CharacterId, character.Name);
 		}
@@ -139,16 +140,16 @@ public sealed class GachaDatabase(ITime time, IConnectionString<GachaDatabase> c
 	public async Task<Character> GetCharacterAsync(long id)
 	{
 		var param = new { CharacterId = id };
-		return await GetOneAsync<Character>(@"
-				SELECT *
-				FROM Character
-				WHERE CharacterId = @CharacterId
-			", param).CAF();
+		return await GetOneAsync<Character?>(@"
+			SELECT *
+			FROM Character
+			WHERE CharacterId = @CharacterId
+		", param).CAF() ?? throw new KeyNotFoundException($"Unable to find character {id}.");
 	}
 
 	public async Task<CharacterMetadata> GetCharacterMetadataAsync(Character character)
 	{
-		using var connection = await GetConnectionAsync().CAF();
+		await using var connection = await GetConnectionAsync().CAF();
 
 		var id = character.CharacterId;
 		var source = await GetSourceAsync(character.SourceId).CAF();
@@ -162,42 +163,42 @@ public sealed class GachaDatabase(ITime time, IConnectionString<GachaDatabase> c
 	public async Task<IReadOnlyList<Character>> GetCharactersAsync()
 	{
 		return await GetManyAsync<Character>(@"
-				SELECT *
-				FROM Character
-			", null).CAF();
+			SELECT *
+			FROM Character
+		", null).CAF();
 	}
 
 	public async Task<IReadOnlyList<Character>> GetCharactersAsync(Source source)
 	{
 		var param = new { source.SourceId };
 		return await GetManyAsync<Character>(@"
-				SELECT *
-				FROM Character
-				WHERE SourceId = @SourceId
-			", param).CAF();
+			SELECT *
+			FROM Character
+			WHERE SourceId = @SourceId
+		", param).CAF();
 	}
 
 	public async Task<IReadOnlyList<Character>> GetCharactersAsync(IEnumerable<long> ids)
 	{
 		var param = new { Ids = ids };
 		return await GetManyAsync<Character>(@"
-				SELECT *
-				FROM Character
-				WHERE CharacterId IN @Ids
-			", param).CAF();
+			SELECT *
+			FROM Character
+			WHERE CharacterId IN @Ids
+		", param).CAF();
 	}
 
-	public async Task<Claim> GetClaimAsync(ulong guildId, Character character)
+	public async Task<Claim?> GetClaimAsync(ulong guildId, Character character)
 	{
 		var param = new { GuildId = guildId.ToString(), character.CharacterId };
-		return await GetOneAsync<Claim>(@"
-				SELECT *
-				FROM Claim
-				WHERE GuildId = @GuildId AND CharacterId = @CharacterId
-			", param).CAF();
+		return await GetOneAsync<Claim?>(@"
+			SELECT *
+			FROM Claim
+			WHERE GuildId = @GuildId AND CharacterId = @CharacterId
+		", param).CAF();
 	}
 
-	public async Task<Claim> GetClaimAsync(User user, Character character)
+	public async Task<Claim?> GetClaimAsync(User user, Character character)
 	{
 		var param = new
 		{
@@ -205,21 +206,21 @@ public sealed class GachaDatabase(ITime time, IConnectionString<GachaDatabase> c
 			UserId = user.UserId.ToString(),
 			character.CharacterId
 		};
-		return await GetOneAsync<Claim>(@"
-				SELECT *
-				FROM Claim
-				WHERE GuildId = @GuildId AND UserId = @UserId AND CharacterId = @CharacterId
-			", param).CAF();
+		return await GetOneAsync<Claim?>(@"
+			SELECT *
+			FROM Claim
+			WHERE GuildId = @GuildId AND UserId = @UserId AND CharacterId = @CharacterId
+		", param).CAF();
 	}
 
 	public async Task<IReadOnlyList<Claim>> GetClaimsAsync(ulong guildId)
 	{
 		var param = new { GuildId = guildId.ToString() };
 		return await GetManyAsync<Claim>(@"
-				SELECT *
-				FROM Claim
-				WHERE GuildId = @GuildId
-			", param).CAF();
+			SELECT *
+			FROM Claim
+			WHERE GuildId = @GuildId
+		", param).CAF();
 	}
 
 	public async Task<IReadOnlyList<Claim>> GetClaimsAsync(User user)
@@ -230,43 +231,43 @@ public sealed class GachaDatabase(ITime time, IConnectionString<GachaDatabase> c
 			UserId = user.UserId.ToString()
 		};
 		return await GetManyAsync<Claim>(@"
-				SELECT *
-				FROM Claim
-				WHERE GuildId = @GuildId AND UserId = @UserId
-			", param).CAF();
+			SELECT *
+			FROM Claim
+			WHERE GuildId = @GuildId AND UserId = @UserId
+		", param).CAF();
 	}
 
 	public async Task<IReadOnlyList<Image>> GetImagesAsync(Character character)
 	{
 		var param = new { character.CharacterId };
 		return await GetManyAsync<Image>(@"
-				SELECT *
-				FROM Image
-				WHERE CharacterId = @CharacterId
-			", param).CAF();
+			SELECT *
+			FROM Image
+			WHERE CharacterId = @CharacterId
+		", param).CAF();
 	}
 
 	public async Task<Source> GetSourceAsync(long sourceId)
 	{
 		var param = new { SourceId = sourceId };
-		return await GetOneAsync<Source>(@"
-				SELECT *
-				FROM Source
-				WHERE SourceId = @SourceId
-			", param).CAF();
+		return await GetOneAsync<Source?>(@"
+			SELECT *
+			FROM Source
+			WHERE SourceId = @SourceId
+		", param).CAF() ?? throw new KeyNotFoundException($"Unable to find source {sourceId}.");
 	}
 
 	public async Task<IReadOnlyList<Source>> GetSourcesAsync(IEnumerable<long> ids)
 	{
 		var param = new { Ids = ids };
 		return await GetManyAsync<Source>(@"
-				SELECT *
-				FROM Source
-				WHERE SourceId IN @Ids
-			", param).CAF();
+			SELECT *
+			FROM Source
+			WHERE SourceId IN @Ids
+		", param).CAF();
 	}
 
-	public async Task<Character> GetUnclaimedCharacter(ulong guildId)
+	public async Task<Character?> GetUnclaimedCharacter(ulong guildId)
 	{
 		//Time for 500,000 records in both Character and Claim:
 		//NOT IN = 3796ms
@@ -275,44 +276,44 @@ public sealed class GachaDatabase(ITime time, IConnectionString<GachaDatabase> c
 		//LEFT JOIN makes the least sense to read, but it's the fastest by a fair bit
 
 		var param = new { GuildId = guildId.ToString() };
-		return await GetOneAsync<Character>(@"
-				SELECT l.*
-				From Character l
-				LEFT JOIN Claim r
-				ON r.GuildId = @GuildId AND r.CharacterId = l.CharacterId
-				WHERE r.CharacterId IS NULL
-				ORDER BY RANDOM() LIMIT 1
-			", param).CAF();
+		return await GetOneAsync<Character?>(@"
+			SELECT l.*
+			From Character l
+			LEFT JOIN Claim r
+			ON r.GuildId = @GuildId AND r.CharacterId = l.CharacterId
+			WHERE r.CharacterId IS NULL
+			ORDER BY RANDOM() LIMIT 1
+		", param).CAF();
 	}
 
 	public async Task<User> GetUserAsync(ulong guildId, ulong userId)
 	{
 		var param = new { GuildId = guildId.ToString(), UserId = userId.ToString() };
-		return await GetOneAsync<User>(@"
-				SELECT GuildId, UserId
-				FROM User
-				WHERE GuildId = @GuildId AND UserId = @UserId
-			", param).CAF();
+		return await GetOneAsync<User?>(@"
+			SELECT GuildId, UserId
+			FROM User
+			WHERE GuildId = @GuildId AND UserId = @UserId
+		", param).CAF() ?? new(guildId, userId);
 	}
 
 	public async Task<IReadOnlyList<Wish>> GetWishesAsync(ulong guildId)
 	{
 		var param = new { GuildId = guildId.ToString() };
 		return await GetManyAsync<Wish>(@"
-				SELECT *
-				FROM Wish
-				WHERE GuildId = @GuildId
-			", param).CAF();
+			SELECT *
+			FROM Wish
+			WHERE GuildId = @GuildId
+		", param).CAF();
 	}
 
 	public async Task<IReadOnlyList<Wish>> GetWishesAsync(ulong guildId, Character character)
 	{
 		var param = new { GuildId = guildId.ToString(), character.CharacterId };
 		return await GetManyAsync<Wish>(@"
-				SELECT *
-				FROM Wish
-				WHERE GuildId = @GuildId AND CharacterId = @CharacterId
-			", param).CAF();
+			SELECT *
+			FROM Wish
+			WHERE GuildId = @GuildId AND CharacterId = @CharacterId
+		", param).CAF();
 	}
 
 	public async Task<IReadOnlyList<Wish>> GetWishesAsync(User user)
@@ -323,10 +324,10 @@ public sealed class GachaDatabase(ITime time, IConnectionString<GachaDatabase> c
 			UserId = user.UserId.ToString()
 		};
 		return await GetManyAsync<Wish>(@"
-				SELECT *
-				FROM Wish
-				WHERE GuildId = @GuildId AND UserId = @UserId
-			", param).CAF();
+			SELECT *
+			FROM Wish
+			WHERE GuildId = @GuildId AND UserId = @UserId
+		", param).CAF();
 	}
 
 	public async Task<int> TradeAsync(IEnumerable<Trade> trades)
@@ -338,15 +339,15 @@ public sealed class GachaDatabase(ITime time, IConnectionString<GachaDatabase> c
 			x.CharacterId
 		});
 		return await BulkModifyAsync(@"
-				UPDATE Claim
-				SET UserId = @ReceiverId
-				WHERE GuildId = @GuildId AND CharacterId = @CharacterId
-			", @params).CAF();
+			UPDATE Claim
+			SET UserId = @ReceiverId
+			WHERE GuildId = @GuildId AND CharacterId = @CharacterId
+		", @params).CAF();
 	}
 
 	public async Task UpdateClaimImageUrlAsync(Claim claim, string? url)
 	{
-		using var connection = await GetConnectionAsync().CAF();
+		await using var connection = await GetConnectionAsync().CAF();
 
 		var param = new
 		{
@@ -356,9 +357,9 @@ public sealed class GachaDatabase(ITime time, IConnectionString<GachaDatabase> c
 			Url = url
 		};
 		await connection.ExecuteAsync(@"
-				UPDATE Claim
-				SET ImageUrl = @Url
-				WHERE GuildId = @GuildId AND UserId = @UserId AND CharacterId = @CharacterId
-			", param).CAF();
+			UPDATE Claim
+			SET ImageUrl = @Url
+			WHERE GuildId = @GuildId AND UserId = @UserId AND CharacterId = @CharacterId
+		", param).CAF();
 	}
 }

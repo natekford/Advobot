@@ -299,7 +299,7 @@ public sealed class AutoModService
 	private void QueueMessageForDeletion(ITextChannel channel, IMessage message)
 	{
 		_Messages
-			.GetOrAdd(message.Channel.Id, _ => (new(), channel))
+			.GetOrAdd(message.Channel.Id, _ => ([], channel))
 			.Item1.Add(message.Id);
 	}
 }

@@ -89,7 +89,7 @@ public sealed class AutoModDatabase(IConnectionString<AutoModDatabase> conn) : D
 	public async Task<ChannelSettings?> GetChannelSettingsAsync(ulong channelId)
 	{
 		var param = new { ChannelId = channelId.ToString(), };
-		return await GetOneAsync<ChannelSettings>(@"
+		return await GetOneAsync<ChannelSettings?>(@"
 			SELECT *
 			FROM ChannelSetting
 			WHERE ChannelId = @ChannelId
@@ -173,7 +173,7 @@ public sealed class AutoModDatabase(IConnectionString<AutoModDatabase> conn) : D
 	public async Task<SelfRole?> GetSelfRoleAsync(ulong roleId)
 	{
 		var param = new { RoleId = roleId.ToString() };
-		return await GetOneAsync<SelfRole>(@"
+		return await GetOneAsync<SelfRole?>(@"
 			SELECT *
 			FROM SelfRole
 			WHERE RoleId = @RoleId

@@ -353,10 +353,6 @@ public sealed class Users : ModuleBase
 	[RequireGuildPermissions(GuildPermission.ManageRoles, GuildPermission.ManageMessages)]
 	public sealed class Mute : AdvobotModuleBase
 	{
-#pragma warning disable CS8618 // Non-nullable field is uninitialized. Consider declaring as nullable.
-		public IGuildSettingsProvider MuteRoleProvider { get; set; }
-#pragma warning restore CS8618 // Non-nullable field is uninitialized. Consider declaring as nullable.
-
 		private static readonly OverwritePermissions CategoryPerms = new(
 			0,
 			TextPerms.DenyValue | VoicePerms.DenyValue
@@ -386,6 +382,8 @@ public sealed class Users : ModuleBase
 				| MoveMembers
 			)
 		);
+
+		public IGuildSettingsProvider MuteRoleProvider { get; set; } = null!;
 
 		[Command]
 		public async Task<RuntimeResult> Command(
@@ -469,9 +467,7 @@ public sealed class Users : ModuleBase
 	[RequireGuildPermissions(GuildPermission.ManageMessages)]
 	public sealed class RemoveMessages : AdvobotModuleBase
 	{
-#pragma warning disable CS8618 // Non-nullable field is uninitialized.
-		public ITime Time { get; set; }
-#pragma warning restore CS8618 // Non-nullable field is uninitialized.
+		public ITime Time { get; set; } = null!;
 
 		[Command]
 		[RequireChannelPermissions(ManageMessages)]

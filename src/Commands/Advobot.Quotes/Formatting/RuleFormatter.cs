@@ -135,26 +135,26 @@ public static class RuleFormatterUtils
 [NamedArgumentType]
 public sealed class RuleFormatter
 {
-	private static readonly ImmutableDictionary<RuleFormat, ISet<MarkDownFormat>> _DefaultRuleFormats =
-		new Dictionary<RuleFormat, ISet<MarkDownFormat>>
+	private static readonly Dictionary<RuleFormat, HashSet<MarkDownFormat>> _DefaultRuleFormats
+		= new()
 		{
-				{ default, new HashSet<MarkDownFormat>() },
-				{ RuleFormat.Numbers, new HashSet<MarkDownFormat>() },
-				{ RuleFormat.Dashes, new HashSet<MarkDownFormat>() },
-				{ RuleFormat.Bullets, new HashSet<MarkDownFormat>() },
-				{ RuleFormat.Bold, new HashSet<MarkDownFormat>() { MarkDownFormat.Bold } }
-		}.ToImmutableDictionary();
-	private static readonly ImmutableDictionary<RuleFormat, ISet<MarkDownFormat>> _DefaultTitleFormats =
-		new Dictionary<RuleFormat, ISet<MarkDownFormat>>
+			{ default, [] },
+			{ RuleFormat.Numbers, [] },
+			{ RuleFormat.Dashes, [] },
+			{ RuleFormat.Bullets, [] },
+			{ RuleFormat.Bold, [MarkDownFormat.Bold] }
+		};
+	private static readonly Dictionary<RuleFormat, HashSet<MarkDownFormat>> _DefaultTitleFormats
+		= new()
 		{
-				{ default, new HashSet<MarkDownFormat>() { MarkDownFormat.Bold } },
-				{ RuleFormat.Numbers, new HashSet<MarkDownFormat>() { MarkDownFormat.Bold } },
-				{ RuleFormat.Dashes, new HashSet<MarkDownFormat>() { MarkDownFormat.Code } },
-				{ RuleFormat.Bullets, new HashSet<MarkDownFormat>() { MarkDownFormat.Bold } },
-				{ RuleFormat.Bold, new HashSet<MarkDownFormat>() { MarkDownFormat.Bold | MarkDownFormat.Italics } }
-		}.ToImmutableDictionary();
+			{ default, [MarkDownFormat.Bold] },
+			{ RuleFormat.Numbers, [MarkDownFormat.Bold] },
+			{ RuleFormat.Dashes, [MarkDownFormat.Code] },
+			{ RuleFormat.Bullets, [MarkDownFormat.Bold] },
+			{ RuleFormat.Bold, [MarkDownFormat.Bold | MarkDownFormat.Italics] }
+		};
 
-	private ISet<RuleFormatOption>? _Options;
+	private HashSet<RuleFormatOption>? _Options;
 
 	/// <summary>
 	/// The character to put after numbers in the lists.

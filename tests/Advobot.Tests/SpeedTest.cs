@@ -8,7 +8,7 @@ internal sealed class SpeedTest(Action func)
 	public Action Function = func;
 	public int Iterations = 10;
 	public int Times = 100000;
-	private readonly List<Stopwatch> _Watches = new();
+	private readonly List<Stopwatch> _Watches = [];
 
 	public double Average => _Watches.Average(s => s.ElapsedMilliseconds);
 

@@ -11,7 +11,7 @@ public sealed class EnumMapped<TEnum, TValue>
 	private static readonly TEnum[] _Values
 		= Enum.GetValues(typeof(TEnum)).Cast<TEnum>().ToArray();
 
-	private readonly Dictionary<TEnum, TValue> _Dict = new();
+	private readonly Dictionary<TEnum, TValue> _Dict = [];
 
 	public int Count => _Dict.Count;
 	public IEnumerable<TEnum> Keys

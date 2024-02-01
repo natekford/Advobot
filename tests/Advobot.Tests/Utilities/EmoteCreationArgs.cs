@@ -20,15 +20,15 @@ public sealed class EmoteCreationArgs
 
 	public GuildEmote Build()
 	{
-		return (GuildEmote)_Constructor.Invoke(new object?[]
-		{
-				Id,
-				Name,
-				Animated,
-				IsManaged,
-				RequireColons,
-				RoleIds,
-				UserId,
-		});
+		return (GuildEmote)_Constructor.Invoke(
+		[
+			Id,
+			Name,
+			Animated,
+			IsManaged,
+			RequireColons,
+			RoleIds,
+			UserId,
+		]);
 	}
 }

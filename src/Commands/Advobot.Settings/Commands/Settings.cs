@@ -23,32 +23,28 @@ public sealed class Settings : ModuleBase
 	[RequireGuildPermissions]
 	public sealed class ModifyCommands : ModuleBase
 	{
-		[LocalizedGroup(nameof(Groups.Enable))]
-		[LocalizedAlias(nameof(Aliases.Enable))]
-		[LocalizedSummary(nameof(Summaries.ModifyCommandsEnable))]
-		public sealed class Enable : ModifyCommandsModuleBase
+		[LocalizedGroup(nameof(Groups.Clear))]
+		[LocalizedAlias(nameof(Aliases.Clear))]
+		[LocalizedSummary(nameof(Summaries.ModifyCommandsClear))]
+		public sealed class Clear : ModifyCommandsModuleBase
 		{
-			public override bool? ShouldEnable => true;
+			public override bool? ShouldEnable => null;
+
+			[Command]
+			public Task<RuntimeResult> Command(CommandOverrideEntity entity)
+				=> ModifyAll(entity, 0);
 
 			[Command]
 			public Task<RuntimeResult> Command(
-				int priority,
-				CommandOverrideEntity entity)
-				=> ModifyAll(entity, priority);
-
-			[Command]
-			public Task<RuntimeResult> Command(
-				int priority,
 				CommandOverrideEntity entity,
 				params Category[] categories)
-				=> ModifyCategories(entity, categories, priority);
+				=> ModifyCategories(entity, categories, 0);
 
 			[Command]
 			public Task<RuntimeResult> Command(
-				int priority,
 				CommandOverrideEntity entity,
 				params IModuleHelpEntry[] commands)
-				=> Modify(entity, commands, priority);
+				=> Modify(entity, commands, 0);
 		}
 
 		[LocalizedGroup(nameof(Groups.Disable))]
@@ -79,51 +75,38 @@ public sealed class Settings : ModuleBase
 				=> Modify(entity, commands, priority);
 		}
 
-		[LocalizedGroup(nameof(Groups.Clear))]
-		[LocalizedAlias(nameof(Aliases.Clear))]
-		[LocalizedSummary(nameof(Summaries.ModifyCommandsClear))]
-		public sealed class Clear : ModifyCommandsModuleBase
+		[LocalizedGroup(nameof(Groups.Enable))]
+		[LocalizedAlias(nameof(Aliases.Enable))]
+		[LocalizedSummary(nameof(Summaries.ModifyCommandsEnable))]
+		public sealed class Enable : ModifyCommandsModuleBase
 		{
-			public override bool? ShouldEnable => null;
-
-			[Command]
-			public Task<RuntimeResult> Command(CommandOverrideEntity entity)
-				=> ModifyAll(entity, 0);
+			public override bool? ShouldEnable => true;
 
 			[Command]
 			public Task<RuntimeResult> Command(
+				int priority,
+				CommandOverrideEntity entity)
+				=> ModifyAll(entity, priority);
+
+			[Command]
+			public Task<RuntimeResult> Command(
+				int priority,
 				CommandOverrideEntity entity,
 				params Category[] categories)
-				=> ModifyCategories(entity, categories, 0);
+				=> ModifyCategories(entity, categories, priority);
 
 			[Command]
 			public Task<RuntimeResult> Command(
+				int priority,
 				CommandOverrideEntity entity,
 				params IModuleHelpEntry[] commands)
-				=> Modify(entity, commands, 0);
+				=> Modify(entity, commands, priority);
 		}
 
 		public abstract class ModifyCommandsModuleBase : SettingsModuleBase
 		{
-#pragma warning disable CS8618 // Non-nullable field is uninitialized.
-			public IHelpEntryService HelpEntries { get; set; }
-#pragma warning restore CS8618 // Non-nullable field is uninitialized.
+			public IHelpEntryService HelpEntries { get; set; } = null!;
 			public abstract bool? ShouldEnable { get; }
-
-			protected Task<RuntimeResult> ModifyAll(CommandOverrideEntity entity, int priority)
-				=> Modify(entity, HelpEntries.GetHelpEntries(), priority);
-
-			protected Task<RuntimeResult> ModifyCategories(
-				CommandOverrideEntity entity,
-				IEnumerable<Category> categories,
-				int priority)
-			{
-				var names = categories.Select(x => x.Name).ToHashSet();
-				var entries = HelpEntries
-					.GetHelpEntries()
-					.Where(x => names.Contains(x.Category));
-				return Modify(entity, entries, priority);
-			}
 
 			protected async Task<RuntimeResult> Modify(
 				CommandOverrideEntity entity,
@@ -147,6 +130,21 @@ public sealed class Settings : ModuleBase
 					await Db.DeleteCommandOverridesAsync(overrides).CAF();
 					return ClearedCommands(commands);
 				}
+			}
+
+			protected Task<RuntimeResult> ModifyAll(CommandOverrideEntity entity, int priority)
+				=> Modify(entity, HelpEntries.GetHelpEntries(), priority);
+
+			protected Task<RuntimeResult> ModifyCategories(
+				CommandOverrideEntity entity,
+				IEnumerable<Category> categories,
+				int priority)
+			{
+				var names = categories.Select(x => x.Name).ToHashSet();
+				var entries = HelpEntries
+					.GetHelpEntries()
+					.Where(x => names.Contains(x.Category));
+				return Modify(entity, entries, priority);
 			}
 		}
 	}

@@ -44,7 +44,7 @@ public sealed class LevelDatabase(IConnectionString<LevelDatabase> conn) : Datab
 
 	public async Task<int> GetDistinctUserCountAsync(SearchArgs args)
 	{
-		using var connection = await GetConnectionAsync().CAF();
+		await using var connection = await GetConnectionAsync().CAF();
 
 		return await connection.QuerySingleAsync<int>($@"
 			SELECT COUNT(DISTINCT UserId)
@@ -55,7 +55,7 @@ public sealed class LevelDatabase(IConnectionString<LevelDatabase> conn) : Datab
 
 	public async Task<IReadOnlyList<ulong>> GetIgnoredChannelsAsync(ulong guildId)
 	{
-		using var connection = await GetConnectionAsync().CAF();
+		await using var connection = await GetConnectionAsync().CAF();
 
 		var param = new { GuildId = guildId.ToString() };
 		var result = await connection.QueryAsync<ulong>(@"
@@ -73,7 +73,7 @@ public sealed class LevelDatabase(IConnectionString<LevelDatabase> conn) : Datab
 			throw new ArgumentException("UserId cannot be null", nameof(args));
 		}
 
-		using var connection = await GetConnectionAsync().CAF();
+		await using var connection = await GetConnectionAsync().CAF();
 
 		var xp = await GetXpAsync(args).CAF();
 		var results = await connection.QueryAsync<int>($@"
@@ -98,7 +98,7 @@ public sealed class LevelDatabase(IConnectionString<LevelDatabase> conn) : Datab
 
 	public async Task<IReadOnlyList<IRank>> GetRanksAsync(SearchArgs args, int offset, int limit)
 	{
-		using var connection = await GetConnectionAsync().CAF();
+		await using var connection = await GetConnectionAsync().CAF();
 
 		var param = new
 		{

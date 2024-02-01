@@ -20,11 +20,11 @@ namespace Advobot.Modules;
 [RequireContext(ContextType.Guild, Group = nameof(RequireContextAttribute))]
 public abstract class AdvobotModuleBase : ModuleBase<AdvobotCommandContext>
 {
-	private static readonly ICriterion<IMessage>[] _NextIndexCriteria = new ICriterion<IMessage>[]
-	{
+	private static readonly ICriterion<IMessage>[] _NextIndexCriteria =
+	[
 		new EnsureSourceChannelCriterion(),
 		new EnsureSourceUserCriterion(),
-	};
+	];
 
 	/// <summary>
 	/// The settings for the bot.
@@ -159,7 +159,7 @@ public abstract class AdvobotModuleBase : ModuleBase<AdvobotCommandContext>
 		{
 			if (embeds is null)
 			{
-				embeds = new[] { embed };
+				embeds = [embed];
 			}
 			else
 			{

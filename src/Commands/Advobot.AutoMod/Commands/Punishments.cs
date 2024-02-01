@@ -15,7 +15,5 @@ public sealed class Punishments : ModuleBase
 	[LocalizedSummary(nameof(Summaries.ModifyPunishments))]
 	[Meta("4b4584ae-2b60-4aff-92a1-fb2c929f3daf")]
 	[RequireGuildPermissions]
-	public sealed class ModifyBannedPhrasePunishments : AutoModModuleBase
-	{
-	}
+	public sealed class ModifyBannedPhrasePunishments : AutoModModuleBase;
 }

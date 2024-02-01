@@ -15,7 +15,7 @@ public sealed class TurkHandler
 {
 	private static readonly TimeSpan _DontBanIfOlderThan = TimeSpan.FromDays(7);
 	private readonly IMyCommandsDatabase _Db;
-	private readonly HashSet<ulong> _Ids = new();
+	private readonly HashSet<ulong> _Ids = [];
 	private string? _APIKey;
 	private DetectLanguageClient? _DetectLanguage;
 

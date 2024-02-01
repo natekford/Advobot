@@ -70,7 +70,7 @@ public sealed class LoggingDatabase(IConnectionString<LoggingDatabase> conn) : D
 
 	public async Task<IReadOnlyList<ulong>> GetIgnoredChannelsAsync(ulong guildId)
 	{
-		using var connection = await GetConnectionAsync().CAF();
+		await using var connection = await GetConnectionAsync().CAF();
 
 		var param = new { GuildId = guildId.ToString() };
 		var result = await connection.QueryAsync<string>(@"
@@ -83,7 +83,7 @@ public sealed class LoggingDatabase(IConnectionString<LoggingDatabase> conn) : D
 
 	public async Task<IReadOnlyList<LogAction>> GetLogActionsAsync(ulong guildId)
 	{
-		using var connection = await GetConnectionAsync().CAF();
+		await using var connection = await GetConnectionAsync().CAF();
 
 		var param = new { GuildId = guildId.ToString() };
 		var result = await connection.QueryAsync<string>(@"

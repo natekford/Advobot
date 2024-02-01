@@ -13,7 +13,6 @@ namespace Advobot.Punishments;
 /// <param name="isGive"></param>
 public sealed class Ban(IGuild guild, ulong userId, bool isGive) : PunishmentBase(guild, userId, isGive, PunishmentType.Ban)
 {
-
 	/// <inheritdoc/>
 	protected internal override Task ExecuteAsync()
 	{

@@ -12,5 +12,5 @@ public sealed class GuildAfkTime : RangeParameterPrecondition
 	/// <summary>
 	/// Creates an instance of <see cref="GuildAfkTime"/>.
 	/// </summary>
-	public GuildAfkTime() : base(new[] { 60, 300, 900, 1800, 3600 }) { }
+	public GuildAfkTime() : base([60, 300, 900, 1800, 3600]) { }
 }

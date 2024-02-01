@@ -156,7 +156,7 @@ public sealed class Invites : ModuleBase
 				{
 					source = source.Where(x => x.MaxUses == null == NoMaxUses);
 				}
-				return source?.ToArray() ?? Array.Empty<IInviteMetadata>();
+				return source?.ToArray() ?? [];
 			}
 		}
 	}

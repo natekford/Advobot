@@ -4,7 +4,7 @@ namespace Advobot.Services.Localization;
 
 internal sealed class TypeLocalizer : ITypeLocalizer
 {
-	private readonly Dictionary<(CultureInfo, Type), string> _Dict = new();
+	private readonly Dictionary<(CultureInfo, Type), string> _Dict = [];
 
 	public void Add<T>(string value, bool overwrite = false)
 	{

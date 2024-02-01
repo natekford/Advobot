@@ -5,14 +5,14 @@ namespace Advobot.Gacha.Database;
 
 public sealed class CloseIds : CloseWords<CloseIds.NameAndId>
 {
-	private readonly IList<NameAndId> _MutableSource;
+	private readonly List<NameAndId> _MutableSource;
 
-	public CloseIds() : this(new List<NameAndId>())
+	public CloseIds() : this([])
 	{
 	}
 
 	private CloseIds(List<NameAndId> source)
-		: base((IReadOnlyList<NameAndId>)source, x => x.Name)
+		: base(source, x => x.Name)
 	{
 		_MutableSource = source;
 	}

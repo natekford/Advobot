@@ -163,7 +163,7 @@ public sealed class MessageLogger
 		);
 
 		_Messages
-			.GetOrAdd(context.Guild.Id, _ => (new(), context.ServerLog))
+			.GetOrAdd(context.Guild.Id, _ => ([], context.ServerLog))
 			.Item1.Add(context.State.Message);
 		return Task.CompletedTask;
 	}
@@ -221,24 +221,24 @@ public sealed class MessageLogger
 				Color = EmbedWrapper.MessageEdit,
 				Author = state.User.CreateAuthor(),
 				Footer = new() { Text = "Message Updated", },
-				Fields = new()
-				{
+				Fields =
+				[
 					new() { Name = "Before", Value = beforeContent, },
 					new() { Name = "After", Value = afterContent, },
-				},
+				],
 			}.ToMessageArgs();
 		}
 		else
 		{
 			sendMessageArgs = new()
 			{
-				Files = new()
-				{
+				Files =
+				[
 					MessageUtils.CreateTextFile(
 						"Edited_Message",
 						$"Before:\n{beforeContent}\n\nAfter:\n{afterContent}"
 					),
-				},
+				],
 			};
 		}
 
@@ -324,13 +324,13 @@ public sealed class MessageLogger
 
 			sendMessageArgs = new SendMessageArgs
 			{
-				Files = new()
-				{
+				Files =
+				[
 					MessageUtils.CreateTextFile(
 						$"{ordered.Count}_Deleted_Messages",
 						sb.ToString()
 					),
-				}
+				],
 			};
 		}
 

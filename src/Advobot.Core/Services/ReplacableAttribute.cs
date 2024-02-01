@@ -45,6 +45,4 @@ public static class ReplacableUtils
 /// Attribute indicating that the service is allowed to be removed and replaced with a different implementation.
 /// </summary>
 [AttributeUsage(AttributeTargets.Class, AllowMultiple = false, Inherited = false)]
-public sealed class ReplacableAttribute : Attribute
-{
-}
+public sealed class ReplacableAttribute : Attribute;
