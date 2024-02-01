@@ -18,7 +18,7 @@
 		<PackageReference Include="Discord.Net.Rest" Version="3.13.0" />
 		<PackageReference Include="Discord.Net.Webhook" Version="3.13.0" />
 		<PackageReference Include="Discord.Net.WebSocket" Version="3.13.0" />
-		<PackageReference Include="Magick.NET-Q8-AnyCPU" Version="13.4.0" />
+		<PackageReference Include="Magick.NET-Q8-AnyCPU" Version="13.5.0" />
 		<PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="8.0.0" />
 	</ItemGroup>
 
