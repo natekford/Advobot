@@ -175,8 +175,8 @@ internal sealed class ImageResizer(HttpClient client, int threads) : IImageResiz
 			image.Scale(new MagickGeometry
 			{
 				IgnoreAspectRatio = true, //Ignore aspect ratio so all the frames keep the same dimensions
-				Width = (int)Math.Min(128, image.Width / shrinkFactor),
-				Height = (int)Math.Min(128, image.Height / shrinkFactor),
+				Width = (uint)Math.Min(128, image.Width / shrinkFactor),
+				Height = (uint)Math.Min(128, image.Height / shrinkFactor),
 			});
 		}
 		void Overwrite(Action<MemoryStream> func)

@@ -7,6 +7,7 @@ namespace Advobot.Tests.Fakes.Discord;
 public sealed class FakeApplication : FakeSnowflake, IApplication
 {
 	public int? ApproximateGuildCount => throw new NotImplementedException();
+	public int? ApproximateUserInstallCount => throw new NotImplementedException();
 	public bool BotRequiresCodeGrant { get; set; }
 	public string CustomInstallUrl => throw new NotImplementedException();
 	public string Description { get; set; } = "This is a fake application.";
@@ -17,6 +18,7 @@ public sealed class FakeApplication : FakeSnowflake, IApplication
 	public PartialGuild Guild => throw new NotImplementedException();
 	public string IconUrl { get; set; } = "";
 	public ApplicationInstallParams InstallParams { get; set; }
+	public IReadOnlyDictionary<ApplicationIntegrationType, ApplicationInstallParams> IntegrationTypesConfig => throw new NotImplementedException();
 	public IReadOnlyCollection<string> InteractionEventTypes => throw new NotImplementedException();
 	public string InteractionsEndpointUrl => throw new NotImplementedException();
 	public ApplicationInteractionsVersion InteractionsVersion => throw new NotImplementedException();

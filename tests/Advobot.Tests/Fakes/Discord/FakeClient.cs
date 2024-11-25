@@ -16,6 +16,12 @@ public sealed class FakeClient : IDiscordClient
 	public Task<IReadOnlyCollection<IApplicationCommand>> BulkOverwriteGlobalApplicationCommand(ApplicationCommandProperties[] properties, RequestOptions options = null)
 		=> throw new NotImplementedException();
 
+	public Task ConsumeEntitlementAsync(ulong entitlementId, RequestOptions options = null)
+		=> throw new NotImplementedException();
+
+	public Task<Emote> CreateApplicationEmoteAsync(string name, Image image, RequestOptions options = null)
+		=> throw new NotImplementedException();
+
 	public Task<IApplicationCommand> CreateGlobalApplicationCommand(ApplicationCommandProperties properties, RequestOptions options = null)
 		=> throw new NotImplementedException();
 
@@ -25,6 +31,9 @@ public sealed class FakeClient : IDiscordClient
 	public Task<IEntitlement> CreateTestEntitlementAsync(ulong skuId, ulong ownerId, SubscriptionOwnerType ownerType, RequestOptions options = null)
 		=> throw new NotImplementedException();
 
+	public Task DeleteApplicationEmoteAsync(ulong emoteId, RequestOptions options = null)
+		=> throw new NotImplementedException();
+
 	public Task DeleteTestEntitlementAsync(ulong entitlementId, RequestOptions options = null)
 		=> throw new NotImplementedException();
 
@@ -32,6 +41,12 @@ public sealed class FakeClient : IDiscordClient
 		=> throw new NotImplementedException();
 
 	public ValueTask DisposeAsync()
+		=> throw new NotImplementedException();
+
+	public Task<Emote> GetApplicationEmoteAsync(ulong emoteId, RequestOptions options = null)
+		=> throw new NotImplementedException();
+
+	public Task<IReadOnlyCollection<Emote>> GetApplicationEmotesAsync(RequestOptions options = null)
 		=> throw new NotImplementedException();
 
 	public Task<IApplication> GetApplicationInfoAsync(RequestOptions? options = null)
@@ -50,6 +65,9 @@ public sealed class FakeClient : IDiscordClient
 		=> throw new NotImplementedException();
 
 	public IAsyncEnumerable<IReadOnlyCollection<IEntitlement>> GetEntitlementsAsync(int? limit = 100, ulong? afterId = null, ulong? beforeId = null, bool excludeEnded = false, ulong? guildId = null, ulong? userId = null, ulong[] skuIds = null, RequestOptions options = null)
+		=> throw new NotImplementedException();
+
+	public IAsyncEnumerable<IReadOnlyCollection<IEntitlement>> GetEntitlementsAsync(int limit = 100, ulong? afterId = null, ulong? beforeId = null, bool excludeEnded = false, ulong? guildId = null, ulong? userId = null, ulong[] skuIds = null, RequestOptions options = null)
 		=> throw new NotImplementedException();
 
 	public Task<IApplicationCommand> GetGlobalApplicationCommandAsync(ulong id, RequestOptions options = null)
@@ -91,6 +109,12 @@ public sealed class FakeClient : IDiscordClient
 	public Task<IReadOnlyCollection<SKU>> GetSKUsAsync(RequestOptions options = null)
 		=> throw new NotImplementedException();
 
+	public Task<ISubscription> GetSKUSubscriptionAsync(ulong skuId, ulong subscriptionId, RequestOptions options = null)
+		=> throw new NotImplementedException();
+
+	public IAsyncEnumerable<IReadOnlyCollection<ISubscription>> GetSKUSubscriptionsAsync(ulong skuId, int limit = 100, ulong? afterId = null, ulong? beforeId = null, ulong? userId = null, RequestOptions options = null)
+		=> throw new NotImplementedException();
+
 	public Task<IUser> GetUserAsync(ulong id, CacheMode mode = CacheMode.AllowDownload, RequestOptions? options = null)
 		=> throw new NotImplementedException();
 
@@ -104,6 +128,9 @@ public sealed class FakeClient : IDiscordClient
 		=> Task.FromResult<IReadOnlyCollection<IVoiceRegion>>(FakeVoiceRegions);
 
 	public Task<IWebhook> GetWebhookAsync(ulong id, RequestOptions? options = null)
+		=> throw new NotImplementedException();
+
+	public Task<Emote> ModifyApplicationEmoteAsync(ulong emoteId, Action<ApplicationEmoteProperties> args, RequestOptions options = null)
 		=> throw new NotImplementedException();
 
 	public Task StartAsync()

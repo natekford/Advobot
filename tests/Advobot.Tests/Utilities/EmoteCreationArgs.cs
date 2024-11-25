@@ -12,6 +12,7 @@ public sealed class EmoteCreationArgs
 
 	public bool Animated { get; set; }
 	public ulong Id { get; set; } = SnowflakeGenerator.UTCNext();
+	public bool? IsAvailable { get; set; }
 	public bool IsManaged { get; set; }
 	public string Name { get; set; }
 	public bool RequireColons { get; set; }
@@ -29,6 +30,7 @@ public sealed class EmoteCreationArgs
 			RequireColons,
 			RoleIds,
 			UserId,
+			IsAvailable
 		]);
 	}
 }

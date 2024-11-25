@@ -2,6 +2,8 @@
 
 using Discord;
 
+using PermissionUtils = Advobot.Tests.Utilities.PermissionUtils;
+
 namespace Advobot.Tests.Fakes.Discord.Users;
 
 public class FakeGuildUser : FakeUser, IGuildUser
@@ -12,6 +14,7 @@ public class FakeGuildUser : FakeUser, IGuildUser
 	public GuildUserFlags Flags => throw new NotImplementedException();
 	public FakeGuild Guild { get; }
 	public string GuildAvatarId => throw new NotImplementedException();
+	public string GuildBannerHash => throw new NotImplementedException();
 	public ulong GuildId => Guild.Id;
 	public GuildPermissions GuildPermissions => new(PermissionUtils.ResolveGuild(Guild, this));
 	public int Hierarchy => throw new NotImplementedException();
@@ -62,6 +65,9 @@ public class FakeGuildUser : FakeUser, IGuildUser
 		=> throw new NotImplementedException();
 
 	public string GetGuildAvatarUrl(ImageFormat format = ImageFormat.Auto, ushort size = 128)
+		=> throw new NotImplementedException();
+
+	public string GetGuildBannerUrl(ImageFormat format = ImageFormat.Auto, ushort size = 128)
 		=> throw new NotImplementedException();
 
 	public ChannelPermissions GetPermissions(IGuildChannel channel)

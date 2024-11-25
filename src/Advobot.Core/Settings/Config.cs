@@ -57,10 +57,10 @@ public sealed class Config : IConfig
 	static Config()
 	{
 		StaticSettingParserRegistry.Instance.Register(new StaticSettingParser<Config>
-			{
-				new StaticSetting<Config, int>(x => x.PreviousProcessId),
-				new StaticSetting<Config, int>(x => x.Instance),
-			});
+		{
+			new StaticSetting<Config, int>(x => x.PreviousProcessId),
+			new StaticSetting<Config, int>(x => x.Instance),
+		});
 	}
 
 	/// <summary>

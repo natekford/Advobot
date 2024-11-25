@@ -5,11 +5,11 @@
 	</PropertyGroup>
 
 	<ItemGroup>
-		<PackageReference Include="Dapper" Version="2.1.28" />
-		<PackageReference Include="FluentMigrator" Version="5.0.0" />
-		<PackageReference Include="FluentMigrator.Runner" Version="5.0.0" />
-		<PackageReference Include="FluentMigrator.Runner.SQLite" Version="5.0.0" />
-		<PackageReference Include="System.Data.SQLite.Core" Version="1.0.118" />
+		<PackageReference Include="Dapper" Version="2.1.35" />
+		<PackageReference Include="FluentMigrator" Version="6.2.0" />
+		<PackageReference Include="FluentMigrator.Runner" Version="6.2.0" />
+		<PackageReference Include="FluentMigrator.Runner.SQLite" Version="6.2.0" />
+		<PackageReference Include="System.Data.SQLite.Core" Version="1.0.119" />
 	</ItemGroup>
 
 	<ItemGroup>

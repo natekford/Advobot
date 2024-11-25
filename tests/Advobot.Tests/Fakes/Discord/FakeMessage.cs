@@ -14,6 +14,7 @@ public class FakeMessage(FakeMessageChannel channel, FakeUser author, string con
 	public MessageActivity Activity => throw new NotImplementedException();
 	public MessageApplication Application => throw new NotImplementedException();
 	public IReadOnlyCollection<IAttachment> Attachments => throw new NotImplementedException();
+	public MessageCallData? CallData => throw new NotImplementedException();
 	public string CleanContent => throw new NotImplementedException();
 	public IReadOnlyCollection<IMessageComponent> Components => throw new NotImplementedException();
 	public string Content { get; set; } = content;
@@ -30,6 +31,7 @@ public class FakeMessage(FakeMessageChannel channel, FakeUser author, string con
 	public bool MentionedEveryone => throw new NotImplementedException();
 	public IReadOnlyCollection<ulong> MentionedRoleIds => Content.GetMentions(TryParseRole);
 	public IReadOnlyCollection<ulong> MentionedUserIds => Content.GetMentions(TryParseUser);
+	public PurchaseNotification PurchaseNotification => throw new NotImplementedException();
 	public IReadOnlyDictionary<IEmote, ReactionMetadata> Reactions => throw new NotImplementedException();
 	public MessageReference Reference => throw new NotImplementedException();
 	public MessageRoleSubscriptionData RoleSubscriptionData => throw new NotImplementedException();

@@ -129,6 +129,15 @@ public sealed class FakeGuild : FakeSnowflake, IGuild
 	public Task<IGuildUser> AddGuildUserAsync(ulong userId, string accessToken, Action<AddGuildUserProperties>? func = null, RequestOptions? options = null)
 		=> throw new NotImplementedException();
 
+	public Task BanUserAsync(IUser user, uint pruneSeconds = 0, RequestOptions options = null)
+		=> throw new NotImplementedException();
+
+	public Task BanUserAsync(ulong userId, uint pruneSeconds = 0, RequestOptions options = null)
+		=> throw new NotImplementedException();
+
+	public Task<BulkBanResult> BulkBanAsync(IEnumerable<ulong> userIds, int? deleteMessageSeconds = null, RequestOptions options = null)
+		=> throw new NotImplementedException();
+
 	public Task<IReadOnlyCollection<IApplicationCommand>> BulkOverwriteApplicationCommandsAsync(ApplicationCommandProperties[] properties, RequestOptions options = null)
 		=> throw new NotImplementedException();
 
@@ -161,6 +170,9 @@ public sealed class FakeGuild : FakeSnowflake, IGuild
 		=> throw new NotImplementedException();
 
 	public Task<IMediaChannel> CreateMediaChannelAsync(string name, Action<ForumChannelProperties> func = null, RequestOptions options = null)
+		=> throw new NotImplementedException();
+
+	public Task<INewsChannel> CreateNewsChannelAsync(string name, Action<TextChannelProperties> func = null, RequestOptions options = null)
 		=> throw new NotImplementedException();
 
 	public Task<IRole> CreateRoleAsync(string name, GuildPermissions? permissions = null, Color? color = null, bool isHoisted = false, RequestOptions? options = null)
@@ -331,6 +343,9 @@ public sealed class FakeGuild : FakeSnowflake, IGuild
 	public IRole? GetRole(ulong id)
 		=> FakeRoles.SingleOrDefault(x => x.Id == id);
 
+	public Task<IRole> GetRoleAsync(ulong id, RequestOptions options = null)
+		=> throw new NotImplementedException();
+
 	public Task<ITextChannel> GetRulesChannelAsync(CacheMode mode = CacheMode.AllowDownload, RequestOptions? options = null)
 		=> throw new NotImplementedException();
 
@@ -434,5 +449,8 @@ public sealed class FakeGuild : FakeSnowflake, IGuild
 		=> throw new NotImplementedException();
 
 	public Task<IReadOnlyCollection<IGuildUser>> SearchUsersAsync(string query, int limit = 1000, CacheMode mode = CacheMode.AllowDownload, RequestOptions? options = null)
+		=> throw new NotImplementedException();
+
+	public Task<MemberSearchResult> SearchUsersAsyncV2(int limit = 1000, MemberSearchPropertiesV2 args = null, RequestOptions options = null)
 		=> throw new NotImplementedException();
 }

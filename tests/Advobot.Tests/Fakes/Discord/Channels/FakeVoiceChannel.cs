@@ -23,6 +23,9 @@ public sealed class FakeVoiceChannel(FakeGuild guild)
 	public Task<IAudioClient> ConnectAsync(bool selfDeaf = false, bool selfMute = false, bool external = false)
 		=> throw new NotImplementedException();
 
+	public Task<IAudioClient> ConnectAsync(bool selfDeaf = false, bool selfMute = false, bool external = false, bool disconnect = true)
+		=> throw new NotImplementedException();
+
 	public Task<IInviteMetadata> CreateInviteAsync(int? maxAge = 86400, int? maxUses = null, bool isTemporary = false, bool isUnique = false, RequestOptions? options = null)
 	{
 		var invite = new FakeInviteMetadata(this, FakeGuild.FakeCurrentUser)
