@@ -35,7 +35,7 @@ public sealed class SelfRoleStateTypeReader : RoleTypeReader<IRole>
 				$"`{role.Format()}` is not a self assignable role.");
 		}
 
-		IReadOnlyList<IRole> conflicting = Array.Empty<IRole>();
+		IReadOnlyList<IRole> conflicting = [];
 		if (selfRole.GroupId != SelfRole.NO_GROUP)
 		{
 			conflicting = await GetConflictingRoles(db, context, selfRole).CAF();

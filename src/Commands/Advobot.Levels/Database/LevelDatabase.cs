@@ -63,7 +63,7 @@ public sealed class LevelDatabase(IConnectionString<LevelDatabase> conn) : Datab
 			FROM IgnoredChannel
 			WHERE GuildId = @GuildId
 		", param).CAF();
-		return result.ToArray();
+		return [.. result];
 	}
 
 	public async Task<IRank> GetRankAsync(SearchArgs args)
@@ -117,7 +117,7 @@ public sealed class LevelDatabase(IConnectionString<LevelDatabase> conn) : Datab
 			Limit @Limit OFFSET @Offset
 		", param).CAF();
 		var count = await GetDistinctUserCountAsync(args).CAF();
-		return results.Select((x, i) => new Rank(x.UserId, x.Xp, offset + i, count)).ToArray();
+		return [.. results.Select((x, i) => new Rank(x.UserId, x.Xp, offset + i, count))];
 	}
 
 	public async Task<User> GetUserAsync(SearchArgs args)

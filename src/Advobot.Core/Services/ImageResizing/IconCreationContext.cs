@@ -28,12 +28,12 @@ public sealed class IconCreationContext(
 	string type,
 	Func<ICommandContext, MemoryStream, Task> callback) : ImageContextBase(context, url, args ?? new UserProvidedImageArgs())
 {
-	private static readonly ImmutableArray<MagickFormat> _ValidFormats = ImmutableArray.Create(new[]
-	{
+	private static readonly ImmutableArray<MagickFormat> _ValidFormats = ImmutableArray.Create(
+	[
 			MagickFormat.Png,
 			MagickFormat.Jpg,
 			MagickFormat.Jpeg
-		});
+		]);
 
 	private readonly Func<ICommandContext, MemoryStream, Task> _Callback = callback;
 

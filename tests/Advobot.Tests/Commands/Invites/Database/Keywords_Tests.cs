@@ -51,7 +51,7 @@ public sealed class Keywords_Tests
 
 		foreach (var kvp in counts)
 		{
-			var invites = await db.GetInvitesAsync(new[] { kvp.Key }).CAF();
+			var invites = await db.GetInvitesAsync([kvp.Key]).CAF();
 			Assert.AreEqual(kvp.Value.Count, invites.Count);
 		}
 	}

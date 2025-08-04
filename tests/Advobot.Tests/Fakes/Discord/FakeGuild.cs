@@ -155,7 +155,7 @@ public sealed class FakeGuild : FakeSnowflake, IGuild
 		var args = new EmoteCreationArgs
 		{
 			Name = name,
-			RoleIds = roles.GetValueOrDefault(Array.Empty<IRole>()).Select(x => x.Id).ToArray(),
+			RoleIds = [.. roles.GetValueOrDefault([]).Select(x => x.Id)],
 			UserId = FakeCurrentUser.Id,
 		};
 		var emote = args.Build();

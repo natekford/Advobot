@@ -29,18 +29,18 @@ public sealed class SpanitchModule : AutoModModuleBase
 	private IRole[]? _Roles;
 
 	private RequestOptions Options => GetOptions("spanitch");
-	private IRole[] Roles => _Roles ??= new[]
-	{
+	private IRole[] Roles => _Roles ??=
+	[
 		Context.Guild.GetRole(MUTE_ID),
 		Context.Guild.GetRole(SPAN_ID)
-	};
+	];
 
 	[Command]
 	public async Task<RuntimeResult> Command([CanModifyUser] IGuildUser user)
 	{
 		await user.ModifyRolesAsync(
 			rolesToAdd: Roles,
-			rolesToRemove: Array.Empty<IRole>(),
+			rolesToRemove: [],
 			Options
 		).CAF();
 		return AdvobotResult.Success("they have been spanitched");
@@ -73,7 +73,7 @@ public sealed class SpanitchModule : AutoModModuleBase
 	public async Task<RuntimeResult> Unspanitch([CanModifyUser] IGuildUser user)
 	{
 		await user.ModifyRolesAsync(
-			rolesToAdd: Array.Empty<IRole>(),
+			rolesToAdd: [],
 			rolesToRemove: Roles,
 			Options
 		).CAF();

@@ -25,7 +25,7 @@ public class HaremDisplay : PaginatedDisplay
 		IReadOnlyCollection<Claim> claims)
 		: base(db, time, interaction, id, claims.Count, GachaConstants.CharactersPerPage)
 	{
-		_Claims = claims.Select(x => x.CharacterId).ToArray();
+		_Claims = [.. claims.Select(x => x.CharacterId)];
 		_Primary = claims.FirstOrDefault();
 
 		foreach (var marriage in claims)

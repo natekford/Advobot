@@ -45,7 +45,7 @@ public sealed class SelfRoles : ModuleBase
 			}
 
 			await Context.User.ModifyRolesAsync(
-				rolesToAdd: new[] { role.Role },
+				rolesToAdd: [role.Role],
 				rolesToRemove: conflicting,
 				GetOptions("self role giving and removal of conflicts")
 			).CAF();

@@ -93,7 +93,7 @@ public sealed class EmbedWrapper
 	/// Any errors which have happened when building the embed.
 	/// </summary>
 	public IReadOnlyList<EmbedException> Errors
-		=> _Errors.ToImmutableArray();
+		=> [.. _Errors];
 	/// <inheritdoc cref="EmbedBuilder.Fields"/>
 	public List<EmbedFieldBuilder> Fields
 	{

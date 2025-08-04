@@ -44,7 +44,7 @@ public static class AdvobotUtils
 		ulong[] copy;
 		lock (source)
 		{
-			copy = source.ToArray();
+			copy = [.. source];
 		}
 
 		//No timeFrame given means that it's a timed prevention that doesn't check against time

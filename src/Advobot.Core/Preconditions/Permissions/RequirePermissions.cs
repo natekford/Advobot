@@ -38,7 +38,7 @@ public abstract class RequirePermissions : PreconditionAttribute, IPrecondition
 	/// <param name="permissions"></param>
 	protected RequirePermissions(IEnumerable<Enum> permissions)
 	{
-		Permissions = permissions.ToImmutableHashSet();
+		Permissions = [.. permissions];
 		Summary = Permissions.FormatPermissions();
 	}
 

@@ -27,11 +27,11 @@ public abstract class GachaExchangeModuleBase : AdvobotModuleBase
 
 	protected IReadOnlyList<ICriterion<IMessage>> GetUserCriteria(ulong id)
 	{
-		return new ICriterion<IMessage>[]
-		{
+		return
+		[
 				new EnsureSourceChannelCriterion(),
 				new EnsureFromUserCriterion(id),
-		};
+		];
 	}
 
 	protected async Task<RuntimeResult> HandleExchange(User user)

@@ -413,14 +413,14 @@ public sealed class EmbedWrapper_Tests
 			{
 				Text = new('A', EmbedFooterBuilder.MaxFooterTextLength),
 			},
-			Fields = Enumerable.Range(0, 25).Select(_ =>
+			Fields = [.. Enumerable.Range(0, 25).Select(_ =>
 			{
 				return new EmbedFieldBuilder()
 				{
 					Name = new('A', EmbedFieldBuilder.MaxFieldNameLength),
 					Value = new string('A', EmbedFieldBuilder.MaxFieldValueLength),
 				};
-			}).ToList(),
+			})],
 		}));
 	}
 

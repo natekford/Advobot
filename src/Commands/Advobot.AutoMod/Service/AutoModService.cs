@@ -247,7 +247,7 @@ public sealed class AutoModService
 			.Where(x => x != null);
 		await context.User.ModifyRolesAsync(
 			rolesToAdd: roles,
-			rolesToRemove: Array.Empty<IRole>(),
+			rolesToRemove: [],
 			_PersistentRoles
 		).CAF();
 		return true;

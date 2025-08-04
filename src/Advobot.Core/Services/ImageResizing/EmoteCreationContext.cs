@@ -29,20 +29,20 @@ public sealed class EmoteCreationContext(
 	string name) : ImageContextBase(context, url, args)
 {
 	private static readonly ImmutableArray<MagickFormat> _AllValidFormats
-		= _ValidStaticFormats.Concat(_ValidGifFormats).ToImmutableArray();
+		= [.. _ValidStaticFormats, .. _ValidGifFormats];
 
-	private static readonly ImmutableArray<MagickFormat> _ValidGifFormats = new[]
-	{
+	private static readonly ImmutableArray<MagickFormat> _ValidGifFormats =
+	[
 			MagickFormat.Mp4,
 			MagickFormat.Gif,
-		}.ToImmutableArray();
+		];
 
-	private static readonly ImmutableArray<MagickFormat> _ValidStaticFormats = new[]
-					{
+	private static readonly ImmutableArray<MagickFormat> _ValidStaticFormats =
+					[
 			MagickFormat.Png,
 			MagickFormat.Jpg,
 			MagickFormat.Jpeg,
-		}.ToImmutableArray();
+		];
 
 	/// <inheritdoc />
 	public override long MaxAllowedLengthInBytes => 256000;

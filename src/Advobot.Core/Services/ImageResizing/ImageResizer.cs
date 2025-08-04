@@ -81,7 +81,7 @@ internal sealed class ImageResizer(HttpClient client, int threads) : IImageResiz
 
 	/// <inheritdoc />
 	public IEnumerable<IImageContext> GetQueuedArguments()
-		=> _Args.ToArray();
+		=> [.. _Args];
 
 	/// <inheritdoc />
 	public bool IsGuildAlreadyProcessing(ulong guildId)

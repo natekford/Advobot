@@ -117,7 +117,7 @@ public static class OverwriteUtils
 	{
 		if (id.HasValue)
 		{
-			return channel.PermissionOverwrites.Where(x => x.TargetId == id).ToArray();
+			return [.. channel.PermissionOverwrites.Where(x => x.TargetId == id)];
 		}
 		return channel.PermissionOverwrites;
 	}

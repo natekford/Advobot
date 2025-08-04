@@ -17,7 +17,7 @@ public sealed class NumberRange<T> where T : IComparable<T>
 	/// <param name="values"></param>
 	public NumberRange(IEnumerable<T> values)
 	{
-		_Values = values.ToImmutableSortedSet();
+		_Values = [.. values];
 		_IsRange = false;
 	}
 
@@ -33,7 +33,7 @@ public sealed class NumberRange<T> where T : IComparable<T>
 			throw new ArgumentException(nameof(start));
 		}
 
-		_Values = new[] { start, end }.ToImmutableSortedSet();
+		_Values = [start, end];
 		_IsRange = true;
 	}
 

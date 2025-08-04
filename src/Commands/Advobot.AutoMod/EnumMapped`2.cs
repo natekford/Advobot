@@ -9,7 +9,7 @@ public sealed class EnumMapped<TEnum, TValue>
 	where TValue : new()
 {
 	private static readonly TEnum[] _Values
-		= Enum.GetValues(typeof(TEnum)).Cast<TEnum>().ToArray();
+		= [.. Enum.GetValues(typeof(TEnum)).Cast<TEnum>()];
 
 	private readonly Dictionary<TEnum, TValue> _Dict = [];
 

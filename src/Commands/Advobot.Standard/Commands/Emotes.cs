@@ -119,7 +119,7 @@ public sealed class Emotes : ModuleBase
 		{
 			await Context.Guild.ModifyEmoteAsync(emote, x =>
 			{
-				var currentRoles = x.Roles.GetValueOrDefault(Enumerable.Empty<IRole>());
+				var currentRoles = x.Roles.GetValueOrDefault([]);
 				var concat = currentRoles.Concat(roles).Distinct();
 				x.Roles = Optional.Create(concat);
 			}, GetOptions()).CAF();

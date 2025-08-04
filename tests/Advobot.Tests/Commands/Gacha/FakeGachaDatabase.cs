@@ -86,7 +86,7 @@ public sealed class FakeGachaDatabase : IGachaDatabase
 		=> throw new NotImplementedException();
 
 	public Task<IReadOnlyList<Character>> GetCharactersAsync(IEnumerable<long> ids)
-		=> Task.FromResult<IReadOnlyList<Character>>(_Characters.Where(x => ids.Contains(x.CharacterId)).ToArray());
+		=> Task.FromResult<IReadOnlyList<Character>>([.. _Characters.Where(x => ids.Contains(x.CharacterId))]);
 
 	public Task<IReadOnlyList<Character>> GetCharactersAsync(Source source)
 		=> throw new NotImplementedException();
@@ -110,7 +110,7 @@ public sealed class FakeGachaDatabase : IGachaDatabase
 		=> throw new NotImplementedException();
 
 	public Task<IReadOnlyList<Source>> GetSourcesAsync(IEnumerable<long> ids)
-		=> Task.FromResult<IReadOnlyList<Source>>(_Sources.Where(x => ids.Contains(x.SourceId)).ToArray());
+		=> Task.FromResult<IReadOnlyList<Source>>([.. _Sources.Where(x => ids.Contains(x.SourceId))]);
 
 	public Task<Character?> GetUnclaimedCharacter(ulong guildId)
 		=> throw new NotImplementedException();

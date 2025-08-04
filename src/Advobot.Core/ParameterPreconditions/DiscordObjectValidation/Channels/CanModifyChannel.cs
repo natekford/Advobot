@@ -16,10 +16,9 @@ public sealed class CanModifyChannel(params ChannelPermission[] permissions) : A
 	/// <summary>
 	/// The permissions to make sure the invoking user has on the channel.
 	/// </summary>
-	public ImmutableHashSet<ChannelPermission> Permissions { get; } = permissions
+	public ImmutableHashSet<ChannelPermission> Permissions { get; } = [.. permissions
 			.Select(x => x | ChannelPermission.ViewChannel)
-			.DefaultIfEmpty(ChannelPermission.ViewChannel)
-			.ToImmutableHashSet();
+			.DefaultIfEmpty(ChannelPermission.ViewChannel)];
 
 	/// <inheritdoc />
 	public override string Summary => "Can be modified by the bot and invoking user";

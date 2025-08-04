@@ -20,6 +20,6 @@ public class ChannelPositionTypeReader<T> : PositionTypeReader<T> where T : IGui
 		int position)
 	{
 		var channels = await context.Guild.GetChannelsAsync().CAF();
-		return channels.OfType<T>().Where(x => x.Position == position).ToArray();
+		return [.. channels.OfType<T>().Where(x => x.Position == position)];
 	}
 }

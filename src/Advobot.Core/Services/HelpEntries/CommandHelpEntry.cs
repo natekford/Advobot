@@ -19,10 +19,9 @@ internal sealed class CommandHelpEntry(CommandInfo command) : ICommandHelpEntry
 			.Where(x => !x.Attributes.Any(a => a is HiddenAttribute))
 			.Select(x => new ParameterHelpEntry(x))
 			.ToImmutableArray();
-	public IReadOnlyList<IPrecondition> Preconditions { get; } = command.Preconditions
+	public IReadOnlyList<IPrecondition> Preconditions { get; } = [.. command.Preconditions
 			.Concat(command.Module.Preconditions)
-			.OfType<IPrecondition>()
-			.ToImmutableArray();
+			.OfType<IPrecondition>()];
 	public string Summary { get; } = command.Summary;
 	private string DebuggerDisplay => $"{Name} ({Parameters.Count})";
 }

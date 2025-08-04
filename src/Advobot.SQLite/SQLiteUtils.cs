@@ -66,7 +66,7 @@ public static class SQLiteUtils
 			WHERE type='table'
 			ORDER BY name;
 		").CAF();
-		return result.ToArray();
+		return [.. result];
 	}
 
 	/// <summary>

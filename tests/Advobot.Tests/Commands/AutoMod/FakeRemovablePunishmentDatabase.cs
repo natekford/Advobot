@@ -15,14 +15,14 @@ public sealed class FakeRemovablePunishmentDatabase : IRemovablePunishmentDataba
 	public Task<int> AddRemovablePunishmentAsync(RemovablePunishment punishment)
 	{
 		_Punishments.AddOrUpdate(new Key(punishment), punishment, (_, _) => punishment);
-		PunishmentsModified?.Invoke(true, new[] { punishment });
+		PunishmentsModified?.Invoke(true, [punishment]);
 		return Task.FromResult(1);
 	}
 
 	public Task<int> DeleteRemovablePunishmentAsync(RemovablePunishment punishment)
 	{
 		var existed = _Punishments.TryRemove(new Key(punishment), out _);
-		PunishmentsModified?.Invoke(false, new[] { punishment });
+		PunishmentsModified?.Invoke(false, [punishment]);
 		return Task.FromResult(existed ? 1 : 0);
 	}
 

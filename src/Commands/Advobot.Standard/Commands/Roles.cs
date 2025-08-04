@@ -137,7 +137,7 @@ public sealed class Roles : ModuleBase
 		{
 			await user.ModifyRolesAsync(
 				rolesToAdd: roles,
-				rolesToRemove: Array.Empty<IRole>(),
+				rolesToRemove: [],
 				GetOptions()
 			).CAF();
 			return Gave(roles, user);
@@ -308,7 +308,7 @@ public sealed class Roles : ModuleBase
 			params IRole[] roles)
 		{
 			await user.ModifyRolesAsync(
-				rolesToAdd: Array.Empty<IRole>(),
+				rolesToAdd: [],
 				rolesToRemove: roles,
 				GetOptions()
 			).CAF();

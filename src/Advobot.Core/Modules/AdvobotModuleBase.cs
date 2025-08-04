@@ -105,7 +105,7 @@ public abstract class AdvobotModuleBase : ModuleBase<AdvobotCommandContext>
 			token.Register(() => cancelTrigger.SetResult(true));
 		}
 
-		var criteria = options?.Criteria ?? Array.Empty<ICriterion<IMessage>>();
+		var criteria = options?.Criteria ?? [];
 		async Task Handler(IMessage message)
 		{
 			foreach (var criterion in criteria)

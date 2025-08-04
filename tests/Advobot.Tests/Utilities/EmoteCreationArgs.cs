@@ -16,7 +16,7 @@ public sealed class EmoteCreationArgs
 	public bool IsManaged { get; set; }
 	public string Name { get; set; }
 	public bool RequireColons { get; set; }
-	public IReadOnlyList<ulong> RoleIds { get; set; } = Array.Empty<ulong>();
+	public IReadOnlyList<ulong> RoleIds { get; set; } = [];
 	public ulong? UserId { get; set; }
 
 	public GuildEmote Build()

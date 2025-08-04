@@ -143,7 +143,7 @@ public sealed class LevelService : ILevelService
 		private readonly ConcurrentQueue<MessageHash> _Messages = new();
 		private readonly ITime _Time = time;
 
-		public IReadOnlyList<MessageHash> Messages => _Messages.ToArray();
+		public IReadOnlyList<MessageHash> Messages => [.. _Messages];
 		public DateTimeOffset Time { get; private set; } = DateTimeOffset.MinValue;
 
 		public bool TryAdd(IUserMessage message, ITextChannel channel, int xp)

@@ -177,7 +177,7 @@ public sealed class Rules : ModuleBase
 				Position = ruleA.Position,
 			};
 
-			await Db.UpsertRulesAsync(new[] { copyA, copyB }).CAF();
+			await Db.UpsertRulesAsync([copyA, copyB]).CAF();
 			return SwappedRules(ruleA, ruleB);
 		}
 	}

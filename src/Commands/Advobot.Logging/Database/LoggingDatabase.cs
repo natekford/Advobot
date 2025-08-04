@@ -78,7 +78,7 @@ public sealed class LoggingDatabase(IConnectionString<LoggingDatabase> conn) : D
 				FROM IgnoredChannel
 				WHERE GuildId = @GuildId
 			", param).CAF();
-		return result.Select(ulong.Parse).ToArray();
+		return [.. result.Select(ulong.Parse)];
 	}
 
 	public async Task<IReadOnlyList<LogAction>> GetLogActionsAsync(ulong guildId)
@@ -91,7 +91,7 @@ public sealed class LoggingDatabase(IConnectionString<LoggingDatabase> conn) : D
 				FROM LogAction
 				WHERE GuildId = @GuildId
 			", param).CAF();
-		return result.SelectWhere(x => x != null, Enum.Parse<LogAction>).ToArray();
+		return [.. result.SelectWhere(x => x != null, Enum.Parse<LogAction>)];
 	}
 
 	public async Task<LogChannels> GetLogChannelsAsync(ulong guildId)

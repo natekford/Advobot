@@ -53,5 +53,5 @@ public sealed class CommandAssemblyAttribute(params string[] supportedCultures) 
 	/// <summary>
 	/// The cultures this command assembly supports.
 	/// </summary>
-	public IReadOnlyList<CultureInfo> SupportedCultures { get; } = supportedCultures.Select(CultureInfo.GetCultureInfo).ToImmutableArray();
+	public IReadOnlyList<CultureInfo> SupportedCultures { get; } = [.. supportedCultures.Select(CultureInfo.GetCultureInfo)];
 }

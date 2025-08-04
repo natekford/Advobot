@@ -290,7 +290,7 @@ public sealed class AutoModCRUD_Tests
 
 		async Task AssertEqualAsync()
 		{
-			await db.UpsertSelfRolesAsync(new[] { selfRole }).CAF();
+			await db.UpsertSelfRolesAsync([selfRole]).CAF();
 
 			var retrieved = await db!.GetSelfRoleAsync(selfRole.RoleId).CAF();
 			if (retrieved is null)
@@ -312,8 +312,8 @@ public sealed class AutoModCRUD_Tests
 
 		await AssertEqualAsync().CAF();
 
-		await db.UpsertSelfRolesAsync(new[]
-		{
+		await db.UpsertSelfRolesAsync(
+		[
 				selfRole with
 				{
 					RoleId = 4,
@@ -322,7 +322,7 @@ public sealed class AutoModCRUD_Tests
 				{
 					RoleId = 5,
 				},
-			}).CAF();
+			]).CAF();
 
 		var ret = await db.GetSelfRolesAsync(Context.Guild.Id).CAF();
 		Assert.AreEqual(3, ret.Count);

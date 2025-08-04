@@ -83,11 +83,10 @@ public static class DiscordUtils
 	/// <returns></returns>
 	public static IReadOnlyList<IRole> GetRoles(this IGuildUser user)
 	{
-		return user.RoleIds
+		return [.. user.RoleIds
 			.Select(x => user.Guild.GetRole(x))
 			.Where(x => x.Id != user.Guild.EveryoneRole.Id)
-			.OrderBy(x => x.Position)
-			.ToList();
+			.OrderBy(x => x.Position)];
 	}
 
 	/// <summary>
@@ -212,9 +211,8 @@ public static class DiscordUtils
 	/// <returns></returns>
 	public static IReadOnlyList<T> OrderByJoinDate<T>(this IEnumerable<T> users) where T : IGuildUser
 	{
-		return users
+		return [.. users
 			.Where(x => x.JoinedAt.HasValue)
-			.OrderBy(x => x.JoinedAt.GetValueOrDefault().Ticks)
-			.ToArray();
+			.OrderBy(x => x.JoinedAt.GetValueOrDefault().Ticks)];
 	}
 }

@@ -16,6 +16,7 @@ public class FakeUser : FakeSnowflake, IUser
 	public bool IsBot { get; set; }
 	public bool IsWebhook { get; set; }
 	public string Mention => MentionUtils.MentionUser(Id);
+	public PrimaryGuild? PrimaryGuild => throw new NotImplementedException();
 	public UserProperties? PublicFlags => throw new NotImplementedException();
 	public UserStatus Status => throw new NotImplementedException();
 	public string Username { get; set; } = "Fake User";

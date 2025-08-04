@@ -47,7 +47,7 @@ public sealed class FakeInviteListService(ITime time) : IInviteListService
 	}
 
 	public Task<IReadOnlyList<ListedInvite>> GetAllAsync()
-		=> Task.FromResult<IReadOnlyList<ListedInvite>>(_Invites.Values.ToArray());
+		=> Task.FromResult<IReadOnlyList<ListedInvite>>([.. _Invites.Values]);
 
 	public Task<IReadOnlyList<ListedInvite>> GetAllAsync(IEnumerable<string> keywords)
 		=> throw new NotImplementedException();

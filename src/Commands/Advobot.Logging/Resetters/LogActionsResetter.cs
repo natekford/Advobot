@@ -15,14 +15,14 @@ public sealed class LogActionsResetter(ILoggingDatabase db) : IResetter
 	public static IReadOnlyList<LogAction> All { get; }
 		= AdvobotUtils.GetValues<LogAction>();
 
-	public static IReadOnlyList<LogAction> Default { get; } = new[]
-	{
+	public static IReadOnlyList<LogAction> Default { get; } =
+	[
 			LogAction.UserJoined,
 			LogAction.UserLeft,
 			LogAction.MessageReceived,
 			LogAction.MessageUpdated,
 			LogAction.MessageDeleted
-		};
+		];
 
 	public async Task ResetAsync(ICommandContext context)
 	{

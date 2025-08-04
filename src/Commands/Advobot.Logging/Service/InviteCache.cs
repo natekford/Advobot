@@ -102,7 +102,7 @@ public sealed class InviteCache
 				return null;
 			}
 		}
-		return Array.Empty<IInviteMetadata>();
+		return [];
 	}
 
 	private string UpdateCachedInvite(IInviteMetadata invite)

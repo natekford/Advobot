@@ -56,11 +56,11 @@ public sealed class Config : IConfig
 
 	static Config()
 	{
-		StaticSettingParserRegistry.Instance.Register(new StaticSettingParser<Config>
-		{
+		StaticSettingParserRegistry.Instance.Register(
+		[
 			new StaticSetting<Config, int>(x => x.PreviousProcessId),
 			new StaticSetting<Config, int>(x => x.Instance),
-		});
+		]);
 	}
 
 	/// <summary>
@@ -69,7 +69,7 @@ public sealed class Config : IConfig
 	/// <returns></returns>
 	public static Config Load(string[] args)
 	{
-		var parseArgs = new ParseArgs(args, new[] { '"' }, new[] { '"' });
+		var parseArgs = new ParseArgs(args, ['"'], ['"']);
 		var instance = -1;
 		new SettingParser { new Setting<int>(() => instance), }.Parse(parseArgs);
 

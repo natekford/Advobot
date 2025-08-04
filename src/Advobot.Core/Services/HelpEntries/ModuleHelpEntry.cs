@@ -32,8 +32,8 @@ internal sealed class ModuleHelpEntry : IModuleHelpEntry
 		Name = module.Name?.ToLower() ?? throw new ArgumentNullException(nameof(Name));
 		Summary = module.Summary ?? throw new ArgumentNullException(nameof(Summary));
 
-		Aliases = module.Aliases.Select(x => x.ToLower()).ToImmutableArray();
-		Preconditions = module.Preconditions.OfType<IPrecondition>().ToImmutableArray();
+		Aliases = [.. module.Aliases.Select(x => x.ToLower())];
+		Preconditions = [.. module.Preconditions.OfType<IPrecondition>()];
 		Commands = module
 			.Commands
 			.Where(x => !x.Attributes.Any(a => a is HiddenAttribute))

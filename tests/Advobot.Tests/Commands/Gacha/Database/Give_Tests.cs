@@ -45,7 +45,7 @@ public sealed class Give_Tests
 
 		var givenCharacter = userChars[1][0];
 		var trade = new Trade(users[0], givenCharacter);
-		var modifiedClaims = await db.TradeAsync(new[] { trade }).CAF();
+		var modifiedClaims = await db.TradeAsync([trade]).CAF();
 		Assert.AreEqual(1, modifiedClaims);
 
 		var newClaim = await db.GetClaimAsync(users[0], givenCharacter).CAF();

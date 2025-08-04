@@ -83,7 +83,7 @@ public abstract class DatabaseBase<T> where T : DbConnection, new()
 	{
 		using var connection = await GetConnectionAsync().CAF();
 		var result = await connection.QueryAsync<TRet>(sql, param).CAF();
-		return result.ToArray();
+		return [.. result];
 	}
 
 	/// <summary>

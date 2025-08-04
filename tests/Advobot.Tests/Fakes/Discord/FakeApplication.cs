@@ -7,6 +7,7 @@ namespace Advobot.Tests.Fakes.Discord;
 public sealed class FakeApplication : FakeSnowflake, IApplication
 {
 	public int? ApproximateGuildCount => throw new NotImplementedException();
+	public int? ApproximateUserAuthorizationCount => throw new NotImplementedException();
 	public int? ApproximateUserInstallCount => throw new NotImplementedException();
 	public bool BotRequiresCodeGrant { get; set; }
 	public string CustomInstallUrl => throw new NotImplementedException();
@@ -32,10 +33,10 @@ public sealed class FakeApplication : FakeSnowflake, IApplication
 	public string PrivacyPolicy { get; set; }
 	public IReadOnlyCollection<string> RedirectUris => throw new NotImplementedException();
 	public string RoleConnectionsVerificationUrl => throw new NotImplementedException();
-	public IReadOnlyCollection<string> RPCOrigins { get; set; } = Array.Empty<string>();
+	public IReadOnlyCollection<string> RPCOrigins { get; set; } = [];
 	public ApplicationRpcState RpcState => throw new NotImplementedException();
 	public ApplicationStoreState StoreState => throw new NotImplementedException();
-	public IReadOnlyCollection<string> Tags { get; set; } = Array.Empty<string>();
+	public IReadOnlyCollection<string> Tags { get; set; } = [];
 	public ITeam Team { get; set; }
 	public string TermsOfService { get; set; }
 	public ApplicationVerificationState VerificationState => throw new NotImplementedException();

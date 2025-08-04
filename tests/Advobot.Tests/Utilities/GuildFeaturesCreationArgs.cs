@@ -10,7 +10,7 @@ public sealed class GuildFeaturesCreationArgs
 		.GetConstructors(BindingFlags.Instance | BindingFlags.NonPublic)
 		.Single();
 
-	public IReadOnlyCollection<string> Experimental { get; set; } = Array.Empty<string>();
+	public IReadOnlyCollection<string> Experimental { get; set; } = [];
 	public GuildFeature Value { get; set; }
 
 	public GuildFeatures Build()
