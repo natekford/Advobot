@@ -1,13 +1,10 @@
-﻿using Advobot.AutoMod;
-using Advobot.AutoMod.Database;
+﻿using Advobot.AutoMod.Database;
 using Advobot.AutoMod.Models;
 using Advobot.Punishments;
 using Advobot.Tests.Fakes.Database;
 using Advobot.Tests.TestBases;
 
 using AdvorangesUtils;
-
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace Advobot.Tests.Commands.AutoMod.Database;
 
@@ -100,7 +97,7 @@ public sealed class AutoModCRUD_Tests
 		};
 		await db.UpsertBannedPhraseAsync(phrase).CAF();
 		var retrieved = await db.GetBannedNamesAsync(GUILD_ID).CAF();
-		Assert.AreEqual(2, retrieved.Count);
+		Assert.HasCount(2, retrieved);
 	}
 
 	[TestMethod]
@@ -147,7 +144,7 @@ public sealed class AutoModCRUD_Tests
 		};
 		await db.UpsertBannedPhraseAsync(phrase).CAF();
 		var retrieved = await db.GetBannedPhrasesAsync(GUILD_ID).CAF();
-		Assert.AreEqual(2, retrieved.Count);
+		Assert.HasCount(2, retrieved);
 	}
 
 	[TestMethod]
@@ -199,12 +196,12 @@ public sealed class AutoModCRUD_Tests
 		var list = new List<PersistentRole>();
 		{
 			var retrieved = await db.GetPersistentRolesAsync(role.GuildId, role.UserId).CAF();
-			Assert.AreEqual(1, retrieved.Count);
+			Assert.HasCount(1, retrieved);
 			list.AddRange(retrieved);
 		}
 		{
 			var retrieved = await db.GetPersistentRolesAsync(role.GuildId).CAF();
-			Assert.AreEqual(1, retrieved.Count);
+			Assert.HasCount(1, retrieved);
 			list.AddRange(retrieved);
 		}
 
@@ -218,62 +215,7 @@ public sealed class AutoModCRUD_Tests
 
 		await db.DeletePersistentRoleAsync(list[0]).CAF();
 		var empty = await db.GetPersistentRolesAsync(role.GuildId).CAF();
-		Assert.AreEqual(0, empty.Count);
-	}
-
-	[TestMethod]
-	public async Task RaidPreventionCRUD_Test()
-	{
-		var db = await GetDatabaseAsync().CAF();
-
-		var prevention = new RaidPrevention
-		{
-			GuildId = GUILD_ID,
-			Enabled = true,
-			Instances = 73,
-			IntervalTicks = 999999999,
-			LengthTicks = 88888888,
-			PunishmentType = PunishmentType.Kick,
-			RoleId = ROLE_ID,
-			Size = 24,
-			RaidType = RaidType.Regular,
-		};
-
-		async Task AssertEqualAsync()
-		{
-			await db.UpsertRaidPreventionAsync(prevention).CAF();
-
-			var retrieved = await db!.GetRaidPreventionAsync(prevention.GuildId, prevention.RaidType).CAF();
-			if (retrieved is null)
-			{
-				Assert.IsNotNull(retrieved);
-				return;
-			}
-			Assert.AreEqual(prevention.GuildId, retrieved.GuildId);
-			Assert.AreEqual(prevention.Enabled, retrieved.Enabled);
-			Assert.AreEqual(prevention.Instances, retrieved.Instances);
-			Assert.AreEqual(prevention.Interval, retrieved.Interval);
-			Assert.AreEqual(prevention.Length, retrieved.Length);
-			Assert.AreEqual(prevention.PunishmentType, retrieved.PunishmentType);
-			Assert.AreEqual(prevention.RoleId, retrieved.RoleId);
-			Assert.AreEqual(prevention.Size, retrieved.Size);
-			Assert.AreEqual(prevention.RaidType, retrieved.RaidType);
-		}
-
-		await AssertEqualAsync().CAF();
-
-		prevention = prevention with
-		{
-			Enabled = false,
-			Instances = 24,
-			IntervalTicks = 2341234444,
-			LengthTicks = 28888883838383,
-			PunishmentType = PunishmentType.Ban,
-			RoleId = 87,
-			Size = 42,
-		};
-
-		await AssertEqualAsync().CAF();
+		Assert.IsEmpty(empty);
 	}
 
 	[TestMethod]
@@ -314,76 +256,21 @@ public sealed class AutoModCRUD_Tests
 
 		await db.UpsertSelfRolesAsync(
 		[
-				selfRole with
-				{
-					RoleId = 4,
-				},
-				selfRole with
-				{
-					RoleId = 5,
-				},
-			]).CAF();
+			selfRole with
+			{
+				RoleId = 4,
+			},
+			selfRole with
+			{
+				RoleId = 5,
+			},
+		]).CAF();
 
 		var ret = await db.GetSelfRolesAsync(Context.Guild.Id).CAF();
-		Assert.AreEqual(3, ret.Count);
+		Assert.HasCount(3, ret);
 
 		await db.DeleteSelfRolesGroupAsync(Context.Guild.Id, selfRole.GroupId).CAF();
 		var ret2 = await db.GetSelfRolesAsync(Context.Guild.Id).CAF();
-		Assert.AreEqual(0, ret2.Count);
-	}
-
-	[TestMethod]
-	public async Task SpamPreventionCRUD_Test()
-	{
-		var db = await GetDatabaseAsync().CAF();
-
-		var prevention = new SpamPrevention
-		{
-			GuildId = GUILD_ID,
-			Enabled = true,
-			Instances = 73,
-			IntervalTicks = 999999999,
-			LengthTicks = 88888888,
-			PunishmentType = PunishmentType.Kick,
-			RoleId = ROLE_ID,
-			Size = 24,
-			SpamType = SpamType.Image,
-		};
-
-		async Task AssertEqualAsync()
-		{
-			await db.UpsertSpamPreventionAsync(prevention).CAF();
-
-			var retrieved = await db!.GetSpamPreventionAsync(prevention.GuildId, prevention.SpamType).CAF();
-			if (retrieved is null)
-			{
-				Assert.IsNotNull(retrieved);
-				return;
-			}
-			Assert.AreEqual(prevention.GuildId, retrieved.GuildId);
-			Assert.AreEqual(prevention.Enabled, retrieved.Enabled);
-			Assert.AreEqual(prevention.Instances, retrieved.Instances);
-			Assert.AreEqual(prevention.Interval, retrieved.Interval);
-			Assert.AreEqual(prevention.Length, retrieved.Length);
-			Assert.AreEqual(prevention.PunishmentType, retrieved.PunishmentType);
-			Assert.AreEqual(prevention.RoleId, retrieved.RoleId);
-			Assert.AreEqual(prevention.Size, retrieved.Size);
-			Assert.AreEqual(prevention.SpamType, retrieved.SpamType);
-		}
-
-		await AssertEqualAsync().CAF();
-
-		prevention = prevention with
-		{
-			Enabled = false,
-			Instances = 24,
-			IntervalTicks = 2341234444,
-			LengthTicks = 28888883838383,
-			PunishmentType = PunishmentType.Ban,
-			RoleId = 87,
-			Size = 42,
-		};
-
-		await AssertEqualAsync().CAF();
+		Assert.IsEmpty(ret2);
 	}
 }

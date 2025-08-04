@@ -35,7 +35,7 @@ public static class ClientUtils
 		Process.Start(new ProcessStartInfo
 		{
 			FileName = "dotnet",
-			Arguments = $@"""{Assembly.GetEntryAssembly().Location}"" {restartArgs.RestartArguments}"
+			Arguments = $@"""{Assembly.GetEntryAssembly()!.Location}"" {restartArgs.RestartArguments}"
 		});
 		Process.GetCurrentProcess().Kill();
 	}

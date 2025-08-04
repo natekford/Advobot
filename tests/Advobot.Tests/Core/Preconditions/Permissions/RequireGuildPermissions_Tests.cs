@@ -6,8 +6,6 @@ using AdvorangesUtils;
 
 using Discord;
 
-using Microsoft.VisualStudio.TestTools.UnitTesting;
-
 namespace Advobot.Tests.Core.Preconditions.Permissions;
 
 [TestClass]
@@ -42,12 +40,12 @@ public sealed class RequireGuildPermissions_Tests
 	[DataRow(GuildPermission.ManageMessages)]
 	[DataRow(GuildPermission.ManageRoles)]
 	[DataRow(GuildPermission.KickMembers | GuildPermission.ManageMessages)]
-	[DataTestMethod]
-	public async Task InvalidPermissions_Test(ulong permission)
+	[TestMethod]
+	public async Task InvalidPermissions_Test(GuildPermission permission)
 	{
 		var role = new FakeRole(Context.Guild)
 		{
-			Permissions = new(permission),
+			Permissions = new((ulong)permission),
 		};
 		await Context.User.AddRoleAsync(role).CAF();
 		await Context.Guild.FakeCurrentUser.AddRoleAsync(role).CAF();
@@ -62,12 +60,12 @@ public sealed class RequireGuildPermissions_Tests
 	[DataRow(FLAGS3)]
 	[DataRow(FLAGS1 | GuildPermission.ManageEmojisAndStickers)]
 	[DataRow(FLAGS1 | FLAGS2 | FLAGS3)]
-	[DataTestMethod]
-	public async Task ValidPermissions_Test(ulong permission)
+	[TestMethod]
+	public async Task ValidPermissions_Test(GuildPermission permission)
 	{
 		var role = new FakeRole(Context.Guild)
 		{
-			Permissions = new(permission),
+			Permissions = new((ulong)permission),
 		};
 		await Context.User.AddRoleAsync(role).CAF();
 		await Context.Guild.FakeCurrentUser.AddRoleAsync(role).CAF();

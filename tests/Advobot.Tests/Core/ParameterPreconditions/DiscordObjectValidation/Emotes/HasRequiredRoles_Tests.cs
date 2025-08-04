@@ -6,8 +6,6 @@ using AdvorangesUtils;
 
 using Discord;
 
-using Microsoft.VisualStudio.TestTools.UnitTesting;
-
 namespace Advobot.Tests.Core.ParameterPreconditions.DiscordObjectValidation.Emotes;
 
 [TestClass]
@@ -17,7 +15,9 @@ public sealed class HasRequiredRoles_Tests : ParameterPrecondition_Tests<HasRequ
 	{
 		Id = 73UL,
 		Name = "emote name",
+#pragma warning disable IDE0028 // Simplify collection initialization
 		RoleIds = new List<ulong>(),
+#pragma warning restore IDE0028 // Simplify collection initialization
 	}.Build();
 
 	protected override HasRequiredRoles Instance { get; } = new();

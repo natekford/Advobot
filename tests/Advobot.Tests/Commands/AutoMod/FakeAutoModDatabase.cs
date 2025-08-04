@@ -1,5 +1,4 @@
-﻿using Advobot.AutoMod;
-using Advobot.AutoMod.Database;
+﻿using Advobot.AutoMod.Database;
 using Advobot.AutoMod.Models;
 
 using System.Collections.Concurrent;
@@ -83,12 +82,6 @@ public sealed class FakeAutoModDatabase : IAutoModDatabase
 	public Task<IReadOnlyList<Punishment>> GetPunishmentsAsync(ulong guildId)
 		=> throw new NotImplementedException();
 
-	public Task<IReadOnlyList<RaidPrevention>> GetRaidPreventionAsync(ulong guildId)
-		=> throw new NotImplementedException();
-
-	public Task<RaidPrevention?> GetRaidPreventionAsync(ulong guildId, RaidType raidType)
-		=> throw new NotImplementedException();
-
 	public Task<SelfRole?> GetSelfRoleAsync(ulong roleId)
 	{
 		_ = _SelfRoles.TryGetValue(roleId, out var item);
@@ -113,12 +106,6 @@ public sealed class FakeAutoModDatabase : IAutoModDatabase
 		return Task.FromResult<IReadOnlyList<SelfRole>>(list);
 	}
 
-	public Task<IReadOnlyList<SpamPrevention>> GetSpamPreventionAsync(ulong guildId)
-		=> throw new NotImplementedException();
-
-	public Task<SpamPrevention?> GetSpamPreventionAsync(ulong guildId, SpamType spamType)
-		=> throw new NotImplementedException();
-
 	public Task<int> UpsertAutoModSettingsAsync(AutoModSettings settings)
 		=> throw new NotImplementedException();
 
@@ -129,9 +116,6 @@ public sealed class FakeAutoModDatabase : IAutoModDatabase
 	}
 
 	public Task<int> UpsertChannelSettings(ChannelSettings settings)
-		=> throw new NotImplementedException();
-
-	public Task<int> UpsertRaidPreventionAsync(RaidPrevention prevention)
 		=> throw new NotImplementedException();
 
 	public Task<int> UpsertSelfRolesAsync(IEnumerable<SelfRole> roles)
@@ -151,7 +135,4 @@ public sealed class FakeAutoModDatabase : IAutoModDatabase
 		}
 		return Task.FromResult(updates.Count);
 	}
-
-	public Task<int> UpsertSpamPreventionAsync(SpamPrevention prevention)
-		=> throw new NotImplementedException();
 }

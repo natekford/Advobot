@@ -1,7 +1,5 @@
 ﻿using Advobot.AutoMod.ParameterPreconditions;
 
-using Microsoft.VisualStudio.TestTools.UnitTesting;
-
 namespace Advobot.Tests.Commands.AutoMod.ParameterPreconditions;
 
 [TestClass]

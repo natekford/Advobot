@@ -22,5 +22,5 @@ public readonly struct CommandAssembly(Assembly assembly, CommandAssemblyAttribu
 	/// The cultures this command assembly supports.
 	/// </summary>
 	public IReadOnlyList<CultureInfo> SupportedCultures { get; } = attribute.SupportedCultures;
-	private string DebuggerDisplay => Assembly.GetName().Name;
+	private string DebuggerDisplay => Assembly.GetName()?.Name ?? "null";
 }

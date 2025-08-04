@@ -45,6 +45,10 @@ public sealed class CommandAssemblyCollection
 			return;
 		}
 		var name = assembly.FullName;
+		if (name is null)
+		{
+			throw new InvalidOperationException("Assembly name is null.");
+		}
 		if (_Assemblies.TryGetValue(name, out _))
 		{
 			throw new InvalidOperationException($"Duplicate assembly name: {name}");

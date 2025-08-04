@@ -74,7 +74,9 @@ public sealed class LoggingService
 				_Logger.LogInformation(id, e, msg);
 				break;
 
-			case LogSeverity.Warning:
+			// Gateway reconnects have a warning severity, but all they do is
+			// spam the console
+			case LogSeverity.Warning when e is not GatewayReconnectException:
 				_Logger.LogWarning(id, e, msg);
 				break;
 

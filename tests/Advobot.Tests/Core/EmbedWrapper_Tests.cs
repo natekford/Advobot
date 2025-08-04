@@ -2,8 +2,6 @@
 
 using Discord;
 
-using Microsoft.VisualStudio.TestTools.UnitTesting;
-
 namespace Advobot.Tests.Core;
 
 [TestClass]
@@ -23,14 +21,14 @@ public sealed class EmbedWrapper_Tests
 		{
 			var success = embed.TryAddAuthor(NEW, INVALID_URL, null, out var errors);
 			Assert.IsFalse(success);
-			Assert.AreEqual(1, errors.Count);
+			Assert.HasCount(1, errors);
 			Assert.AreEqual(INITIAL, embed.Author?.Name);
 			Assert.IsNull(embed.Author?.IconUrl);
 			Assert.IsNull(embed.Author?.Url);
 		});
 		RunAuthorTest(embed =>
 		{
-			Assert.ThrowsException<ArgumentException>(() =>
+			Assert.ThrowsExactly<ArgumentException>(() =>
 			{
 				embed.Author = new()
 				{
@@ -61,14 +59,14 @@ public sealed class EmbedWrapper_Tests
 		{
 			var success = embed.TryAddAuthor(LONG, VALID_URL, VALID_URL, out var errors);
 			Assert.IsFalse(success);
-			Assert.AreEqual(2, errors.Count);
+			Assert.HasCount(2, errors);
 			Assert.AreEqual(INITIAL, embed.Author?.Name);
 			Assert.IsNull(embed.Author?.IconUrl);
 			Assert.IsNull(embed.Author?.Url);
 		});
 		RunAuthorTest(embed =>
 		{
-			Assert.ThrowsException<ArgumentException>(() =>
+			Assert.ThrowsExactly<ArgumentException>(() =>
 			{
 				embed.Author = new()
 				{
@@ -88,14 +86,14 @@ public sealed class EmbedWrapper_Tests
 		{
 			var success = embed.TryAddAuthor(LONG, null, null, out var errors);
 			Assert.IsFalse(success);
-			Assert.AreEqual(2, errors.Count);
+			Assert.HasCount(2, errors);
 			Assert.AreEqual(INITIAL, embed.Author?.Name);
 			Assert.IsNull(embed.Author?.IconUrl);
 			Assert.IsNull(embed.Author?.Url);
 		});
 		RunAuthorTest(embed =>
 		{
-			Assert.ThrowsException<ArgumentException>(() =>
+			Assert.ThrowsExactly<ArgumentException>(() =>
 			{
 				embed.Author = new()
 				{
@@ -115,7 +113,7 @@ public sealed class EmbedWrapper_Tests
 		{
 			var success = embed.TryAddAuthor(NEW, VALID_URL, null, out var errors);
 			Assert.IsTrue(success);
-			Assert.AreEqual(0, errors.Count);
+			Assert.IsEmpty(errors);
 			Assert.AreEqual(NEW, embed.Author?.Name);
 			Assert.AreEqual(VALID_URL, embed.Author?.Url);
 			Assert.IsNull(embed.Author?.IconUrl);
@@ -140,12 +138,12 @@ public sealed class EmbedWrapper_Tests
 		{
 			var success = embed.TryAddDescription(INITIAL, out var errors);
 			Assert.IsFalse(success);
-			Assert.AreEqual(1, errors.Count);
+			Assert.HasCount(1, errors);
 			Assert.AreEqual(EmbedBuilder.MaxDescriptionLength, embed.Description?.Length);
 		});
 		RunFilledTest(embed =>
 		{
-			Assert.ThrowsException<ArgumentException>(
+			Assert.ThrowsExactly<ArgumentException>(
 				() => embed.Description = NEW
 			);
 			Assert.AreEqual(EmbedBuilder.MaxDescriptionLength, embed.Description?.Length);
@@ -159,12 +157,12 @@ public sealed class EmbedWrapper_Tests
 		{
 			var success = embed.TryAddDescription(LONG, out var errors);
 			Assert.IsFalse(success);
-			Assert.AreEqual(2, errors.Count);
+			Assert.HasCount(2, errors);
 			Assert.AreEqual(INITIAL, embed.Description);
 		});
 		RunDescriptionTest(embed =>
 		{
-			Assert.ThrowsException<ArgumentException>(
+			Assert.ThrowsExactly<ArgumentException>(
 				() => embed.Description = LONG
 			);
 			Assert.AreEqual(INITIAL, embed.Description);
@@ -178,12 +176,12 @@ public sealed class EmbedWrapper_Tests
 		{
 			var success = embed.TryAddDescription(LONG + LINES, out var errors);
 			Assert.IsFalse(success);
-			Assert.AreEqual(3, errors.Count);
+			Assert.HasCount(3, errors);
 			Assert.AreEqual(INITIAL, embed.Description);
 		});
 		RunDescriptionTest(embed =>
 		{
-			Assert.ThrowsException<ArgumentException>(
+			Assert.ThrowsExactly<ArgumentException>(
 				() => embed.Description = LONG + LINES
 			);
 			Assert.AreEqual(INITIAL, embed.Description);
@@ -197,12 +195,12 @@ public sealed class EmbedWrapper_Tests
 		{
 			var success = embed.TryAddDescription(LINES, out var errors);
 			Assert.IsFalse(success);
-			Assert.AreEqual(1, errors.Count);
+			Assert.HasCount(1, errors);
 			Assert.AreEqual(INITIAL, embed.Description);
 		});
 		RunDescriptionTest(embed =>
 		{
-			Assert.ThrowsException<ArgumentException>(
+			Assert.ThrowsExactly<ArgumentException>(
 				() => embed.Description = LINES
 			);
 			Assert.AreEqual(INITIAL, embed.Description);
@@ -216,7 +214,7 @@ public sealed class EmbedWrapper_Tests
 		{
 			var success = embed.TryAddDescription(NEW, out var errors);
 			Assert.IsTrue(success);
-			Assert.AreEqual(0, errors.Count);
+			Assert.IsEmpty(errors);
 			Assert.AreEqual(NEW, embed.Description);
 		});
 		RunDescriptionTest(embed =>
@@ -233,13 +231,13 @@ public sealed class EmbedWrapper_Tests
 		{
 			var success = embed.TryAddFooter(LONG, INVALID_URL, out var errors);
 			Assert.IsFalse(success);
-			Assert.AreEqual(3, errors.Count);
+			Assert.HasCount(3, errors);
 			Assert.AreEqual(INITIAL, embed.Footer?.Text);
 			Assert.IsNull(embed.Footer?.IconUrl);
 		});
 		RunFooterTest(embed =>
 		{
-			Assert.ThrowsException<ArgumentException>(() =>
+			Assert.ThrowsExactly<ArgumentException>(() =>
 			{
 				embed.Footer = new()
 				{
@@ -269,13 +267,13 @@ public sealed class EmbedWrapper_Tests
 		{
 			var success = embed.TryAddFooter(LONG, VALID_URL, out var errors);
 			Assert.IsFalse(success);
-			Assert.AreEqual(2, errors.Count);
+			Assert.HasCount(2, errors);
 			Assert.AreEqual(INITIAL, embed.Footer?.Text);
 			Assert.IsNull(embed.Footer?.IconUrl);
 		});
 		RunFooterTest(embed =>
 		{
-			Assert.ThrowsException<ArgumentException>(() =>
+			Assert.ThrowsExactly<ArgumentException>(() =>
 			{
 				embed.Footer = new()
 				{
@@ -295,13 +293,13 @@ public sealed class EmbedWrapper_Tests
 		{
 			var success = embed.TryAddFooter(LONG, null, out var errors);
 			Assert.IsFalse(success);
-			Assert.AreEqual(2, errors.Count);
+			Assert.HasCount(2, errors);
 			Assert.AreEqual(INITIAL, embed.Footer?.Text);
 			Assert.IsNull(embed.Footer?.IconUrl);
 		});
 		RunFooterTest(embed =>
 		{
-			Assert.ThrowsException<ArgumentException>(() =>
+			Assert.ThrowsExactly<ArgumentException>(() =>
 			{
 				embed.Footer = new()
 				{
@@ -328,12 +326,12 @@ public sealed class EmbedWrapper_Tests
 		{
 			var success = embed.TryAddTitle(NEW, out var errors);
 			Assert.IsFalse(success);
-			Assert.AreEqual(1, errors.Count);
+			Assert.HasCount(1, errors);
 			Assert.AreEqual(EmbedBuilder.MaxTitleLength, embed.Title?.Length);
 		});
 		RunFilledTest(embed =>
 		{
-			Assert.ThrowsException<ArgumentException>(
+			Assert.ThrowsExactly<ArgumentException>(
 				() => embed.Title = NEW
 			);
 			Assert.AreEqual(EmbedBuilder.MaxTitleLength, embed.Title?.Length);
@@ -347,12 +345,12 @@ public sealed class EmbedWrapper_Tests
 		{
 			var success = embed.TryAddTitle(LONG, out var errors);
 			Assert.IsFalse(success);
-			Assert.AreEqual(2, errors.Count);
+			Assert.HasCount(2, errors);
 			Assert.AreEqual(INITIAL, embed.Title);
 		});
 		RunTitleTest(embed =>
 		{
-			Assert.ThrowsException<ArgumentException>(
+			Assert.ThrowsExactly<ArgumentException>(
 				() => embed.Title = LONG
 			);
 			Assert.AreEqual(INITIAL, embed.Title);
@@ -366,7 +364,7 @@ public sealed class EmbedWrapper_Tests
 		{
 			var success = embed.TryAddTitle(NEW, out var errors);
 			Assert.IsTrue(success);
-			Assert.AreEqual(0, errors.Count);
+			Assert.IsEmpty(errors);
 			Assert.AreEqual(NEW, embed.Title);
 		});
 		RunTitleTest(embed =>
@@ -454,21 +452,21 @@ public sealed class EmbedWrapper_Tests
 		{
 			var (success, errors) = tryAdd(embed, VALID_URL);
 			Assert.IsTrue(success);
-			Assert.AreEqual(0, errors.Count);
+			Assert.IsEmpty(errors);
 			Assert.AreEqual(VALID_URL, getter(embed));
 		});
 		RunUrlTest(embed =>
 		{
 			var (success, errors) = tryAdd(embed, INVALID_URL);
 			Assert.IsFalse(success);
-			Assert.AreEqual(1, errors.Count);
-			Assert.AreEqual(null, getter(embed));
+			Assert.HasCount(1, errors);
+			Assert.IsNull(getter(embed));
 		});
 		RunUrlTest(embed =>
 		{
 			var (success, errors) = tryAdd(embed, null);
 			Assert.IsTrue(success);
-			Assert.AreEqual(0, errors.Count);
+			Assert.IsEmpty(errors);
 			Assert.IsNull(getter(embed));
 		});
 	}

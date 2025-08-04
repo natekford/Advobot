@@ -7,7 +7,6 @@ using Advobot.ParameterPreconditions.Strings;
 using Advobot.Preconditions;
 using Advobot.Preconditions.Permissions;
 using Advobot.Resources;
-using Advobot.Services.ImageResizing;
 using Advobot.Utilities;
 
 using AdvorangesUtils;
@@ -124,30 +123,6 @@ public sealed class Guilds : ModuleBase
 		}
 	}
 
-	[LocalizedGroup(nameof(Groups.ModifyGuildIcon))]
-	[LocalizedAlias(nameof(Aliases.ModifyGuildIcon))]
-	[LocalizedSummary(nameof(Summaries.ModifyGuildIcon))]
-	[Meta("c6f5c58e-4784-4f30-91a9-3727e580ddf2", IsEnabled = true)]
-	[RequireGuildPermissions(GuildPermission.ManageGuild)]
-	public sealed class ModifyGuildIcon : ImageResizerModule
-	{
-		[Command]
-		public Task<RuntimeResult> Command(Uri url)
-		{
-			var position = Enqueue(new IconCreationContext(Context, url, null, "Guild Icon",
-				(ctx, ms) => ctx.Guild.ModifyAsync(x => x.Icon = new Image(ms), ctx.GenerateRequestOptions())));
-			return Responses.Snowflakes.EnqueuedIcon(Context.Guild, position);
-		}
-
-		[LocalizedCommand(nameof(Groups.Remove))]
-		[LocalizedAlias(nameof(Aliases.Remove))]
-		public async Task<RuntimeResult> Remove()
-		{
-			await Context.Guild.ModifyAsync(x => x.Icon = new Image(), GetOptions()).CAF();
-			return Responses.Snowflakes.RemovedIcon(Context.Guild);
-		}
-	}
-
 	[LocalizedGroup(nameof(Groups.ModifyGuildMsgNotif))]
 	[LocalizedAlias(nameof(Aliases.ModifyGuildMsgNotif))]
 	[LocalizedSummary(nameof(Summaries.ModifyGuildMsgNotif))]
@@ -199,31 +174,6 @@ public sealed class Guilds : ModuleBase
 		{
 			var regions = await Context.Guild.GetVoiceRegionsAsync().CAF();
 			return Responses.Guilds.DisplayRegions(regions);
-		}
-	}
-
-	[LocalizedGroup(nameof(Groups.ModifyGuildSplash))]
-	[LocalizedAlias(nameof(Aliases.ModifyGuildSplash))]
-	[LocalizedSummary(nameof(Summaries.ModifyGuildSplash))]
-	[Meta("0a02898e-0e5c-417d-9309-7f93714b61f7", IsEnabled = true)]
-	[RequireGuildPermissions(GuildPermission.ManageGuild)]
-	[RequirePartneredGuild]
-	public sealed class ModifyGuildSplash : ImageResizerModule
-	{
-		[Command]
-		public Task<RuntimeResult> Command(Uri url)
-		{
-			var position = Enqueue(new IconCreationContext(Context, url, default, "Guild Splash",
-				(ctx, ms) => ctx.Guild.ModifyAsync(x => x.Splash = new Image(ms), ctx.GenerateRequestOptions())));
-			return Responses.Guilds.EnqueuedSplash(position);
-		}
-
-		[LocalizedCommand(nameof(Groups.Remove))]
-		[LocalizedAlias(nameof(Aliases.Remove))]
-		public async Task<RuntimeResult> Remove()
-		{
-			await Context.Guild.ModifyAsync(x => x.Splash = new Image(), GetOptions()).CAF();
-			return Responses.Guilds.RemovedSplash();
 		}
 	}
 

@@ -7,7 +7,6 @@ using Advobot.Tests.TestBases;
 using AdvorangesUtils;
 
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace Advobot.Tests.Commands.Logging.Preconditions;
 

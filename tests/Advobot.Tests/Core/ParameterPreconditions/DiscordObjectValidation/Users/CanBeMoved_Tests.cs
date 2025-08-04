@@ -8,8 +8,6 @@ using AdvorangesUtils;
 
 using Discord;
 
-using Microsoft.VisualStudio.TestTools.UnitTesting;
-
 namespace Advobot.Tests.Core.ParameterPreconditions.DiscordObjectValidation.Users;
 
 [TestClass]

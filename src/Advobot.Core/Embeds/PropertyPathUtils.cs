@@ -42,24 +42,24 @@ internal static class PropertyPathUtils
 		//Changing indexer from obj.get_Item to obj[]
 		if (call.Method.IsSpecialName)
 		{
-			var type = call.Method.DeclaringType;
+			var type = call.Method.DeclaringType!;
 			var def = type.GetCustomAttributes<DefaultMemberAttribute>().FirstOrDefault();
 			if (def != null && name == $"get_{def.MemberName}")
 			{
-				return $"{call.Object.GetFromAny()}[{args}]";
+				return $"{call.Object!.GetFromAny()}[{args}]";
 			}
 		}
 
 		var nameAndArgs = $"{name}({args})";
 		if (call.Method.IsStatic)
 		{
-			var type = call.Method.DeclaringType;
+			var type = call.Method.DeclaringType!;
 			if (!type.IsNested)
 			{
 				return $"{type.Name}.{nameAndArgs}";
 			}
 
-			var fn = call.Method.DeclaringType.FullName;
+			var fn = type.FullName!;
 			var nestedClasses = fn[(fn.LastIndexOf('.') + 1)..];
 			var withPeriods = nestedClasses.Replace('+', '.');
 			return $"{withPeriods}.{nameAndArgs}";
@@ -83,14 +83,14 @@ internal static class PropertyPathUtils
 		}
 		else if (constant.Type.IsEnum)
 		{
-			return constant.Value.ToString();
+			return constant.Value?.ToString() ?? "";
 		}
 		//Only occurs if 'this' is the constant value
 		else if (!constant.Type.IsPrimitive)
 		{
 			return "";
 		}
-		return constant.Value.ToString();
+		return constant.Value?.ToString() ?? "";
 	}
 
 	private static string GetFromMember(this MemberExpression member)

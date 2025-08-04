@@ -8,7 +8,6 @@ using AdvorangesUtils;
 using Discord;
 
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace Advobot.Tests.Commands.AutoMod.TypeReaders;
 

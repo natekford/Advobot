@@ -7,7 +7,6 @@ using Advobot.ParameterPreconditions.Strings;
 using Advobot.Preconditions;
 using Advobot.Preconditions.Permissions;
 using Advobot.Resources;
-using Advobot.Services.ImageResizing;
 
 using AdvorangesUtils;
 
@@ -19,32 +18,6 @@ namespace Advobot.Standard.Commands;
 [Category(nameof(Emotes))]
 public sealed class Emotes : ModuleBase
 {
-	[LocalizedGroup(nameof(Groups.CreateEmote))]
-	[LocalizedAlias(nameof(Aliases.CreateEmote))]
-	[LocalizedSummary(nameof(Summaries.CreateEmote))]
-	[Meta("e001108f-5bae-4589-865e-775a2d21e327", IsEnabled = true)]
-	[RateLimit(TimeUnit.Minutes, 1)]
-	[RequireGuildPermissions(GuildPermission.ManageEmojisAndStickers)]
-	public sealed class CreateEmote : ImageResizerModule
-	{
-		[Command]
-		public Task<RuntimeResult> Command(Emote emote)
-			=> Command(emote.Name, new Uri(emote.Url));
-
-		[Command, Priority(1)]
-		public Task<RuntimeResult> Command(
-			[EmoteName]
-			string name,
-			Uri url,
-			UserProvidedImageArgs? args = null
-		)
-		{
-			args ??= new();
-			var position = Enqueue(new EmoteCreationContext(Context, url, args, name));
-			return Responses.Emotes.EnqueuedCreation(name, position);
-		}
-	}
-
 	[LocalizedGroup(nameof(Groups.DeleteEmote))]
 	[LocalizedAlias(nameof(Aliases.DeleteEmote))]
 	[LocalizedSummary(nameof(Summaries.DeleteEmote))]
@@ -94,7 +67,7 @@ public sealed class Emotes : ModuleBase
 		public async Task<RuntimeResult> Command(
 			GuildEmote emote,
 			[Remainder, EmoteName]
-				string name
+			string name
 		)
 		{
 			await Context.Guild.ModifyEmoteAsync(emote, x => x.Name = name, GetOptions()).CAF();
@@ -114,7 +87,7 @@ public sealed class Emotes : ModuleBase
 		public async Task<RuntimeResult> Add(
 			GuildEmote emote,
 			[NotEveryone, NotManaged]
-				params IRole[] roles
+			params IRole[] roles
 		)
 		{
 			await Context.Guild.ModifyEmoteAsync(emote, x =>
@@ -143,7 +116,7 @@ public sealed class Emotes : ModuleBase
 		[LocalizedAlias(nameof(Aliases.RemoveAll))]
 		public async Task<RuntimeResult> RemoveAll(
 			[HasRequiredRoles]
-				GuildEmote emote
+			GuildEmote emote
 		)
 		{
 			var roles = emote.RoleIds.Select(x => Context.Guild.GetRole(x));

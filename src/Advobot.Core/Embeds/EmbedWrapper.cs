@@ -2,7 +2,6 @@
 
 using Discord;
 
-using System.Collections.Immutable;
 using System.Runtime.CompilerServices;
 
 namespace Advobot.Embeds;
@@ -100,10 +99,7 @@ public sealed class EmbedWrapper
 		get => _Embed.Fields;
 		set
 		{
-			if (value is null)
-			{
-				throw new ArgumentNullException(nameof(Fields));
-			}
+			ArgumentNullException.ThrowIfNull(value);
 			if (value.Count > EmbedBuilder.MaxFieldCount)
 			{
 				throw new ArgumentException("Too many fields provided.");
@@ -439,7 +435,7 @@ public sealed class EmbedWrapper
 			nameof(Author) => _Embed.Author?.Name?.Length ?? 0,
 			nameof(Description) => _Embed.Description?.Length ?? 0,
 			nameof(Footer) => _Embed.Footer?.Text?.Length ?? 0,
-			nameof(Fields) => _Embed.Fields.Sum(f => f.Name.Length + f.Value.ToString().Length),
+			nameof(Fields) => _Embed.Fields.Sum(f => f.Name.Length + (f.Value?.ToString() ?? "").Length),
 			_ => 0,
 		};
 	}

@@ -30,19 +30,11 @@ public interface IAutoModDatabase
 
 	Task<IReadOnlyList<Punishment>> GetPunishmentsAsync(ulong guildId);
 
-	Task<IReadOnlyList<RaidPrevention>> GetRaidPreventionAsync(ulong guildId);
-
-	Task<RaidPrevention?> GetRaidPreventionAsync(ulong guildId, RaidType raidType);
-
 	Task<SelfRole?> GetSelfRoleAsync(ulong roleId);
 
 	Task<IReadOnlyList<SelfRole>> GetSelfRolesAsync(ulong guildId);
 
 	Task<IReadOnlyList<SelfRole>> GetSelfRolesAsync(ulong guildId, int group);
-
-	Task<IReadOnlyList<SpamPrevention>> GetSpamPreventionAsync(ulong guildId);
-
-	Task<SpamPrevention?> GetSpamPreventionAsync(ulong guildId, SpamType spamType);
 
 	Task<int> UpsertAutoModSettingsAsync(AutoModSettings settings);
 
@@ -50,9 +42,5 @@ public interface IAutoModDatabase
 
 	Task<int> UpsertChannelSettings(ChannelSettings settings);
 
-	Task<int> UpsertRaidPreventionAsync(RaidPrevention prevention);
-
 	Task<int> UpsertSelfRolesAsync(IEnumerable<SelfRole> roles);
-
-	Task<int> UpsertSpamPreventionAsync(SpamPrevention prevention);
 }

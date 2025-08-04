@@ -5,7 +5,6 @@ using Advobot.ParameterPreconditions.DiscordObjectValidation.Channels;
 using Advobot.ParameterPreconditions.Strings;
 using Advobot.Preconditions.Permissions;
 using Advobot.Resources;
-using Advobot.Services.ImageResizing;
 using Advobot.Utilities;
 
 using AdvorangesUtils;
@@ -106,38 +105,6 @@ public sealed class Webhooks : ModuleBase
 		{
 			await webhook.ModifyAsync(x => x.Channel = Optional.Create(channel), GetOptions()).CAF();
 			return Responses.Webhooks.ModifiedChannel(webhook, channel);
-		}
-	}
-
-	[LocalizedGroup(nameof(Groups.ModifyWebhookIcon))]
-	[LocalizedAlias(nameof(Aliases.ModifyWebhookIcon))]
-	[LocalizedSummary(nameof(Summaries.ModifyWebhookIcon))]
-	[Meta("bcfae3ac-2e52-4151-b692-738ed7297bab", IsEnabled = true)]
-	[RequireGuildPermissions(GuildPermission.ManageWebhooks)]
-	public sealed class ModifyWebhookIcon : ImageResizerModule
-	{
-		[Command]
-		public Task<RuntimeResult> Command(
-			[LocalizedSummary(nameof(Summaries.ModifyWebhookIconWebhook))]
-			IWebhook webhook,
-			[LocalizedSummary(nameof(Summaries.ModifyWebhookIconUrl))]
-			Uri url
-		)
-		{
-			var position = Enqueue(new IconCreationContext(Context, url, default, "Webhook Icon",
-				(ctx, ms) => webhook.ModifyAsync(x => x.Image = new Image(ms), ctx.GenerateRequestOptions())));
-			return Responses.Snowflakes.EnqueuedIcon(webhook, position);
-		}
-
-		[LocalizedCommand(nameof(Groups.Remove))]
-		[LocalizedAlias(nameof(Aliases.Remove))]
-		public async Task<RuntimeResult> Remove(
-			[LocalizedSummary(nameof(Summaries.ModifyWebhookIconWebhook))]
-				IWebhook webhook
-		)
-		{
-			await webhook.ModifyAsync(x => x.Image = new Image(), GetOptions()).CAF();
-			return Responses.Snowflakes.RemovedIcon(webhook);
 		}
 	}
 

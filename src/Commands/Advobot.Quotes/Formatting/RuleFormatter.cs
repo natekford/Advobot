@@ -4,7 +4,6 @@ using AdvorangesUtils;
 
 using Discord.Commands;
 
-using System.Collections.Immutable;
 using System.Text;
 
 namespace Advobot.Quotes.Formatting;
@@ -166,7 +165,7 @@ public sealed class RuleFormatter
 	public IEnumerable<RuleFormatOption>? Options
 	{
 		get => _Options;
-		set => _Options = value is null ? null : new HashSet<RuleFormatOption>(value);
+		set => _Options = value is null ? null : [.. value];
 	}
 	/// <summary>
 	/// The main format to use for rules.

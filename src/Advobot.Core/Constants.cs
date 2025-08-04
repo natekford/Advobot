@@ -86,12 +86,14 @@ public static class Constants
 	/// <summary>
 	/// The bot's version.
 	/// </summary>
-	public static string BOT_VERSION { get; } = typeof(Constants).Assembly
-		.GetName().Version.ToString();
+	public static string BOT_VERSION { get; } =
+		typeof(Constants).Assembly.GetName().Version?.ToString()
+		?? throw new InvalidOperationException("Cannot get bot version.");
 	/// <summary>
 	/// The Discord API wrapper version.
 	/// </summary>
-	public static string DISCORD_NET_VERSION { get; } = typeof(IDiscordClient).Assembly
-		.GetCustomAttribute<AssemblyInformationalVersionAttribute>()
-		.InformationalVersion;
+	public static string DISCORD_NET_VERSION { get; } =
+		typeof(IDiscordClient).Assembly
+		.GetCustomAttribute<AssemblyInformationalVersionAttribute>()?.InformationalVersion
+		?? throw new InvalidOperationException("Cannot get Discord.Net version.");
 }

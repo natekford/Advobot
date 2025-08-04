@@ -14,7 +14,7 @@ public sealed class LogHandler<T>(LogAction action, ILogger logger, ILoggingData
 	where T : ILogState
 {
 	private readonly ICollection<Func<ILogContext<T>, Task>> _Actions =
-		new List<Func<ILogContext<T>, Task>>();
+		[];
 
 	private readonly ILoggingDatabase _Db = db;
 	private readonly ILogger _Logger = logger;

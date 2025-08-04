@@ -27,7 +27,7 @@ public sealed class SQLiteSystemFileDatabaseConnectionString : IConnectionString
 	{
 		if (!File.Exists(Path))
 		{
-			Directory.CreateDirectory(System.IO.Path.GetDirectoryName(Path));
+			Directory.CreateDirectory(System.IO.Path.GetDirectoryName(Path)!);
 			File.Create(Path).Dispose();
 		}
 		return Task.CompletedTask;

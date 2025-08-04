@@ -6,8 +6,6 @@ using AdvorangesUtils;
 
 using Discord;
 
-using Microsoft.VisualStudio.TestTools.UnitTesting;
-
 namespace Advobot.Tests.Core.Preconditions.Permissions;
 
 [TestClass]
@@ -39,10 +37,10 @@ public sealed class RequireChannelPermissions_Tests
 	[DataRow(ChannelPermission.ManageChannels)]
 	[DataRow(ChannelPermission.ManageRoles)]
 	[DataRow(ChannelPermission.AttachFiles | ChannelPermission.ManageChannels)]
-	[DataTestMethod]
-	public async Task InvalidPermissions_Test(ulong permission)
+	[TestMethod]
+	public async Task InvalidPermissions_Test(ChannelPermission permission)
 	{
-		var permissions = new OverwritePermissions(allowValue: permission, denyValue: 0);
+		var permissions = new OverwritePermissions(allowValue: (ulong)permission, denyValue: 0);
 		await Context.Channel.AddPermissionOverwriteAsync(Context.User, permissions).CAF();
 		await Context.Channel.AddPermissionOverwriteAsync(Context.Guild.FakeCurrentUser, permissions).CAF();
 
@@ -55,16 +53,16 @@ public sealed class RequireChannelPermissions_Tests
 	[DataRow(FLAGS0 | FLAGS3)]
 	[DataRow(FLAGS0 | FLAGS1 | ChannelPermission.ManageWebhooks)]
 	[DataRow(FLAGS0 | FLAGS1 | FLAGS2 | FLAGS3)]
-	[DataTestMethod]
-	public async Task ValidPermissionsButChannelDenied_Test(ulong permission)
+	[TestMethod]
+	public async Task ValidPermissionsButChannelDenied_Test(ChannelPermission permission)
 	{
-		var permissions = new OverwritePermissions(allowValue: 0, denyValue: permission);
+		var permissions = new OverwritePermissions(allowValue: 0, denyValue: (ulong)permission);
 		await Context.Channel.AddPermissionOverwriteAsync(Context.User, permissions).CAF();
 		await Context.Channel.AddPermissionOverwriteAsync(Context.Guild.FakeCurrentUser, permissions).CAF();
 
 		var role = new FakeRole(Context.Guild)
 		{
-			Permissions = new(permission),
+			Permissions = new((ulong)permission),
 		};
 		await Context.User.AddRoleAsync(role).CAF();
 		await Context.Guild.FakeCurrentUser.AddRoleAsync(role).CAF();
@@ -78,10 +76,10 @@ public sealed class RequireChannelPermissions_Tests
 	[DataRow(FLAGS0 | FLAGS3)]
 	[DataRow(FLAGS0 | FLAGS1 | ChannelPermission.ManageWebhooks)]
 	[DataRow(FLAGS0 | FLAGS1 | FLAGS2 | FLAGS3)]
-	[DataTestMethod]
-	public async Task ValidPermissionsByChannel_Test(ulong permission)
+	[TestMethod]
+	public async Task ValidPermissionsByChannel_Test(ChannelPermission permission)
 	{
-		var permissions = new OverwritePermissions(allowValue: permission, denyValue: 0);
+		var permissions = new OverwritePermissions(allowValue: (ulong)permission, denyValue: 0);
 		await Context.Channel.AddPermissionOverwriteAsync(Context.User, permissions).CAF();
 		await Context.Channel.AddPermissionOverwriteAsync(Context.Guild.FakeCurrentUser, permissions).CAF();
 
@@ -94,12 +92,12 @@ public sealed class RequireChannelPermissions_Tests
 	[DataRow(FLAGS0 | FLAGS3)]
 	[DataRow(FLAGS0 | FLAGS1 | ChannelPermission.ManageWebhooks)]
 	[DataRow(FLAGS0 | FLAGS1 | FLAGS2 | FLAGS3)]
-	[DataTestMethod]
-	public async Task ValidPermissionsByGuild_Test(ulong permission)
+	[TestMethod]
+	public async Task ValidPermissionsByGuild_Test(ChannelPermission permission)
 	{
 		var role = new FakeRole(Context.Guild)
 		{
-			Permissions = new(permission),
+			Permissions = new((ulong)permission),
 		};
 		await Context.User.AddRoleAsync(role).CAF();
 		await Context.Guild.FakeCurrentUser.AddRoleAsync(role).CAF();

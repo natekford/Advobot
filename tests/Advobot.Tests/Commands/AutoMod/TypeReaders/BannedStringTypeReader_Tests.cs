@@ -1,7 +1,5 @@
 ﻿using Advobot.AutoMod.TypeReaders;
 
-using Microsoft.VisualStudio.TestTools.UnitTesting;
-
 namespace Advobot.Tests.Core.TypeReaders.BannedPhraseTypeReaders;
 
 [TestClass]

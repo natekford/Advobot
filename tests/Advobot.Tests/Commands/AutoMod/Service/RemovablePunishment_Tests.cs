@@ -10,7 +10,6 @@ using AdvorangesUtils;
 using Discord;
 
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace Advobot.Tests.Commands.AutoMod.Service;
 
@@ -33,7 +32,7 @@ public sealed class RemovablePunishment_Tests : TestsBase
 		await AddBansAsync(5).CAF();
 
 		var retrieved = await _Db.GetOldPunishmentsAsync(DateTime.MaxValue.Ticks).CAF();
-		Assert.AreEqual(5, retrieved.Count);
+		Assert.HasCount(5, retrieved);
 	}
 
 	[TestMethod]
@@ -44,7 +43,7 @@ public sealed class RemovablePunishment_Tests : TestsBase
 		_Time.UtcNow += TimeSpan.FromDays(10);
 		{
 			var retrieved = await _Db.GetOldPunishmentsAsync(_Time.UtcNow.Ticks).CAF();
-			Assert.AreEqual(5, retrieved.Count);
+			Assert.HasCount(5, retrieved);
 		}
 
 		_Punisher.PunishmentRemoved += _ =>
@@ -66,7 +65,7 @@ public sealed class RemovablePunishment_Tests : TestsBase
 
 		{
 			var retrieved = await _Db.GetOldPunishmentsAsync(DateTime.MaxValue.Ticks).CAF();
-			Assert.AreEqual(0, retrieved.Count);
+			Assert.IsEmpty(retrieved);
 		}
 	}
 
@@ -78,7 +77,7 @@ public sealed class RemovablePunishment_Tests : TestsBase
 		_Time.UtcNow += TimeSpan.FromDays(3);
 		{
 			var retrieved = await _Db.GetOldPunishmentsAsync(_Time.UtcNow.Ticks).CAF();
-			Assert.AreEqual(5, retrieved.Count);
+			Assert.HasCount(5, retrieved);
 		}
 
 		var punishmentRemovedCount = 0;
@@ -102,7 +101,7 @@ public sealed class RemovablePunishment_Tests : TestsBase
 
 		{
 			var retrieved = await _Db.GetOldPunishmentsAsync(DateTime.MaxValue.Ticks).CAF();
-			Assert.AreEqual(0, retrieved.Count);
+			Assert.IsEmpty(retrieved);
 		}
 	}
 

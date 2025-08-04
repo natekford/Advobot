@@ -5,8 +5,6 @@ using Advobot.Tests.TestBases;
 
 using AdvorangesUtils;
 
-using Microsoft.VisualStudio.TestTools.UnitTesting;
-
 namespace Advobot.Tests.Commands.MyCommands.Database;
 
 [TestClass]
@@ -20,10 +18,10 @@ public sealed class DetectLanguageConfig_Tests
 
 		{
 			var retrieved = await db.GetDetectLanguageConfigAsync().CAF();
-			Assert.AreEqual(null, retrieved.APIKey);
+			Assert.IsNull(retrieved.APIKey);
 			Assert.AreEqual(new DetectLanguageConfig().ConfidenceLimit, retrieved.ConfidenceLimit);
-			Assert.AreEqual(null, retrieved.CooldownStartTicks);
-			Assert.AreEqual(null, retrieved.CooldownStart);
+			Assert.IsNull(retrieved.CooldownStartTicks);
+			Assert.IsNull(retrieved.CooldownStart);
 		}
 
 		{

@@ -26,10 +26,9 @@ public sealed class SpanitchModule : AutoModModuleBase
 	private const ulong MIJE_ID = 107770708142067712;
 	private const ulong MUTE_ID = 328101628664086528;
 	private const ulong SPAN_ID = 741058143450300487;
-	private IRole[]? _Roles;
 
 	private RequestOptions Options => GetOptions("spanitch");
-	private IRole[] Roles => _Roles ??=
+	private IRole[] Roles => field ??=
 	[
 		Context.Guild.GetRole(MUTE_ID),
 		Context.Guild.GetRole(SPAN_ID)

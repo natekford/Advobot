@@ -2,8 +2,6 @@
 
 using Discord.Commands;
 
-using Microsoft.VisualStudio.TestTools.UnitTesting;
-
 namespace Advobot.Tests.TestBases;
 
 public abstract class TypeReader_Tests<T> : TestsBase

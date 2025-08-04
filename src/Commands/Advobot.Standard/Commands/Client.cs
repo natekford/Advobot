@@ -4,7 +4,6 @@ using Advobot.Modules;
 using Advobot.ParameterPreconditions.Strings;
 using Advobot.Preconditions;
 using Advobot.Resources;
-using Advobot.Services.ImageResizing;
 using Advobot.Utilities;
 
 using AdvorangesUtils;
@@ -27,30 +26,6 @@ public sealed class Client : ModuleBase
 		[Command(RunMode = RunMode.Async)]
 		public Task Command()
 			=> Context.Client.DisconnectBotAsync();
-	}
-
-	[LocalizedGroup(nameof(Groups.ModifyBotIcon))]
-	[LocalizedAlias(nameof(Aliases.ModifyBotIcon))]
-	[LocalizedSummary(nameof(Summaries.ModifyBotIcon))]
-	[Meta("096006e2-da07-4935-ab35-4e5099663da9", IsEnabled = true)]
-	[RequireBotOwner]
-	public sealed class ModifyBotIcon : ImageResizerModule
-	{
-		[Command]
-		public Task<RuntimeResult> Command(Uri url)
-		{
-			var position = Enqueue(new IconCreationContext(Context, url, default, "Bot Icon",
-				(ctx, ms) => ctx.Client.CurrentUser.ModifyAsync(x => x.Avatar = new Image(ms), ctx.GenerateRequestOptions())));
-			return Responses.Snowflakes.EnqueuedIcon(Context.Client.CurrentUser, position);
-		}
-
-		[LocalizedCommand(nameof(Groups.Remove))]
-		[LocalizedAlias(nameof(Aliases.Remove))]
-		public async Task<RuntimeResult> Remove()
-		{
-			await Context.Client.CurrentUser.ModifyAsync(x => x.Avatar = new Image()).CAF();
-			return Responses.Snowflakes.RemovedIcon(Context.Client.CurrentUser);
-		}
 	}
 
 	[LocalizedGroup(nameof(Groups.ModifyBotName))]

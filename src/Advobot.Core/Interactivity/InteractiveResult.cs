@@ -6,7 +6,6 @@
 /// <typeparam name="T"></typeparam>
 public sealed class InteractiveResult<T> : IInteractiveResult
 {
-	private readonly T _Value;
 
 	/// <summary>
 	/// A canceled result.
@@ -33,7 +32,7 @@ public sealed class InteractiveResult<T> : IInteractiveResult
 		{
 			if (HasValue)
 			{
-				return _Value;
+				return field;
 			}
 			throw new InvalidOperationException();
 		}
@@ -47,13 +46,13 @@ public sealed class InteractiveResult<T> : IInteractiveResult
 	public InteractiveResult(T value)
 	{
 		HasValue = true;
-		_Value = value;
+		Value = value;
 	}
 
 	private InteractiveResult(bool timeout = false, bool cancel = false)
 	{
 		HasValue = false;
-		_Value = default!;
+		Value = default!;
 		HasTimedOut = timeout;
 		HasBeenCanceled = cancel;
 	}

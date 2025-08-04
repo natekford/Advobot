@@ -5,8 +5,6 @@ using Advobot.Tests.TestBases;
 
 using AdvorangesUtils;
 
-using Microsoft.VisualStudio.TestTools.UnitTesting;
-
 namespace Advobot.Tests.Commands.Logging.Database;
 
 [TestClass]
@@ -25,7 +23,7 @@ public sealed class LoggingCRUD_Tests
 
 		{
 			var retrieved = await db.GetIgnoredChannelsAsync(GUILD_ID).CAF();
-			Assert.AreEqual(0, retrieved.Count);
+			Assert.IsEmpty(retrieved);
 		}
 
 		var toInsert = new ulong[]
@@ -64,7 +62,7 @@ public sealed class LoggingCRUD_Tests
 
 		{
 			var retrieved = await db.GetLogActionsAsync(GUILD_ID).CAF();
-			Assert.AreEqual(0, retrieved.Count);
+			Assert.IsEmpty(retrieved);
 		}
 
 		var toInsert = new[]

@@ -17,7 +17,6 @@ public sealed class AutoModInstantiator : ICommandAssemblyInstantiator
 			.AddSingleton<IRemovablePunishmentDatabase, RemovablePunishmentDatabase>()
 			.AddSQLiteFileDatabaseConnectionString<RemovablePunishmentDatabase>("RemovablePunishments.db")
 			.AddSingleton<AutoModService>()
-			.AddSingleton<MassBanRecentJoinsService>()
 			.AddSingleton<RemovablePunishmentService>();
 
 		return Task.CompletedTask;

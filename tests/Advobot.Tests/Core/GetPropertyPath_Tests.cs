@@ -1,7 +1,5 @@
 ﻿using Discord;
 
-using Microsoft.VisualStudio.TestTools.UnitTesting;
-
 using System.Linq.Expressions;
 using System.Runtime.CompilerServices;
 

@@ -42,7 +42,7 @@ public static class FormattingUtils
 		IWebhook webhook => webhook.Format(),
 		IInviteMetadata invite => invite.Format(),
 		IEmote emote => emote.Format(),
-		_ => obj.ToString(),
+		_ => obj?.ToString() ?? "null",
 	};
 
 	/// <summary>
@@ -298,7 +298,7 @@ public static class FormattingUtils
 				PermValue.Allow => Constants.ALLOWED,
 				PermValue.Deny => Constants.DENIED,
 				PermValue.Inherit => Constants.INHERITED,
-				_ => throw new ArgumentOutOfRangeException(nameof(kvp.Value)),
+				_ => throw new IndexOutOfRangeException(nameof(kvp.Value)),
 			};
 			padLength = Math.Max(padLength, name.Length);
 			temp.Add(name, value);

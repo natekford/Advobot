@@ -144,32 +144,6 @@ public sealed class AutoModDatabase(IConnectionString<AutoModDatabase> conn) : D
 		", param).CAF();
 	}
 
-	public async Task<IReadOnlyList<RaidPrevention>> GetRaidPreventionAsync(ulong guildId)
-	{
-		var param = new { GuildId = guildId.ToString(), };
-		return await GetManyAsync<RaidPrevention>(@"
-			SELECT *
-			FROM RaidPrevention
-			WHERE GuildId = @GuildId
-		", param).CAF();
-	}
-
-	public async Task<RaidPrevention?> GetRaidPreventionAsync(
-		ulong guildId,
-		RaidType raidType)
-	{
-		var param = new
-		{
-			GuildId = guildId.ToString(),
-			RaidType = raidType,
-		};
-		return await GetOneAsync<RaidPrevention?>(@"
-			SELECT *
-			FROM RaidPrevention
-			WHERE GuildId = @GuildId AND RaidType = @RaidType
-		", param).CAF();
-	}
-
 	public async Task<SelfRole?> GetSelfRoleAsync(ulong roleId)
 	{
 		var param = new { RoleId = roleId.ToString() };
@@ -201,32 +175,6 @@ public sealed class AutoModDatabase(IConnectionString<AutoModDatabase> conn) : D
 			SELECT *
 			FROM SelfRole
 			WHERE GuildId = @GuildId AND GroupId = @GroupId
-		", param).CAF();
-	}
-
-	public async Task<IReadOnlyList<SpamPrevention>> GetSpamPreventionAsync(ulong guildId)
-	{
-		var param = new { GuildId = guildId.ToString(), };
-		return await GetManyAsync<SpamPrevention>(@"
-			SELECT *
-			FROM SpamPrevention
-			WHERE GuildId = @GuildId
-		", param).CAF();
-	}
-
-	public async Task<SpamPrevention?> GetSpamPreventionAsync(
-		ulong guildId,
-		SpamType spamType)
-	{
-		var param = new
-		{
-			GuildId = guildId.ToString(),
-			SpamType = spamType,
-		};
-		return await GetOneAsync<SpamPrevention?>(@"
-			SELECT *
-			FROM SpamPrevention
-			WHERE GuildId = @GuildId AND SpamType = @SpamType
 		", param).CAF();
 	}
 
@@ -277,26 +225,6 @@ public sealed class AutoModDatabase(IConnectionString<AutoModDatabase> conn) : D
 		", settings);
 	}
 
-	public Task<int> UpsertRaidPreventionAsync(RaidPrevention prevention)
-	{
-		return ModifyAsync(@"
-			INSERT OR IGNORE INTO RaidPrevention
-				( GuildId, PunishmentType, Instances, LengthTicks, RoleId, Enabled, IntervalTicks, Size, RaidType )
-				VALUES
-				( @GuildId, @PunishmentType, @Instances, @LengthTicks, @RoleId, @Enabled, @IntervalTicks, @Size, @RaidType );
-			UPDATE RaidPrevention
-			SET
-				PunishmentType = @PunishmentType,
-				Instances = @Instances,
-				LengthTicks = @LengthTicks,
-				RoleId = @RoleId,
-				Enabled = @Enabled,
-				IntervalTicks = @IntervalTicks,
-				Size = @Size
-			WHERE GuildId = @GuildId AND RaidType = @RaidType
-		", prevention);
-	}
-
 	public Task<int> UpsertSelfRolesAsync(IEnumerable<SelfRole> roles)
 	{
 		return BulkModifyAsync(@"
@@ -309,25 +237,5 @@ public sealed class AutoModDatabase(IConnectionString<AutoModDatabase> conn) : D
 				GroupId = @GroupId
 			WHERE RoleId = @RoleId
 		", roles);
-	}
-
-	public Task<int> UpsertSpamPreventionAsync(SpamPrevention prevention)
-	{
-		return ModifyAsync(@"
-			INSERT OR IGNORE INTO SpamPrevention
-				( GuildId, PunishmentType, Instances, LengthTicks, RoleId, Enabled, IntervalTicks, Size, SpamType )
-				VALUES
-				( @GuildId, @PunishmentType, @Instances, @LengthTicks, @RoleId, @Enabled, @IntervalTicks, @Size, @SpamType );
-			UPDATE SpamPrevention
-			SET
-				PunishmentType = @PunishmentType,
-				Instances = @Instances,
-				LengthTicks = @LengthTicks,
-				RoleId = @RoleId,
-				Enabled = @Enabled,
-				IntervalTicks = @IntervalTicks,
-				Size = @Size
-			WHERE GuildId = @GuildId AND SpamType = @SpamType
-		", prevention);
 	}
 }

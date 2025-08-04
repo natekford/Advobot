@@ -4,8 +4,6 @@ using Advobot.Tests.TestBases;
 
 using AdvorangesUtils;
 
-using Microsoft.VisualStudio.TestTools.UnitTesting;
-
 namespace Advobot.Tests.Core.ParameterPreconditions.DiscordObjectValidation.Roles;
 
 [TestClass]

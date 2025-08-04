@@ -1,6 +1,4 @@
-﻿using Advobot.Tests.Utilities;
-
-using Discord;
+﻿using Discord;
 
 using PermissionUtils = Advobot.Tests.Utilities.PermissionUtils;
 

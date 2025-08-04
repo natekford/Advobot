@@ -1,5 +1,4 @@
-﻿using Advobot.AutoMod.Context;
-using Advobot.AutoMod.Database;
+﻿using Advobot.AutoMod.Database;
 using Advobot.AutoMod.Models;
 using Advobot.AutoMod.Utils;
 using Advobot.Punishments;
@@ -29,16 +28,10 @@ public sealed class AutoModService
 		= DiscordUtils.GenerateRequestOptions("Banned phrase.");
 	private static readonly RequestOptions _PersistentRoles
 		= DiscordUtils.GenerateRequestOptions("Persistent roles.");
-	private static readonly RequestOptions _RaidPrev
-		= DiscordUtils.GenerateRequestOptions("Raid prevention.");
-	private static readonly RequestOptions _SpamPrev
-		= DiscordUtils.GenerateRequestOptions("Spam prevention.");
 
 	private readonly IAutoModDatabase _Db;
 	private readonly GuildSpecific<ulong, EnumMapped<PunishmentType, int>> _Phrases = new();
 	private readonly IPunisher _Punisher;
-	private readonly GuildSpecific<RaidType, HashSet<ulong>> _Raid = new();
-	private readonly GuildSpecific<ulong, EnumMapped<SpamType, SortedSet<ulong>>> _Spam = new();
 	private readonly ITime _Time;
 	private ConcurrentDictionary<ulong, (ConcurrentBag<ulong>, ITextChannel)> _Messages = new();
 
@@ -60,7 +53,7 @@ public sealed class AutoModService
 		{
 			while (true)
 			{
-				var messageGroups = Interlocked.Exchange(ref _Messages, new());
+				var messageGroups = Interlocked.Exchange(ref _Messages, []);
 				foreach (var (_, (messages, channel)) in messageGroups)
 				{
 					try
@@ -80,7 +73,7 @@ public sealed class AutoModService
 
 	private async Task OnMessageReceived(IMessage message)
 	{
-		var context = message.CreateContext();
+		var context = AutoModMessageContext.FromMessage(message);
 		if (context is null)
 		{
 			return;
@@ -93,10 +86,9 @@ public sealed class AutoModService
 			return;
 		}
 
-		var isSpam = await ProcessSpamAsync(context).CAF();
 		var isBannedPhrase = await ProcessBannedPhrasesAsync(context).CAF();
 		var isAllowed = await ProcessChannelSettings(context).CAF();
-		if (isSpam || isBannedPhrase || !isAllowed)
+		if (isBannedPhrase || !isAllowed)
 		{
 			QueueMessageForDeletion(context.Channel, message);
 		}
@@ -107,7 +99,7 @@ public sealed class AutoModService
 
 	private async Task OnUserJoined(IGuildUser user)
 	{
-		var context = user.CreateContext();
+		var context = new AutoModContext(user);
 		if (context is null)
 		{
 			return;
@@ -119,63 +111,10 @@ public sealed class AutoModService
 			return;
 		}
 
-		var isRaid = await ProcessAntiRaidAsync(context).CAF();
-		if (isRaid)
-		{
-			return;
-		}
-
 		await ProcessPersistentRolesAsync(context).CAF();
 	}
 
-	private async Task<bool> ProcessAntiRaidAsync(IAutoModContext context)
-	{
-#warning make this work eventually
-#pragma warning disable RCS1163 // Unused parameter.
-#pragma warning disable IDE0060 // Remove unused parameter
-		static bool IsRaid(RaidPrevention prev, IGuildUser user)
-			=> false;
-
-		static bool ShouldPunish(RaidPrevention prev, IEnumerable<ulong> users)
-			=> false;
-#pragma warning restore IDE0060 // Remove unused parameter
-#pragma warning restore RCS1163 // Unused parameter.
-
-		var prevs = await _Db.GetRaidPreventionAsync(context.Guild.Id).CAF();
-
-		var isRaid = false;
-		foreach (var raidPrev in prevs)
-		{
-			var instances = _Raid.Get(context.Guild, raidPrev.RaidType);
-			instances.Add(context.User.Id);
-
-			if (IsRaid(raidPrev, context.User))
-			{
-				isRaid = true;
-			}
-		}
-		if (!isRaid)
-		{
-			return false;
-		}
-
-		foreach (var raidPrev in prevs)
-		{
-			var instances = _Raid.Get(context.Guild, raidPrev.RaidType);
-			if (!ShouldPunish(raidPrev, instances))
-			{
-				continue;
-			}
-
-			foreach (var instance in instances)
-			{
-				await PunishAsync(context.Guild, instance, raidPrev, _RaidPrev).CAF();
-			}
-		}
-		return true;
-	}
-
-	private async Task<bool> ProcessBannedNamesAsync(IAutoModContext context)
+	private async Task<bool> ProcessBannedNamesAsync(AutoModContext context)
 	{
 		var names = await _Db.GetBannedNamesAsync(context.Guild.Id).CAF();
 		foreach (var name in names)
@@ -189,7 +128,7 @@ public sealed class AutoModService
 		return false;
 	}
 
-	private async Task<bool> ProcessBannedPhrasesAsync(IAutoModMessageContext context)
+	private async Task<bool> ProcessBannedPhrasesAsync(AutoModMessageContext context)
 	{
 		var phrases = await _Db.GetBannedPhrasesAsync(context.Guild.Id).CAF();
 		var instances = _Phrases.Get(context.Guild, context.User.Id);
@@ -223,7 +162,7 @@ public sealed class AutoModService
 		return true;
 	}
 
-	private async Task<bool> ProcessChannelSettings(IAutoModMessageContext context)
+	private async Task<bool> ProcessChannelSettings(AutoModMessageContext context)
 	{
 		var settings = await _Db.GetChannelSettingsAsync(context.Channel.Id).CAF();
 		if (settings is null)
@@ -234,7 +173,7 @@ public sealed class AutoModService
 		return !settings.IsImageOnly || context.Message.GetImageCount() > 0;
 	}
 
-	private async Task<bool> ProcessPersistentRolesAsync(IAutoModContext context)
+	private async Task<bool> ProcessPersistentRolesAsync(AutoModContext context)
 	{
 		var persistent = await _Db.GetPersistentRolesAsync(context.Guild.Id, context.User.Id).CAF();
 		if (persistent.Count == 0)
@@ -250,35 +189,6 @@ public sealed class AutoModService
 			rolesToRemove: [],
 			_PersistentRoles
 		).CAF();
-		return true;
-	}
-
-	private async Task<bool> ProcessSpamAsync(IAutoModMessageContext context)
-	{
-		var prevs = await _Db.GetSpamPreventionAsync(context.Guild.Id).CAF();
-		var instances = _Spam.Get(context.Guild, context.User.Id);
-
-		var isSpam = false;
-		foreach (var spamPrev in prevs)
-		{
-			if (spamPrev.IsSpam(context.Message))
-			{
-				instances[spamPrev.SpamType].Add(context.Message.Id);
-				isSpam = true;
-			}
-		}
-		if (!isSpam)
-		{
-			return false;
-		}
-
-		foreach (var spamPrev in prevs)
-		{
-			if (spamPrev.ShouldPunish(instances[spamPrev.SpamType]))
-			{
-				await PunishAsync(context.Guild, context.User.Id, spamPrev, _SpamPrev).CAF();
-			}
-		}
 		return true;
 	}
 
@@ -301,5 +211,28 @@ public sealed class AutoModService
 		_Messages
 			.GetOrAdd(message.Channel.Id, _ => ([], channel))
 			.Item1.Add(message.Id);
+	}
+
+	private record AutoModContext(IGuildUser User)
+	{
+		public IGuild Guild => User.Guild;
+	}
+
+	private record AutoModMessageContext(
+		IGuildUser User,
+		ITextChannel Channel,
+		IUserMessage Message
+	) : AutoModContext(User)
+	{
+		public static AutoModMessageContext? FromMessage(IMessage message)
+		{
+			if (message is not IUserMessage userMessage
+				|| userMessage.Author is not IGuildUser user
+				|| userMessage.Channel is not ITextChannel channel)
+			{
+				return null;
+			}
+			return new(user, channel, userMessage);
+		}
 	}
 }

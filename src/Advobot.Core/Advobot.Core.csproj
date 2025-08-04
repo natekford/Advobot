@@ -1,6 +1,5 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 	<PropertyGroup>
-		<TargetFramework>netstandard2.1</TargetFramework>
 		<Deterministic>false</Deterministic>
 	</PropertyGroup>
 
@@ -18,7 +17,6 @@
 		<PackageReference Include="Discord.Net.Rest" Version="3.18.0" />
 		<PackageReference Include="Discord.Net.Webhook" Version="3.18.0" />
 		<PackageReference Include="Discord.Net.WebSocket" Version="3.18.0" />
-		<PackageReference Include="Magick.NET-Q8-AnyCPU" Version="14.7.0" />
 		<PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="9.0.7" />
 	</ItemGroup>
 

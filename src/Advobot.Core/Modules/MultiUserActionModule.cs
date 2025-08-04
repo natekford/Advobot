@@ -64,7 +64,7 @@ public abstract class MultiUserActionModule : AdvobotModuleBase
 		=> Context.User.CanModify(user) && Context.Guild.CurrentUser.CanModify(user);
 
 	private async Task<int> ProcessAsync(
-		IReadOnlyList<IGuildUser> users,
+		IGuildUser[] users,
 		Func<IGuildUser, RequestOptions, Task> update,
 		RequestOptions options)
 	{
@@ -76,7 +76,7 @@ public abstract class MultiUserActionModule : AdvobotModuleBase
 		});
 
 		var i = 0;
-		for (; i < users.Count; ++i)
+		for (; i < users.Length; ++i)
 		{
 			if (token.IsCancellationRequested)
 			{
@@ -84,7 +84,7 @@ public abstract class MultiUserActionModule : AdvobotModuleBase
 			}
 			else if (ProgressLogger != null)
 			{
-				var args = new MultiUserActionProgressArgs(users.Count, i + 1);
+				var args = new MultiUserActionProgressArgs(users.Length, i + 1);
 				await ProgressLogger.ReportAsync(args).CAF();
 			}
 

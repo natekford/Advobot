@@ -5,8 +5,6 @@
 
 	<ItemGroup>
 		<ProjectReference Include="..\Advobot.AutoMod\Advobot.AutoMod.csproj" />
-		<ProjectReference Include="..\Advobot.Gacha\Advobot.Gacha.csproj" />
-		<ProjectReference Include="..\Advobot.Invites\Advobot.Invites.csproj" />
 		<ProjectReference Include="..\Advobot.Levels\Advobot.Levels.csproj" />
 		<ProjectReference Include="..\Advobot.Logging\Advobot.Logging.csproj" />
 		<ProjectReference Include="..\Advobot.MyCommands\Advobot.MyCommands.csproj" />

@@ -3,8 +3,6 @@ using Advobot.Tests.TestBases;
 
 using AdvorangesUtils;
 
-using Microsoft.VisualStudio.TestTools.UnitTesting;
-
 namespace Advobot.Tests.Core.Preconditions;
 
 [Obsolete("asdf")]

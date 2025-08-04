@@ -19,7 +19,7 @@ public sealed class ColorTypeReader : TypeReader
 	private static readonly ImmutableDictionary<string, Color> _Colors = typeof(Color)
 		.GetFields(BindingFlags.Public | BindingFlags.Static)
 		.Where(x => x.FieldType == typeof(Color))
-		.ToDictionary(x => x.Name, x => (Color)x.GetValue(null), StringComparer.OrdinalIgnoreCase)
+		.ToDictionary(x => x.Name, x => (Color)x.GetValue(null)!, StringComparer.OrdinalIgnoreCase)
 		.ToImmutableDictionary();
 
 	/// <summary>

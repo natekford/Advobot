@@ -6,8 +6,6 @@ using AdvorangesUtils;
 
 using Discord;
 
-using Microsoft.VisualStudio.TestTools.UnitTesting;
-
 namespace Advobot.Tests.Core.Preconditions;
 
 [TestClass]

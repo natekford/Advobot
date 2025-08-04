@@ -71,15 +71,12 @@ internal class AsyncEvent<T> where T : class
 
 	public AsyncEvent()
 	{
-		_Subscriptions = ImmutableArray.Create<T>();
+		_Subscriptions = [];
 	}
 
 	public void Add(T subscriber)
 	{
-		if (subscriber == null)
-		{
-			throw new ArgumentNullException(nameof(subscriber));
-		}
+		ArgumentNullException.ThrowIfNull(subscriber);
 		lock (_SubLock)
 		{
 			_Subscriptions = _Subscriptions.Add(subscriber);
@@ -88,10 +85,7 @@ internal class AsyncEvent<T> where T : class
 
 	public void Remove(T subscriber)
 	{
-		if (subscriber == null)
-		{
-			throw new ArgumentNullException(nameof(subscriber));
-		}
+		ArgumentNullException.ThrowIfNull(subscriber);
 		lock (_SubLock)
 		{
 			_Subscriptions = _Subscriptions.Remove(subscriber);

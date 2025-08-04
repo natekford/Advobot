@@ -1,5 +1,4 @@
-﻿using System.Collections.Immutable;
-using System.Globalization;
+﻿using System.Globalization;
 
 namespace Advobot.CommandAssemblies;
 
@@ -9,8 +8,6 @@ namespace Advobot.CommandAssemblies;
 [AttributeUsage(AttributeTargets.Assembly, AllowMultiple = false, Inherited = true)]
 public sealed class CommandAssemblyAttribute(params string[] supportedCultures) : Attribute
 {
-	private Type? _InstatiatorType;
-
 	/// <summary>
 	/// An instance of <see cref="InstantiatorType"/>.
 	/// </summary>
@@ -21,12 +18,12 @@ public sealed class CommandAssemblyAttribute(params string[] supportedCultures) 
 	/// </summary>
 	public Type? InstantiatorType
 	{
-		get => _InstatiatorType;
+		get;
 		set
 		{
 			if (value == null)
 			{
-				_InstatiatorType = null;
+				field = null;
 				Instantiator = null;
 			}
 
@@ -45,7 +42,7 @@ public sealed class CommandAssemblyAttribute(params string[] supportedCultures) 
 				throw new ArgumentException($"Must implement {nameof(ICommandAssemblyInstantiator)}.", nameof(InstantiatorType));
 			}
 
-			_InstatiatorType = value;
+			field = value;
 			Instantiator = instantiator;
 		}
 	}

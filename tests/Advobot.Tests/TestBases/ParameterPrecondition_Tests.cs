@@ -2,8 +2,6 @@
 
 using Discord.Commands;
 
-using Microsoft.VisualStudio.TestTools.UnitTesting;
-
 namespace Advobot.Tests.TestBases;
 
 public abstract class ParameterPrecondition_Tests<T> : TestsBase

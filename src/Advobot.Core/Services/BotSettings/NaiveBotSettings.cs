@@ -32,8 +32,8 @@ internal sealed class NaiveBotSettings : IBotSettings
 	public string Prefix { get; set; } = "&&";
 	public string RestartArguments { get; private set; } = "";
 	public string? Stream { get; set; }
-	public IList<ulong> UsersIgnoredFromCommands { get; set; } = new List<ulong>();
-	public IList<ulong> UsersUnableToDmOwner { get; set; } = new List<ulong>();
+	public IList<ulong> UsersIgnoredFromCommands { get; set; } = [];
+	public IList<ulong> UsersUnableToDmOwner { get; set; } = [];
 
 	#region Saving and Loading
 

@@ -115,7 +115,7 @@ public sealed class SelfRoles : ModuleBase
 		[LocalizedAlias(nameof(Aliases.Remove))]
 		public async Task<RuntimeResult> Remove(
 			[CanModifyRole, NotEveryone, NotManaged]
-				params IRole[] roles)
+			params IRole[] roles)
 		{
 			var count = await Db.DeleteSelfRolesAsync(roles.Select(x => x.Id)).CAF();
 			return RemovedSelfRoles(count);

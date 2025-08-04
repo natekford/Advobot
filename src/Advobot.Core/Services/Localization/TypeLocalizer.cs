@@ -20,7 +20,7 @@ internal sealed class TypeLocalizer : ITypeLocalizer
 		}
 	}
 
-	public bool TryGet<T>(out string output)
+	public bool TryGet<T>(out string? output)
 	{
 		var culture = CultureInfo.CurrentUICulture;
 		return _Dict.TryGetValue((culture, typeof(T)), out output);

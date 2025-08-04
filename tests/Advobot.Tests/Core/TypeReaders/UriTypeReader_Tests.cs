@@ -3,8 +3,6 @@ using Advobot.TypeReaders;
 
 using AdvorangesUtils;
 
-using Microsoft.VisualStudio.TestTools.UnitTesting;
-
 namespace Advobot.Tests.Core.TypeReaders;
 
 [TestClass]

@@ -4,7 +4,6 @@ using Advobot.Services.BotSettings;
 using Advobot.Services.Commands;
 using Advobot.Services.GuildSettingsProvider;
 using Advobot.Services.HelpEntries;
-using Advobot.Services.ImageResizing;
 using Advobot.Services.LogCounters;
 using Advobot.Services.Time;
 using Advobot.Settings;
@@ -157,7 +156,6 @@ public sealed class AdvobotLauncher
 			.AddSingleton<IHelpEntryService, HelpEntryService>()
 			.AddSingleton<ICommandHandlerService, CommandHandlerService>()
 			.AddSingleton<ILogCounterService, LogCounterService>()
-			.AddSingleton<IImageResizer, ImageResizer>()
 			.AddSingleton<IPunisher, Punisher>()
 			.AddSingleton<IGuildSettingsProvider, NaiveGuildSettingsProvider>();
 
