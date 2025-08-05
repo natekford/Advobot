@@ -10,14 +10,3 @@ public interface ISummarizable
 	/// </summary>
 	string Summary { get; }
 }
-
-/// <summary>
-/// An object that has a name.
-/// </summary>
-public interface INameable
-{
-	/// <summary>
-	/// The name of this object.
-	/// </summary>
-	string Name { get; }
-}

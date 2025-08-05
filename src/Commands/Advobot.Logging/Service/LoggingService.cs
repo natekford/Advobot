@@ -4,7 +4,6 @@ using Advobot.Services.Commands;
 using Advobot.Services.Time;
 
 using Discord;
-using Discord.Net;
 using Discord.WebSocket;
 
 using Microsoft.Extensions.Logging;

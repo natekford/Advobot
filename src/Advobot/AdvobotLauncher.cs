@@ -85,10 +85,10 @@ public sealed class AdvobotLauncher
 		}
 
 		// Get the bot key
-		var validKey = await _Config.ValidateBotKey(null, true, ClientUtils.RestartBotAsync).CAF();
+		var validKey = await _Config.ValidateBotKey(null, true, DiscordUtils.RestartBotAsync).CAF();
 		while (!validKey)
 		{
-			validKey = await _Config.ValidateBotKey(Console.ReadLine(), false, ClientUtils.RestartBotAsync).CAF();
+			validKey = await _Config.ValidateBotKey(Console.ReadLine(), false, DiscordUtils.RestartBotAsync).CAF();
 		}
 	}
 
