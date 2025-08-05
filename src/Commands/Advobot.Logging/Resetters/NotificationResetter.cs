@@ -5,7 +5,7 @@ using AdvorangesUtils;
 
 using Discord.Commands;
 
-namespace Advobot.Logging.OptionSetters;
+namespace Advobot.Logging.Resetters;
 
 public abstract class NotificationResetter : IResetter
 {

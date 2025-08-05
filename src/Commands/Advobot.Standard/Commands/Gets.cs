@@ -1,5 +1,4 @@
 ﻿using Advobot.Attributes;
-using Advobot.Classes;
 using Advobot.Localization;
 using Advobot.Modules;
 using Advobot.ParameterPreconditions.DiscordObjectValidation.Channels;
@@ -14,8 +13,6 @@ using AdvorangesUtils;
 
 using Discord;
 using Discord.Commands;
-
-using System.Collections.Immutable;
 
 namespace Advobot.Standard.Commands;
 
@@ -204,51 +201,5 @@ public sealed class Gets : ModuleBase
 		[Command]
 		public Task<RuntimeResult> Command()
 			=> Responses.Gets.UserJoin(Context.Guild.Users.OrderByJoinDate());
-	}
-
-	[LocalizedGroup(nameof(Groups.GetUsersWithReason))]
-	[LocalizedAlias(nameof(Aliases.GetUsersWithReason))]
-	[LocalizedSummary(nameof(Summaries.GetUsersWithReason))]
-	[Meta("2442d1e5-ac94-4524-a108-37e2f9c23a47", IsEnabled = true)]
-	[RequireGenericGuildPermissions]
-	public sealed class GetUsersWithReason : AdvobotModuleBase
-	{
-		[Command]
-		public Task<RuntimeResult> Command([Remainder] UserFilterer filterer)
-		{
-			var matches = filterer.Filter(Context.Guild.Users);
-			return Responses.Gets.UsersWithReason(matches);
-		}
-
-		[NamedArgumentType]
-		public sealed class UserFilterer : Filterer<IGuildUser>
-		{
-			public string? Game { get; set; }
-			public bool? IsStreaming { get; set; }
-			public string? Name { get; set; }
-			public IRole? Role { get; set; }
-
-			public override IReadOnlyList<IGuildUser> Filter(
-				IEnumerable<IGuildUser> source)
-			{
-				if (Role != null)
-				{
-					source = source.Where(x => x.RoleIds.Contains(Role.Id));
-				}
-				if (Name != null)
-				{
-					source = source.Where(x => x.Username.CaseInsContains(Name) || x.Nickname.CaseInsContains(Name));
-				}
-				if (Game != null)
-				{
-					source = source.Where(x => x.Activities.Any(a => a is Game g && g.Name.CaseInsContains(Game)));
-				}
-				if (IsStreaming != null)
-				{
-					source = source.Where(x => x.Activities.OfType<StreamingGame>().Any() == IsStreaming);
-				}
-				return source?.ToArray() ?? [];
-			}
-		}
 	}
 }

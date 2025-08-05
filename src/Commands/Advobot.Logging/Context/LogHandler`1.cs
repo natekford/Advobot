@@ -13,8 +13,7 @@ namespace Advobot.Logging.Context;
 public sealed class LogHandler<T>(LogAction action, ILogger logger, ILoggingDatabase db) : ICollection<Func<ILogContext<T>, Task>>
 	where T : ILogState
 {
-	private readonly ICollection<Func<ILogContext<T>, Task>> _Actions =
-		[];
+	private readonly ICollection<Func<ILogContext<T>, Task>> _Actions = [];
 
 	private readonly ILoggingDatabase _Db = db;
 	private readonly ILogger _Logger = logger;

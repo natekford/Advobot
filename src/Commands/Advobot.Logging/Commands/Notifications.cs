@@ -1,7 +1,7 @@
 ﻿using Advobot.Attributes;
 using Advobot.Localization;
 using Advobot.Logging.Models;
-using Advobot.Logging.OptionSetters;
+using Advobot.Logging.Resetters;
 using Advobot.ParameterPreconditions.DiscordObjectValidation.Channels;
 using Advobot.Preconditions.Permissions;
 using Advobot.Resources;

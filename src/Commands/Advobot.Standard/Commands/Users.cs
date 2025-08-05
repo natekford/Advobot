@@ -1,5 +1,4 @@
 ﻿using Advobot.Attributes;
-using Advobot.Classes;
 using Advobot.Localization;
 using Advobot.Modules;
 using Advobot.ParameterPreconditions.DiscordObjectValidation;
@@ -148,15 +147,14 @@ public sealed class Users : ModuleBase
 			bool bypass = false
 		)
 		{
-			Task UpdateAsync(IGuildUser user, RequestOptions options)
+			return CommandRunner(target, bypass, (user, options) =>
 			{
 				if (user.Nickname != null)
 				{
 					return user.ModifyAsync(x => x.Nickname = user.Username, options);
 				}
 				return Task.CompletedTask;
-			}
-			return CommandRunner(target, bypass, UpdateAsync);
+			});
 		}
 
 		[LocalizedCommand(nameof(Groups.GiveNickname), RunMode = RunMode.Async)]
@@ -169,15 +167,14 @@ public sealed class Users : ModuleBase
 			bool bypass = false
 		)
 		{
-			Task UpdateAsync(IGuildUser user, RequestOptions options)
+			return CommandRunner(target, bypass, (user, options) =>
 			{
 				if (user.Nickname != nickname)
 				{
 					return user.ModifyAsync(x => x.Nickname = nickname, options);
 				}
 				return Task.CompletedTask;
-			}
-			return CommandRunner(target, bypass, UpdateAsync);
+			});
 		}
 
 		[LocalizedCommand(nameof(Groups.GiveRole), RunMode = RunMode.Async)]
@@ -195,15 +192,14 @@ public sealed class Users : ModuleBase
 				return Responses.Users.CannotGiveGatheredRole();
 			}
 
-			Task UpdateAsync(IGuildUser user, RequestOptions options)
+			return CommandRunner(target, bypass, (user, options) =>
 			{
 				if (!user.RoleIds.Contains(give.Id))
 				{
 					return user.AddRoleAsync(give, options);
 				}
 				return Task.CompletedTask;
-			}
-			return CommandRunner(target, bypass, UpdateAsync);
+			});
 		}
 
 		[LocalizedCommand(nameof(Groups.TakeRole), RunMode = RunMode.Async)]
@@ -216,15 +212,14 @@ public sealed class Users : ModuleBase
 			bool bypass = false
 		)
 		{
-			Task UpdateAsync(IGuildUser user, RequestOptions options)
+			return CommandRunner(target, bypass, (user, options) =>
 			{
 				if (user.RoleIds.Contains(take.Id))
 				{
 					return user.RemoveRoleAsync(take, options);
 				}
 				return Task.CompletedTask;
-			}
-			return CommandRunner(target, bypass, UpdateAsync);
+			});
 		}
 
 		private async Task<RuntimeResult> CommandRunner(
@@ -232,18 +227,12 @@ public sealed class Users : ModuleBase
 			bool bypass,
 			Func<IGuildUser, RequestOptions, Task> update)
 		{
-			var options = GetOptions();
-			ProgressLogger = new MultiUserActionProgressLogger(
-				Context.Channel,
-				i => Responses.Users.MultiUserActionProgress(i.AmountLeft).Reason,
-				options
-			);
-
 			var amountChanged = await ProcessAsync(
 				bypass,
 				u => u.RoleIds.Contains(role.Id),
 				update,
-				options
+				i => Responses.Users.MultiUserActionProgress(i.AmountLeft).Reason,
+				GetOptions()
 			).CAF();
 			return Responses.Users.MultiUserActionSuccess(amountChanged);
 		}
@@ -327,20 +316,14 @@ public sealed class Users : ModuleBase
 			bool bypass
 		)
 		{
-			var options = GetOptions();
-			ProgressLogger = new MultiUserActionProgressLogger(
-				Context.Channel,
-				i => Responses.Users.MultiUserActionProgress(i.AmountLeft).Reason,
-				options
-			);
-
 			var users = await input.GetUsersAsync().FlattenAsync().CAF();
 			var amountChanged = await ProcessAsync(
 				users,
 				bypass,
 				_ => true,
 				(u, o) => u.ModifyAsync(x => x.Channel = Optional.Create(output), o),
-				options
+				i => Responses.Users.MultiUserActionProgress(i.AmountLeft).Reason,
+				GetOptions()
 			).CAF();
 			return Responses.Users.MultiUserActionSuccess(amountChanged);
 		}

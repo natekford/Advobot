@@ -2,14 +2,13 @@
 using Advobot.AutoMod.Models;
 using Advobot.AutoMod.TypeReaders;
 using Advobot.Punishments;
-using Advobot.Tests.Commands.AutoMod;
 using Advobot.Tests.TestBases;
 
 using AdvorangesUtils;
 
 using Microsoft.Extensions.DependencyInjection;
 
-namespace Advobot.Tests.Core.TypeReaders.BannedPhraseTypeReaders;
+namespace Advobot.Tests.Commands.AutoMod.TypeReaders;
 
 [TestClass]
 public abstract class BannedPhraseTypeReader_Tests<T> : TypeReader_Tests<T>

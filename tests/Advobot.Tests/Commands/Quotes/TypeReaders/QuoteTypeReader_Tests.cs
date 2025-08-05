@@ -1,7 +1,7 @@
 ﻿using Advobot.Quotes.Database;
 using Advobot.Quotes.Models;
+using Advobot.Quotes.TypeReaders;
 using Advobot.Tests.TestBases;
-using Advobot.TypeReaders;
 
 using AdvorangesUtils;
 

@@ -4,9 +4,12 @@ using Advobot.Services.Commands;
 using Advobot.Services.Time;
 
 using Discord;
+using Discord.Net;
 using Discord.WebSocket;
 
 using Microsoft.Extensions.Logging;
+
+using System.Net.WebSockets;
 
 namespace Advobot.Logging.Service;
 
@@ -59,6 +62,13 @@ public sealed class LoggingService
 	{
 		var id = new EventId(1, message.Source);
 		var e = message.Exception;
+		// Gateway reconnects have a warning severity, but all they are is spam
+		if (e is GatewayReconnectException
+			|| (e.InnerException is WebSocketException wse && wse.WebSocketErrorCode == WebSocketError.ConnectionClosedPrematurely))
+		{
+			message = new(LogSeverity.Info, message.Source, message.Message, e);
+		}
+
 		var msg = message.Message;
 		switch (message.Severity)
 		{
@@ -74,9 +84,7 @@ public sealed class LoggingService
 				_Logger.LogInformation(id, e, msg);
 				break;
 
-			// Gateway reconnects have a warning severity, but all they do is
-			// spam the console
-			case LogSeverity.Warning when e is not GatewayReconnectException:
+			case LogSeverity.Warning:
 				_Logger.LogWarning(id, e, msg);
 				break;
 

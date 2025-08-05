@@ -20,13 +20,13 @@ namespace Advobot.Standard.Responses;
 public sealed class Gets : AdvobotResult
 {
 	private static readonly IReadOnlyList<ActivityType> _Activities
-		= AdvobotUtils.GetValues<ActivityType>();
+		= Enum.GetValues<ActivityType>();
 
 	private static readonly IReadOnlyList<GuildPermission> _Permissions
-		= AdvobotUtils.GetValues<GuildPermission>();
+		= Enum.GetValues<GuildPermission>();
 
 	private static readonly IReadOnlyList<UserStatus> _Statuses
-		= AdvobotUtils.GetValues<UserStatus>();
+		= Enum.GetValues<UserStatus>();
 
 	private Gets() : base(null, "")
 	{

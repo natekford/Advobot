@@ -5,7 +5,7 @@
 	</PropertyGroup>
 
 	<ItemGroup>
-		<ProjectReference Include="..\Advobot.Core\Advobot.Core.csproj" />
+		<ProjectReference Include="..\Advobot\Advobot.csproj" />
 		<ProjectReference Include="..\Commands\Advobot.AllCommands\Advobot.AllCommands.csproj" />
 	</ItemGroup>
 </Project>

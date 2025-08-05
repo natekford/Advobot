@@ -1,6 +1,6 @@
 ﻿using Discord;
 
-namespace Advobot.Logging.Context.Messages;
+namespace Advobot.Logging.Context.Message;
 
 public class MessagesBulkDeletedState(IEnumerable<Cacheable<IMessage, ulong>> messages) : MessageDeletedState(messages.First())
 {

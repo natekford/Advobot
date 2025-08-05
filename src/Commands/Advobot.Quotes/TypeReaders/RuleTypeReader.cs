@@ -9,7 +9,7 @@ using Discord.Commands;
 
 using Microsoft.Extensions.DependencyInjection;
 
-namespace Advobot.TypeReaders;
+namespace Advobot.Quotes.TypeReaders;
 
 [TypeReaderTargetType(typeof(Rule))]
 public sealed class RuleTypeReader : TypeReader

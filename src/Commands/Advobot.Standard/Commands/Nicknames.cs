@@ -56,17 +56,12 @@ public sealed class Nicknames : ModuleBase
 				bool bypass = false
 		)
 		{
-			var options = GetOptions();
-			ProgressLogger = new MultiUserActionProgressLogger(
-				Context.Channel,
-				i => Responses.Users.MultiUserActionProgress(i.AmountLeft).Reason,
-				options
-			);
 			var amountChanged = await ProcessAsync(
 				bypass,
 				u => u.Nickname != null,
 				(u, o) => u.ModifyAsync(x => x.Nickname = u.Username, o),
-				options
+				i => Responses.Users.MultiUserActionProgress(i.AmountLeft).Reason,
+				GetOptions()
 			).CAF();
 			return Responses.Users.MultiUserActionSuccess(amountChanged);
 		}
@@ -89,17 +84,12 @@ public sealed class Nicknames : ModuleBase
 			bool bypass = false
 		)
 		{
-			var options = GetOptions();
-			ProgressLogger = new MultiUserActionProgressLogger(
-				Context.Channel,
-				i => Responses.Users.MultiUserActionProgress(i.AmountLeft).Reason,
-				options
-			);
 			var amountChanged = await ProcessAsync(
 				bypass,
 				u => (u.Nickname?.AllCharsWithinLimit(upperLimit) == false) || (u.Nickname == null && !u.Username.AllCharsWithinLimit(upperLimit)),
 				(u, o) => u.ModifyAsync(x => x.Nickname = replace, o),
-				options
+				i => Responses.Users.MultiUserActionProgress(i.AmountLeft).Reason,
+				GetOptions()
 			).CAF();
 			return Responses.Users.MultiUserActionSuccess(amountChanged);
 		}
@@ -122,17 +112,12 @@ public sealed class Nicknames : ModuleBase
 			bool bypass = false
 		)
 		{
-			var options = GetOptions();
-			ProgressLogger = new MultiUserActionProgressLogger(
-				Context.Channel,
-				i => Responses.Users.MultiUserActionProgress(i.AmountLeft).Reason,
-				options
-			);
 			var amountChanged = await ProcessAsync(
 				bypass,
 				u => (u.Nickname?.CaseInsContains(search) == true) || (u.Nickname == null && u.Username.CaseInsContains(search)),
 				(u, o) => u.ModifyAsync(x => x.Nickname = replace, o),
-				options
+				i => Responses.Users.MultiUserActionProgress(i.AmountLeft).Reason,
+				GetOptions()
 			).CAF();
 			return Responses.Users.MultiUserActionSuccess(amountChanged);
 		}

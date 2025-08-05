@@ -1,6 +1,6 @@
 ﻿using Advobot.CommandAssemblies;
 using Advobot.Logging.Database;
-using Advobot.Logging.OptionSetters;
+using Advobot.Logging.Resetters;
 using Advobot.Logging.Service;
 using Advobot.Serilog;
 using Advobot.SQLite;

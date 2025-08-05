@@ -1,6 +1,6 @@
 ﻿using Advobot.Logging.Database;
 
-namespace Advobot.Logging.OptionSetters;
+namespace Advobot.Logging.Resetters;
 
 public sealed class GoodbyeNotificationResetter(INotificationDatabase db) : NotificationResetter(db)
 {

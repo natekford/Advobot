@@ -20,21 +20,24 @@ namespace Advobot.SQLite;
 public static class SQLiteUtils
 {
 	/// <summary>
-	/// Runs all migrations which have not been run yet.
+	/// Adds a SQLite connection string for the specified database.
 	/// </summary>
 	/// <typeparam name="T"></typeparam>
-	/// <param name="connection"></param>
-	public static void MigrateUp<T>(this IConnectionString<T> connection)
-		=> connection.CreateMigrationRunner().MigrateUp();
-
-	/// <summary>
-	/// Downgrades to the specified version.
-	/// </summary>
-	/// <typeparam name="T"></typeparam>
-	/// <param name="connection"></param>
-	/// <param name="version"></param>
-	public static void MigrateDown<T>(this IConnectionString<T> connection, long version)
-		=> connection.CreateMigrationRunner().MigrateDown(version);
+	/// <param name="services"></param>
+	/// <param name="fileName"></param>
+	/// <returns></returns>
+	public static IServiceCollection AddSQLiteFileDatabaseConnectionString<T>(
+		this IServiceCollection services,
+		string fileName)
+	{
+		return services.AddSingleton(x =>
+		{
+			var accessor = x.GetRequiredService<IBotDirectoryAccessor>();
+			var path = accessor.ValidateDbPath("SQLite", fileName).FullName;
+			var conn = new SQLiteSystemFileDatabaseConnectionString(path);
+			return (IConnectionString<T>)(IConnectionString<object>)conn;
+		});
+	}
 
 	/// <summary>
 	/// Creates a new <see cref="DbConnection"/>.
@@ -70,23 +73,49 @@ public static class SQLiteUtils
 	}
 
 	/// <summary>
-	/// Adds a SQLite connection string for the specified database.
+	/// Downgrades to the specified version.
 	/// </summary>
 	/// <typeparam name="T"></typeparam>
-	/// <param name="services"></param>
-	/// <param name="fileName"></param>
+	/// <param name="connection"></param>
+	/// <param name="version"></param>
+	public static void MigrateDown<T>(this IConnectionString<T> connection, long version)
+		=> connection.CreateMigrationRunner().MigrateDown(version);
+
+	/// <summary>
+	/// Runs all migrations which have not been run yet.
+	/// </summary>
+	/// <typeparam name="T"></typeparam>
+	/// <param name="connection"></param>
+	public static void MigrateUp<T>(this IConnectionString<T> connection)
+		=> connection.CreateMigrationRunner().MigrateUp();
+
+	/// <summary>
+	/// Ensures the extension of the file is '.db' and that the directory exists.
+	/// </summary>
+	/// <param name="accessor"></param>
+	/// <param name="fileNameParts"></param>
 	/// <returns></returns>
-	public static IServiceCollection AddSQLiteFileDatabaseConnectionString<T>(
-		this IServiceCollection services,
-		string fileName)
+	public static FileInfo ValidateDbPath(this IBotDirectoryAccessor accessor, params string[] fileNameParts)
 	{
-		return services.AddSingleton(x =>
+		static void ExtensionValidation(ref string fileName)
 		{
-			var accessor = x.GetRequiredService<IBotDirectoryAccessor>();
-			var path = accessor.ValidateDbPath("SQLite", fileName).FullName;
-			var conn = new SQLiteSystemFileDatabaseConnectionString(path);
-			return (IConnectionString<T>)(IConnectionString<object>)conn;
-		});
+			const string EXT = ".db";
+			if (!Path.HasExtension(fileName))
+			{
+				fileName += EXT;
+			}
+			else if (Path.GetExtension(fileName) != EXT)
+			{
+				fileName = Path.GetFileNameWithoutExtension(fileName) + EXT;
+			}
+		}
+		ExtensionValidation(ref fileNameParts[^1]);
+
+		var relativePath = Path.Combine(fileNameParts);
+		var absolutePath = accessor.GetBaseBotDirectoryFile(relativePath).FullName;
+		//Make sure the directory the db will be created in exists
+		Directory.CreateDirectory(Path.GetDirectoryName(absolutePath)!);
+		return new(absolutePath);
 	}
 
 	private static IMigrationRunner CreateMigrationRunner<T>(

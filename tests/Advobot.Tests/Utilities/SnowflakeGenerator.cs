@@ -1,6 +1,4 @@
-﻿using Advobot.Utilities;
-
-using Discord;
+﻿using Discord;
 
 namespace Advobot.Tests.Utilities;
 
@@ -21,7 +19,7 @@ public sealed class SnowflakeGenerator(TimeSpan incrementationTime)
 				var now = DateTimeOffset.UtcNow.Ticks;
 				newValue = Math.Max(now, original + 10000);
 			} while (Interlocked.CompareExchange(ref _LastTimeStamp, newValue, original) != original);
-			return newValue.CreateUtcDTOFromTicks();
+			return DateTime.SpecifyKind(new(newValue), DateTimeKind.Utc);
 		}
 	}
 

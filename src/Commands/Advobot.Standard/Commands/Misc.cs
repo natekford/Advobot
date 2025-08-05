@@ -1,5 +1,4 @@
 ﻿using Advobot.Attributes;
-using Advobot.Classes;
 using Advobot.Localization;
 using Advobot.Modules;
 using Advobot.ParameterPreconditions.DiscordObjectValidation.Roles;
@@ -99,18 +98,6 @@ public sealed class Misc : ModuleBase
 			}
 			return AdvobotResult.IgnoreFailure;
 		}
-	}
-
-	[LocalizedGroup(nameof(Groups.MakeAnEmbed))]
-	[LocalizedAlias(nameof(Aliases.MakeAnEmbed))]
-	[LocalizedSummary(nameof(Summaries.MakeAnEmbed))]
-	[Meta("6acf2d14-b251-46a6-a645-095cbc8300f9", IsEnabled = true)]
-	[RequireGenericGuildPermissions]
-	public sealed class MakeAnEmbed : AdvobotModuleBase
-	{
-		[Command]
-		public Task<RuntimeResult> Command([Remainder] CustomEmbed args)
-			=> Responses.Misc.MakeAnEmbed(args);
 	}
 
 	[LocalizedGroup(nameof(Groups.MessageBotOwner))]

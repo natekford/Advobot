@@ -4,7 +4,7 @@ using AdvorangesUtils;
 
 using Discord;
 
-namespace Advobot.Logging.Context.Messages;
+namespace Advobot.Logging.Context.Message;
 
 public class MessageDeletedState(Cacheable<IMessage, ulong> cached) : MessageState(cached.Value)
 {

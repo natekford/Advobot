@@ -1,6 +1,6 @@
 ﻿using Discord;
 
-namespace Advobot.Logging.Context.Messages;
+namespace Advobot.Logging.Context.Message;
 
 public class MessageEditState(Cacheable<IMessage, ulong> before, IMessage message) : MessageState(message)
 {

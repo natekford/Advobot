@@ -1,6 +1,6 @@
 ﻿using Advobot.AutoMod.TypeReaders;
 
-namespace Advobot.Tests.Core.TypeReaders.BannedPhraseTypeReaders;
+namespace Advobot.Tests.Commands.AutoMod.TypeReaders;
 
 [TestClass]
 public sealed class BannedStringTypeReader_Tests

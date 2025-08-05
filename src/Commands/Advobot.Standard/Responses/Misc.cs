@@ -1,5 +1,4 @@
-﻿using Advobot.Classes;
-using Advobot.Embeds;
+﻿using Advobot.Embeds;
 using Advobot.Formatting;
 using Advobot.Modules;
 using Advobot.Services.HelpEntries;
@@ -170,9 +169,6 @@ public sealed class Misc : AdvobotResult
 		}
 		return Success(embed);
 	}
-
-	public static AdvobotResult MakeAnEmbed(CustomEmbed embed)
-		=> Success(embed.BuildWrapper());
 
 	public static AdvobotResult Remind(TimeSpan time)
 	{

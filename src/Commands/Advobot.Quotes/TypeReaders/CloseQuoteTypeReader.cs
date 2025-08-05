@@ -1,5 +1,5 @@
 ﻿using Advobot.Attributes;
-using Advobot.Classes.CloseWords;
+using Advobot.CloseWords;
 using Advobot.Quotes.Database;
 using Advobot.Quotes.Models;
 using Advobot.Utilities;
@@ -10,7 +10,7 @@ using Discord.Commands;
 
 using Microsoft.Extensions.DependencyInjection;
 
-namespace Advobot.TypeReaders;
+namespace Advobot.Quotes.TypeReaders;
 
 [TypeReaderTargetType(typeof(IReadOnlyList<Quote>))]
 public sealed class CloseQuoteTypeReader : TypeReader

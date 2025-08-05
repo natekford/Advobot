@@ -8,7 +8,6 @@ using Advobot.Utilities;
 
 using AdvorangesUtils;
 
-using Discord;
 using Discord.Commands;
 
 namespace Advobot.Standard.Commands;
@@ -24,8 +23,11 @@ public sealed class Client : ModuleBase
 	public sealed class DisconnectBot : AdvobotModuleBase
 	{
 		[Command(RunMode = RunMode.Async)]
-		public Task Command()
-			=> Context.Client.DisconnectBotAsync();
+		public async Task Command()
+		{
+			await Context.Client.StopAsync().CAF();
+			Environment.Exit(0);
+		}
 	}
 
 	[LocalizedGroup(nameof(Groups.ModifyBotName))]
