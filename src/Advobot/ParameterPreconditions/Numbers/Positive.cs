@@ -4,7 +4,7 @@
 /// Validates the passed in number allowing 1 to <see cref="int.MaxValue"/>.
 /// </summary>
 [AttributeUsage(AttributeTargets.Parameter, AllowMultiple = false, Inherited = true)]
-public sealed class Positive : RangeParameterPrecondition
+public sealed class Positive : NumberParameterPrecondition
 {
 	/// <inheritdoc />
 	public override string NumberType => "positive number";

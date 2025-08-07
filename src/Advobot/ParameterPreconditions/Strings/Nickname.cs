@@ -4,7 +4,7 @@
 /// Validates the nickname by making sure it is between 1 and 32 characters.
 /// </summary>
 [AttributeUsage(AttributeTargets.Parameter, AllowMultiple = false, Inherited = true)]
-public sealed class Nickname : StringRangeParameterPrecondition
+public sealed class Nickname : StringLengthParameterPrecondition
 {
 	/// <inheritdoc />
 	public override string StringType => "nickname";

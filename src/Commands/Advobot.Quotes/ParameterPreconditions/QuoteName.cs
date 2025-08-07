@@ -14,7 +14,7 @@ namespace Advobot.Quotes.ParameterPreconditions;
 
 [AttributeUsage(AttributeTargets.Parameter, AllowMultiple = false, Inherited = true)]
 public sealed class QuoteName
-	: StringRangeParameterPrecondition, IExistenceParameterPrecondition
+	: StringLengthParameterPrecondition, IExistenceParameterPrecondition
 {
 	public ExistenceStatus Status => ExistenceStatus.MustNotExist;
 	public override string StringType => "quote name";

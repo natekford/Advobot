@@ -3,7 +3,7 @@
 using Discord;
 using Discord.Commands;
 
-namespace Advobot.ParameterPreconditions.DiscordObjectValidation.Users;
+namespace Advobot.ParameterPreconditions.Discord.Users;
 
 /// <summary>
 /// Validates the passed in <see cref="IGuildUser"/>.

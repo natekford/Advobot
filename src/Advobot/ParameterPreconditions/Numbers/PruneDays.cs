@@ -4,7 +4,7 @@
 /// Validates the amount of days to prune with allowing specified valid values.
 /// </summary>
 [AttributeUsage(AttributeTargets.Parameter, AllowMultiple = false, Inherited = true)]
-public sealed class PruneDays : RangeParameterPrecondition
+public sealed class PruneDays : NumberParameterPrecondition
 {
 	/// <inheritdoc />
 	public override string NumberType => "prune days";

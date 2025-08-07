@@ -5,12 +5,12 @@ namespace Advobot.Formatting;
 /// <summary>
 /// Arguments for formatting an information matrix.
 /// </summary>
-public sealed class InformationMatrixFormattingArgs
+public sealed class InfoFormattingArgs
 {
 	/// <summary>
 	/// The default args.
 	/// </summary>
-	public static readonly InformationMatrixFormattingArgs Default = new();
+	public static readonly InfoFormattingArgs Default = new();
 	/// <summary>
 	/// The separator for entire collections.
 	/// </summary>

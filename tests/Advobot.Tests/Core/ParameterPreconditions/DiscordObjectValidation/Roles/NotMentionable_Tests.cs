@@ -1,4 +1,4 @@
-﻿using Advobot.ParameterPreconditions.DiscordObjectValidation.Roles;
+﻿using Advobot.ParameterPreconditions.Discord.Roles;
 using Advobot.Tests.Fakes.Discord;
 using Advobot.Tests.TestBases;
 

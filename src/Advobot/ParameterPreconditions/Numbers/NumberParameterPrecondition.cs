@@ -9,7 +9,7 @@ namespace Advobot.ParameterPreconditions.Numbers;
 /// Makes sure the passed in number is in the supplied list.
 /// </summary>
 [AttributeUsage(AttributeTargets.Parameter, AllowMultiple = false, Inherited = true)]
-public abstract class RangeParameterPrecondition : AdvobotParameterPrecondition<int>
+public abstract class NumberParameterPrecondition : AdvobotParameterPrecondition<int>
 {
 	/// <summary>
 	/// The type of number this is targetting.
@@ -18,7 +18,7 @@ public abstract class RangeParameterPrecondition : AdvobotParameterPrecondition<
 	/// <summary>
 	/// Allowed numbers. If the range method is used this will be contain all of the values between the 2.
 	/// </summary>
-	public NumberRange<int> Range { get; }
+	public ValidateNumber<int> Range { get; }
 	/// <inheritdoc />
 	public override string Summary
 		=> $"Valid {NumberType} ({Range})";
@@ -27,7 +27,7 @@ public abstract class RangeParameterPrecondition : AdvobotParameterPrecondition<
 	/// Valid numbers which are the randomly supplied values.
 	/// </summary>
 	/// <param name="numbers"></param>
-	protected RangeParameterPrecondition(int[] numbers)
+	protected NumberParameterPrecondition(int[] numbers)
 	{
 		Range = new(numbers);
 	}
@@ -37,7 +37,7 @@ public abstract class RangeParameterPrecondition : AdvobotParameterPrecondition<
 	/// </summary>
 	/// <param name="start"></param>
 	/// <param name="end"></param>
-	protected RangeParameterPrecondition(int start, int end)
+	protected NumberParameterPrecondition(int start, int end)
 	{
 		Range = new(start, end);
 	}
@@ -65,7 +65,7 @@ public abstract class RangeParameterPrecondition : AdvobotParameterPrecondition<
 	/// <param name="parameter"></param>
 	/// <param name="services"></param>
 	/// <returns></returns>
-	protected virtual NumberRange<int> GetRange(
+	protected virtual ValidateNumber<int> GetRange(
 		ICommandContext context,
 		ParameterInfo parameter,
 		IServiceProvider services)

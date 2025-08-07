@@ -4,7 +4,7 @@
 /// Validates the emote name by making sure it is between 2 and 32 characters.
 /// </summary>
 [AttributeUsage(AttributeTargets.Parameter, AllowMultiple = false, Inherited = true)]
-public sealed class EmoteName : StringRangeParameterPrecondition
+public sealed class EmoteName : StringLengthParameterPrecondition
 {
 	/// <inheritdoc />
 	public override string StringType => "emote name";

@@ -102,7 +102,7 @@ public sealed class Misc : AdvobotResult
 
 	public static AdvobotResult Help(IModuleHelpEntry module)
 	{
-		var info = new InformationMatrix();
+		var info = new InfoMatrix();
 		var top = info.CreateCollection();
 		top.Add(MiscTitleAliases, module.Aliases.Join());
 		top.Add(MiscTitleBasePermissions, FormatPreconditions(module.Preconditions));
@@ -149,7 +149,7 @@ public sealed class Misc : AdvobotResult
 		}
 		var command = module.Commands[position - 1];
 
-		var info = new InformationMatrix();
+		var info = new InfoMatrix();
 		var top = info.CreateCollection();
 		top.Add(MiscTitleAliases, command.Aliases.Join(x => x.WithBlock().Value));
 		top.Add(MiscTitleBasePermissions, FormatPreconditions(command.Preconditions));
@@ -159,7 +159,7 @@ public sealed class Misc : AdvobotResult
 		var embed = CreateHelpEmbed(command.Aliases[0], info.ToString());
 		foreach (var parameter in command.Parameters)
 		{
-			var paramInfo = new InformationMatrix();
+			var paramInfo = new InfoMatrix();
 			var paramTop = paramInfo.CreateCollection();
 			paramTop.Add(MiscTitleBasePermissions, FormatPreconditions(parameter.Preconditions));
 			paramTop.Add(MiscTitleDescription, parameter.Summary);

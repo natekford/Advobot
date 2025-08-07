@@ -3,7 +3,7 @@ using Advobot.CommandAssemblies;
 using Advobot.Localization;
 using Advobot.Modules;
 using Advobot.Services.BotSettings;
-using Advobot.Services.GuildSettingsProvider;
+using Advobot.Services.GuildSettings;
 using Advobot.Services.HelpEntries;
 using Advobot.Utilities;
 

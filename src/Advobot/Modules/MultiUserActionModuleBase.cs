@@ -11,7 +11,7 @@ namespace Advobot.Modules;
 /// <summary>
 /// Does an action on all the input users until either no more users remain or the cancel token has been canceled.
 /// </summary>
-public abstract class MultiUserActionModule : AdvobotModuleBase
+public abstract class MultiUserActionModuleBase : AdvobotModuleBase
 {
 	private static readonly ConcurrentDictionary<ulong, CancellationTokenSource> _CancelTokens = new();
 

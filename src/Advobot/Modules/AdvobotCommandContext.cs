@@ -1,5 +1,4 @@
-﻿using Discord;
-using Discord.Commands;
+﻿using Discord.Commands;
 using Discord.WebSocket;
 
 using System.Diagnostics;
@@ -9,7 +8,7 @@ namespace Advobot.Modules;
 /// <summary>
 /// A <see cref="ShardedCommandContext"/> which contains settings and the service provider.
 /// </summary>
-public class AdvobotCommandContext : ShardedCommandContext, IAdvobotCommandContext
+public class AdvobotCommandContext : ShardedCommandContext
 {
 	private readonly Stopwatch _Stopwatch = new();
 
@@ -25,19 +24,13 @@ public class AdvobotCommandContext : ShardedCommandContext, IAdvobotCommandConte
 	/// The user this command is executing from.
 	/// </summary>
 	public new SocketGuildUser User { get; }
-	/// <inheritdoc />
-	ITextChannel IGuildCommandContext.Channel => Channel;
-	/// <inheritdoc />
-	IGuildUser IGuildCommandContext.User => User;
 
 	/// <summary>
 	/// Creates an instance of <see cref="AdvobotCommandContext"/>.
 	/// </summary>
 	/// <param name="client"></param>
 	/// <param name="msg"></param>
-	public AdvobotCommandContext(
-		DiscordShardedClient client,
-		SocketUserMessage msg)
+	public AdvobotCommandContext(DiscordShardedClient client, SocketUserMessage msg)
 		: base(client, msg)
 	{
 		_Stopwatch.Start();

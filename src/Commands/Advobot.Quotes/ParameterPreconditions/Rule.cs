@@ -3,7 +3,7 @@
 namespace Advobot.Quotes.ParameterPreconditions;
 
 [AttributeUsage(AttributeTargets.Parameter, AllowMultiple = false, Inherited = true)]
-public sealed class Rule : StringRangeParameterPrecondition
+public sealed class Rule : StringLengthParameterPrecondition
 {
 	public override string StringType => "rule";
 

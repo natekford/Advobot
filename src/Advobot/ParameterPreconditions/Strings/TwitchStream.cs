@@ -11,7 +11,7 @@ namespace Advobot.ParameterPreconditions.Strings;
 /// Validates the Twitch stream name by making sure it is between 4 and 25 characters and matches a Regex for Twitch usernames.
 /// </summary>
 [AttributeUsage(AttributeTargets.Parameter, AllowMultiple = false, Inherited = true)]
-public sealed class TwitchStream : StringRangeParameterPrecondition
+public sealed class TwitchStream : StringLengthParameterPrecondition
 {
 	/// <inheritdoc />
 	public override string StringType => "Twitch stream name";

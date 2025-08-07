@@ -4,7 +4,7 @@
 /// Validates the role name by making sure it is between 1 and 100 characters.
 /// </summary>
 [AttributeUsage(AttributeTargets.Parameter, AllowMultiple = false, Inherited = true)]
-public sealed class RoleName : StringRangeParameterPrecondition
+public sealed class RoleName : StringLengthParameterPrecondition
 {
 	/// <inheritdoc />
 	public override string StringType => "role name";

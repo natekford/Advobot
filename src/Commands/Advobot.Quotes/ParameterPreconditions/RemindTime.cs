@@ -3,7 +3,7 @@
 namespace Advobot.Quotes.ParameterPreconditions;
 
 [AttributeUsage(AttributeTargets.Parameter, AllowMultiple = false, Inherited = true)]
-public class RemindTime : RangeParameterPrecondition
+public class RemindTime : NumberParameterPrecondition
 {
 	public override string NumberType => "remind time";
 

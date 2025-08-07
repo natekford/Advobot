@@ -9,7 +9,7 @@ using Advobot.ParameterPreconditions.Numbers;
 using Advobot.ParameterPreconditions.Strings;
 using Advobot.Preconditions.Permissions;
 using Advobot.Resources;
-using Advobot.Services.GuildSettingsProvider;
+using Advobot.Services.GuildSettings;
 using Advobot.Services.Time;
 using Advobot.TypeReaders;
 using Advobot.Utilities;
@@ -137,7 +137,7 @@ public sealed class Users : ModuleBase
 	[LocalizedSummary(nameof(Summaries.ForAllWithRole))]
 	[Meta("0dd92f6d-e4ad-4c80-82f0-da6c3e02743c", IsEnabled = true)]
 	[RequireGuildPermissions]
-	public sealed class ForAllWithRole : MultiUserActionModule
+	public sealed class ForAllWithRole : MultiUserActionModuleBase
 	{
 		[LocalizedCommand(nameof(Groups.ClearNickname), RunMode = RunMode.Async)]
 		[LocalizedAlias(nameof(Aliases.ClearNickname))]
@@ -304,7 +304,7 @@ public sealed class Users : ModuleBase
 	[LocalizedSummary(nameof(Summaries.MoveUsers))]
 	[Meta("4e8439fa-cc29-4acb-9049-89865be825c8", IsEnabled = true)]
 	[RequireGuildPermissions(GuildPermission.MoveMembers)]
-	public sealed class MoveUsers : MultiUserActionModule
+	public sealed class MoveUsers : MultiUserActionModuleBase
 	{
 		[Command(RunMode = RunMode.Async)]
 		public async Task<RuntimeResult> Command(

@@ -3,16 +3,16 @@
 using Discord;
 using Discord.Commands;
 
-namespace Advobot.ParameterPreconditions.DiscordObjectValidation.Roles;
+namespace Advobot.ParameterPreconditions.Discord.Roles;
 
 /// <summary>
-/// Does not allow the everyone role but does allow managed roles.
+/// Does not allow roles which are already mentionable to be used.
 /// </summary>
 [AttributeUsage(AttributeTargets.Parameter, AllowMultiple = false, Inherited = true)]
-public sealed class NotEveryone : AdvobotParameterPrecondition<IRole>
+public sealed class NotMentionable : AdvobotParameterPrecondition<IRole>
 {
 	/// <inheritdoc />
-	public override string Summary => "Not everyone";
+	public override string Summary => "Not mentionable";
 
 	/// <inheritdoc />
 	protected override Task<PreconditionResult> CheckPermissionsAsync(
@@ -22,10 +22,10 @@ public sealed class NotEveryone : AdvobotParameterPrecondition<IRole>
 		IRole role,
 		IServiceProvider services)
 	{
-		if (context.Guild.EveryoneRole.Id != role.Id)
+		if (!role.IsMentionable)
 		{
 			return this.FromSuccess().AsTask();
 		}
-		return PreconditionResult.FromError("The role cannot be the everyone role.").AsTask();
+		return PreconditionResult.FromError("The role cannot be mentionable.").AsTask();
 	}
 }

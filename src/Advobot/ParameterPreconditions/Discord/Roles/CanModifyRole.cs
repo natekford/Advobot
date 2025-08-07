@@ -3,16 +3,16 @@
 using Discord;
 using Discord.Commands;
 
-namespace Advobot.ParameterPreconditions.DiscordObjectValidation.Roles;
+namespace Advobot.ParameterPreconditions.Discord.Roles;
 
 /// <summary>
-/// Does not allow managed roles but does allow the everyone role.
+/// Makes sure the passed in <see cref="IRole"/> can be modified.
 /// </summary>
 [AttributeUsage(AttributeTargets.Parameter, AllowMultiple = false, Inherited = true)]
-public sealed class NotManaged : AdvobotParameterPrecondition<IRole>
+public sealed class CanModifyRole : AdvobotParameterPrecondition<IRole>
 {
 	/// <inheritdoc />
-	public override string Summary => "Not managed";
+	public override string Summary => "Can be modified by the bot and invoking user";
 
 	/// <inheritdoc />
 	protected override Task<PreconditionResult> CheckPermissionsAsync(
@@ -21,11 +21,5 @@ public sealed class NotManaged : AdvobotParameterPrecondition<IRole>
 		IGuildUser invoker,
 		IRole role,
 		IServiceProvider services)
-	{
-		if (!role.IsManaged)
-		{
-			return this.FromSuccess().AsTask();
-		}
-		return PreconditionResult.FromError("The role cannot be managed.").AsTask();
-	}
+		=> invoker.ValidateRole(role);
 }

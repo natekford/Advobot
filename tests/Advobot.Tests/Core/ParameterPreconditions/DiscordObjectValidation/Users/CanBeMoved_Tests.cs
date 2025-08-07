@@ -1,4 +1,4 @@
-﻿using Advobot.ParameterPreconditions.DiscordObjectValidation.Users;
+﻿using Advobot.ParameterPreconditions.Discord.Users;
 using Advobot.Tests.Fakes.Discord;
 using Advobot.Tests.Fakes.Discord.Channels;
 using Advobot.Tests.Fakes.Discord.Users;

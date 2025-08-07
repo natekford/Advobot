@@ -6,7 +6,7 @@ using Advobot.ParameterPreconditions.Numbers;
 using Advobot.Preconditions;
 using Advobot.Preconditions.Permissions;
 using Advobot.Resources;
-using Advobot.Services.GuildSettingsProvider;
+using Advobot.Services.GuildSettings;
 using Advobot.Services.HelpEntries;
 using Advobot.Utilities;
 

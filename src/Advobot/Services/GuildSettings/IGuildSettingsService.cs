@@ -2,7 +2,7 @@
 
 using System.Globalization;
 
-namespace Advobot.Services.GuildSettingsProvider;
+namespace Advobot.Services.GuildSettings;
 
 /// <summary>
 /// Provides a role to mute a user.

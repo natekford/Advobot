@@ -5,32 +5,30 @@ using Discord;
 namespace Advobot.Formatting;
 
 /// <summary>
-/// Holds a semi 2d collection of <see cref="Information"/>.
+/// Holds a 2d collection of <see cref="Info"/>.
 /// </summary>
-public sealed class InformationMatrix
+public sealed class InfoMatrix
 {
-	private readonly List<InformationCollection> _Collections = [];
-
 	/// <summary>
 	/// The rows of this matrix.
 	/// </summary>
-	public IReadOnlyList<InformationCollection> Collections => _Collections.AsReadOnly();
+	public List<InfoCollection> Collections { get; set; } = [];
 
 	/// <summary>
-	/// Creates an <see cref="InformationCollection"/> for time created and adds it to this matrix.
+	/// Creates an <see cref="InfoCollection"/> for time created and adds it to this matrix.
 	/// </summary>
 	/// <param name="e"></param>
 	/// <returns></returns>
-	public InformationCollection AddTimeCreatedCollection(ISnowflakeEntity e)
+	public InfoCollection AddTimeCreatedCollection(ISnowflakeEntity e)
 		=> AddTimeCreatedCollection(e.Id.ToString(), e.CreatedAt.UtcDateTime);
 
 	/// <summary>
-	/// Creates an <see cref="InformationCollection"/> for time created and adds it to this matrix.
+	/// Creates an <see cref="InfoCollection"/> for time created and adds it to this matrix.
 	/// </summary>
 	/// <param name="id"></param>
 	/// <param name="dt"></param>
 	/// <returns></returns>
-	public InformationCollection AddTimeCreatedCollection(string id, DateTimeOffset dt)
+	public InfoCollection AddTimeCreatedCollection(string id, DateTimeOffset dt)
 	{
 		var diff = (DateTimeOffset.UtcNow - dt).TotalDays;
 		var collection = CreateCollection();
@@ -40,22 +38,22 @@ public sealed class InformationMatrix
 	}
 
 	/// <summary>
-	/// Creates an <see cref="InformationCollection"/> and adds it to this matrix.
+	/// Creates an <see cref="InfoCollection"/> and adds it to this matrix.
 	/// </summary>
 	/// <returns></returns>
-	public InformationCollection CreateCollection()
+	public InfoCollection CreateCollection()
 	{
-		var collection = new InformationCollection();
-		_Collections.Add(collection);
+		var collection = new InfoCollection();
+		Collections.Add(collection);
 		return collection;
 	}
 
 	/// <inheritdoc />
 	public override string ToString()
-		=> ToString(InformationMatrixFormattingArgs.Default);
+		=> ToString(InfoFormattingArgs.Default);
 
 	/// <inheritdoc />
-	public string ToString(InformationMatrixFormattingArgs args)
+	public string ToString(InfoFormattingArgs args)
 	{
 		//Any collections with no information in them dont need to be added
 		var valid = Collections.Where(x => x.Information.Count > 0);

@@ -3,16 +3,16 @@
 using Discord;
 using Discord.Commands;
 
-namespace Advobot.ParameterPreconditions.DiscordObjectValidation.Invites;
+namespace Advobot.ParameterPreconditions.Discord.Invites;
 
 /// <summary>
-/// Does not allow invites which can expire.
+/// Only allows invites from this guild.
 /// </summary>
 [AttributeUsage(AttributeTargets.Parameter, AllowMultiple = false, Inherited = true)]
-public sealed class NeverExpires : AdvobotParameterPrecondition<IInviteMetadata>
+public sealed class FromThisGuild : AdvobotParameterPrecondition<IInviteMetadata>
 {
 	/// <inheritdoc />
-	public override string Summary => "Never expires";
+	public override string Summary => "From this guild";
 
 	/// <inheritdoc />
 	protected override Task<PreconditionResult> CheckPermissionsAsync(
@@ -22,10 +22,10 @@ public sealed class NeverExpires : AdvobotParameterPrecondition<IInviteMetadata>
 		IInviteMetadata invite,
 		IServiceProvider services)
 	{
-		if (invite.MaxAge == null)
+		if (context.Guild.Id == invite.GuildId)
 		{
 			return this.FromSuccess().AsTask();
 		}
-		return PreconditionResult.FromError("The invite cannot expire.").AsTask();
+		return PreconditionResult.FromError("The invite must belong to this guild.").AsTask();
 	}
 }

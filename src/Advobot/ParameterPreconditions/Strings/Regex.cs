@@ -13,7 +13,7 @@ namespace Advobot.ParameterPreconditions.Strings;
 /// Validates a regex with various test cases.
 /// </summary>
 [AttributeUsage(AttributeTargets.Parameter, AllowMultiple = false, Inherited = true)]
-public sealed class Regex : StringRangeParameterPrecondition
+public sealed class Regex : StringLengthParameterPrecondition
 {
 	/// <inheritdoc />
 	public override string StringType => "regex";

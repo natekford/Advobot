@@ -3,29 +3,29 @@
 using Discord;
 using Discord.Commands;
 
-namespace Advobot.ParameterPreconditions.DiscordObjectValidation.Roles;
+namespace Advobot.ParameterPreconditions.Discord.Emotes;
 
 /// <summary>
-/// Does not allow roles which are already mentionable to be used.
+/// Requires the guild emote have roles required to use it.
 /// </summary>
 [AttributeUsage(AttributeTargets.Parameter, AllowMultiple = false, Inherited = true)]
-public sealed class NotMentionable : AdvobotParameterPrecondition<IRole>
+public sealed class HasRequiredRoles : AdvobotParameterPrecondition<GuildEmote>
 {
 	/// <inheritdoc />
-	public override string Summary => "Not mentionable";
+	public override string Summary => "Has required roles";
 
 	/// <inheritdoc />
 	protected override Task<PreconditionResult> CheckPermissionsAsync(
 		ICommandContext context,
 		ParameterInfo parameter,
 		IGuildUser invoker,
-		IRole role,
+		GuildEmote emote,
 		IServiceProvider services)
 	{
-		if (!role.IsMentionable)
+		if (emote.RoleIds.Count > 0)
 		{
 			return this.FromSuccess().AsTask();
 		}
-		return PreconditionResult.FromError("The role cannot be mentionable.").AsTask();
+		return PreconditionResult.FromError("The emote must have required roles.").AsTask();
 	}
 }

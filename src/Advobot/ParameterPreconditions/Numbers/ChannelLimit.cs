@@ -4,7 +4,7 @@
 /// Validates the channel limit allowing 0 to 99.
 /// </summary>
 [AttributeUsage(AttributeTargets.Parameter, AllowMultiple = false, Inherited = true)]
-public sealed class ChannelLimit : RangeParameterPrecondition
+public sealed class ChannelLimit : NumberParameterPrecondition
 {
 	/// <inheritdoc />
 	public override string NumberType => "channel limit";

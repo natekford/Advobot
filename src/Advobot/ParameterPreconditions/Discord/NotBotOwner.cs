@@ -5,7 +5,7 @@ using AdvorangesUtils;
 using Discord;
 using Discord.Commands;
 
-namespace Advobot.ParameterPreconditions.DiscordObjectValidation;
+namespace Advobot.ParameterPreconditions.Discord;
 
 /// <summary>
 /// Makes sure the passed in number is not the owner.

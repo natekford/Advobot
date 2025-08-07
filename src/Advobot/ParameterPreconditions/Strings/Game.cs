@@ -4,7 +4,7 @@
 /// Validates the game by making sure it is between 0 and 128 characters.
 /// </summary>
 [AttributeUsage(AttributeTargets.Parameter, AllowMultiple = false, Inherited = true)]
-public sealed class Game : StringRangeParameterPrecondition
+public sealed class Game : StringLengthParameterPrecondition
 {
 	/// <inheritdoc />
 	public override string StringType => "game";

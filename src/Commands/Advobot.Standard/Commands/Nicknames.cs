@@ -48,7 +48,7 @@ public sealed class Nicknames : ModuleBase
 	[LocalizedSummary(nameof(Summaries.RemoveAllNickNames))]
 	[Meta("d31a48de-ad5d-4f15-b216-299b8b8c66dd", IsEnabled = true)]
 	[RequireGuildPermissions(GuildPermission.ManageNicknames)]
-	public sealed class RemoveAllNickNames : MultiUserActionModule
+	public sealed class RemoveAllNickNames : MultiUserActionModuleBase
 	{
 		[Command(RunMode = RunMode.Async)]
 		public async Task<RuntimeResult> Command(
@@ -72,7 +72,7 @@ public sealed class Nicknames : ModuleBase
 	[LocalizedSummary(nameof(Summaries.ReplaceByUtf16))]
 	[Meta("8d4e53fd-c728-4e55-9262-3078468738e5", IsEnabled = true)]
 	[RequireGuildPermissions(GuildPermission.ManageNicknames)]
-	public sealed class ReplaceByUtf16 : MultiUserActionModule
+	public sealed class ReplaceByUtf16 : MultiUserActionModuleBase
 	{
 		[Command(RunMode = RunMode.Async)]
 		public async Task<RuntimeResult> Command(
@@ -100,7 +100,7 @@ public sealed class Nicknames : ModuleBase
 	[LocalizedSummary(nameof(Summaries.ReplaceWordsInNames))]
 	[Meta("f637abf3-f944-413a-95d3-d06aa07921fd", IsEnabled = true)]
 	[RequireGuildPermissions(GuildPermission.ManageNicknames)]
-	public sealed class ReplaceWordsInNames : MultiUserActionModule
+	public sealed class ReplaceWordsInNames : MultiUserActionModuleBase
 	{
 		[Command(RunMode = RunMode.Async)]
 		public async Task<RuntimeResult> Command(

@@ -1,4 +1,4 @@
-﻿using Advobot.ParameterPreconditions.DiscordObjectValidation.Emotes;
+﻿using Advobot.ParameterPreconditions.Discord.Emotes;
 using Advobot.Tests.TestBases;
 using Advobot.Tests.Utilities;
 

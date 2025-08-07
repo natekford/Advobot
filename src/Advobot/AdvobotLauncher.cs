@@ -2,11 +2,10 @@
 using Advobot.Punishments;
 using Advobot.Services.BotSettings;
 using Advobot.Services.Commands;
-using Advobot.Services.GuildSettingsProvider;
+using Advobot.Services.GuildSettings;
 using Advobot.Services.HelpEntries;
 using Advobot.Services.LogCounters;
 using Advobot.Services.Time;
-using Advobot.Utilities;
 
 using AdvorangesUtils;
 

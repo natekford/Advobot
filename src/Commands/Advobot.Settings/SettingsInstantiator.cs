@@ -1,6 +1,6 @@
 ﻿using Advobot.CommandAssemblies;
 using Advobot.Services;
-using Advobot.Services.GuildSettingsProvider;
+using Advobot.Services.GuildSettings;
 using Advobot.Settings.Database;
 using Advobot.Settings.Service;
 using Advobot.SQLite;

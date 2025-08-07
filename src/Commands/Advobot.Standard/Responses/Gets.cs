@@ -63,7 +63,7 @@ public sealed class Gets : AdvobotResult
 			}
 		}
 
-		var info = new InformationMatrix();
+		var info = new InfoMatrix();
 		var meta = info.CreateCollection();
 		meta.Add(GetsTitleUserCount, users.Count);
 		meta.Add(GetsTitleBotCount, bots);
@@ -86,7 +86,7 @@ public sealed class Gets : AdvobotResult
 			},
 		};
 		{
-			var statusInfo = new InformationCollection();
+			var statusInfo = new InfoCollection();
 			foreach (var kvp in statuses)
 			{
 				statusInfo.Add(kvp.Key.ToString(), kvp.Value);
@@ -94,7 +94,7 @@ public sealed class Gets : AdvobotResult
 			embed.TryAddField(GetsTitleStatuses, statusInfo.ToString(), false, out _);
 		}
 		{
-			var activityInfo = new InformationCollection();
+			var activityInfo = new InfoCollection();
 			foreach (var kvp in activities)
 			{
 				activityInfo.Add(kvp.Key.ToString(), kvp.Value);
@@ -184,7 +184,7 @@ public sealed class Gets : AdvobotResult
 			}
 		}
 
-		var info = new InformationMatrix();
+		var info = new InfoMatrix();
 		info.AddTimeCreatedCollection(channel);
 		var meta = info.CreateCollection();
 		meta.Add(GetsTitlePosition, channel.Position);
@@ -219,7 +219,7 @@ public sealed class Gets : AdvobotResult
 
 	public static AdvobotResult Emote(Emote emote)
 	{
-		var info = new InformationMatrix();
+		var info = new InfoMatrix();
 		info.AddTimeCreatedCollection(emote);
 		//Emote is GuildEmote meaning we can get extra informatino about it
 		if (emote is GuildEmote guildEmote)
@@ -290,7 +290,7 @@ public sealed class Gets : AdvobotResult
 			}
 		}
 
-		var info = new InformationMatrix();
+		var info = new InfoMatrix();
 		info.AddTimeCreatedCollection(guild);
 		var meta = info.CreateCollection();
 		meta.Add(GetsTitleOwner, owner.Format());
@@ -317,7 +317,7 @@ public sealed class Gets : AdvobotResult
 			},
 		};
 		{
-			var channelInfo = new InformationMatrix();
+			var channelInfo = new InfoMatrix();
 			var counts = channelInfo.CreateCollection();
 			counts.Add(GetsTitleChannelCount, channels);
 			counts.Add(GetsTitleTextChannelCount, text);
@@ -331,7 +331,7 @@ public sealed class Gets : AdvobotResult
 			embed.TryAddField(GetsTitleChannelInfo, channelInfo.ToString(), false, out _);
 		}
 		{
-			var emoteInfo = new InformationCollection();
+			var emoteInfo = new InfoCollection();
 			emoteInfo.Add(GetsTitleEmoteCount, emotes);
 			emoteInfo.Add(GetsTitleAnimatedEmoteCount, animated);
 			emoteInfo.Add(GetsTitleLocalEmoteCount, local);
@@ -369,7 +369,7 @@ public sealed class Gets : AdvobotResult
 
 	public static AdvobotResult Invite(IInviteMetadata invite)
 	{
-		var info = new InformationMatrix();
+		var info = new InfoMatrix();
 		info.AddTimeCreatedCollection(invite.Id, invite.CreatedAt.GetValueOrDefault().UtcDateTime);
 		var meta = info.CreateCollection();
 		meta.Add(GetsTitleCreator, invite.Inviter.Format());
@@ -422,7 +422,7 @@ public sealed class Gets : AdvobotResult
 		var userCount = (await role.Guild.GetUsersAsync().CAF()).Count(x => x.RoleIds.Contains(role.Id));
 		var permissions = _Permissions.Where(x => role.Permissions.Has(x)).Select(x => x.ToString()).ToArray();
 
-		var info = new InformationMatrix();
+		var info = new InfoMatrix();
 		info.AddTimeCreatedCollection(role);
 		var meta = info.CreateCollection();
 		meta.Add(GetsTitlePosition, role.Position);
@@ -484,7 +484,7 @@ public sealed class Gets : AdvobotResult
 
 	public static async Task<RuntimeResult> User(IUser user)
 	{
-		var info = new InformationMatrix();
+		var info = new InfoMatrix();
 		info.AddTimeCreatedCollection(user);
 		var status = info.CreateCollection();
 		status.Add(GetsTitleActivity, user.Activities.Select(x => x.Format()).Join("\n"));
@@ -564,7 +564,7 @@ public sealed class Gets : AdvobotResult
 		}
 		if (guildUser.VoiceChannel is IVoiceChannel vc)
 		{
-			var voiceInfo = new InformationMatrix();
+			var voiceInfo = new InfoMatrix();
 			var voiceChannel = voiceInfo.CreateCollection();
 			voiceChannel.Add(GetsTitleVoiceChannel, vc.Format());
 			var voiceMeta = voiceInfo.CreateCollection();
@@ -608,7 +608,7 @@ public sealed class Gets : AdvobotResult
 
 	public static AdvobotResult Webhook(IWebhook webhook)
 	{
-		var info = new InformationMatrix();
+		var info = new InfoMatrix();
 		info.AddTimeCreatedCollection(webhook);
 		var meta = info.CreateCollection();
 		meta.Add(GetsTitleCreator, webhook.Creator.Format());

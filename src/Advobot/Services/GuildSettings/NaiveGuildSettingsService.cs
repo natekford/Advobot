@@ -7,7 +7,7 @@ using Discord;
 
 using System.Globalization;
 
-namespace Advobot.Services.GuildSettingsProvider;
+namespace Advobot.Services.GuildSettings;
 
 [Replacable]
 internal sealed class NaiveGuildSettingsService(IRuntimeConfig settings) : IGuildSettingsService

@@ -3,29 +3,29 @@
 using Discord;
 using Discord.Commands;
 
-namespace Advobot.ParameterPreconditions.DiscordObjectValidation.Emotes;
+namespace Advobot.ParameterPreconditions.Discord.Invites;
 
 /// <summary>
-/// Requires the guild emote have roles required to use it.
+/// Does not allow invites which can expire.
 /// </summary>
 [AttributeUsage(AttributeTargets.Parameter, AllowMultiple = false, Inherited = true)]
-public sealed class HasRequiredRoles : AdvobotParameterPrecondition<GuildEmote>
+public sealed class NeverExpires : AdvobotParameterPrecondition<IInviteMetadata>
 {
 	/// <inheritdoc />
-	public override string Summary => "Has required roles";
+	public override string Summary => "Never expires";
 
 	/// <inheritdoc />
 	protected override Task<PreconditionResult> CheckPermissionsAsync(
 		ICommandContext context,
 		ParameterInfo parameter,
 		IGuildUser invoker,
-		GuildEmote emote,
+		IInviteMetadata invite,
 		IServiceProvider services)
 	{
-		if (emote.RoleIds.Count > 0)
+		if (invite.MaxAge == null)
 		{
 			return this.FromSuccess().AsTask();
 		}
-		return PreconditionResult.FromError("The emote must have required roles.").AsTask();
+		return PreconditionResult.FromError("The invite cannot expire.").AsTask();
 	}
 }

@@ -4,7 +4,7 @@
 /// Validates the channel name by making sure it is between 2 and 100 characters.
 /// </summary>
 [AttributeUsage(AttributeTargets.Parameter, AllowMultiple = false, Inherited = true)]
-public class ChannelName : StringRangeParameterPrecondition
+public class ChannelName : StringLengthParameterPrecondition
 {
 	/// <inheritdoc />
 	public override string StringType => "channel name";

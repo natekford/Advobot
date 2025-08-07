@@ -5,7 +5,7 @@ using Discord.Commands;
 
 using System.Collections.Immutable;
 
-namespace Advobot.ParameterPreconditions.DiscordObjectValidation.Channels;
+namespace Advobot.ParameterPreconditions.Discord.Channels;
 
 /// <summary>
 /// Validates the passed in <see cref="IGuildChannel"/>.

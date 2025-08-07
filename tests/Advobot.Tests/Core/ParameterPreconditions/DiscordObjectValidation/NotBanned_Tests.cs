@@ -1,4 +1,4 @@
-﻿using Advobot.ParameterPreconditions.DiscordObjectValidation;
+﻿using Advobot.ParameterPreconditions.Discord;
 using Advobot.Tests.TestBases;
 
 using AdvorangesUtils;

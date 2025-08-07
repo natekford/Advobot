@@ -1,5 +1,5 @@
 ﻿using Advobot.Services.BotSettings;
-using Advobot.Services.GuildSettingsProvider;
+using Advobot.Services.GuildSettings;
 using Advobot.Settings.Database;
 using Advobot.Utilities;
 
