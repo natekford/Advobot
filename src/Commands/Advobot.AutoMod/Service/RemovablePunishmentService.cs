@@ -16,7 +16,7 @@ public sealed class RemovablePunishmentService
 {
 	private readonly IDiscordClient _Client;
 	private readonly IRemovablePunishmentDatabase _Db;
-	private readonly IPunisher _Punisher;
+	private readonly IPunishmentService _Punisher;
 	private readonly ITime _Time;
 	// If the background task is processing removable punishments it adds them to a list
 	// to remove a big batch at once
@@ -30,7 +30,7 @@ public sealed class RemovablePunishmentService
 		IRemovablePunishmentDatabase db,
 		IDiscordClient client,
 		ITime time,
-		IPunisher punisher)
+		IPunishmentService punisher)
 	{
 		_Db = db;
 		_Client = client;

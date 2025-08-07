@@ -1,13 +1,11 @@
-﻿using Advobot.Settings;
-
-using Discord;
+﻿using Discord;
 
 namespace Advobot.Services.BotSettings;
 
 /// <summary>
 /// Holds bot settings.
 /// </summary>
-public interface IBotSettings : ISavable, IRestartArgumentProvider, IBotDirectoryAccessor
+public interface IRuntimeConfig : IConfig
 {
 	/// <summary>
 	/// Whether or not to always download users when joining a guild.

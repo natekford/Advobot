@@ -11,7 +11,7 @@ using System.Globalization;
 
 namespace Advobot.Settings.Service;
 
-public class GuildSettingsProvider(ISettingsDatabase db, IBotSettings settings) : IGuildSettingsProvider
+public class GuildSettingsProvider(ISettingsDatabase db, IRuntimeConfig settings) : IGuildSettingsService
 {
 	private const string NAME = "Advobot_Mute";
 
@@ -21,7 +21,7 @@ public class GuildSettingsProvider(ISettingsDatabase db, IBotSettings settings) 
 	};
 
 	private readonly ISettingsDatabase _Db = db;
-	private readonly IBotSettings _Settings = settings;
+	private readonly IRuntimeConfig _Settings = settings;
 
 	public async Task<CultureInfo> GetCultureAsync(IGuild guild)
 	{

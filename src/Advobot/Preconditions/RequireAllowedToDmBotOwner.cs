@@ -24,7 +24,7 @@ public sealed class RequireAllowedToDmBotOwner : PreconditionAttribute, IPrecond
 		CommandInfo command,
 		IServiceProvider services)
 	{
-		var botSettings = services.GetRequiredService<IBotSettings>();
+		var botSettings = services.GetRequiredService<IRuntimeConfig>();
 		if (!botSettings.UsersUnableToDmOwner.Contains(context.User.Id))
 		{
 			return this.FromSuccess().AsTask();

@@ -3,7 +3,7 @@
 /// <summary>
 /// Add and remove punishments for guild users.
 /// </summary>
-public interface IPunisher
+public interface IPunishmentService
 {
 	/// <summary>
 	/// When a punishment is given.

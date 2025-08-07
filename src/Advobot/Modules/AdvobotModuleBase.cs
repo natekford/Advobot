@@ -29,7 +29,7 @@ public abstract class AdvobotModuleBase : ModuleBase<AdvobotCommandContext>
 	/// <summary>
 	/// The settings for the bot.
 	/// </summary>
-	public IBotSettings BotSettings { get; set; } = null!;
+	public IRuntimeConfig BotSettings { get; set; } = null!;
 	/// <summary>
 	/// The default time to wait for a user's response.
 	/// </summary>
@@ -38,7 +38,7 @@ public abstract class AdvobotModuleBase : ModuleBase<AdvobotCommandContext>
 	/// <summary>
 	/// The punisher to use for giving punishments.
 	/// </summary>
-	public IPunisher Punisher { get; set; } = null!;
+	public IPunishmentService Punisher { get; set; } = null!;
 
 	/// <summary>
 	/// Gets a <see cref="RequestOptions"/> that mainly is used for the reason in the audit log.

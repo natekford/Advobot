@@ -24,13 +24,13 @@ namespace Advobot.Services.Commands;
 /// </summary>
 internal sealed class CommandHandlerService : ICommandHandlerService
 {
-	private readonly IBotSettings _BotSettings;
+	private readonly IRuntimeConfig _BotSettings;
 	private readonly DiscordShardedClient _Client;
 	private readonly AsyncEvent<Func<CommandInfo, ICommandContext, IResult, Task>> _CommandInvoked = new();
 	private readonly Localized<CommandService> _CommandService;
 	private readonly CommandServiceConfig _Config;
 	private readonly ConcurrentDictionary<ulong, byte> _GatheringUsers = new();
-	private readonly IGuildSettingsProvider _GuildSettings;
+	private readonly IGuildSettingsService _GuildSettings;
 	private readonly IHelpEntryService _Help;
 	private readonly AsyncEvent<Func<LogMessage, Task>> _Log = new();
 	private readonly IServiceProvider _Provider;
@@ -71,8 +71,8 @@ internal sealed class CommandHandlerService : ICommandHandlerService
 		IServiceProvider provider,
 		CommandServiceConfig config,
 		DiscordShardedClient client,
-		IBotSettings botSettings,
-		IGuildSettingsProvider guildSettings,
+		IRuntimeConfig botSettings,
+		IGuildSettingsService guildSettings,
 		IHelpEntryService help)
 	{
 		_Provider = provider;

@@ -1,5 +1,4 @@
-﻿using Advobot.Settings;
-using Advobot.Utilities;
+﻿using Advobot.Utilities;
 
 using AdvorangesUtils;
 
@@ -11,12 +10,12 @@ namespace Advobot.Services.BotSettings;
 /// Holds settings for the bot.
 /// </summary>
 [Replacable]
-internal sealed class NaiveBotSettings : IBotSettings
+internal sealed class RuntimeConfig : IRuntimeConfig
 {
 	public bool AlwaysDownloadUsers { get; set; }
 	public DirectoryInfo BaseBotDirectory { get; private set; } = new(Directory.GetCurrentDirectory());
 	public string? Game { get; set; }
-	public LogSeverity LogLevel { get; set; } = LogSeverity.Warning;
+	public LogSeverity LogLevel { get; set; } = LogSeverity.Debug;
 	public int MaxBannedNames { get; set; } = 25;
 	public int MaxBannedPunishments { get; set; } = 10;
 	public int MaxBannedRegex { get; set; } = 25;
@@ -35,16 +34,14 @@ internal sealed class NaiveBotSettings : IBotSettings
 	public IList<ulong> UsersIgnoredFromCommands { get; set; } = [];
 	public IList<ulong> UsersUnableToDmOwner { get; set; } = [];
 
-	#region Saving and Loading
-
 	/// <summary>
-	/// Creates an instance of <see cref="NaiveBotSettings"/> from file.
+	/// Creates an instance of <see cref="RuntimeConfig"/> from file.
 	/// </summary>
 	/// <param name="config"></param>
 	/// <returns></returns>
-	public static NaiveBotSettings CreateOrLoad(IConfig config)
+	public static RuntimeConfig CreateOrLoad(IConfig config)
 	{
-		var settings = IOUtils.DeserializeFromFile<NaiveBotSettings>(StaticGetPath(config)) ?? new NaiveBotSettings();
+		var settings = IOUtils.DeserializeFromFile<RuntimeConfig>(GetPath(config)) ?? new RuntimeConfig();
 		settings.BaseBotDirectory = config.BaseBotDirectory;
 		settings.RestartArguments = config.RestartArguments;
 		return settings;
@@ -52,10 +49,8 @@ internal sealed class NaiveBotSettings : IBotSettings
 
 	/// <inheritdoc />
 	public void Save()
-		=> IOUtils.SafeWriteAllText(StaticGetPath(this), IOUtils.Serialize(this));
+		=> IOUtils.SafeWriteAllText(GetPath(this), IOUtils.Serialize(this));
 
-	private static FileInfo StaticGetPath(IBotDirectoryAccessor accessor)
-		=> accessor.GetBaseBotDirectoryFile("BotSettings.json");
-
-	#endregion Saving and Loading
+	private static FileInfo GetPath(IConfig config)
+		=> config.GetFile("BotSettings.json");
 }

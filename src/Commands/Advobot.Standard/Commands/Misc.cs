@@ -28,7 +28,7 @@ public sealed class Misc : ModuleBase
 	[Meta("ec0f7aef-85d6-4251-9c8e-7c70890f455e", IsEnabled = true, CanToggle = false)]
 	public sealed class Commands : AdvobotModuleBase
 	{
-		public IGuildSettingsProvider GuildSettings { get; set; } = null!;
+		public IGuildSettingsService GuildSettings { get; set; } = null!;
 		public IHelpEntryService HelpEntries { get; set; } = null!;
 
 		[Command]
@@ -52,7 +52,7 @@ public sealed class Misc : ModuleBase
 	[Meta("0e89a6fd-5c9c-4008-a912-7c719ea7827d", IsEnabled = true, CanToggle = false)]
 	public sealed class Help : AdvobotModuleBase
 	{
-		public IGuildSettingsProvider GuildSettings { get; set; } = null!;
+		public IGuildSettingsService GuildSettings { get; set; } = null!;
 
 		[Command]
 		[LocalizedSummary(nameof(Summaries.HelpGeneralHelp))]

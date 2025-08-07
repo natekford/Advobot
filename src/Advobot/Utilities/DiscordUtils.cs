@@ -1,6 +1,4 @@
-﻿using Advobot.Settings;
-
-using AdvorangesUtils;
+﻿using AdvorangesUtils;
 
 using Discord;
 using Discord.Commands;
@@ -227,7 +225,7 @@ public static class DiscordUtils
 	/// </summary>
 	/// <param name="client"></param>
 	/// <param name="restartArgs"></param>
-	public static async Task RestartBotAsync(this IDiscordClient client, IRestartArgumentProvider restartArgs)
+	public static async Task RestartBotAsync(this IDiscordClient client, IConfig restartArgs)
 	{
 		await client.StopAsync().CAF();
 		// For some reason Process.Start("dotnet", loc); doesn't work the same as what's currently used.

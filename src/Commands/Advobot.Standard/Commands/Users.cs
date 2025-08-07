@@ -366,7 +366,7 @@ public sealed class Users : ModuleBase
 			)
 		);
 
-		public IGuildSettingsProvider MuteRoleProvider { get; set; } = null!;
+		public IGuildSettingsService MuteRoleProvider { get; set; } = null!;
 
 		[Command]
 		public async Task<RuntimeResult> Command(

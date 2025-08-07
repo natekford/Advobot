@@ -1,5 +1,4 @@
 ﻿using Advobot.Services;
-using Advobot.Settings;
 
 using Microsoft.Extensions.DependencyInjection;
 
@@ -31,11 +30,11 @@ public static class AdvobotUtils
 	/// <summary>
 	/// Gets the file inside the bot directory.
 	/// </summary>
-	/// <param name="accessor"></param>
+	/// <param name="config"></param>
 	/// <param name="fileName">The name of the file without the bot directory.</param>
 	/// <returns></returns>
-	public static FileInfo GetBaseBotDirectoryFile(this IBotDirectoryAccessor accessor, string fileName)
-		=> new(Path.Combine(accessor.BaseBotDirectory.FullName, fileName));
+	public static FileInfo GetFile(this IConfig config, string fileName)
+		=> new(Path.Combine(config.BaseBotDirectory.FullName, fileName));
 
 	/// <summary>
 	/// Calls <see cref="ResourceManager.GetString(string)"/> and throws an exception if it does not exist.

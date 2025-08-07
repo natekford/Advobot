@@ -1,6 +1,4 @@
-﻿using Advobot.Settings;
-
-using Discord.WebSocket;
+﻿using Discord.WebSocket;
 
 namespace Advobot.Tests.Fakes.Services;
 
@@ -16,12 +14,9 @@ public sealed class FakeConfig : IConfig
 	public Task StartAsync(BaseSocketClient client)
 		=> Task.CompletedTask;
 
-	public Task<bool> ValidateBotKey(
-		string? input,
-		bool startup,
-		Func<BaseSocketClient, IRestartArgumentProvider, Task> restartCallback)
+	public Task<bool> ValidateBotKey(string? key, bool isStartup)
 		=> Task.FromResult(true);
 
-	public bool ValidatePath(string? input, bool startup)
+	public bool ValidatePath(string? path, bool isStartup)
 		=> true;
 }

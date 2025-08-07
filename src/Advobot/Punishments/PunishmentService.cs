@@ -6,7 +6,7 @@ using Discord;
 
 namespace Advobot.Punishments;
 
-internal sealed class Punisher : IPunisher
+internal sealed class PunishmentService : IPunishmentService
 {
 	private readonly AsyncEvent<Func<IPunishmentContext, Task>> _PunishmentGiven = new();
 	private readonly AsyncEvent<Func<IPunishmentContext, Task>> _PunishmentRemoved = new();

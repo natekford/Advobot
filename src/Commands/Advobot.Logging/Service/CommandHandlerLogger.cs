@@ -17,9 +17,9 @@ namespace Advobot.Logging.Service;
 public sealed class CommandHandlerLogger(
 	ILogger logger,
 	ILoggingDatabase db,
-	IBotSettings botSettings)
+	IRuntimeConfig botSettings)
 {
-	private readonly IBotSettings _BotSettings = botSettings;
+	private readonly IRuntimeConfig _BotSettings = botSettings;
 	private readonly ILoggingDatabase _Db = db;
 	private readonly ILogger _Logger = logger;
 

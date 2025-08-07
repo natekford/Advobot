@@ -4,12 +4,12 @@ using Discord;
 
 namespace Advobot.Tests.Fakes.Services.BotSettings;
 
-public sealed class FakeBotSettings : IBotSettings
+public sealed class FakeBotSettings : IRuntimeConfig
 {
 	public bool AlwaysDownloadUsers { get; set; } = true;
 	public DirectoryInfo BaseBotDirectory => throw new NotImplementedException();
 	public string? Game { get; set; }
-	public LogSeverity LogLevel { get; set; } = LogSeverity.Warning;
+	public LogSeverity LogLevel { get; set; } = LogSeverity.Debug;
 	public int MaxBannedNames { get; set; }
 	public int MaxBannedPunishments { get; set; }
 	public int MaxBannedRegex { get; set; }

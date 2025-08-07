@@ -17,7 +17,7 @@ namespace Advobot.Tests.Commands.AutoMod.Service;
 public sealed class RemovablePunishment_Tests : TestsBase
 {
 	private readonly FakeRemovablePunishmentDatabase _Db = new();
-	private readonly Punisher _Punisher = new();
+	private readonly PunishmentService _Punisher = new();
 	private readonly RemovablePunishmentService _Service;
 	private readonly MutableTime _Time = new();
 
@@ -110,7 +110,7 @@ public sealed class RemovablePunishment_Tests : TestsBase
 		services
 			.AddSingleton<IRemovablePunishmentDatabase>(_Db)
 			.AddSingleton<IDiscordClient>(Context.Client)
-			.AddSingleton<IPunisher>(_Punisher)
+			.AddSingleton<IPunishmentService>(_Punisher)
 			.AddSingleton<ITime>(_Time)
 			.AddSingleton<RemovablePunishmentService>();
 	}

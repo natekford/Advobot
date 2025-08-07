@@ -59,7 +59,8 @@ public static class LoggingUtils
 			.Destructure.With(DiscordObjectDestructuringPolicy.Instance)
 			.WriteTo.File(
 				formatter: new JsonFormatter(),
-				path: Path.Combine("Logs", $"{fileName}.txt")
+				path: Path.Combine("Logs", $"{fileName}.txt"),
+				rollingInterval: RollingInterval.Day
 			)
 			.WriteTo.Console(
 				restrictedToMinimumLevel: LogEventLevel.Warning,

@@ -35,6 +35,6 @@ public sealed class RequireAllowedToDmBotOwner_Tests
 	protected override void ModifyServices(IServiceCollection services)
 	{
 		services
-			.AddSingleton<IBotSettings>(_BotSettings);
+			.AddSingleton<IRuntimeConfig>(_BotSettings);
 	}
 }

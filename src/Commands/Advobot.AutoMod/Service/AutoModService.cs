@@ -31,7 +31,7 @@ public sealed class AutoModService
 
 	private readonly IAutoModDatabase _Db;
 	private readonly GuildSpecific<ulong, EnumMapped<PunishmentType, int>> _Phrases = new();
-	private readonly IPunisher _Punisher;
+	private readonly IPunishmentService _Punisher;
 	private readonly ITime _Time;
 	private ConcurrentDictionary<ulong, (ConcurrentBag<ulong>, ITextChannel)> _Messages = new();
 
@@ -39,7 +39,7 @@ public sealed class AutoModService
 		BaseSocketClient client,
 		IAutoModDatabase db,
 		ITime time,
-		IPunisher punisher)
+		IPunishmentService punisher)
 	{
 		_Db = db;
 		_Time = time;

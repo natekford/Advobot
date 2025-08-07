@@ -1,5 +1,4 @@
-﻿using Advobot.Settings;
-using Advobot.Utilities;
+﻿using Advobot.Utilities;
 
 using AdvorangesUtils;
 
@@ -32,8 +31,8 @@ public static class SQLiteUtils
 	{
 		return services.AddSingleton(x =>
 		{
-			var accessor = x.GetRequiredService<IBotDirectoryAccessor>();
-			var path = accessor.ValidateDbPath("SQLite", fileName).FullName;
+			var config = x.GetRequiredService<IConfig>();
+			var path = config.ValidateDbPath("SQLite", fileName).FullName;
 			var conn = new SQLiteSystemFileDatabaseConnectionString(path);
 			return (IConnectionString<T>)(IConnectionString<object>)conn;
 		});
@@ -92,10 +91,10 @@ public static class SQLiteUtils
 	/// <summary>
 	/// Ensures the extension of the file is '.db' and that the directory exists.
 	/// </summary>
-	/// <param name="accessor"></param>
+	/// <param name="config"></param>
 	/// <param name="fileNameParts"></param>
 	/// <returns></returns>
-	public static FileInfo ValidateDbPath(this IBotDirectoryAccessor accessor, params string[] fileNameParts)
+	public static FileInfo ValidateDbPath(this IConfig config, params string[] fileNameParts)
 	{
 		static void ExtensionValidation(ref string fileName)
 		{
@@ -112,7 +111,7 @@ public static class SQLiteUtils
 		ExtensionValidation(ref fileNameParts[^1]);
 
 		var relativePath = Path.Combine(fileNameParts);
-		var absolutePath = accessor.GetBaseBotDirectoryFile(relativePath).FullName;
+		var absolutePath = config.GetFile(relativePath).FullName;
 		//Make sure the directory the db will be created in exists
 		Directory.CreateDirectory(Path.GetDirectoryName(absolutePath)!);
 		return new(absolutePath);

@@ -7,7 +7,7 @@ namespace Advobot.Services.GuildSettingsProvider;
 /// <summary>
 /// Provides a role to mute a user.
 /// </summary>
-public interface IGuildSettingsProvider
+public interface IGuildSettingsService
 {
 	/// <summary>
 	/// Gets a culture for the guild.

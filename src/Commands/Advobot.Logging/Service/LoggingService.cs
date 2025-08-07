@@ -26,7 +26,7 @@ public sealed class LoggingService
 		ILoggingDatabase db,
 		BaseSocketClient client,
 		ICommandHandlerService commandHandler,
-		IBotSettings botSettings,
+		IRuntimeConfig botSettings,
 		MessageQueue queue,
 		ITime time)
 	{
@@ -63,7 +63,7 @@ public sealed class LoggingService
 		var e = message.Exception;
 		// Gateway reconnects have a warning severity, but all they are is spam
 		if (e is GatewayReconnectException
-			|| (e.InnerException is WebSocketException wse && wse.WebSocketErrorCode == WebSocketError.ConnectionClosedPrematurely))
+			|| (e?.InnerException is WebSocketException wse && wse.WebSocketErrorCode == WebSocketError.ConnectionClosedPrematurely))
 		{
 			message = new(LogSeverity.Info, message.Source, message.Message, e);
 		}

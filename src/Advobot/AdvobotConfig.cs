@@ -12,54 +12,58 @@ using Discord.WebSocket;
 
 using Newtonsoft.Json;
 
-using System.Diagnostics;
-
-namespace Advobot.Settings;
+namespace Advobot;
 
 /// <summary>
 /// Low level configuration that is necessary for the bot to run. Holds the bot key, bot id, and save path.
 /// </summary>
-public sealed class Config : IConfig
+public sealed class AdvobotConfig : IConfig
 {
 	[JsonIgnore]
 	private readonly DiscordRestClient _TestClient = new();
 	[JsonProperty("BotKey")]
 	private string? _BotKey;
 	[JsonIgnore]
-	private bool _ValidatedKey;
+	private bool _IsKeyValidated;
 	[JsonIgnore]
-	private bool _ValidatedPath;
+	private bool _IsPathValidated;
 
 	/// <inheritdoc />
 	[JsonIgnore]
 	public DirectoryInfo BaseBotDirectory
-		=> Directory.CreateDirectory(Path.Combine(SavePath, $"Discord_Servers_{BotId}"));
-	/// <inheritdoc />
+		=> Directory.CreateDirectory(Path.Combine(SavePath!, $"Discord_Servers_{BotId}"));
+	/// <summary>
+	/// The id of the bot.
+	/// </summary>
 	[JsonIgnore]
 	public ulong BotId { get; private set; }
-	/// <inheritdoc />
+	/// <summary>
+	/// The instance number of the bot at launch. This is used to find the correct config.
+	/// </summary>
 	[JsonIgnore]
 	public int Instance { get; set; } = -1;
-	/// <inheritdoc />
+	/// <summary>
+	/// The previous process id of the application.
+	/// </summary>
 	[JsonIgnore]
 	public int PreviousProcessId { get; set; } = -1;
 	/// <inheritdoc />
 	[JsonIgnore]
 	public string RestartArguments =>
-		$"-{nameof(PreviousProcessId)} {Process.GetCurrentProcess().Id} " +
+		$"-{nameof(PreviousProcessId)} {Environment.ProcessId} " +
 		$"-{nameof(Instance)} {Instance} ";
 	/// <summary>
 	/// The path leading to the bot's directory.
 	/// </summary>
-	[JsonProperty("SavePath")]
+	[JsonProperty(nameof(SavePath))]
 	public string? SavePath { get; private set; }
 
-	static Config()
+	static AdvobotConfig()
 	{
 		StaticSettingParserRegistry.Instance.Register(
 		[
-			new StaticSetting<Config, int>(x => x.PreviousProcessId),
-			new StaticSetting<Config, int>(x => x.Instance),
+			new StaticSetting<AdvobotConfig, int>(x => x.PreviousProcessId),
+			new StaticSetting<AdvobotConfig, int>(x => x.Instance),
 		]);
 	}
 
@@ -67,7 +71,7 @@ public sealed class Config : IConfig
 	/// Attempts to load the configuration with the supplied instance number otherwise uses the default initialization for config.
 	/// </summary>
 	/// <returns></returns>
-	public static Config Load(string[] args)
+	public static AdvobotConfig Load(string[] args)
 	{
 		var parseArgs = new ParseArgs(args, ['"'], ['"']);
 		var instance = -1;
@@ -75,19 +79,23 @@ public sealed class Config : IConfig
 
 		// Instance is for the config so they can be named Advobot1, Advobot2, etc.
 		instance = instance < 1 ? 1 : instance;
-		var config = IOUtils.DeserializeFromFile<Config>(GetConfigPath(instance)) ?? new Config();
+		var config = IOUtils.DeserializeFromFile<AdvobotConfig>(GetConfigPath(instance)) ?? new AdvobotConfig();
 		StaticSettingParserRegistry.Instance.Parse(config, parseArgs);
 		return config;
 	}
 
-	/// <inheritdoc />
+	/// <summary>
+	/// Logs in and starts the client.
+	/// </summary>
+	/// <param name="client"></param>
+	/// <returns></returns>
 	public async Task StartAsync(BaseSocketClient client)
 	{
-		if (!_ValidatedPath)
+		if (!_IsPathValidated)
 		{
 			throw new InvalidOperationException("Path not validated.");
 		}
-		if (!_ValidatedKey)
+		if (!_IsKeyValidated)
 		{
 			throw new InvalidOperationException("Key not validated.");
 		}
@@ -105,25 +113,27 @@ public sealed class Config : IConfig
 		ConsoleUtils.WriteLine("Successfully connected the client.");
 	}
 
-	/// <inheritdoc />
-	public async Task<bool> ValidateBotKey(
-		string? input,
-		bool startup,
-		Func<BaseSocketClient, IRestartArgumentProvider, Task> restartCallback)
+	/// <summary>
+	/// Attempts to login with the given input. Returns a boolean signifying whether the login was successful or not.
+	/// </summary>
+	/// <param name="key">The bot key.</param>
+	/// <param name="isStartup">Whether or not this should be treated as the first attempt at logging in.</param>
+	/// <returns>A boolean signifying whether the login was successful or not.</returns>
+	public async Task<bool> ValidateBotKey(string? key, bool isStartup)
 	{
-		if (_ValidatedKey)
+		if (_IsKeyValidated)
 		{
 			return true;
 		}
 
-		var key = input ?? _BotKey;
-		if (startup && !string.IsNullOrWhiteSpace(key))
+		key ??= _BotKey;
+		if (isStartup && !string.IsNullOrWhiteSpace(key))
 		{
 			try
 			{
 				await _TestClient.LoginAsync(TokenType.Bot, key).CAF();
 				BotId = _TestClient.CurrentUser.Id;
-				return _ValidatedKey = true;
+				return _IsKeyValidated = true;
 			}
 			catch (HttpException)
 			{
@@ -131,7 +141,7 @@ public sealed class Config : IConfig
 				return false;
 			}
 		}
-		if (startup)
+		if (isStartup)
 		{
 			ConsoleUtils.WriteLine("Please enter the bot's key:");
 			return false;
@@ -144,7 +154,7 @@ public sealed class Config : IConfig
 			BotId = _TestClient.CurrentUser.Id;
 			Save();
 			ConsoleUtils.WriteLine("Succesfully logged in via the given bot key.");
-			return _ValidatedKey = true;
+			return _IsKeyValidated = true;
 		}
 		catch (HttpException)
 		{
@@ -153,25 +163,30 @@ public sealed class Config : IConfig
 		}
 	}
 
-	/// <inheritdoc />
-	public bool ValidatePath(string? input, bool startup)
+	/// <summary>
+	/// Attempts to set the save path with the given input. Returns a boolean signifying whether the save path is valid or not.
+	/// </summary>
+	/// <param name="path"></param>
+	/// <param name="isStartup"></param>
+	/// <returns></returns>
+	public bool ValidatePath(string? path, bool isStartup)
 	{
-		if (_ValidatedPath)
+		if (_IsPathValidated)
 		{
 			return true;
 		}
 
-		var path = input ?? SavePath;
-		if (startup && !string.IsNullOrWhiteSpace(path) && Directory.Exists(path))
+		path ??= SavePath;
+		if (isStartup && !string.IsNullOrWhiteSpace(path) && Directory.Exists(path))
 		{
-			return _ValidatedPath = true;
+			return _IsPathValidated = true;
 		}
-		if (startup)
+		if (isStartup)
 		{
 			ConsoleUtils.WriteLine("Please enter a valid directory path in which to save files or say 'AppData':");
 			return false;
 		}
-		if ("appdata".CaseInsEquals(path))
+		if (path.CaseInsEquals("appdata"))
 		{
 			var appdata = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
 			path = Path.Combine(appdata, "Advobot");
@@ -182,7 +197,7 @@ public sealed class Config : IConfig
 			ConsoleUtils.WriteLine($"Successfully set the save path as {path}");
 			SavePath = path;
 			Save();
-			return _ValidatedPath = true;
+			return _IsPathValidated = true;
 		}
 
 		ConsoleUtils.WriteLine("Invalid directory. Please enter a valid directory:", ConsoleColor.Red);

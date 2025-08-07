@@ -6,7 +6,6 @@ using Advobot.Services.GuildSettingsProvider;
 using Advobot.Services.HelpEntries;
 using Advobot.Services.LogCounters;
 using Advobot.Services.Time;
-using Advobot.Settings;
 using Advobot.Utilities;
 
 using AdvorangesUtils;
@@ -27,14 +26,12 @@ namespace Advobot;
 /// </summary>
 public sealed class AdvobotLauncher
 {
-	private readonly IConfig _Config;
-	private IServiceProvider? _Services;
-
 	/// <summary>
-	/// Creates an instance of <see cref="AdvobotLauncher"/>.
+	/// Starts an instance of Advobot with one method call.
 	/// </summary>
-	/// <param name="config"></param>
-	public AdvobotLauncher(IConfig config)
+	/// <param name="args"></param>
+	/// <returns></returns>
+	public static async Task<IServiceProvider> NoConfigurationStart(string[] args)
 	{
 		AppDomain.CurrentDomain.UnhandledException += (sender, e)
 			=> IOUtils.LogUncaughtException(e.ExceptionObject);
@@ -44,86 +41,47 @@ public sealed class AdvobotLauncher
 			| ConsolePrintingFlags.LogCaller
 			| ConsolePrintingFlags.RemoveDuplicateNewLines;
 
-		_Config = config;
-		ConsoleUtils.DebugWrite($"Args: {_Config.Instance}|{_Config.PreviousProcessId}", "Launcher Arguments");
-	}
+		var config = AdvobotConfig.Load(args);
+		ConsoleUtils.DebugWrite($"Args: {config.Instance}|{config.PreviousProcessId}", "Launcher Arguments");
 
-	/// <summary>
-	/// Starts an instance of Advobot with one method call.
-	/// </summary>
-	/// <param name="args"></param>
-	/// <returns></returns>
-	public static async Task<IServiceProvider> NoConfigurationStart(string[] args)
-	{
-		var launcher = new AdvobotLauncher(Config.Load(args));
-		await launcher.GetPathAndKeyAsync().CAF();
-
-		var directory = AppDomain.CurrentDomain.BaseDirectory;
-		var commands = CommandAssembly.Load(directory);
-		var services = await launcher.GetServicesAsync(commands).CAF();
-
-		var commandHandler = services.GetRequiredService<ICommandHandlerService>();
-		await commandHandler.AddCommandsAsync(commands).CAF();
-
-		var client = services.GetRequiredService<BaseSocketClient>();
-		await launcher.StartAsync(client).CAF();
-
-		return services;
-	}
-
-	/// <summary>
-	/// Gets the path and bot key from user input if they're not already stored in file.
-	/// </summary>
-	/// <returns></returns>
-	public async Task GetPathAndKeyAsync()
-	{
-		// Get the save path
-		var validPath = _Config.ValidatePath(null, true);
-		while (!validPath)
-		{
-			validPath = _Config.ValidatePath(Console.ReadLine(), false);
-		}
-
-		// Get the bot key
-		var validKey = await _Config.ValidateBotKey(null, true, DiscordUtils.RestartBotAsync).CAF();
-		while (!validKey)
-		{
-			validKey = await _Config.ValidateBotKey(Console.ReadLine(), false, DiscordUtils.RestartBotAsync).CAF();
-		}
-	}
-
-	/// <summary>
-	/// Creates the service provider and starts the Discord bot.
-	/// </summary>
-	/// <param name="client"></param>
-	/// <returns></returns>
-	public Task StartAsync(BaseSocketClient client)
-		=> _Config.StartAsync(client);
-
-	/// <summary>
-	/// Waits until the old process is killed. This is blocking.
-	/// </summary>
-	public void WaitUntilOldProcessKilled()
-	{
-		//Wait until the old process is killed
-		if (_Config.PreviousProcessId != -1)
+		// Wait until the old process is killed
+		if (config.PreviousProcessId != -1)
 		{
 			try
 			{
-				while (Process.GetProcessById(_Config.PreviousProcessId) != null)
+				while (Process.GetProcessById(config.PreviousProcessId) != null)
 				{
 					Thread.Sleep(25);
 				}
 			}
 			catch (ArgumentException) { }
 		}
+
+		// Get the save path
+		var validPath = config.ValidatePath(null, true);
+		while (!validPath)
+		{
+			validPath = config.ValidatePath(Console.ReadLine(), false);
+		}
+
+		// Get the bot key
+		var validKey = await config.ValidateBotKey(null, true).CAF();
+		while (!validKey)
+		{
+			validKey = await config.ValidateBotKey(Console.ReadLine(), false).CAF();
+		}
+
+		var services = await CreateServicesAsync(config).CAF();
+
+		var client = services.GetRequiredService<BaseSocketClient>();
+		await config.StartAsync(client).CAF();
+
+		return services;
 	}
 
-	private async Task<IServiceProvider> CreateServicesAsync(
-		IReadOnlyCollection<CommandAssembly> assemblies,
-		IConfig config)
+	private static async Task<IServiceProvider> CreateServicesAsync(AdvobotConfig config)
 	{
-		var botSettings = NaiveBotSettings.CreateOrLoad(config);
+		var botSettings = RuntimeConfig.CreateOrLoad(config);
 		var commandConfig = new CommandServiceConfig
 		{
 			CaseSensitiveCommands = false,
@@ -148,20 +106,24 @@ public sealed class AdvobotLauncher
 
 		var collection = new ServiceCollection()
 			.AddSingleton(commandConfig)
-			.AddSingleton(discordClient)
 			.AddSingleton(httpClient)
+			.AddSingleton(discordClient)
 			.AddSingleton<BaseSocketClient>(discordClient)
 			.AddSingleton<IDiscordClient>(discordClient)
-			.AddSingleton<IBotSettings>(botSettings)
-			.AddSingleton<IBotDirectoryAccessor>(botSettings)
+			.AddSingleton<IRuntimeConfig>(botSettings)
+			.AddSingleton<IConfig>(botSettings)
 			.AddSingleton<ITime, DefaultTime>()
 			.AddSingleton<IHelpEntryService, HelpEntryService>()
 			.AddSingleton<ICommandHandlerService, CommandHandlerService>()
 			.AddSingleton<ILogCounterService, LogCounterService>()
-			.AddSingleton<IPunisher, Punisher>()
-			.AddSingleton<IGuildSettingsProvider, NaiveGuildSettingsProvider>();
+			.AddSingleton<IPunishmentService, PunishmentService>()
+			.AddSingleton<IGuildSettingsService, NaiveGuildSettingsService>();
 
-		foreach (var assembly in assemblies)
+		var commandAssemblyDirectory = AppDomain.CurrentDomain.BaseDirectory;
+		var commandAssemblies = CommandAssembly.Load(commandAssemblyDirectory);
+
+		// Add in services each command assembly uses
+		foreach (var assembly in commandAssemblies)
 		{
 			if (assembly.Instantiator != null)
 			{
@@ -169,7 +131,8 @@ public sealed class AdvobotLauncher
 			}
 		}
 
-		var provider = collection.BuildServiceProvider();
+		var services = collection.BuildServiceProvider();
+		// Instantiate each service
 		foreach (var service in collection)
 		{
 			if (service.Lifetime != ServiceLifetime.Singleton)
@@ -177,21 +140,22 @@ public sealed class AdvobotLauncher
 				continue;
 			}
 
-			// Just to instantiate it
-			_ = provider.GetRequiredService(service.ServiceType);
+			_ = services.GetRequiredService(service.ServiceType);
 		}
 
-		foreach (var assembly in assemblies)
+		// Configure each service
+		foreach (var assembly in commandAssemblies)
 		{
 			if (assembly.Instantiator != null)
 			{
-				await assembly.Instantiator.ConfigureServicesAsync(provider).CAF();
+				await assembly.Instantiator.ConfigureServicesAsync(services).CAF();
 			}
 		}
 
-		return provider;
-	}
+		// Add in commands
+		var commandHandler = services.GetRequiredService<ICommandHandlerService>();
+		await commandHandler.AddCommandsAsync(commandAssemblies).CAF();
 
-	private async Task<IServiceProvider> GetServicesAsync(IReadOnlyCollection<CommandAssembly> assemblies)
-		=> _Services ??= await CreateServicesAsync(assemblies, _Config).CAF();
+		return services;
+	}
 }
