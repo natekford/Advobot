@@ -1,10 +1,10 @@
 ﻿using Advobot.Attributes;
 using Advobot.Localization;
 using Advobot.Modules;
-using Advobot.ParameterPreconditions.DiscordObjectValidation;
-using Advobot.ParameterPreconditions.DiscordObjectValidation.Channels;
-using Advobot.ParameterPreconditions.DiscordObjectValidation.Roles;
-using Advobot.ParameterPreconditions.DiscordObjectValidation.Users;
+using Advobot.ParameterPreconditions.Discord;
+using Advobot.ParameterPreconditions.Discord.Channels;
+using Advobot.ParameterPreconditions.Discord.Roles;
+using Advobot.ParameterPreconditions.Discord.Users;
 using Advobot.ParameterPreconditions.Numbers;
 using Advobot.ParameterPreconditions.Strings;
 using Advobot.Preconditions.Permissions;

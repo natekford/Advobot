@@ -1,8 +1,8 @@
 ﻿using Advobot.Attributes;
 using Advobot.Localization;
 using Advobot.Modules;
-using Advobot.ParameterPreconditions.DiscordObjectValidation.Emotes;
-using Advobot.ParameterPreconditions.DiscordObjectValidation.Roles;
+using Advobot.ParameterPreconditions.Discord.Emotes;
+using Advobot.ParameterPreconditions.Discord.Roles;
 using Advobot.ParameterPreconditions.Strings;
 using Advobot.Preconditions.Permissions;
 using Advobot.Resources;

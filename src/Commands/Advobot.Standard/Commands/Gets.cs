@@ -1,7 +1,7 @@
 ﻿using Advobot.Attributes;
 using Advobot.Localization;
 using Advobot.Modules;
-using Advobot.ParameterPreconditions.DiscordObjectValidation.Channels;
+using Advobot.ParameterPreconditions.Discord.Channels;
 using Advobot.ParameterPreconditions.Numbers;
 using Advobot.Preconditions;
 using Advobot.Preconditions.Permissions;

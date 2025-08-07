@@ -2,7 +2,7 @@
 using Advobot.AutoMod.Models;
 using Advobot.Localization;
 using Advobot.Modules;
-using Advobot.ParameterPreconditions.DiscordObjectValidation.Roles;
+using Advobot.ParameterPreconditions.Discord.Roles;
 using Advobot.ParameterPreconditions.Numbers;
 using Advobot.Preconditions.Permissions;
 using Advobot.Resources;

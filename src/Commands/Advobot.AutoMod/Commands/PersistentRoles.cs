@@ -2,7 +2,7 @@
 using Advobot.AutoMod.Models;
 using Advobot.Localization;
 using Advobot.Modules;
-using Advobot.ParameterPreconditions.DiscordObjectValidation.Roles;
+using Advobot.ParameterPreconditions.Discord.Roles;
 using Advobot.Preconditions.Permissions;
 using Advobot.Resources;
 using Advobot.Utilities;
@@ -67,7 +67,7 @@ public sealed class PersistentRoles : ModuleBase
 		public async Task<RuntimeResult> Give(
 			IGuildUser user,
 			[Remainder, CanModifyRole, NotEveryone, NotManaged]
-				IRole role)
+			IRole role)
 		{
 			await user.AddRoleAsync(role, GetOptions()).CAF();
 
