@@ -30,42 +30,38 @@ public static class LoggingUtils
 		this IServiceCollection services,
 		string name)
 	{
-		var logger = CreateLogger<T>(name);
-		return services.AddSingleton(logger);
+		return services.AddSingleton(x =>
+		{
+			var config = x.GetRequiredService<IConfig>();
+			return CreateLogger<T>(config.BaseBotDirectory, name);
+		});
 	}
 
 	/// <summary>
 	/// Creates a logger for <typeparamref name="T"/>.
 	/// </summary>
 	/// <typeparam name="T"></typeparam>
+	/// <param name="directory"></param>
 	/// <param name="name"></param>
 	/// <returns></returns>
-	public static ILogger<T> CreateLogger<T>(string name)
+	public static ILogger<T> CreateLogger<T>(DirectoryInfo directory, string name)
 	{
-		var serilog = CreateSerilog(name);
-		return new SerilogLoggerFactory(serilog).CreateLogger<T>();
-	}
-
-	/// <summary>
-	/// Creates a Serilog logger.
-	/// </summary>
-	/// <param name="name"></param>
-	/// <returns></returns>
-	public static Logger CreateSerilog(string name)
-	{
-		return new LoggerConfiguration()
+		var serilog = new LoggerConfiguration()
 			.Enrich.FromLogContext()
 			.MinimumLevel.Debug()
 			.Destructure.With(DiscordObjectDestructuringPolicy.Instance)
 			.WriteTo.File(
 				formatter: new JsonFormatter(),
-				path: Path.Combine("Logs", name, $"{name}.txt"),
+				path: Path.Combine(directory.FullName, "Logs", name, $"{name}.txt"),
 				rollingInterval: RollingInterval.Day
 			)
 			.WriteTo.Console(
 				restrictedToMinimumLevel: LogEventLevel.Warning,
-				theme: AnsiConsoleTheme.Code)
+				theme: AnsiConsoleTheme.Code
+			)
 			.CreateLogger();
+
+		return new SerilogLoggerFactory(serilog).CreateLogger<T>();
 	}
 
 	private sealed class DiscordObjectDestructuringPolicy : IDestructuringPolicy

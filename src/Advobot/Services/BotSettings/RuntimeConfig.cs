@@ -4,6 +4,8 @@ using AdvorangesUtils;
 
 using Discord;
 
+using Newtonsoft.Json;
+
 namespace Advobot.Services.BotSettings;
 
 /// <summary>
@@ -13,6 +15,7 @@ namespace Advobot.Services.BotSettings;
 internal sealed class RuntimeConfig : IRuntimeConfig
 {
 	public bool AlwaysDownloadUsers { get; set; }
+	[JsonIgnore]
 	public DirectoryInfo BaseBotDirectory { get; private set; } = new(Directory.GetCurrentDirectory());
 	public string? Game { get; set; }
 	public LogSeverity LogLevel { get; set; } = LogSeverity.Debug;
@@ -29,6 +32,7 @@ internal sealed class RuntimeConfig : IRuntimeConfig
 	public int MessageCacheSize { get; set; } = 1000;
 	public bool Pause { get; set; }
 	public string Prefix { get; set; } = "&&";
+	[JsonIgnore]
 	public string RestartArguments { get; private set; } = "";
 	public string? Stream { get; set; }
 	public IList<ulong> UsersIgnoredFromCommands { get; set; } = [];
@@ -41,7 +45,19 @@ internal sealed class RuntimeConfig : IRuntimeConfig
 	/// <returns></returns>
 	public static RuntimeConfig CreateOrLoad(IConfig config)
 	{
-		var settings = IOUtils.DeserializeFromFile<RuntimeConfig>(GetPath(config)) ?? new RuntimeConfig();
+		var path = GetPath(config);
+
+		RuntimeConfig settings;
+		if (path.Exists)
+		{
+			settings = IOUtils.DeserializeFromFile<RuntimeConfig>(path);
+		}
+		else
+		{
+			settings = new RuntimeConfig();
+			IOUtils.SafeWriteAllText(path, IOUtils.Serialize(settings));
+		}
+
 		settings.BaseBotDirectory = config.BaseBotDirectory;
 		settings.RestartArguments = config.RestartArguments;
 		return settings;
