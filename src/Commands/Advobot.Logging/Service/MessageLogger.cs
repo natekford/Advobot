@@ -206,7 +206,13 @@ public sealed class MessageLogger
 				return (true, "Unknown");
 			}
 
-			var text = (message.Content ?? "Empty").RemoveAllMarkdown().RemoveDuplicateNewLines();
+			var content = message.Content;
+			if (string.IsNullOrWhiteSpace(content))
+			{
+				content = "Empty";
+			}
+
+			var text = content.RemoveAllMarkdown().RemoveDuplicateNewLines();
 			var valid = text.Length <= MAX_FIELD_LENGTH && text.CountLineBreaks() < MAX_FIELD_LINES;
 			return (valid, text);
 		}

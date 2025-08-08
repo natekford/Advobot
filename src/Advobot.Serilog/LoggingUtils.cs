@@ -49,9 +49,9 @@ public static class LoggingUtils
 	/// <summary>
 	/// Creates a Serilog logger.
 	/// </summary>
-	/// <param name="fileName"></param>
+	/// <param name="name"></param>
 	/// <returns></returns>
-	public static Logger CreateSerilog(string fileName)
+	public static Logger CreateSerilog(string name)
 	{
 		return new LoggerConfiguration()
 			.Enrich.FromLogContext()
@@ -59,13 +59,12 @@ public static class LoggingUtils
 			.Destructure.With(DiscordObjectDestructuringPolicy.Instance)
 			.WriteTo.File(
 				formatter: new JsonFormatter(),
-				path: Path.Combine("Logs", $"{fileName}.txt"),
+				path: Path.Combine("Logs", name, $"{name}.txt"),
 				rollingInterval: RollingInterval.Day
 			)
 			.WriteTo.Console(
 				restrictedToMinimumLevel: LogEventLevel.Warning,
-				theme: AnsiConsoleTheme.Code
-			)
+				theme: AnsiConsoleTheme.Code)
 			.CreateLogger();
 	}
 
