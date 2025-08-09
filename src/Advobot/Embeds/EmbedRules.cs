@@ -1,6 +1,4 @@
-﻿using AdvorangesUtils;
-
-namespace Advobot.Embeds;
+﻿namespace Advobot.Embeds;
 
 internal static class EmbedRules
 {
@@ -29,7 +27,7 @@ internal static class EmbedRules
 		int max)
 	{
 		return validator.Rule(
-			x => x?.CountLineBreaks() <= max,
+			x => x?.Count(c => c is '\r' or '\n') <= max,
 			() => $"Max new lines is {max}."
 		);
 	}
@@ -57,7 +55,8 @@ internal static class EmbedRules
 		this EmbedPropertyValidator<TEmbed, string?> validator)
 	{
 		return validator.Rule(
-			x => x?.IsValidUrl() != false,
+			x => x is null || (Uri.TryCreate(x, UriKind.Absolute, out var uri)
+				&& (uri.Scheme == Uri.UriSchemeHttp || uri.Scheme == Uri.UriSchemeHttps)),
 			() => "Invalid url."
 		);
 	}

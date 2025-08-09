@@ -1,6 +1,4 @@
-﻿using AdvorangesUtils;
-
-using Discord;
+﻿using Discord;
 
 namespace Advobot.Utilities;
 
@@ -52,13 +50,13 @@ public static class OverwriteUtils
 		var overwrites = channel.GetOverwrites(id);
 		foreach (var overwrite in overwrites)
 		{
-			var obj = await channel.Guild.GetEntityAsync(overwrite).CAF();
+			var obj = await channel.Guild.GetEntityAsync(overwrite).ConfigureAwait(false);
 			await (obj switch
 			{
 				IRole r => channel.RemovePermissionOverwriteAsync(r, options),
 				IUser u => channel.RemovePermissionOverwriteAsync(u, options),
 				_ => throw new ArgumentException("Not targetting a role or user.", nameof(id)),
-			}).CAF();
+			}).ConfigureAwait(false);
 		}
 		return overwrites.Count;
 	}
@@ -86,8 +84,8 @@ public static class OverwriteUtils
 		var overwrites = input.GetOverwrites(id);
 		foreach (var overwrite in overwrites)
 		{
-			var entity = await input.Guild.GetEntityAsync(overwrite).CAF();
-			await AddPermissionOverwriteAsync(output, entity, overwrite.Permissions, options).CAF();
+			var entity = await input.Guild.GetEntityAsync(overwrite).ConfigureAwait(false);
+			await AddPermissionOverwriteAsync(output, entity, overwrite.Permissions, options).ConfigureAwait(false);
 		}
 		return overwrites;
 	}
@@ -104,7 +102,7 @@ public static class OverwriteUtils
 		Overwrite overwrite) => overwrite.TargetType switch
 		{
 			PermissionTarget.Role => guild.GetRole(overwrite.TargetId),
-			PermissionTarget.User => await guild.GetUserAsync(overwrite.TargetId).CAF(),
+			PermissionTarget.User => await guild.GetUserAsync(overwrite.TargetId).ConfigureAwait(false),
 			_ => throw new ArgumentException("Not targetting a role or user.", nameof(overwrite)),
 		};
 
@@ -228,8 +226,8 @@ public static class OverwriteUtils
 		RequestOptions options)
 	{
 		var newPerms = updatePerms(overwrite.Permissions);
-		var entity = await channel.Guild.GetEntityAsync(overwrite).CAF();
-		await channel.AddPermissionOverwriteAsync(entity, newPerms, options).CAF();
+		var entity = await channel.Guild.GetEntityAsync(overwrite).ConfigureAwait(false);
+		await channel.AddPermissionOverwriteAsync(entity, newPerms, options).ConfigureAwait(false);
 	}
 
 	private static IReadOnlyList<ChannelPermission> GetPermissions(IGuildChannel channel) => channel switch

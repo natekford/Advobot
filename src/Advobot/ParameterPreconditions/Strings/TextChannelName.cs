@@ -1,7 +1,5 @@
 ﻿using Advobot.Utilities;
 
-using AdvorangesUtils;
-
 using Discord;
 using Discord.Commands;
 
@@ -24,7 +22,7 @@ public sealed class TextChannelName : ChannelName
 		string value,
 		IServiceProvider services)
 	{
-		var result = await base.CheckPermissionsAsync(context, parameter, invoker, value, services).CAF();
+		var result = await base.CheckPermissionsAsync(context, parameter, invoker, value, services).ConfigureAwait(false);
 		if (!result.IsSuccess)
 		{
 			return result;

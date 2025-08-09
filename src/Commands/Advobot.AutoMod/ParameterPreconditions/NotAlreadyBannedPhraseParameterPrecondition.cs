@@ -3,8 +3,6 @@ using Advobot.AutoMod.Models;
 using Advobot.ParameterPreconditions;
 using Advobot.Utilities;
 
-using AdvorangesUtils;
-
 using Discord;
 using Discord.Commands;
 
@@ -37,7 +35,7 @@ public abstract class NotAlreadyBannedPhraseParameterPrecondition
 		IServiceProvider services)
 	{
 		var db = services.GetRequiredService<IAutoModDatabase>();
-		var phrases = await db.GetBannedPhrasesAsync(context.Guild.Id).CAF();
+		var phrases = await db.GetBannedPhrasesAsync(context.Guild.Id).ConfigureAwait(false);
 		if (phrases.Any(x => IsMatch(x, value)))
 		{
 			return PreconditionResult.FromError(BannedPhraseAlreadyExists.Format(

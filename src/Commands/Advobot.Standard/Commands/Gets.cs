@@ -6,10 +6,7 @@ using Advobot.ParameterPreconditions.Numbers;
 using Advobot.Preconditions;
 using Advobot.Preconditions.Permissions;
 using Advobot.Resources;
-using Advobot.Services.LogCounters;
 using Advobot.Utilities;
-
-using AdvorangesUtils;
 
 using Discord;
 using Discord.Commands;
@@ -37,13 +34,11 @@ public sealed class Gets : ModuleBase
 	[Meta("99dcd5e7-6bb2-49cf-b8b7-66b8e063fd18", IsEnabled = true)]
 	public sealed class GetInfo : AdvobotModuleBase
 	{
-		public ILogCounterService Counters { get; set; } = null!;
-
 		[LocalizedCommand(nameof(Groups.Bot))]
 		[LocalizedAlias(nameof(Aliases.Bot))]
 		[Priority(1)]
 		public Task<RuntimeResult> Bot()
-			=> Responses.Gets.Bot(Context.Client, Counters);
+			=> Responses.Gets.Bot(Context.Client);
 
 		[LocalizedCommand(nameof(Groups.Channel))]
 		[LocalizedAlias(nameof(Aliases.Channel))]
@@ -141,7 +136,7 @@ public sealed class Gets : ModuleBase
 		public async Task<RuntimeResult> Command([CanModifyChannel] ITextChannel channel, int number)
 		{
 			var num = Math.Min(number, 1000);
-			var messages = await channel.GetMessagesAsync(num).FlattenAsync().CAF();
+			var messages = await channel.GetMessagesAsync(num).FlattenAsync().ConfigureAwait(false);
 			var orderedMessages = messages.OrderBy(x => x.CreatedAt.Ticks).ToArray();
 			return Responses.Gets.Messages(channel, orderedMessages, BotSettings.MaxMessageGatherSize);
 		}

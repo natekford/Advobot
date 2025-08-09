@@ -6,8 +6,6 @@ using Advobot.ParameterPreconditions.Strings;
 using Advobot.Preconditions.Permissions;
 using Advobot.Resources;
 
-using AdvorangesUtils;
-
 using Discord;
 using Discord.Commands;
 using Discord.Webhook;
@@ -38,7 +36,7 @@ public sealed class Webhooks : ModuleBase
 			string name
 		)
 		{
-			var webhook = await channel.CreateWebhookAsync(name, options: GetOptions()).CAF();
+			var webhook = await channel.CreateWebhookAsync(name, options: GetOptions()).ConfigureAwait(false);
 			return Responses.Snowflakes.Created(webhook);
 		}
 	}
@@ -56,7 +54,7 @@ public sealed class Webhooks : ModuleBase
 				IWebhook webhook
 		)
 		{
-			await webhook.DeleteAsync(GetOptions()).CAF();
+			await webhook.DeleteAsync(GetOptions()).ConfigureAwait(false);
 			return Responses.Snowflakes.Deleted(webhook);
 		}
 	}
@@ -71,7 +69,7 @@ public sealed class Webhooks : ModuleBase
 		[Command]
 		public async Task<RuntimeResult> Command()
 		{
-			var webhooks = await Context.Guild.GetWebhooksAsync().CAF();
+			var webhooks = await Context.Guild.GetWebhooksAsync().ConfigureAwait(false);
 			return Responses.Webhooks.DisplayWebhooks(Context.Guild, webhooks);
 		}
 
@@ -81,7 +79,7 @@ public sealed class Webhooks : ModuleBase
 				ITextChannel channel
 		)
 		{
-			var webhooks = await channel.GetWebhooksAsync().CAF();
+			var webhooks = await channel.GetWebhooksAsync().ConfigureAwait(false);
 			return Responses.Webhooks.DisplayWebhooks(channel, webhooks);
 		}
 	}
@@ -102,7 +100,7 @@ public sealed class Webhooks : ModuleBase
 			ITextChannel channel
 		)
 		{
-			await webhook.ModifyAsync(x => x.Channel = Optional.Create(channel), GetOptions()).CAF();
+			await webhook.ModifyAsync(x => x.Channel = Optional.Create(channel), GetOptions()).ConfigureAwait(false);
 			return Responses.Webhooks.ModifiedChannel(webhook, channel);
 		}
 	}
@@ -123,7 +121,7 @@ public sealed class Webhooks : ModuleBase
 			string name
 		)
 		{
-			await webhook.ModifyAsync(x => x.Name = name, GetOptions()).CAF();
+			await webhook.ModifyAsync(x => x.Name = name, GetOptions()).ConfigureAwait(false);
 			return Responses.Snowflakes.ModifiedName(webhook, name);
 		}
 	}

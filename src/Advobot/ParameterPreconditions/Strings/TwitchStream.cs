@@ -1,9 +1,9 @@
 ﻿using Advobot.Utilities;
 
-using AdvorangesUtils;
-
 using Discord;
 using Discord.Commands;
+
+using System.Text.RegularExpressions;
 
 namespace Advobot.ParameterPreconditions.Strings;
 
@@ -11,7 +11,7 @@ namespace Advobot.ParameterPreconditions.Strings;
 /// Validates the Twitch stream name by making sure it is between 4 and 25 characters and matches a Regex for Twitch usernames.
 /// </summary>
 [AttributeUsage(AttributeTargets.Parameter, AllowMultiple = false, Inherited = true)]
-public sealed class TwitchStream : StringLengthParameterPrecondition
+public sealed partial class TwitchStream : StringLengthParameterPrecondition
 {
 	/// <inheritdoc />
 	public override string StringType => "Twitch stream name";
@@ -29,16 +29,19 @@ public sealed class TwitchStream : StringLengthParameterPrecondition
 		string value,
 		IServiceProvider services)
 	{
-		var result = await base.CheckPermissionsAsync(context, parameter, invoker, value, services).CAF();
+		var result = await base.CheckPermissionsAsync(context, parameter, invoker, value, services).ConfigureAwait(false);
 		if (!result.IsSuccess)
 		{
 			return result;
 		}
 
-		if (RegexUtils.IsValidTwitchName(value))
+		if (GetTwitchRegex().IsMatch(value))
 		{
 			return this.FromSuccess();
 		}
 		return PreconditionResult.FromError("Invalid Twitch username supplied.");
 	}
+
+	[GeneratedRegex("^[a-zA-Z0-9_]{4,25}$", RegexOptions.Compiled)]
+	private static partial System.Text.RegularExpressions.Regex GetTwitchRegex();
 }

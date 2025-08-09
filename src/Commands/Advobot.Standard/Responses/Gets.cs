@@ -1,10 +1,7 @@
 ﻿using Advobot.Embeds;
 using Advobot.Formatting;
 using Advobot.Modules;
-using Advobot.Services.LogCounters;
 using Advobot.Utilities;
-
-using AdvorangesUtils;
 
 using Discord;
 using Discord.Commands;
@@ -34,7 +31,7 @@ public sealed class Gets : AdvobotResult
 
 	public static async Task<RuntimeResult> AllGuildUsers(IGuild guild)
 	{
-		var users = await guild.GetUsersAsync().CAF();
+		var users = await guild.GetUsersAsync().ConfigureAwait(false);
 		var statuses = _Statuses.ToDictionary(x => x, _ => 0);
 		var activities = _Activities.ToDictionary(x => x, _ => 0);
 		int webhooks = 0, bots = 0, nickname = 0, voice = 0;
@@ -104,37 +101,14 @@ public sealed class Gets : AdvobotResult
 		return Success(embed);
 	}
 
-	public static AdvobotResult Bot(DiscordShardedClient client, ILogCounterService logging)
+	public static AdvobotResult Bot(DiscordShardedClient client)
 	{
-		static string FormatLogCounters(ILogCounter[] counters)
-		{
-			var titlesAndCount = new (string Title, string Count)[counters.Length];
-			var right = 0;
-			var left = 0;
-			for (var i = 0; i < counters.Length; ++i)
-			{
-				var counter = counters[i];
-				var temp = (Title: $"**{counter.Name}**:", Count: $"`{counter.Count}`");
-				titlesAndCount[i] = temp;
-				right = Math.Max(right, temp.Title.Length);
-				left = Math.Max(left, temp.Count.Length);
-			}
-
-			var sb = new StringBuilder();
-			foreach (var (Title, Count) in titlesAndCount)
-			{
-				sb.AppendLineFeed($"{Title.PadRight(Math.Max(right + 1, 0))}{Count.PadLeft(Math.Max(left, 0))}");
-			}
-			return sb.ToString().Trim('\n', '\r');
-		}
-
+		var startTime = AdvobotUtils.StartTime.ToReadable();
+		var runDuration = DateTime.UtcNow - AdvobotUtils.StartTime;
 		var embed = new EmbedWrapper
 		{
-			Description = $"**Online Since:** `{ProcessInfoUtils.GetStartTime().ToReadable()}` (`{AdvorangesUtils.FormattingUtils.GetUptime()}`)\n" +
-				$"**Guild/User Count:** `{logging.TotalGuilds.Count}`/`{logging.TotalUsers.Count}`\n" +
+			Description = $"**Online Since:** `{startTime}` (`{runDuration:g}`)\n" +
 				$"**Latency:** `{client.Latency}`\n" +
-				$"**Memory Usage:** `{ProcessInfoUtils.GetMemoryMB():0.00}MB`\n" +
-				$"**Thread Count:** `{ProcessInfoUtils.GetThreadCount()}`\n" +
 				$"**Shard Count:** `{client.Shards.Count}`",
 			Author = client.CurrentUser.CreateAuthor(),
 			Footer = new()
@@ -143,26 +117,6 @@ public sealed class Gets : AdvobotResult
 			},
 		};
 
-		embed.TryAddField("Users", FormatLogCounters(
-		[
-			logging.UserJoins,
-			logging.UserLeaves,
-			logging.UserChanges
-		]), true, out _);
-		embed.TryAddField("Messages", FormatLogCounters(
-		[
-			logging.MessageEdits,
-			logging.MessageDeletes,
-			logging.Images,
-			logging.Animated,
-			logging.Files
-		]), true, out _);
-		embed.TryAddField("Commands", FormatLogCounters(
-		[
-			logging.AttemptedCommands,
-			logging.SuccessfulCommands,
-			logging.FailedCommands
-		]), true, out _);
 		return Success(embed);
 	}
 
@@ -179,7 +133,7 @@ public sealed class Gets : AdvobotResult
 			}
 			else if (o.TargetType == PermissionTarget.User)
 			{
-				var user = await channel.Guild.GetUserAsync(o.TargetId).CAF();
+				var user = await channel.Guild.GetUserAsync(o.TargetId).ConfigureAwait(false);
 				users.Add(user.Username);
 			}
 		}
@@ -229,7 +183,7 @@ public sealed class Gets : AdvobotResult
 			meta.Add(GetsTitleColons, guildEmote.RequireColons);
 
 			var roles = info.CreateCollection();
-			roles.Add(GetsTitleRoles, guildEmote.RoleIds.Join(x => x.ToString()));
+			roles.Add(GetsTitleRoles, guildEmote.RoleIds.Select(x => x.ToString()).Join());
 		}
 
 		return Success(new EmbedWrapper
@@ -252,11 +206,11 @@ public sealed class Gets : AdvobotResult
 
 	public static async Task<RuntimeResult> Guild(IGuild guild)
 	{
-		var userCount = (await guild.GetUsersAsync().CAF()).Count;
-		var owner = await guild.GetOwnerAsync().CAF();
+		var userCount = (await guild.GetUsersAsync().ConfigureAwait(false)).Count;
+		var owner = await guild.GetOwnerAsync().ConfigureAwait(false);
 
 		int channels = 0, categories = 0, voice = 0, text = 0;
-		foreach (var channel in await guild.GetChannelsAsync().CAF())
+		foreach (var channel in await guild.GetChannelsAsync().ConfigureAwait(false))
 		{
 			++channels;
 			if (channel is ICategoryChannel)
@@ -324,10 +278,10 @@ public sealed class Gets : AdvobotResult
 			counts.Add(GetsTitleVoiceChannelCount, voice);
 			counts.Add(GetsTitleCategoryChannelCount, categories);
 			var special = channelInfo.CreateCollection();
-			special.Add(GetsTitleDefaultChannel, (await guild.GetDefaultChannelAsync().CAF()).Format());
-			special.Add(GetsTitleAfkChannel, (await guild.GetAFKChannelAsync().CAF()).Format());
-			special.Add(GetsTitleSystemChannel, (await guild.GetSystemChannelAsync().CAF()).Format());
-			special.Add(GetsTitleEmbedChannel, (await guild.GetWidgetChannelAsync().CAF()).Format());
+			special.Add(GetsTitleDefaultChannel, (await guild.GetDefaultChannelAsync().ConfigureAwait(false)).Format());
+			special.Add(GetsTitleAfkChannel, (await guild.GetAFKChannelAsync().ConfigureAwait(false)).Format());
+			special.Add(GetsTitleSystemChannel, (await guild.GetSystemChannelAsync().ConfigureAwait(false)).Format());
+			special.Add(GetsTitleEmbedChannel, (await guild.GetWidgetChannelAsync().ConfigureAwait(false)).Format());
 			embed.TryAddField(GetsTitleChannelInfo, channelInfo.ToString(), false, out _);
 		}
 		{
@@ -360,10 +314,10 @@ public sealed class Gets : AdvobotResult
 
 	public static AdvobotResult Guilds(IReadOnlyCollection<IGuild> guilds)
 	{
-		var text = guilds.FormatNumberedList(x => GetsUserJoins.Format(
+		var text = guilds.Select(x => GetsUserJoins.Format(
 			x.Format().WithNoMarkdown(),
 			x.OwnerId.ToString().WithNoMarkdown()
-		));
+		)).FormatNumberedList();
 		return Success(MessageUtils.CreateTextFile(GetsTitleGuilds, text));
 	}
 
@@ -401,15 +355,12 @@ public sealed class Gets : AdvobotResult
 		var formattedMessagesBuilder = new StringBuilder();
 		foreach (var message in messages)
 		{
-			var text = message
-				.Format(withMentions: false)
-				.RemoveAllMarkdown()
-				.RemoveDuplicateNewLines();
+			var text = message.Format(withMentions: false).Sanitize(keepMarkdown: false);
 			if (formattedMessagesBuilder.Length + text.Length >= maxSize)
 			{
 				break;
 			}
-			formattedMessagesBuilder.AppendLineFeed(text);
+			formattedMessagesBuilder.AppendLine(text);
 		}
 
 		var fileName = GetsFileMessages.Format(channel.Name.WithNoMarkdown());
@@ -419,7 +370,7 @@ public sealed class Gets : AdvobotResult
 
 	public static async Task<RuntimeResult> Role(IRole role)
 	{
-		var userCount = (await role.Guild.GetUsersAsync().CAF()).Count(x => x.RoleIds.Contains(role.Id));
+		var userCount = (await role.Guild.GetUsersAsync().ConfigureAwait(false)).Count(x => x.RoleIds.Contains(role.Id));
 		var permissions = _Permissions.Where(x => role.Permissions.Has(x)).Select(x => x.ToString()).ToArray();
 
 		var info = new InfoMatrix();
@@ -450,7 +401,7 @@ public sealed class Gets : AdvobotResult
 
 	public static AdvobotResult Shards(DiscordShardedClient client)
 	{
-		var description = client.Shards.Join(shard =>
+		var description = client.Shards.Select(shard =>
 		{
 			var statusEmoji = shard.ConnectionState switch
 			{
@@ -461,7 +412,7 @@ public sealed class Gets : AdvobotResult
 				_ => Constants.UNKNOWN,
 			};
 			return $"Shard `{shard.ShardId}`: `{statusEmoji} ({shard.Latency}ms)`";
-		}, "\n");
+		}).Join("\n");
 		return Success(new EmbedWrapper
 		{
 			Description = description,
@@ -478,7 +429,7 @@ public sealed class Gets : AdvobotResult
 	{
 		return Success(GetsShowEnumNames.Format(
 			value.ToString().WithBlock(),
-			EnumUtils.GetFlagNames((T)(object)value).Join().WithBlock()
+			((T)(object)value).ToString("F").WithBlock()
 		));
 	}
 
@@ -520,7 +471,7 @@ public sealed class Gets : AdvobotResult
 			var a = guildUser.Guild as SocketGuild;
 			var b = a?.Users;
 #endif
-			var join = (await guildUser.Guild.GetUsersAsync(CacheMode.CacheOnly).CAF())
+			var join = (await guildUser.Guild.GetUsersAsync(CacheMode.CacheOnly).ConfigureAwait(false))
 				.Count(x => x.JoinedAt < guildUser.JoinedAt);
 			guildInfo.Add(GetsTitleJoined, GetsJoinedAt.Format(
 				dto.UtcDateTime.ToReadable().WithNoMarkdown(),
@@ -534,7 +485,7 @@ public sealed class Gets : AdvobotResult
 			Func<ChannelPermissions, bool> permCheck)
 			where T : IGuildChannel
 		{
-			var channels = await getter(guildUser.Guild).CAF();
+			var channels = await getter(guildUser.Guild).ConfigureAwait(false);
 			var ordered = channels.OrderBy(x => x.Position);
 			var valid = ordered.Where(x => permCheck(guildUser.GetPermissions(x)));
 			return valid.ToArray();
@@ -542,24 +493,24 @@ public sealed class Gets : AdvobotResult
 
 		var roles = guildUser.GetRoles();
 		var textChannels = await GetChannelsAsync(x => x.GetTextChannelsAsync(),
-			x => x.ViewChannel).CAF();
+			x => x.ViewChannel).ConfigureAwait(false);
 		var voiceChannels = await GetChannelsAsync(x => x.GetVoiceChannelsAsync(),
-			x => x.ViewChannel && x.Connect).CAF();
+			x => x.ViewChannel && x.Connect).ConfigureAwait(false);
 
 		if (roles.Count > 0)
 		{
-			var fieldValue = roles.Join(x => x.Name).WithBigBlock().Value;
+			var fieldValue = roles.Select(x => x.Name).Join().WithBigBlock().Value;
 			embed.TryAddField(GetsTitleRoles, fieldValue, false, out _);
 			embed.Color = roles.LastOrDefault(x => x.Color.RawValue != 0)?.Color;
 		}
 		if (textChannels.Count > 0)
 		{
-			var fieldValue = textChannels.Join(x => x.Name).WithBigBlock().Value;
+			var fieldValue = textChannels.Select(x => x.Name).Join().WithBigBlock().Value;
 			embed.TryAddField(GetsTitleTextChannels, fieldValue, false, out _);
 		}
 		if (voiceChannels.Count > 0)
 		{
-			var fieldValue = voiceChannels.Join(x => x.Name).WithBigBlock().Value;
+			var fieldValue = voiceChannels.Select(x => x.Name).Join().WithBigBlock().Value;
 			embed.TryAddField(GetsTitleVoiceChannels, fieldValue, false, out _);
 		}
 		if (guildUser.VoiceChannel is IVoiceChannel vc)
@@ -579,14 +530,14 @@ public sealed class Gets : AdvobotResult
 
 	public static AdvobotResult UserJoin(IReadOnlyCollection<IGuildUser> users)
 	{
-		var text = users.FormatNumberedList(x =>
+		var text = users.Select(x =>
 		{
 			var joined = x.JoinedAt ?? DateTimeOffset.UtcNow;
 			return GetsUserJoins.Format(
 				x.Format().WithNoMarkdown(),
 				joined.UtcDateTime.ToReadable().WithNoMarkdown()
 			);
-		});
+		}).FormatNumberedList();
 		return Success(MessageUtils.CreateTextFile(GetsFileUserJoins, text));
 	}
 
@@ -602,7 +553,7 @@ public sealed class Gets : AdvobotResult
 
 	public static AdvobotResult UsersWithReason(IEnumerable<IGuildUser> users)
 	{
-		var text = users.FormatNumberedList(x => x.Format());
+		var text = users.Select(x => x.Format()).FormatNumberedList();
 		return Success(MessageUtils.CreateTextFile(GetsFileUsersWithReason, text));
 	}
 

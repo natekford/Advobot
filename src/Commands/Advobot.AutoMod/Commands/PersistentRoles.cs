@@ -7,8 +7,6 @@ using Advobot.Preconditions.Permissions;
 using Advobot.Resources;
 using Advobot.Utilities;
 
-using AdvorangesUtils;
-
 using Discord;
 using Discord.Commands;
 
@@ -29,14 +27,14 @@ public sealed class PersistentRoles : ModuleBase
 		[Command]
 		public async Task<RuntimeResult> Command()
 		{
-			var roles = await Db.GetPersistentRolesAsync(Context.Guild.Id).CAF();
+			var roles = await Db.GetPersistentRolesAsync(Context.Guild.Id).ConfigureAwait(false);
 			return Display(roles);
 		}
 
 		[Command]
 		public async Task<RuntimeResult> Command(IGuildUser user)
 		{
-			var roles = await Db.GetPersistentRolesAsync(Context.Guild.Id, user.Id).CAF();
+			var roles = await Db.GetPersistentRolesAsync(Context.Guild.Id, user.Id).ConfigureAwait(false);
 			return Display(roles);
 		}
 
@@ -69,7 +67,7 @@ public sealed class PersistentRoles : ModuleBase
 			[Remainder, CanModifyRole, NotEveryone, NotManaged]
 			IRole role)
 		{
-			await user.AddRoleAsync(role, GetOptions()).CAF();
+			await user.AddRoleAsync(role, GetOptions()).ConfigureAwait(false);
 
 			var persistentRole = new PersistentRole
 			{
@@ -77,7 +75,7 @@ public sealed class PersistentRoles : ModuleBase
 				UserId = user.Id,
 				RoleId = role.Id
 			};
-			await Db.AddPersistentRoleAsync(persistentRole).CAF();
+			await Db.AddPersistentRoleAsync(persistentRole).ConfigureAwait(false);
 
 			return GavePersistentRole(user, role);
 		}
@@ -91,7 +89,7 @@ public sealed class PersistentRoles : ModuleBase
 		{
 			if (user.RoleIds.Contains(role.Id))
 			{
-				await user.RemoveRoleAsync(role, GetOptions()).CAF();
+				await user.RemoveRoleAsync(role, GetOptions()).ConfigureAwait(false);
 			}
 
 			var persistentRole = new PersistentRole
@@ -100,7 +98,7 @@ public sealed class PersistentRoles : ModuleBase
 				UserId = user.Id,
 				RoleId = role.Id
 			};
-			await Db.DeletePersistentRoleAsync(persistentRole).CAF();
+			await Db.DeletePersistentRoleAsync(persistentRole).ConfigureAwait(false);
 
 			return RemovedPersistentRole(user, role);
 		}

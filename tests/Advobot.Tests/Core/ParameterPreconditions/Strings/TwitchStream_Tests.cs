@@ -1,8 +1,6 @@
 ﻿using Advobot.ParameterPreconditions.Strings;
 using Advobot.Tests.TestBases;
 
-using AdvorangesUtils;
-
 namespace Advobot.Tests.Core.ParameterPreconditions.Strings;
 
 [TestClass]
@@ -12,21 +10,21 @@ public sealed class TwitchStream_Tests : ParameterPrecondition_Tests<TwitchStrea
 
 	[TestMethod]
 	public async Task Asterisks_Test()
-		=> await AssertFailureAsync("*****").CAF();
+		=> await AssertFailureAsync("*****").ConfigureAwait(false);
 
 	[TestMethod]
 	public async Task Length25_Test()
-		=> await AssertSuccessAsync(new string('a', 25)).CAF();
+		=> await AssertSuccessAsync(new string('a', 25)).ConfigureAwait(false);
 
 	[TestMethod]
 	public async Task Length26_Test()
-		=> await AssertFailureAsync(new string('a', 26)).CAF();
+		=> await AssertFailureAsync(new string('a', 26)).ConfigureAwait(false);
 
 	[TestMethod]
 	public async Task Length3_Test()
-		=> await AssertFailureAsync(new string('a', 3)).CAF();
+		=> await AssertFailureAsync(new string('a', 3)).ConfigureAwait(false);
 
 	[TestMethod]
 	public async Task Length4_Test()
-		=> await AssertSuccessAsync(new string('a', 4)).CAF();
+		=> await AssertSuccessAsync(new string('a', 4)).ConfigureAwait(false);
 }

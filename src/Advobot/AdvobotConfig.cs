@@ -1,16 +1,13 @@
-﻿using AdvorangesSettingParser.Implementation;
-using AdvorangesSettingParser.Implementation.Instance;
-using AdvorangesSettingParser.Implementation.Static;
-using AdvorangesSettingParser.Utils;
-
-using AdvorangesUtils;
+﻿using Advobot.Utilities;
 
 using Discord;
 using Discord.Net;
 using Discord.Rest;
 using Discord.WebSocket;
 
-using Newtonsoft.Json;
+using System.Text.Encodings.Web;
+using System.Text.Json;
+using System.Text.Json.Serialization;
 
 namespace Advobot;
 
@@ -21,7 +18,8 @@ public sealed class AdvobotConfig : IConfig
 {
 	[JsonIgnore]
 	private readonly DiscordRestClient _TestClient = new();
-	[JsonProperty("BotKey")]
+	[JsonInclude]
+	[JsonPropertyName("BotKey")]
 	private string? _BotKey;
 	[JsonIgnore]
 	private bool _IsKeyValidated;
@@ -55,17 +53,16 @@ public sealed class AdvobotConfig : IConfig
 	/// <summary>
 	/// The path leading to the bot's directory.
 	/// </summary>
-	[JsonProperty(nameof(SavePath))]
+	[JsonInclude]
+	[JsonPropertyName(nameof(SavePath))]
 	public string? SavePath { get; private set; }
 
-	static AdvobotConfig()
+	internal static JsonSerializerOptions JsonOptions { get; } = new()
 	{
-		StaticSettingParserRegistry.Instance.Register(
-		[
-			new StaticSetting<AdvobotConfig, int>(x => x.PreviousProcessId),
-			new StaticSetting<AdvobotConfig, int>(x => x.Instance),
-		]);
-	}
+		Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping,
+		IncludeFields = true,
+		WriteIndented = true,
+	};
 
 	/// <summary>
 	/// Attempts to load the configuration with the supplied instance number otherwise uses the default initialization for config.
@@ -73,15 +70,46 @@ public sealed class AdvobotConfig : IConfig
 	/// <returns></returns>
 	public static AdvobotConfig Load(string[] args)
 	{
-		var parseArgs = new ParseArgs(args, ['"'], ['"']);
+		// There are better ways to do this, maybe if more arguments come I'll bother
 		var instance = -1;
-		new SettingParser { new Setting<int>(() => instance), }.Parse(parseArgs);
-
+		var previousProcessId = -1;
+		for (var i = 0; i < args.Length - 1; i += 2)
+		{
+			var key = args[i];
+			var val = args[i + 1];
+			if (key.CaseInsEquals($"-{nameof(Instance)}"))
+			{
+				instance = int.Parse(val);
+			}
+			else if (key.CaseInsEquals($"-{nameof(PreviousProcessId)}"))
+			{
+				previousProcessId = int.Parse(val);
+			}
+		}
 		// Instance is for the config so they can be named Advobot1, Advobot2, etc.
 		instance = instance < 1 ? 1 : instance;
-		var config = IOUtils.DeserializeFromFile<AdvobotConfig>(GetConfigPath(instance)) ?? new AdvobotConfig();
-		StaticSettingParserRegistry.Instance.Parse(config, parseArgs);
-		return config;
+
+		AdvobotConfig advobotConfig;
+		var path = GetPath(instance);
+		if (path.Exists)
+		{
+			using var stream = path.OpenRead();
+			advobotConfig = JsonSerializer.Deserialize<AdvobotConfig>(stream, JsonOptions)!;
+		}
+		else
+		{
+			advobotConfig = new AdvobotConfig();
+		}
+
+		advobotConfig.Instance = instance;
+		advobotConfig.PreviousProcessId = previousProcessId;
+
+		// File doesn't exist, save the original config so the user can edit it
+		if (!path.Exists)
+		{
+			advobotConfig.Save();
+		}
+		return advobotConfig;
 	}
 
 	/// <summary>
@@ -107,10 +135,10 @@ public sealed class AdvobotConfig : IConfig
 			return Task.CompletedTask;
 		};
 
-		await client.LoginAsync(TokenType.Bot, _BotKey).CAF();
-		ConsoleUtils.WriteLine("Connecting the client...");
-		await client.StartAsync().CAF();
-		ConsoleUtils.WriteLine("Successfully connected the client.");
+		await client.LoginAsync(TokenType.Bot, _BotKey).ConfigureAwait(false);
+		Console.WriteLine("Connecting the client...");
+		await client.StartAsync().ConfigureAwait(false);
+		Console.WriteLine("Successfully connected to the client.");
 	}
 
 	/// <summary>
@@ -131,34 +159,34 @@ public sealed class AdvobotConfig : IConfig
 		{
 			try
 			{
-				await _TestClient.LoginAsync(TokenType.Bot, key).CAF();
+				await _TestClient.LoginAsync(TokenType.Bot, key).ConfigureAwait(false);
 				BotId = _TestClient.CurrentUser.Id;
 				return _IsKeyValidated = true;
 			}
 			catch (HttpException)
 			{
-				ConsoleUtils.WriteLine("The given key is no longer valid. Please enter a new valid key:");
+				Console.WriteLine("The given key is no longer valid. Please enter a new valid key:");
 				return false;
 			}
 		}
 		if (isStartup)
 		{
-			ConsoleUtils.WriteLine("Please enter the bot's key:");
+			Console.WriteLine("Please enter the bot's key:");
 			return false;
 		}
 
 		try
 		{
-			await _TestClient.LoginAsync(TokenType.Bot, key).CAF();
+			await _TestClient.LoginAsync(TokenType.Bot, key).ConfigureAwait(false);
 			_BotKey = key;
 			BotId = _TestClient.CurrentUser.Id;
 			Save();
-			ConsoleUtils.WriteLine("Succesfully logged in via the given bot key.");
+			Console.WriteLine("Succesfully logged in via the given bot key.");
 			return _IsKeyValidated = true;
 		}
 		catch (HttpException)
 		{
-			ConsoleUtils.WriteLine("The given key is invalid. Please enter a valid key:", ConsoleColor.Red);
+			Console.WriteLine("The given key is invalid. Please enter a valid key:");
 			return false;
 		}
 	}
@@ -183,7 +211,7 @@ public sealed class AdvobotConfig : IConfig
 		}
 		if (isStartup)
 		{
-			ConsoleUtils.WriteLine("Please enter a valid directory path in which to save files or say 'AppData':");
+			Console.WriteLine("Please enter a valid directory path in which to save files or say 'AppData':");
 			return false;
 		}
 		if (path.CaseInsEquals("appdata"))
@@ -194,23 +222,26 @@ public sealed class AdvobotConfig : IConfig
 		}
 		if (Directory.Exists(path))
 		{
-			ConsoleUtils.WriteLine($"Successfully set the save path as {path}");
+			Console.WriteLine($"Successfully set the save path as {path}");
 			SavePath = path;
 			Save();
 			return _IsPathValidated = true;
 		}
 
-		ConsoleUtils.WriteLine("Invalid directory. Please enter a valid directory:", ConsoleColor.Red);
+		Console.WriteLine("Invalid directory. Please enter a valid directory:");
 		return false;
 	}
 
-	private static FileInfo GetConfigPath(int instance)
+	private static FileInfo GetPath(int instance)
 	{
-		//Add the config file into the local application data folder under Advobot
+		// Add the config file into the local application data folder under Advobot
 		var appdata = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
 		return new(Path.Combine(appdata, "Advobot", $"Advobot{instance}.config"));
 	}
 
 	private void Save()
-		=> IOUtils.SafeWriteAllText(GetConfigPath(Instance), IOUtils.Serialize(this));
+	{
+		using var stream = GetPath(Instance).OpenWrite();
+		JsonSerializer.Serialize(stream, this, JsonOptions);
+	}
 }

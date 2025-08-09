@@ -1,8 +1,6 @@
 ﻿using Advobot.AutoMod.Models;
 using Advobot.SQLite;
 
-using AdvorangesUtils;
-
 using System.Data.SQLite;
 
 namespace Advobot.AutoMod.Database;
@@ -63,7 +61,7 @@ public sealed class AutoModDatabase(IConnectionString<AutoModDatabase> conn) : D
 			SELECT *
 			FROM GuildSetting
 			WHERE GuildId = @GuildId
-		", param).CAF() ?? new() { GuildId = guildId };
+		", param).ConfigureAwait(false) ?? new() { GuildId = guildId };
 	}
 
 	public async Task<IReadOnlyList<BannedPhrase>> GetBannedNamesAsync(ulong guildId)
@@ -73,7 +71,7 @@ public sealed class AutoModDatabase(IConnectionString<AutoModDatabase> conn) : D
 			SELECT *
 			FROM BannedPhrase
 			WHERE GuildId = @GuildId AND IsName = 1
-		", param).CAF();
+		", param).ConfigureAwait(false);
 	}
 
 	public async Task<IReadOnlyList<BannedPhrase>> GetBannedPhrasesAsync(ulong guildId)
@@ -83,7 +81,7 @@ public sealed class AutoModDatabase(IConnectionString<AutoModDatabase> conn) : D
 			SELECT *
 			FROM BannedPhrase
 			WHERE GuildId = @GuildId
-		", param).CAF();
+		", param).ConfigureAwait(false);
 	}
 
 	public async Task<ChannelSettings?> GetChannelSettingsAsync(ulong channelId)
@@ -93,7 +91,7 @@ public sealed class AutoModDatabase(IConnectionString<AutoModDatabase> conn) : D
 			SELECT *
 			FROM ChannelSetting
 			WHERE ChannelId = @ChannelId
-		", param).CAF();
+		", param).ConfigureAwait(false);
 	}
 
 	public async Task<IReadOnlyList<ChannelSettings>> GetChannelSettingsListAsync(
@@ -104,7 +102,7 @@ public sealed class AutoModDatabase(IConnectionString<AutoModDatabase> conn) : D
 			SELECT *
 			FROM ChannelSetting
 			WHERE GuildId = @GuildId
-		", param).CAF();
+		", param).ConfigureAwait(false);
 	}
 
 	public async Task<IReadOnlyList<PersistentRole>> GetPersistentRolesAsync(
@@ -115,7 +113,7 @@ public sealed class AutoModDatabase(IConnectionString<AutoModDatabase> conn) : D
 			SELECT *
 			FROM PersistentRole
 			WHERE GuildId = @GuildId
-		", param).CAF();
+		", param).ConfigureAwait(false);
 	}
 
 	public async Task<IReadOnlyList<PersistentRole>> GetPersistentRolesAsync(
@@ -131,7 +129,7 @@ public sealed class AutoModDatabase(IConnectionString<AutoModDatabase> conn) : D
 			SELECT *
 			FROM PersistentRole
 			WHERE GuildId = @GuildId AND UserId = @UserId
-		", param).CAF();
+		", param).ConfigureAwait(false);
 	}
 
 	public async Task<IReadOnlyList<Punishment>> GetPunishmentsAsync(ulong guildId)
@@ -141,7 +139,7 @@ public sealed class AutoModDatabase(IConnectionString<AutoModDatabase> conn) : D
 			SELECT *
 			FROM Punishment
 			WHERE GuildId = @GuildId
-		", param).CAF();
+		", param).ConfigureAwait(false);
 	}
 
 	public async Task<SelfRole?> GetSelfRoleAsync(ulong roleId)
@@ -151,7 +149,7 @@ public sealed class AutoModDatabase(IConnectionString<AutoModDatabase> conn) : D
 			SELECT *
 			FROM SelfRole
 			WHERE RoleId = @RoleId
-		", param).CAF();
+		", param).ConfigureAwait(false);
 	}
 
 	public async Task<IReadOnlyList<SelfRole>> GetSelfRolesAsync(ulong guildId)
@@ -161,7 +159,7 @@ public sealed class AutoModDatabase(IConnectionString<AutoModDatabase> conn) : D
 			SELECT *
 			FROM SelfRole
 			WHERE GuildId = @GuildId
-		", param).CAF();
+		", param).ConfigureAwait(false);
 	}
 
 	public async Task<IReadOnlyList<SelfRole>> GetSelfRolesAsync(ulong guildId, int groupId)
@@ -175,7 +173,7 @@ public sealed class AutoModDatabase(IConnectionString<AutoModDatabase> conn) : D
 			SELECT *
 			FROM SelfRole
 			WHERE GuildId = @GuildId AND GroupId = @GroupId
-		", param).CAF();
+		", param).ConfigureAwait(false);
 	}
 
 	public Task<int> UpsertAutoModSettingsAsync(AutoModSettings settings)

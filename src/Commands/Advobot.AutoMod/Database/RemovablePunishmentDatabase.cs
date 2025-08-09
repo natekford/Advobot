@@ -1,8 +1,6 @@
 ﻿using Advobot.AutoMod.Models;
 using Advobot.SQLite;
 
-using AdvorangesUtils;
-
 using System.Data.SQLite;
 
 namespace Advobot.AutoMod.Database;
@@ -37,6 +35,6 @@ public sealed class RemovablePunishmentDatabase(IConnectionString<RemovablePunis
 				SELECT *
 				FROM RemovablePunishment
 				WHERE EndTimeTicks < @Ticks
-			", param).CAF();
+			", param).ConfigureAwait(false);
 	}
 }

@@ -2,6 +2,9 @@
 	<PropertyGroup>
 		<Deterministic>false</Deterministic>
 	</PropertyGroup>
+	<ItemGroup>
+	  <PackageReference Include="MimeTypeMapOfficial" Version="1.0.17" />
+	</ItemGroup>
 
 	<ItemGroup>
 		<ProjectReference Include="..\..\Advobot\Advobot.csproj" />

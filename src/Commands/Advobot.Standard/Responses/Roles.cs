@@ -2,8 +2,6 @@
 using Advobot.Modules;
 using Advobot.Utilities;
 
-using AdvorangesUtils;
-
 using Discord;
 
 using static Advobot.Resources.Responses;
@@ -31,7 +29,7 @@ public sealed class Roles : AdvobotResult
 		GuildPermission permissions)
 	{
 		return Success(RolesCopiedPermissions.Format(
-			EnumUtils.GetFlagNames(permissions).Join().WithBlock(),
+			permissions.ToString("F").WithBlock(),
 			input.Format().WithBlock(),
 			output.Format().WithBlock()
 		));
@@ -40,7 +38,8 @@ public sealed class Roles : AdvobotResult
 	public static AdvobotResult Display(IEnumerable<IRole> roles)
 	{
 		var description = roles
-			.Join(x => $"{x.Position:00}. {x.Name}", Environment.NewLine)
+			.Select(x => $"{x.Position:00}. {x.Name}")
+			.Join(Environment.NewLine)
 			.WithBigBlock()
 			.Value;
 		return Success(new EmbedWrapper
@@ -56,9 +55,11 @@ public sealed class Roles : AdvobotResult
 			role.Format().WithBlock()
 		);
 		var description = _AllPerms
-			.ToDictionary(x => x, x => role.Permissions.Has(x) ? PermValue.Allow : PermValue.Deny)
-			.FormatPermissionValues(x => x.ToString(), out var padLen)
-			.Join(x => $"{x.Key.PadRight(padLen)} {x.Value}", "\n")
+			.ToDictionary(
+				keySelector: x => x.ToString(),
+				elementSelector: x => role.Permissions.Has(x) ? PermValue.Allow : PermValue.Deny
+			)
+			.FormatPermissionList()
 			.WithBigBlock()
 			.Value;
 		return Success(new EmbedWrapper
@@ -71,7 +72,7 @@ public sealed class Roles : AdvobotResult
 	public static AdvobotResult Gave(IReadOnlyCollection<IRole> roles, IUser user)
 	{
 		return Success(RolesGave.Format(
-			roles.Join(x => x.Format()).WithBlock(),
+			roles.Select(x => x.Format()).Join().WithBlock(),
 			user.Format().WithBlock()
 		));
 	}
@@ -107,7 +108,7 @@ public sealed class Roles : AdvobotResult
 	{
 		var format = allow ? RolesModifiedPermissionsAllow : RolesModifiedPermissionsDeny;
 		return Success(format.Format(
-			EnumUtils.GetFlagNames(permissions).Join().WithBlock(),
+			permissions.ToString("F").WithBlock(),
 			role.Format().WithBlock()
 		));
 	}
@@ -123,7 +124,7 @@ public sealed class Roles : AdvobotResult
 	public static AdvobotResult Took(IReadOnlyCollection<IRole> roles, IUser user)
 	{
 		return Success(RolesTook.Format(
-			roles.Join(x => x.Format()).WithBlock(),
+			roles.Select(x => x.Format()).Join().WithBlock(),
 			user.Format().WithBlock()
 		));
 	}

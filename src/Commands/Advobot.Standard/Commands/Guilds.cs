@@ -9,8 +9,6 @@ using Advobot.Preconditions.Permissions;
 using Advobot.Resources;
 using Advobot.Utilities;
 
-using AdvorangesUtils;
-
 using Discord;
 using Discord.Commands;
 
@@ -31,11 +29,11 @@ public sealed class Guilds : ModuleBase
 		[Command]
 		public async Task Command([Remainder, GuildName] string name)
 		{
-			var optimalVoiceRegion = await Context.Client.GetOptimalVoiceRegionAsync().CAF();
-			var newGuild = await Context.Client.CreateGuildAsync(name, optimalVoiceRegion).CAF();
-			var defaultChannel = await newGuild.GetDefaultChannelAsync().CAF();
-			var invite = await defaultChannel.CreateInviteAsync().CAF();
-			await Context.User.SendMessageAsync(invite.Url).CAF();
+			var optimalVoiceRegion = await Context.Client.GetOptimalVoiceRegionAsync().ConfigureAwait(false);
+			var newGuild = await Context.Client.CreateGuildAsync(name, optimalVoiceRegion).ConfigureAwait(false);
+			var defaultChannel = await newGuild.GetDefaultChannelAsync().ConfigureAwait(false);
+			var invite = await defaultChannel.CreateInviteAsync().ConfigureAwait(false);
+			await Context.User.SendMessageAsync(invite.Url).ConfigureAwait(false);
 		}
 	}
 
@@ -67,7 +65,7 @@ public sealed class Guilds : ModuleBase
 		[RequireBotOwner]
 		public async Task<RuntimeResult> Command([Remainder] IGuild guild)
 		{
-			await guild.LeaveAsync().CAF();
+			await guild.LeaveAsync().ConfigureAwait(false);
 			return Responses.Guilds.LeftGuild(guild);
 		}
 	}
@@ -83,7 +81,7 @@ public sealed class Guilds : ModuleBase
 		public async Task<RuntimeResult> Command(
 			[CanModifyChannel(ManageChannels)] IVoiceChannel? channel)
 		{
-			await Context.Guild.ModifyAsync(x => x.AfkChannel = Optional.Create(channel), GetOptions()).CAF();
+			await Context.Guild.ModifyAsync(x => x.AfkChannel = Optional.Create(channel), GetOptions()).ConfigureAwait(false);
 			return Responses.Guilds.ModifiedAfkChannel(channel);
 		}
 
@@ -103,7 +101,7 @@ public sealed class Guilds : ModuleBase
 		[Command]
 		public async Task<RuntimeResult> Command([GuildAfkTime] int time)
 		{
-			await Context.Guild.ModifyAsync(x => x.AfkTimeout = time, GetOptions()).CAF();
+			await Context.Guild.ModifyAsync(x => x.AfkTimeout = time, GetOptions()).ConfigureAwait(false);
 			return Responses.Guilds.ModifiedAfkTime(time);
 		}
 	}
@@ -118,7 +116,7 @@ public sealed class Guilds : ModuleBase
 		[Command]
 		public async Task<RuntimeResult> Command(ExplicitContentFilterLevel filter)
 		{
-			await Context.Guild.ModifyAsync(x => x.ExplicitContentFilter = filter, GetOptions()).CAF();
+			await Context.Guild.ModifyAsync(x => x.ExplicitContentFilter = filter, GetOptions()).ConfigureAwait(false);
 			return Responses.Guilds.ModifiedGuildContentFilter(filter);
 		}
 	}
@@ -133,7 +131,7 @@ public sealed class Guilds : ModuleBase
 		[Command]
 		public async Task<RuntimeResult> Command(DefaultMessageNotifications msgNotifs)
 		{
-			await Context.Guild.ModifyAsync(x => x.DefaultMessageNotifications = msgNotifs, GetOptions()).CAF();
+			await Context.Guild.ModifyAsync(x => x.DefaultMessageNotifications = msgNotifs, GetOptions()).ConfigureAwait(false);
 			return Responses.Guilds.ModifiedMsgNotif(msgNotifs);
 		}
 	}
@@ -148,7 +146,7 @@ public sealed class Guilds : ModuleBase
 		[Command]
 		public async Task<RuntimeResult> Command([Remainder, GuildName] string name)
 		{
-			await Context.Guild.ModifyAsync(x => x.Name = name, GetOptions()).CAF();
+			await Context.Guild.ModifyAsync(x => x.Name = name, GetOptions()).ConfigureAwait(false);
 			return Responses.Snowflakes.ModifiedName(Context.Guild, name);
 		}
 	}
@@ -163,7 +161,7 @@ public sealed class Guilds : ModuleBase
 		[Command]
 		public async Task<RuntimeResult> Command(IVoiceRegion region)
 		{
-			await Context.Guild.ModifyAsync(x => x.Region = Optional.Create(region), GetOptions()).CAF();
+			await Context.Guild.ModifyAsync(x => x.Region = Optional.Create(region), GetOptions()).ConfigureAwait(false);
 			return Responses.Guilds.ModifiedRegion(region);
 		}
 
@@ -172,7 +170,7 @@ public sealed class Guilds : ModuleBase
 		[Priority(1)]
 		public async Task<RuntimeResult> Show()
 		{
-			var regions = await Context.Guild.GetVoiceRegionsAsync().CAF();
+			var regions = await Context.Guild.GetVoiceRegionsAsync().ConfigureAwait(false);
 			return Responses.Guilds.DisplayRegions(regions);
 		}
 	}
@@ -188,7 +186,7 @@ public sealed class Guilds : ModuleBase
 		public async Task<RuntimeResult> Command(
 			[CanModifyChannel(ManageChannels)] ITextChannel? channel)
 		{
-			await Context.Guild.ModifyAsync(x => x.SystemChannel = Optional.Create(channel), GetOptions()).CAF();
+			await Context.Guild.ModifyAsync(x => x.SystemChannel = Optional.Create(channel), GetOptions()).ConfigureAwait(false);
 			return Responses.Guilds.ModifiedSystemChannel(channel);
 		}
 
@@ -197,7 +195,7 @@ public sealed class Guilds : ModuleBase
 		public async Task<RuntimeResult> MessageBoost(bool enable)
 		{
 			const SystemChannelMessageDeny FLAG = SystemChannelMessageDeny.GuildBoost;
-			await Context.Guild.ModifySystemChannelFlags(FLAG, enable, GetOptions()).CAF();
+			await Context.Guild.ModifySystemChannelFlags(FLAG, enable, GetOptions()).ConfigureAwait(false);
 			return Responses.Guilds.ModifySystemMessageBoost(enable);
 		}
 
@@ -206,7 +204,7 @@ public sealed class Guilds : ModuleBase
 		public async Task<RuntimeResult> MessageWelcome(bool enable)
 		{
 			const SystemChannelMessageDeny FLAG = SystemChannelMessageDeny.WelcomeMessage;
-			await Context.Guild.ModifySystemChannelFlags(FLAG, enable, GetOptions()).CAF();
+			await Context.Guild.ModifySystemChannelFlags(FLAG, enable, GetOptions()).ConfigureAwait(false);
 			return Responses.Guilds.ModifySystemMessageWelcome(enable);
 		}
 
@@ -226,7 +224,7 @@ public sealed class Guilds : ModuleBase
 		[Command]
 		public async Task<RuntimeResult> Command(VerificationLevel verif)
 		{
-			await Context.Guild.ModifyAsync(x => x.VerificationLevel = verif, GetOptions()).CAF();
+			await Context.Guild.ModifyAsync(x => x.VerificationLevel = verif, GetOptions()).ConfigureAwait(false);
 			return Responses.Guilds.ModifiedVerif(verif);
 		}
 	}
@@ -242,7 +240,7 @@ public sealed class Guilds : ModuleBase
 		[Command]
 		public async Task<RuntimeResult> Command()
 		{
-			await Context.Guild.ModifyAsync(x => x.Owner = new Optional<IUser>(Context.User)).CAF();
+			await Context.Guild.ModifyAsync(x => x.Owner = new Optional<IUser>(Context.User)).ConfigureAwait(false);
 			return Responses.Guilds.ModifiedOwner(Context.User);
 		}
 	}

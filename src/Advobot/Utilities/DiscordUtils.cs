@@ -1,11 +1,8 @@
-﻿using AdvorangesUtils;
-
-using Discord;
+﻿using Discord;
 using Discord.Commands;
 using Discord.WebSocket;
 
 using System.Diagnostics;
-
 using System.Reflection;
 
 namespace Advobot.Utilities;
@@ -100,7 +97,7 @@ public static class DiscordUtils
 	/// <param name="id"></param>
 	/// <returns></returns>
 	public static async Task<IUser?> GetUserAsync(this BaseSocketClient client, ulong id)
-		=> (IUser)client.GetUser(id) ?? await client.Rest.GetUserAsync(id).CAF();
+		=> (IUser)client.GetUser(id) ?? await client.Rest.GetUserAsync(id).ConfigureAwait(false);
 
 	/// <summary>
 	/// Changes the role's position and says the supplied reason in the audit log.
@@ -115,7 +112,7 @@ public static class DiscordUtils
 		RequestOptions options)
 	{
 		// Make sure it's put at the highest a bot can edit, so no permission exception
-		var bot = await role.Guild.GetCurrentUserAsync().CAF();
+		var bot = await role.Guild.GetCurrentUserAsync().ConfigureAwait(false);
 		var roles = role.Guild.Roles
 			.Where(x => x.Id != role.Id && bot.CanModify(x))
 			.OrderBy(x => x.Position)
@@ -141,7 +138,7 @@ public static class DiscordUtils
 			}
 		}
 
-		await role.Guild.ReorderRolesAsync(reorderProperties, options).CAF();
+		await role.Guild.ReorderRolesAsync(reorderProperties, options).ConfigureAwait(false);
 		return newPosition;
 	}
 
@@ -161,11 +158,11 @@ public static class DiscordUtils
 	{
 		return user.ModifyAsync(x =>
 		{
-			var set = new HashSet<ulong>();
-			set.AddRange(user.RoleIds);
-			set.Remove(user.Guild.EveryoneRole.Id);
+			var set = user.RoleIds
+				.Concat(rolesToAdd.Select(x => x.Id))
+				.ToHashSet();
 
-			set.AddRange(rolesToAdd.Select(x => x.Id));
+			set.Remove(user.Guild.EveryoneRole.Id);
 			foreach (var role in rolesToRemove)
 			{
 				set.Remove(role.Id);
@@ -227,7 +224,7 @@ public static class DiscordUtils
 	/// <param name="restartArgs"></param>
 	public static async Task RestartBotAsync(this IDiscordClient client, IConfig restartArgs)
 	{
-		await client.StopAsync().CAF();
+		await client.StopAsync().ConfigureAwait(false);
 		// For some reason Process.Start("dotnet", loc); doesn't work the same as what's currently used.
 		Process.Start(new ProcessStartInfo
 		{

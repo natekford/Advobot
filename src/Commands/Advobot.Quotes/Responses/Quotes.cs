@@ -3,8 +3,6 @@ using Advobot.Modules;
 using Advobot.Quotes.Models;
 using Advobot.Utilities;
 
-using AdvorangesUtils;
-
 using static Advobot.Resources.Responses;
 
 namespace Advobot.Quotes.Responses;
@@ -45,7 +43,7 @@ public sealed class Quotes : AdvobotResult
 		return Success(new EmbedWrapper
 		{
 			Title = VariableQuotes,
-			Description = quotes.Join(x => x.Name).WithBigBlock().Value,
+			Description = quotes.Select(x => x.Name).Join().WithBigBlock().Value,
 		});
 	}
 }

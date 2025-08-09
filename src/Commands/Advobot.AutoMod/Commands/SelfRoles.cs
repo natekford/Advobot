@@ -8,8 +8,6 @@ using Advobot.Preconditions.Permissions;
 using Advobot.Resources;
 using Advobot.Utilities;
 
-using AdvorangesUtils;
-
 using Discord;
 using Discord.Commands;
 
@@ -31,7 +29,7 @@ public sealed class SelfRoles : ModuleBase
 		{
 			if (Context.User.Roles.Any(x => x.Id == role.Role.Id))
 			{
-				await Context.User.RemoveRoleAsync(role.Role, GetOptions("self role removal")).CAF();
+				await Context.User.RemoveRoleAsync(role.Role, GetOptions("self role removal")).ConfigureAwait(false);
 				return RemovedRole(role.Role);
 			}
 
@@ -40,7 +38,7 @@ public sealed class SelfRoles : ModuleBase
 				.Where(x => Context.User.Roles.Any(y => y.Id == x.Id));
 			if (!conflicting.Any())
 			{
-				await Context.User.AddRoleAsync(role.Role, GetOptions("self role giving")).CAF();
+				await Context.User.AddRoleAsync(role.Role, GetOptions("self role giving")).ConfigureAwait(false);
 				return AddedRole(role.Role);
 			}
 
@@ -48,7 +46,7 @@ public sealed class SelfRoles : ModuleBase
 				rolesToAdd: [role.Role],
 				rolesToRemove: conflicting,
 				GetOptions("self role giving and removal of conflicts")
-			).CAF();
+			).ConfigureAwait(false);
 
 			return AddedRoleAndRemovedOthers(role.Role);
 		}
@@ -62,11 +60,11 @@ public sealed class SelfRoles : ModuleBase
 	{
 		[Command]
 		public async Task<RuntimeResult> Command()
-			=> Display(await Db.GetSelfRolesAsync(Context.Guild.Id).CAF());
+			=> Display(await Db.GetSelfRolesAsync(Context.Guild.Id).ConfigureAwait(false));
 
 		[Command]
 		public async Task<RuntimeResult> Command([NotNegative] int group)
-			=> Display(await Db.GetSelfRolesAsync(Context.Guild.Id, group).CAF());
+			=> Display(await Db.GetSelfRolesAsync(Context.Guild.Id, group).ConfigureAwait(false));
 
 		private AdvobotResult Display(IEnumerable<SelfRole> roles)
 		{
@@ -99,7 +97,7 @@ public sealed class SelfRoles : ModuleBase
 				RoleId = x.Id,
 				GroupId = group,
 			});
-			var count = await Db.UpsertSelfRolesAsync(selfRoles).CAF();
+			var count = await Db.UpsertSelfRolesAsync(selfRoles).ConfigureAwait(false);
 			return AddedSelfRoles(group, roles.Length);
 		}
 
@@ -107,7 +105,7 @@ public sealed class SelfRoles : ModuleBase
 		[LocalizedAlias(nameof(Aliases.ClearGroup))]
 		public async Task<RuntimeResult> ClearGroup([NotNegative] int group)
 		{
-			var count = await Db.DeleteSelfRolesGroupAsync(Context.Guild.Id, group).CAF();
+			var count = await Db.DeleteSelfRolesGroupAsync(Context.Guild.Id, group).ConfigureAwait(false);
 			return ClearedGroup(group, count);
 		}
 
@@ -117,7 +115,7 @@ public sealed class SelfRoles : ModuleBase
 			[CanModifyRole, NotEveryone, NotManaged]
 			params IRole[] roles)
 		{
-			var count = await Db.DeleteSelfRolesAsync(roles.Select(x => x.Id)).CAF();
+			var count = await Db.DeleteSelfRolesAsync(roles.Select(x => x.Id)).ConfigureAwait(false);
 			return RemovedSelfRoles(count);
 		}
 	}

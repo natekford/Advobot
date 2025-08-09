@@ -1,8 +1,6 @@
 ﻿using Advobot.Quotes.Models;
 using Advobot.SQLite;
 
-using AdvorangesUtils;
-
 using System.Data.SQLite;
 
 namespace Advobot.Quotes.Database;
@@ -13,8 +11,8 @@ public static class RuleDatabaseUtils
 		this RuleDatabase db,
 		ulong guildId)
 	{
-		var categories = await db.GetCategoriesAsync(guildId).CAF();
-		var rules = await db.GetRulesAsync(guildId).CAF();
+		var categories = await db.GetCategoriesAsync(guildId).ConfigureAwait(false);
+		var rules = await db.GetRulesAsync(guildId).ConfigureAwait(false);
 
 		var dict = new Dictionary<RuleCategory, IReadOnlyList<Rule>>();
 		foreach (var category in categories)
@@ -78,7 +76,7 @@ public sealed class RuleDatabase(IConnectionString<RuleDatabase> conn)
 			FROM RuleCategory
 			WHERE GuildId = @GuildId
 			ORDER BY Category ASC
-		", param).CAF();
+		", param).ConfigureAwait(false);
 	}
 
 	public async Task<RuleCategory?> GetCategoryAsync(ulong guildId, int category)
@@ -92,7 +90,7 @@ public sealed class RuleDatabase(IConnectionString<RuleDatabase> conn)
 			SELECT *
 			FROM RuleCategory
 			WHERE GuildId = @GuildId AND Category = @Category
-		", param).CAF();
+		", param).ConfigureAwait(false);
 	}
 
 	public async Task<Rule?> GetRuleAsync(ulong guildId, int category, int position)
@@ -107,7 +105,7 @@ public sealed class RuleDatabase(IConnectionString<RuleDatabase> conn)
 			SELECT *
 			FROM Rule
 			WHERE GuildId = @GuildId AND Category = @Category AND Position = @Position
-		", param).CAF();
+		", param).ConfigureAwait(false);
 	}
 
 	public async Task<IReadOnlyList<Rule>> GetRulesAsync(ulong guildId)
@@ -118,7 +116,7 @@ public sealed class RuleDatabase(IConnectionString<RuleDatabase> conn)
 			FROM Rule
 			WHERE GuildId = @GuildId
 			ORDER BY Position ASC
-		", param).CAF();
+		", param).ConfigureAwait(false);
 	}
 
 	public async Task<IReadOnlyList<Rule>> GetRulesAsync(RuleCategory category)
@@ -128,7 +126,7 @@ public sealed class RuleDatabase(IConnectionString<RuleDatabase> conn)
 			FROM Rule
 			WHERE GuildId = @GuildId AND Category = @Category
 			ORDER BY Position ASC
-		", category).CAF();
+		", category).ConfigureAwait(false);
 	}
 
 	public Task<int> UpsertRuleAsync(Rule rule)

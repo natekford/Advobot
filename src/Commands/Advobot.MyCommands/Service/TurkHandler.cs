@@ -1,7 +1,5 @@
 ﻿using Advobot.MyCommands.Database;
 
-using AdvorangesUtils;
-
 using DetectLanguage;
 
 using Discord;
@@ -41,7 +39,7 @@ public sealed class TurkHandler
 			return;
 		}
 
-		var config = await _Db.GetDetectLanguageConfigAsync().CAF();
+		var config = await _Db.GetDetectLanguageConfigAsync().ConfigureAwait(false);
 		if (config.APIKey == null
 			|| config.CooldownStart?.Day == DateTime.UtcNow.Day)
 		{
@@ -60,7 +58,7 @@ public sealed class TurkHandler
 		DetectResult[] languages;
 		try
 		{
-			languages = await _DetectLanguage!.DetectAsync(status.State).CAF();
+			languages = await _DetectLanguage!.DetectAsync(status.State).ConfigureAwait(false);
 		}
 		catch (DetectLanguageException dle) when (dle.StatusCode == HttpStatusCode.PaymentRequired)
 		{
@@ -68,7 +66,7 @@ public sealed class TurkHandler
 			await _Db.UpsertDetectLanguageConfigAsync(config with
 			{
 				CooldownStartTicks = DateTime.UtcNow.Ticks,
-			}).CAF();
+			}).ConfigureAwait(false);
 			return;
 		}
 		catch
@@ -81,7 +79,7 @@ public sealed class TurkHandler
 		if (languages.Any(x => x.confidence > config.ConfidenceLimit && x.language == "tr"))
 		{
 			var reason = @$"turkish activity so probable spammer (""{status.State}"").";
-			await user.BanAsync(reason: reason).CAF();
+			await user.BanAsync(reason: reason).ConfigureAwait(false);
 		}
 	}
 }

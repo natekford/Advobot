@@ -2,8 +2,6 @@
 using Advobot.Tests.TestBases;
 using Advobot.TypeReaders;
 
-using AdvorangesUtils;
-
 using Discord;
 
 namespace Advobot.Tests.Core.TypeReaders;
@@ -23,17 +21,17 @@ public sealed class BanTypeReader_Tests : TypeReader_Tests<BanTypeReader>
 			{
 				Username = NAME,
 			};
-			await Context.Guild.AddBanAsync(user).CAF();
+			await Context.Guild.AddBanAsync(user).ConfigureAwait(false);
 		}
 		{
 			var user = new FakeGuildUser(Context.Guild)
 			{
 				Username = NAME,
 			};
-			await Context.Guild.AddBanAsync(user).CAF();
+			await Context.Guild.AddBanAsync(user).ConfigureAwait(false);
 		}
 
-		var result = await ReadAsync(NAME).CAF();
+		var result = await ReadAsync(NAME).ConfigureAwait(false);
 		Assert.IsFalse(result.IsSuccess);
 	}
 
@@ -41,9 +39,9 @@ public sealed class BanTypeReader_Tests : TypeReader_Tests<BanTypeReader>
 	public async Task ValidId_Test()
 	{
 		var user = new FakeGuildUser(Context.Guild);
-		await Context.Guild.AddBanAsync(user).CAF();
+		await Context.Guild.AddBanAsync(user).ConfigureAwait(false);
 
-		var result = await ReadAsync(user.Id.ToString()).CAF();
+		var result = await ReadAsync(user.Id.ToString()).ConfigureAwait(false);
 		Assert.IsTrue(result.IsSuccess);
 		Assert.IsInstanceOfType(result.BestMatch, typeof(IBan));
 		var ban = (IBan)result.BestMatch;
@@ -54,9 +52,9 @@ public sealed class BanTypeReader_Tests : TypeReader_Tests<BanTypeReader>
 	public async Task ValidMention_Test()
 	{
 		var user = new FakeGuildUser(Context.Guild);
-		await Context.Guild.AddBanAsync(user).CAF();
+		await Context.Guild.AddBanAsync(user).ConfigureAwait(false);
 
-		var result = await ReadAsync(user.Mention).CAF();
+		var result = await ReadAsync(user.Mention).ConfigureAwait(false);
 		Assert.IsTrue(result.IsSuccess);
 		Assert.IsInstanceOfType(result.BestMatch, typeof(IBan));
 		var ban = (IBan)result.BestMatch;

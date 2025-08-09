@@ -1,8 +1,6 @@
 ﻿using Advobot.Tests.TestBases;
 using Advobot.TypeReaders;
 
-using AdvorangesUtils;
-
 using Discord;
 
 namespace Advobot.Tests.Core.TypeReaders;
@@ -15,7 +13,7 @@ public sealed class ColorTypeReader_Tests : TypeReader_Tests<ColorTypeReader>
 	[TestMethod]
 	public async Task ValidEmpty_Test()
 	{
-		var result = await ReadAsync(null).CAF();
+		var result = await ReadAsync(null).ConfigureAwait(false);
 		Assert.IsTrue(result.IsSuccess);
 		Assert.IsInstanceOfType(result.BestMatch, typeof(Color));
 	}
@@ -23,7 +21,7 @@ public sealed class ColorTypeReader_Tests : TypeReader_Tests<ColorTypeReader>
 	[TestMethod]
 	public async Task ValidHex_Test()
 	{
-		var result = await ReadAsync(Color.Red.RawValue.ToString("X6")).CAF();
+		var result = await ReadAsync(Color.Red.RawValue.ToString("X6")).ConfigureAwait(false);
 		Assert.IsTrue(result.IsSuccess);
 		Assert.IsInstanceOfType(result.BestMatch, typeof(Color));
 	}
@@ -31,7 +29,7 @@ public sealed class ColorTypeReader_Tests : TypeReader_Tests<ColorTypeReader>
 	[TestMethod]
 	public async Task ValidName_Test()
 	{
-		var result = await ReadAsync("Red").CAF();
+		var result = await ReadAsync("Red").ConfigureAwait(false);
 		Assert.IsTrue(result.IsSuccess);
 		Assert.IsInstanceOfType(result.BestMatch, typeof(Color));
 	}
@@ -39,7 +37,7 @@ public sealed class ColorTypeReader_Tests : TypeReader_Tests<ColorTypeReader>
 	[TestMethod]
 	public async Task ValidRGB_Test()
 	{
-		var result = await ReadAsync("100/100/100").CAF();
+		var result = await ReadAsync("100/100/100").ConfigureAwait(false);
 		Assert.IsTrue(result.IsSuccess);
 		Assert.IsInstanceOfType(result.BestMatch, typeof(Color));
 	}

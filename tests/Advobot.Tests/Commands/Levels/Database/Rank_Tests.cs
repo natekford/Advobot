@@ -5,8 +5,6 @@ using Advobot.Levels.Utilities;
 using Advobot.Tests.Fakes.Database;
 using Advobot.Tests.TestBases;
 
-using AdvorangesUtils;
-
 namespace Advobot.Tests.Commands.Levels.Database;
 
 [TestClass]
@@ -19,8 +17,8 @@ public sealed class Rank_Tests
 	[TestMethod]
 	public async Task RankPage_Test()
 	{
-		var db = await GetDatabaseAsync().CAF();
-		var data = await SeedDataAsync(db).CAF();
+		var db = await GetDatabaseAsync().ConfigureAwait(false);
+		var data = await SeedDataAsync(db).ConfigureAwait(false);
 
 		const int START = 1;
 		const int LENGTH = 3;
@@ -31,7 +29,7 @@ public sealed class Rank_Tests
 		//the same later on
 		var last = ordered.Last();
 		var otherServer = new User(new SearchArgs(last.UserId, CHANNEL_ID + 1, GUILD_ID + 1)).AddXp(3);
-		await db.UpsertUserAsync(otherServer).CAF();
+		await db.UpsertUserAsync(otherServer).ConfigureAwait(false);
 
 		var expected = ordered
 			.Skip(START)
@@ -40,7 +38,7 @@ public sealed class Rank_Tests
 			.ToArray();
 
 		var args = new SearchArgs(null, GUILD_ID, CHANNEL_ID);
-		var retrieved = await db.GetRanksAsync(args, START, LENGTH).CAF();
+		var retrieved = await db.GetRanksAsync(args, START, LENGTH).ConfigureAwait(false);
 		Assert.AreEqual(expected.Length, retrieved.Count);
 
 		for (var i = 0; i < expected.Length; ++i)
@@ -58,15 +56,15 @@ public sealed class Rank_Tests
 	[TestMethod]
 	public async Task SingleRank_Test()
 	{
-		var db = await GetDatabaseAsync().CAF();
-		var data = await SeedDataAsync(db).CAF();
+		var db = await GetDatabaseAsync().ConfigureAwait(false);
+		var data = await SeedDataAsync(db).ConfigureAwait(false);
 
 		var picked = data[0];
 		var index = data.OrderByDescending(x => x.Experience).ToList().IndexOf(picked);
 		var expected = new Rank(picked.UserId, picked.Experience, index + 1, data.Count);
 
 		var args = new SearchArgs(picked.UserId, picked.GuildId, picked.ChannelId);
-		var retrieved = await db.GetRankAsync(args).CAF();
+		var retrieved = await db.GetRankAsync(args).ConfigureAwait(false);
 		Assert.IsNotNull(retrieved);
 		Assert.AreEqual(expected.Experience, retrieved.Experience);
 		Assert.AreEqual(expected.Position, retrieved.Position);
@@ -86,7 +84,7 @@ public sealed class Rank_Tests
 			};
 		foreach (var datum in data)
 		{
-			await db.UpsertUserAsync(datum).CAF();
+			await db.UpsertUserAsync(datum).ConfigureAwait(false);
 		}
 		return data;
 	}

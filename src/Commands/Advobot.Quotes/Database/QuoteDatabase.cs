@@ -1,8 +1,6 @@
 ﻿using Advobot.Quotes.Models;
 using Advobot.SQLite;
 
-using AdvorangesUtils;
-
 using System.Data.SQLite;
 
 namespace Advobot.Quotes.Database;
@@ -38,7 +36,7 @@ public sealed class QuoteDatabase(IConnectionString<QuoteDatabase> conn) : Datab
 				SELECT *
 				FROM Quote
 				WHERE GuildId = @GuildId AND Name = @Name
-			", param).CAF();
+			", param).ConfigureAwait(false);
 	}
 
 	public async Task<IReadOnlyList<Quote>> GetQuotesAsync(ulong guildId)
@@ -48,6 +46,6 @@ public sealed class QuoteDatabase(IConnectionString<QuoteDatabase> conn) : Datab
 				SELECT *
 				FROM Quote
 				WHERE GuildId = @GuildId
-			", param).CAF();
+			", param).ConfigureAwait(false);
 	}
 }

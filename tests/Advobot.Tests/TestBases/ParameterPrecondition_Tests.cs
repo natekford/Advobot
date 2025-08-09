@@ -1,6 +1,4 @@
-﻿using AdvorangesUtils;
-
-using Discord.Commands;
+﻿using Discord.Commands;
 
 namespace Advobot.Tests.TestBases;
 
@@ -11,14 +9,14 @@ public abstract class ParameterPrecondition_Tests<T> : TestsBase
 
 	[TestMethod]
 	public async Task InvalidType_Test()
-		=> await AssertFailureAsync(new object()).CAF();
+		=> await AssertFailureAsync(new object()).ConfigureAwait(false);
 
 	protected async Task<PreconditionResult> AssertFailureAsync(
 		object value,
 		ParameterInfo? parameter = null)
 	{
 		var result = await Instance.CheckPermissionsAsync(
-			Context, parameter, value, Services.Value).CAF();
+			Context, parameter, value, Services.Value).ConfigureAwait(false);
 		Assert.IsFalse(result.IsSuccess);
 		return result;
 	}
@@ -28,7 +26,7 @@ public abstract class ParameterPrecondition_Tests<T> : TestsBase
 		ParameterInfo? parameter = null)
 	{
 		var result = await Instance.CheckPermissionsAsync(
-			Context, parameter, value, Services.Value).CAF();
+			Context, parameter, value, Services.Value).ConfigureAwait(false);
 		Assert.IsTrue(result.IsSuccess);
 		return result;
 	}

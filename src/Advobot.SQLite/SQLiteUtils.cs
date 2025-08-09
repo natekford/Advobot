@@ -1,6 +1,5 @@
-﻿using Advobot.Utilities;
-
-using AdvorangesUtils;
+﻿using Advobot.Services;
+using Advobot.Utilities;
 
 using Dapper;
 
@@ -18,6 +17,21 @@ namespace Advobot.SQLite;
 /// </summary>
 public static class SQLiteUtils
 {
+	/// <summary>
+	/// Adds a default options setter.
+	/// </summary>
+	/// <typeparam name="T"></typeparam>
+	/// <param name="services"></param>
+	/// <returns></returns>
+	public static IServiceCollection AddDefaultOptionsSetter<T>(
+		this IServiceCollection services)
+		where T : class, IResetter
+	{
+		return services
+			.AddSingleton<T>()
+			.AddSingleton<IResetter>(x => x.GetRequiredService<T>());
+	}
+
 	/// <summary>
 	/// Adds a SQLite connection string for the specified database.
 	/// </summary>
@@ -51,7 +65,7 @@ public static class SQLiteUtils
 		{
 			ConnectionString = connection.ConnectionString
 		};
-		await conn.OpenAsync().CAF();
+		await conn.OpenAsync().ConfigureAwait(false);
 		return conn;
 	}
 
@@ -67,7 +81,7 @@ public static class SQLiteUtils
 			SELECT name FROM sqlite_master
 			WHERE type='table'
 			ORDER BY name;
-		").CAF();
+		").ConfigureAwait(false);
 		return [.. result];
 	}
 

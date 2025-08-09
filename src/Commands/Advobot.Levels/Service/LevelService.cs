@@ -1,12 +1,11 @@
 ﻿using Advobot.Levels.Database;
 using Advobot.Levels.Utilities;
 using Advobot.Services.Time;
-using Advobot.Utilities;
-
-using AdvorangesUtils;
 
 using Discord;
 using Discord.WebSocket;
+
+using Microsoft.Extensions.Logging;
 
 using System.Collections.Concurrent;
 using System.Security.Cryptography;
@@ -14,15 +13,17 @@ using System.Text;
 
 namespace Advobot.Levels.Service;
 
-public sealed class LevelService : ILevelService
+public sealed class LevelService
 {
 	private readonly BaseSocketClient _Client;
 	private readonly LevelServiceConfig _Config;
 	private readonly ILevelDatabase _Db;
+	private readonly ILogger _Logger;
 	private readonly ConcurrentDictionary<Key, RuntimeInfo> _RuntimeInfo = new();
 	private readonly ITime _Time;
 
 	public LevelService(
+		ILogger<LevelService> logger,
 		LevelServiceConfig config,
 		ILevelDatabase db,
 		BaseSocketClient client,
@@ -31,6 +32,7 @@ public sealed class LevelService : ILevelService
 		_Config = config;
 		_Client = client;
 		_Db = db;
+		_Logger = logger;
 		_Time = time;
 
 		_Client.MessageReceived += AddExperienceAsync;
@@ -46,7 +48,7 @@ public sealed class LevelService : ILevelService
 
 	private async Task AddExperienceAsync(IMessage message)
 	{
-		var context = await XpContext.CreateAsync(_Db, message).CAF();
+		var context = await XpContext.CreateAsync(_Db, message).ConfigureAwait(false);
 		if (context == null)
 		{
 			return;
@@ -59,11 +61,14 @@ public sealed class LevelService : ILevelService
 			return;
 		}
 
-		var user = await _Db.GetUserAsync(context.CreateArgs()).CAF();
+		var user = await _Db.GetUserAsync(context.CreateArgs()).ConfigureAwait(false);
 		var added = user.AddXp(xp);
-		await _Db.UpsertUserAsync(added).CAF();
+		await _Db.UpsertUserAsync(added).ConfigureAwait(false);
 
-		ConsoleUtils.DebugWrite($"Successfully gave {xp} xp to {context.User.Format()}.");
+		_Logger.LogDebug(
+			"Successfully gave {Xp} xp to {User}.",
+			xp, context.User.Id
+		);
 	}
 
 	private int CalculateExperience(XpContext context, RuntimeInfo info, int experience)
@@ -95,7 +100,7 @@ public sealed class LevelService : ILevelService
 		Cacheable<IMessage, ulong> cached,
 		Cacheable<IMessageChannel, ulong> _)
 	{
-		var context = await XpContext.CreateAsync(_Db, cached.Value).CAF();
+		var context = await XpContext.CreateAsync(_Db, cached.Value).ConfigureAwait(false);
 		if (context == null
 			|| !_RuntimeInfo.TryGetValue(context.Key, out var info)
 			|| !info.TryGet(cached.Id, out var hash))
@@ -103,12 +108,15 @@ public sealed class LevelService : ILevelService
 			return;
 		}
 
-		var user = await _Db.GetUserAsync(context.CreateArgs()).CAF();
+		var user = await _Db.GetUserAsync(context.CreateArgs()).ConfigureAwait(false);
 		var xp = hash.Experience;
 		var added = user.RemoveXp(xp);
-		await _Db.UpsertUserAsync(added).CAF();
+		await _Db.UpsertUserAsync(added).ConfigureAwait(false);
 
-		ConsoleUtils.DebugWrite($"Successfully removed {xp} xp from {context.User.Format()}.");
+		_Logger.LogDebug(
+			"Successfully removed {Xp} xp from {User}.",
+			xp, context.User.Id
+		);
 	}
 
 	private readonly struct Key(IGuildUser user)
@@ -221,7 +229,7 @@ public sealed class LevelService : ILevelService
 				return null;
 			}
 
-			var ignored = await db.GetIgnoredChannelsAsync(guild.Id).CAF();
+			var ignored = await db.GetIgnoredChannelsAsync(guild.Id).ConfigureAwait(false);
 			if (ignored.Contains(channel.Id))
 			{
 				return null;

@@ -2,8 +2,6 @@
 using Advobot.Tests.Fakes.Discord;
 using Advobot.Tests.TestBases;
 
-using AdvorangesUtils;
-
 using Discord;
 
 namespace Advobot.Tests.Core.Preconditions.Permissions;
@@ -41,10 +39,10 @@ public sealed class RequireChannelPermissions_Tests
 	public async Task InvalidPermissions_Test(ChannelPermission permission)
 	{
 		var permissions = new OverwritePermissions(allowValue: (ulong)permission, denyValue: 0);
-		await Context.Channel.AddPermissionOverwriteAsync(Context.User, permissions).CAF();
-		await Context.Channel.AddPermissionOverwriteAsync(Context.Guild.FakeCurrentUser, permissions).CAF();
+		await Context.Channel.AddPermissionOverwriteAsync(Context.User, permissions).ConfigureAwait(false);
+		await Context.Channel.AddPermissionOverwriteAsync(Context.Guild.FakeCurrentUser, permissions).ConfigureAwait(false);
 
-		var result = await CheckPermissionsAsync().CAF();
+		var result = await CheckPermissionsAsync().ConfigureAwait(false);
 		Assert.IsFalse(result.IsSuccess);
 	}
 
@@ -57,17 +55,17 @@ public sealed class RequireChannelPermissions_Tests
 	public async Task ValidPermissionsButChannelDenied_Test(ChannelPermission permission)
 	{
 		var permissions = new OverwritePermissions(allowValue: 0, denyValue: (ulong)permission);
-		await Context.Channel.AddPermissionOverwriteAsync(Context.User, permissions).CAF();
-		await Context.Channel.AddPermissionOverwriteAsync(Context.Guild.FakeCurrentUser, permissions).CAF();
+		await Context.Channel.AddPermissionOverwriteAsync(Context.User, permissions).ConfigureAwait(false);
+		await Context.Channel.AddPermissionOverwriteAsync(Context.Guild.FakeCurrentUser, permissions).ConfigureAwait(false);
 
 		var role = new FakeRole(Context.Guild)
 		{
 			Permissions = new((ulong)permission),
 		};
-		await Context.User.AddRoleAsync(role).CAF();
-		await Context.Guild.FakeCurrentUser.AddRoleAsync(role).CAF();
+		await Context.User.AddRoleAsync(role).ConfigureAwait(false);
+		await Context.Guild.FakeCurrentUser.AddRoleAsync(role).ConfigureAwait(false);
 
-		var result = await CheckPermissionsAsync().CAF();
+		var result = await CheckPermissionsAsync().ConfigureAwait(false);
 		Assert.IsFalse(result.IsSuccess);
 	}
 
@@ -80,10 +78,10 @@ public sealed class RequireChannelPermissions_Tests
 	public async Task ValidPermissionsByChannel_Test(ChannelPermission permission)
 	{
 		var permissions = new OverwritePermissions(allowValue: (ulong)permission, denyValue: 0);
-		await Context.Channel.AddPermissionOverwriteAsync(Context.User, permissions).CAF();
-		await Context.Channel.AddPermissionOverwriteAsync(Context.Guild.FakeCurrentUser, permissions).CAF();
+		await Context.Channel.AddPermissionOverwriteAsync(Context.User, permissions).ConfigureAwait(false);
+		await Context.Channel.AddPermissionOverwriteAsync(Context.Guild.FakeCurrentUser, permissions).ConfigureAwait(false);
 
-		var result = await CheckPermissionsAsync().CAF();
+		var result = await CheckPermissionsAsync().ConfigureAwait(false);
 		Assert.IsTrue(result.IsSuccess);
 	}
 
@@ -99,10 +97,10 @@ public sealed class RequireChannelPermissions_Tests
 		{
 			Permissions = new((ulong)permission),
 		};
-		await Context.User.AddRoleAsync(role).CAF();
-		await Context.Guild.FakeCurrentUser.AddRoleAsync(role).CAF();
+		await Context.User.AddRoleAsync(role).ConfigureAwait(false);
+		await Context.Guild.FakeCurrentUser.AddRoleAsync(role).ConfigureAwait(false);
 
-		var result = await CheckPermissionsAsync().CAF();
+		var result = await CheckPermissionsAsync().ConfigureAwait(false);
 		Assert.IsTrue(result.IsSuccess);
 	}
 }

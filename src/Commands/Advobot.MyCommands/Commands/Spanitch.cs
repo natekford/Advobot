@@ -7,8 +7,6 @@ using Advobot.Preconditions;
 using Advobot.Preconditions.Permissions;
 using Advobot.Utilities;
 
-using AdvorangesUtils;
-
 using Discord;
 using Discord.Commands;
 
@@ -41,7 +39,7 @@ public sealed class SpanitchModule : AutoModModuleBase
 			rolesToAdd: Roles,
 			rolesToRemove: [],
 			Options
-		).CAF();
+		).ConfigureAwait(false);
 		return AdvobotResult.Success("they have been spanitched");
 	}
 
@@ -50,8 +48,8 @@ public sealed class SpanitchModule : AutoModModuleBase
 	[Priority(1)]
 	public async Task<RuntimeResult> Hard([CanModifyUser] IGuildUser user)
 	{
-		await Command(user).CAF();
-		return await Hard(user.Id).CAF();
+		await Command(user).ConfigureAwait(false);
+		return await Hard(user.Id).ConfigureAwait(false);
 	}
 
 	[Command("hard")]
@@ -61,7 +59,7 @@ public sealed class SpanitchModule : AutoModModuleBase
 	{
 		foreach (var pRole in CreatePersistentRoles(user))
 		{
-			await Db.AddPersistentRoleAsync(pRole).CAF();
+			await Db.AddPersistentRoleAsync(pRole).ConfigureAwait(false);
 		}
 
 		return AdvobotResult.Success("they have been spanitched hard");
@@ -75,11 +73,11 @@ public sealed class SpanitchModule : AutoModModuleBase
 			rolesToAdd: [],
 			rolesToRemove: Roles,
 			Options
-		).CAF();
+		).ConfigureAwait(false);
 
 		foreach (var pRole in CreatePersistentRoles(user.Id))
 		{
-			await Db.DeletePersistentRoleAsync(pRole).CAF();
+			await Db.DeletePersistentRoleAsync(pRole).ConfigureAwait(false);
 		}
 
 		return AdvobotResult.Success("they have been unspanitched");
@@ -107,7 +105,7 @@ public sealed class SpanitchModule : AutoModModuleBase
 			CommandInfo command,
 			IServiceProvider services)
 		{
-			var result = await base.CheckPermissionsAsync(context, command, services).CAF();
+			var result = await base.CheckPermissionsAsync(context, command, services).ConfigureAwait(false);
 			if (result.IsSuccess)
 			{
 				return result;

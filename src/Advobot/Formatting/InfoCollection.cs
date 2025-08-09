@@ -1,4 +1,4 @@
-﻿using AdvorangesUtils;
+﻿using Advobot.Utilities;
 
 namespace Advobot.Formatting;
 
@@ -39,5 +39,5 @@ public sealed class InfoCollection
 
 	/// <inheritdoc />
 	public string ToString(InfoFormattingArgs args)
-		=> Information.Join(x => x.ToString(args), args.InformationSeparator);
+		=> Information.Select(x => x.ToString(args)).Join(args.InformationSeparator);
 }

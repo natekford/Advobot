@@ -3,8 +3,6 @@ using Advobot.Modules;
 using Advobot.Punishments;
 using Advobot.Utilities;
 
-using AdvorangesUtils;
-
 using static Advobot.Resources.Responses;
 using static Advobot.Utilities.FormattingUtils;
 
@@ -21,7 +19,7 @@ public sealed class BannedPhrases : AdvobotResult
 
 	public static AdvobotResult Display(IEnumerable<BannedPhrase> phrases)
 	{
-		var joined = phrases.Join(x => x.Phrase);
+		var joined = phrases.Select(x => x.Phrase).Join();
 		if (string.IsNullOrWhiteSpace(joined))
 		{
 			return Success(VariableNone);

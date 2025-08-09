@@ -1,8 +1,6 @@
 ﻿using Advobot.Tests.TestBases;
 using Advobot.TypeReaders;
 
-using AdvorangesUtils;
-
 using Discord;
 
 namespace Advobot.Tests.Core.TypeReaders;
@@ -16,7 +14,7 @@ public sealed class ChannelPositionTypeReader_Tests
 	[TestMethod]
 	public async Task InvalidChannel_Test()
 	{
-		var result = await ReadAsync(int.MaxValue.ToString()).CAF();
+		var result = await ReadAsync(int.MaxValue.ToString()).ConfigureAwait(false);
 		Assert.IsFalse(result.IsSuccess);
 	}
 
@@ -25,17 +23,17 @@ public sealed class ChannelPositionTypeReader_Tests
 	{
 		const int POSITION = 2;
 
-		var channel1 = await Context.Guild.CreateTextChannelAsync("asdf", x => x.Position = POSITION).CAF();
-		var channel2 = await Context.Guild.CreateTextChannelAsync("asdf", x => x.Position = POSITION).CAF();
+		var channel1 = await Context.Guild.CreateTextChannelAsync("asdf", x => x.Position = POSITION).ConfigureAwait(false);
+		var channel2 = await Context.Guild.CreateTextChannelAsync("asdf", x => x.Position = POSITION).ConfigureAwait(false);
 
-		var result = await ReadAsync(POSITION.ToString()).CAF();
+		var result = await ReadAsync(POSITION.ToString()).ConfigureAwait(false);
 		Assert.IsFalse(result.IsSuccess);
 	}
 
 	[TestMethod]
 	public async Task NotNumber_Test()
 	{
-		var result = await ReadAsync("asdf").CAF();
+		var result = await ReadAsync("asdf").ConfigureAwait(false);
 		Assert.IsFalse(result.IsSuccess);
 	}
 
@@ -44,9 +42,9 @@ public sealed class ChannelPositionTypeReader_Tests
 	{
 		const int POSITION = 2;
 
-		var channel = await Context.Guild.CreateTextChannelAsync("asdf", x => x.Position = POSITION).CAF();
+		var channel = await Context.Guild.CreateTextChannelAsync("asdf", x => x.Position = POSITION).ConfigureAwait(false);
 
-		var result = await ReadAsync(POSITION.ToString()).CAF();
+		var result = await ReadAsync(POSITION.ToString()).ConfigureAwait(false);
 		Assert.IsTrue(result.IsSuccess);
 		Assert.IsInstanceOfType(result.BestMatch, typeof(IGuildChannel));
 		var parsed = (IGuildChannel)result.BestMatch;

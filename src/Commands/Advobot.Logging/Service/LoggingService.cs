@@ -40,7 +40,7 @@ public sealed class LoggingService
 		client.LeftGuild += _ClientLogger.OnLeftGuild;
 		client.Log += OnLogMessageSent;
 
-		_CommandHandlerLogger = new(_Logger, _Db, botSettings);
+		_CommandHandlerLogger = new(_Logger, client, _Db, botSettings);
 		commandHandler.CommandInvoked += _CommandHandlerLogger.OnCommandInvoked;
 		commandHandler.Ready += _CommandHandlerLogger.OnReady;
 		commandHandler.Log += OnLogMessageSent;
@@ -59,7 +59,6 @@ public sealed class LoggingService
 
 	private Task OnLogMessageSent(LogMessage message)
 	{
-		var id = new EventId(1, message.Source);
 		var e = message.Exception;
 		// Gateway reconnects have a warning severity, but all they are is spam
 		if (e is GatewayReconnectException
@@ -72,23 +71,23 @@ public sealed class LoggingService
 		switch (message.Severity)
 		{
 			case LogSeverity.Critical:
-				_Logger.LogCritical(id, e, msg);
+				_Logger.LogCritical(e, msg);
 				break;
 
 			case LogSeverity.Error:
-				_Logger.LogError(id, e, msg);
+				_Logger.LogError(e, msg);
 				break;
 
 			case LogSeverity.Info:
-				_Logger.LogInformation(id, e, msg);
+				_Logger.LogInformation(e, msg);
 				break;
 
 			case LogSeverity.Warning:
-				_Logger.LogWarning(id, e, msg);
+				_Logger.LogWarning(e, msg);
 				break;
 
 			default:
-				_Logger.LogDebug(id, e, msg);
+				_Logger.LogDebug(e, msg);
 				break;
 		}
 

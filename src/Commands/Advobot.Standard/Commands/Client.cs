@@ -6,8 +6,6 @@ using Advobot.Preconditions;
 using Advobot.Resources;
 using Advobot.Utilities;
 
-using AdvorangesUtils;
-
 using Discord.Commands;
 
 namespace Advobot.Standard.Commands;
@@ -25,7 +23,7 @@ public sealed class Client : ModuleBase
 		[Command(RunMode = RunMode.Async)]
 		public async Task Command()
 		{
-			await Context.Client.StopAsync().CAF();
+			await Context.Client.StopAsync().ConfigureAwait(false);
 			Environment.Exit(0);
 		}
 	}
@@ -40,7 +38,7 @@ public sealed class Client : ModuleBase
 		[Command]
 		public async Task<RuntimeResult> Command([Remainder, Username] string name)
 		{
-			await Context.Client.CurrentUser.ModifyAsync(x => x.Username = name).CAF();
+			await Context.Client.CurrentUser.ModifyAsync(x => x.Username = name).ConfigureAwait(false);
 			return Responses.Snowflakes.ModifiedName(Context.Client.CurrentUser, name);
 		}
 	}

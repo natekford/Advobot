@@ -3,8 +3,6 @@ using Advobot.Quotes.Models;
 using Advobot.Quotes.TypeReaders;
 using Advobot.Tests.TestBases;
 
-using AdvorangesUtils;
-
 using Microsoft.Extensions.DependencyInjection;
 
 namespace Advobot.Tests.Commands.Quotes.TypeReaders;
@@ -24,9 +22,9 @@ public sealed class QuoteTypeReader_Tests : TypeReader_Tests<QuoteTypeReader>
 			Name = "dog",
 			Description = "joe",
 		};
-		await _Db.AddQuoteAsync(quote).CAF();
+		await _Db.AddQuoteAsync(quote).ConfigureAwait(false);
 
-		var result = await ReadAsync(quote.Name).CAF();
+		var result = await ReadAsync(quote.Name).ConfigureAwait(false);
 		Assert.IsTrue(result.IsSuccess);
 		Assert.IsInstanceOfType(result.BestMatch, typeof(Quote));
 	}

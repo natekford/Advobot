@@ -1,8 +1,6 @@
 ﻿using Advobot.ParameterPreconditions;
 using Advobot.Preconditions.Results;
 
-using AdvorangesUtils;
-
 using Discord;
 using Discord.Commands;
 
@@ -186,7 +184,7 @@ public static class PreconditionUtils
 			return new UnableToFind(typeof(T));
 		}
 
-		var bot = await invoker.Guild.GetCurrentUserAsync().CAF()
+		var bot = await invoker.Guild.GetCurrentUserAsync().ConfigureAwait(false)
 			?? throw new InvalidOperationException($"Invalid bot during {typeof(T).Name} validation.");
 
 		foreach (var user in new[] { invoker, bot })

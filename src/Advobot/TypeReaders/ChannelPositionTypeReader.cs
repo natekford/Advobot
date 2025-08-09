@@ -1,6 +1,4 @@
-﻿using AdvorangesUtils;
-
-using Discord;
+﻿using Discord;
 using Discord.Commands;
 
 namespace Advobot.TypeReaders;
@@ -19,7 +17,7 @@ public class ChannelPositionTypeReader<T> : PositionTypeReader<T> where T : IGui
 		ICommandContext context,
 		int position)
 	{
-		var channels = await context.Guild.GetChannelsAsync().CAF();
+		var channels = await context.Guild.GetChannelsAsync().ConfigureAwait(false);
 		return [.. channels.OfType<T>().Where(x => x.Position == position)];
 	}
 }

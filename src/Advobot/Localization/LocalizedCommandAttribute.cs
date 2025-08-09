@@ -10,7 +10,8 @@ namespace Advobot.Localization;
 /// Used for a localized command.
 /// </summary>
 [AttributeUsage(AttributeTargets.Method, AllowMultiple = false, Inherited = true)]
-public class LocalizedCommandAttribute(string name, ResourceManager resources) : CommandAttribute(resources.GetStringEnsured(name)), ILocalized
+public class LocalizedCommandAttribute(string name, ResourceManager resources)
+	: CommandAttribute(resources.GetStringEnsured(name)), ILocalized
 {
 	private static readonly ResourceManager _RM = Resources.Groups.ResourceManager;
 

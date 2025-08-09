@@ -2,8 +2,6 @@
 using Advobot.Tests.Fakes.Discord;
 using Advobot.Tests.TestBases;
 
-using AdvorangesUtils;
-
 using Discord;
 
 namespace Advobot.Tests.Core.Preconditions.Permissions;
@@ -47,10 +45,10 @@ public sealed class RequireGuildPermissions_Tests
 		{
 			Permissions = new((ulong)permission),
 		};
-		await Context.User.AddRoleAsync(role).CAF();
-		await Context.Guild.FakeCurrentUser.AddRoleAsync(role).CAF();
+		await Context.User.AddRoleAsync(role).ConfigureAwait(false);
+		await Context.Guild.FakeCurrentUser.AddRoleAsync(role).ConfigureAwait(false);
 
-		var result = await CheckPermissionsAsync().CAF();
+		var result = await CheckPermissionsAsync().ConfigureAwait(false);
 		Assert.IsFalse(result.IsSuccess);
 	}
 
@@ -67,10 +65,10 @@ public sealed class RequireGuildPermissions_Tests
 		{
 			Permissions = new((ulong)permission),
 		};
-		await Context.User.AddRoleAsync(role).CAF();
-		await Context.Guild.FakeCurrentUser.AddRoleAsync(role).CAF();
+		await Context.User.AddRoleAsync(role).ConfigureAwait(false);
+		await Context.Guild.FakeCurrentUser.AddRoleAsync(role).ConfigureAwait(false);
 
-		var result = await CheckPermissionsAsync().CAF();
+		var result = await CheckPermissionsAsync().ConfigureAwait(false);
 		Assert.IsTrue(result.IsSuccess);
 	}
 }

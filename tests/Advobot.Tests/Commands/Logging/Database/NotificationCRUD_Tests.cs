@@ -4,8 +4,6 @@ using Advobot.Logging.Models;
 using Advobot.Tests.Fakes.Database;
 using Advobot.Tests.TestBases;
 
-using AdvorangesUtils;
-
 namespace Advobot.Tests.Commands.Logging.Database;
 
 [TestClass]
@@ -20,23 +18,23 @@ public sealed class NotificationCRUD_Tests
 	[TestMethod]
 	public async Task NotificationCRUD_Test()
 	{
-		var db = await GetDatabaseAsync().CAF();
+		var db = await GetDatabaseAsync().ConfigureAwait(false);
 
 		{
-			var retrieved = await db.GetAsync(EVENT, GUILD_ID).CAF();
+			var retrieved = await db.GetAsync(EVENT, GUILD_ID).ConfigureAwait(false);
 			Assert.IsNull(retrieved);
 		}
 
-		await db.UpsertNotificationChannelAsync(EVENT, GUILD_ID, CHANNEL_ID).CAF();
+		await db.UpsertNotificationChannelAsync(EVENT, GUILD_ID, CHANNEL_ID).ConfigureAwait(false);
 		{
-			var retrieved = await db.GetAsync(EVENT, GUILD_ID).CAF();
+			var retrieved = await db.GetAsync(EVENT, GUILD_ID).ConfigureAwait(false);
 			Assert.IsNotNull(retrieved);
 			Assert.AreEqual(CHANNEL_ID, retrieved!.ChannelId);
 		}
 
-		await db.UpsertNotificationContentAsync(EVENT, GUILD_ID, CONTENT).CAF();
+		await db.UpsertNotificationContentAsync(EVENT, GUILD_ID, CONTENT).ConfigureAwait(false);
 		{
-			var retrieved = await db.GetAsync(EVENT, GUILD_ID).CAF();
+			var retrieved = await db.GetAsync(EVENT, GUILD_ID).ConfigureAwait(false);
 			Assert.IsNotNull(retrieved);
 			Assert.AreEqual(CHANNEL_ID, retrieved!.ChannelId);
 			Assert.AreEqual(CONTENT, retrieved.Content);
@@ -56,9 +54,9 @@ public sealed class NotificationCRUD_Tests
 			Title = "title is me",
 			Url = "https://www.website.com",
 		};
-		await db.UpsertNotificationEmbedAsync(EVENT, GUILD_ID, embed).CAF();
+		await db.UpsertNotificationEmbedAsync(EVENT, GUILD_ID, embed).ConfigureAwait(false);
 		{
-			var retrieved = await db.GetAsync(EVENT, GUILD_ID).CAF();
+			var retrieved = await db.GetAsync(EVENT, GUILD_ID).ConfigureAwait(false);
 			Assert.IsNotNull(retrieved);
 			Assert.AreEqual(CHANNEL_ID, retrieved!.ChannelId);
 			Assert.AreEqual(CONTENT, retrieved.Content);
@@ -75,9 +73,9 @@ public sealed class NotificationCRUD_Tests
 			Assert.AreEqual(embed.Url, retrieved.Url);
 		}
 
-		await db.UpsertNotificationChannelAsync(EVENT, GUILD_ID, null).CAF();
+		await db.UpsertNotificationChannelAsync(EVENT, GUILD_ID, null).ConfigureAwait(false);
 		{
-			var retrieved = await db.GetAsync(EVENT, GUILD_ID).CAF();
+			var retrieved = await db.GetAsync(EVENT, GUILD_ID).ConfigureAwait(false);
 			Assert.IsNotNull(retrieved);
 			Assert.AreEqual(0UL, retrieved!.ChannelId);
 			Assert.AreEqual(CONTENT, retrieved.Content);

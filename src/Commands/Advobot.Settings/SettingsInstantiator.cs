@@ -17,7 +17,7 @@ public sealed class SettingsInstantiator : ICommandAssemblyInstantiator
 			.AddSingleton<ISettingsDatabase, SettingsDatabase>()
 			.AddSQLiteFileDatabaseConnectionString<SettingsDatabase>("GuildSettings.db")
 			.AddSingleton<ICommandValidator, CommandValidator>()
-			.ReplaceWithSingleton<IGuildSettingsService, GuildSettingsProvider>();
+			.ReplaceAllWithSingleton<IGuildSettingsService, GuildSettingsProvider>();
 
 		return Task.CompletedTask;
 	}

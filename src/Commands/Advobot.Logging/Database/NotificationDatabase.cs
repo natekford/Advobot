@@ -1,8 +1,6 @@
 ﻿using Advobot.Logging.Models;
 using Advobot.SQLite;
 
-using AdvorangesUtils;
-
 using System.Data.SQLite;
 
 namespace Advobot.Logging.Database;
@@ -22,7 +20,7 @@ public sealed class NotificationDatabase(IConnectionString<NotificationDatabase>
 				SELECT *
 				FROM Notification
 				WHERE GuildId = @GuildId AND Event = @Event
-			", param).CAF();
+			", param).ConfigureAwait(false);
 	}
 
 	public Task<int> UpsertNotificationChannelAsync(

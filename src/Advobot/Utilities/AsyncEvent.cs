@@ -1,6 +1,4 @@
-﻿using AdvorangesUtils;
-
-using System.Collections.Immutable;
+﻿using System.Collections.Immutable;
 
 namespace Advobot.Utilities;
 
@@ -30,7 +28,7 @@ internal static class EventExtensions
 		var subscribers = eventHandler.Subscriptions;
 		for (var i = 0; i < subscribers.Count; ++i)
 		{
-			await subscribers[i].Invoke(arg1, arg2).CAF();
+			await subscribers[i].Invoke(arg1, arg2).ConfigureAwait(false);
 		}
 	}
 
@@ -39,7 +37,7 @@ internal static class EventExtensions
 		var subscribers = eventHandler.Subscriptions;
 		for (var i = 0; i < subscribers.Count; ++i)
 		{
-			await subscribers[i].Invoke(arg1, arg2, arg3).CAF();
+			await subscribers[i].Invoke(arg1, arg2, arg3).ConfigureAwait(false);
 		}
 	}
 
@@ -48,7 +46,7 @@ internal static class EventExtensions
 		var subscribers = eventHandler.Subscriptions;
 		for (var i = 0; i < subscribers.Count; ++i)
 		{
-			await subscribers[i].Invoke(arg1, arg2, arg3, arg4).CAF();
+			await subscribers[i].Invoke(arg1, arg2, arg3, arg4).ConfigureAwait(false);
 		}
 	}
 
@@ -57,7 +55,7 @@ internal static class EventExtensions
 		var subscribers = eventHandler.Subscriptions;
 		for (var i = 0; i < subscribers.Count; ++i)
 		{
-			await subscribers[i].Invoke(arg1, arg2, arg3, arg4, arg5).CAF();
+			await subscribers[i].Invoke(arg1, arg2, arg3, arg4, arg5).ConfigureAwait(false);
 		}
 	}
 }

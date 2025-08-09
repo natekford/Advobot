@@ -1,7 +1,5 @@
 ﻿using Advobot.Logging.Database;
 
-using AdvorangesUtils;
-
 using Discord;
 
 namespace Advobot.Logging.Context.Message;
@@ -22,7 +20,7 @@ public class MessageState(IMessage message) : ILogState
 			return false;
 		}
 
-		var ignoredChannels = await db.GetIgnoredChannelsAsync(Channel.GuildId).CAF();
+		var ignoredChannels = await db.GetIgnoredChannelsAsync(Channel.GuildId).ConfigureAwait(false);
 		return !ignoredChannels.Contains(Channel.Id);
 	}
 }

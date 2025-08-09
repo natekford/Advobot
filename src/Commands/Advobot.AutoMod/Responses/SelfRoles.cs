@@ -1,8 +1,6 @@
 ﻿using Advobot.Modules;
 using Advobot.Utilities;
 
-using AdvorangesUtils;
-
 using Discord;
 
 using System.Text;
@@ -52,13 +50,13 @@ public sealed class SelfRoles : AdvobotResult
 		var sb = new StringBuilder("```\n");
 		foreach (var group in groups)
 		{
-			sb.AppendLineFeed().Append(group.Key).AppendLineFeed();
+			sb.AppendLine().Append(group.Key).AppendLine();
 			foreach (var role in group)
 			{
-				sb.AppendLineFeed(role.Format());
+				sb.AppendLine(role.Format());
 			}
 		}
-		sb.AppendLineFeed("```");
+		sb.AppendLine("```");
 		return Success(sb.ToString());
 	}
 

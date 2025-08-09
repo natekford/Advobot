@@ -1,8 +1,6 @@
 ﻿using Advobot.Services.BotSettings;
 using Advobot.Utilities;
 
-using AdvorangesUtils;
-
 using Discord;
 
 using System.Globalization;
@@ -24,7 +22,7 @@ internal sealed class NaiveGuildSettingsService(IRuntimeConfig settings) : IGuil
 
 	public async Task<IRole> GetMuteRoleAsync(IGuild guild)
 	{
-		var bot = await guild.GetCurrentUserAsync().CAF();
+		var bot = await guild.GetCurrentUserAsync().ConfigureAwait(false);
 		foreach (var role in guild.Roles)
 		{
 			if (role.Name == NAME && bot.CanModify(role))
@@ -32,7 +30,7 @@ internal sealed class NaiveGuildSettingsService(IRuntimeConfig settings) : IGuil
 				return role;
 			}
 		}
-		return await guild.CreateEmptyRoleAsync(NAME, RoleCreation).CAF();
+		return await guild.CreateEmptyRoleAsync(NAME, RoleCreation).ConfigureAwait(false);
 	}
 
 	public Task<string> GetPrefixAsync(IGuild guild)

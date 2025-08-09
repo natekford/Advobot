@@ -6,8 +6,6 @@ using Advobot.Punishments;
 using Advobot.Services.BotSettings;
 using Advobot.Utilities;
 
-using AdvorangesUtils;
-
 using Discord;
 using Discord.Commands;
 
@@ -79,9 +77,10 @@ public abstract class AdvobotModuleBase : ModuleBase<AdvobotCommandContext>
 		Func<T, string> format,
 		InteractivityOptions? options = null)
 	{
-		var message = await ReplyAsync($"Did you mean any of the following:\n{source.FormatNumberedList(format)}").CAF();
-		var index = await NextIndexAsync(0, source.Count - 1, options).CAF();
-		await message.DeleteAsync(GetOptions()).CAF();
+		var list = source.Select(format).FormatNumberedList();
+		var message = await ReplyAsync($"Did you mean any of the following:\n{list}").ConfigureAwait(false);
+		var index = await NextIndexAsync(0, source.Count - 1, options).ConfigureAwait(false);
+		await message.DeleteAsync(GetOptions()).ConfigureAwait(false);
 		return index.HasValue ? source[index.Value] : InteractiveResult<T>.PropagateError(index);
 	}
 
@@ -110,14 +109,14 @@ public abstract class AdvobotModuleBase : ModuleBase<AdvobotCommandContext>
 		{
 			foreach (var criterion in criteria)
 			{
-				var result = await criterion.JudgeAsync(Context, message).CAF();
+				var result = await criterion.JudgeAsync(Context, message).ConfigureAwait(false);
 				if (!result)
 				{
 					return;
 				}
 			}
 
-			var parsed = await tryParser.TryParseAsync(message).CAF();
+			var parsed = await tryParser.TryParseAsync(message).ConfigureAwait(false);
 			if (parsed.IsSpecified)
 			{
 				eventTrigger.SetResult(parsed.Value);
@@ -128,7 +127,7 @@ public abstract class AdvobotModuleBase : ModuleBase<AdvobotCommandContext>
 		var @event = eventTrigger.Task;
 		var cancel = cancelTrigger.Task;
 		var delay = Task.Delay(timeout);
-		var task = await Task.WhenAny(@event, delay, cancel).CAF();
+		var task = await Task.WhenAny(@event, delay, cancel).ConfigureAwait(false);
 		Context.Client.MessageReceived -= Handler;
 
 		if (task == cancel)
@@ -139,7 +138,7 @@ public abstract class AdvobotModuleBase : ModuleBase<AdvobotCommandContext>
 		{
 			return InteractiveResult<T>.TimedOut;
 		}
-		return await @event.CAF();
+		return await @event.ConfigureAwait(false);
 	}
 
 	/// <inheritdoc />

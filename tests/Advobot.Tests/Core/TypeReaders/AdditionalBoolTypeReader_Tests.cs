@@ -1,8 +1,6 @@
 ﻿using Advobot.Tests.TestBases;
 using Advobot.TypeReaders;
 
-using AdvorangesUtils;
-
 namespace Advobot.Tests.Core.TypeReaders;
 
 [TestClass]
@@ -16,7 +14,7 @@ public sealed class AdditionalBoolTypeReader_Tests
 	{
 		foreach (var value in AdditionalBoolTypeReader.FalseVals)
 		{
-			var result = await ReadAsync(value).CAF();
+			var result = await ReadAsync(value).ConfigureAwait(false);
 			Assert.IsTrue(result.IsSuccess);
 			Assert.IsInstanceOfType(result.BestMatch, typeof(bool));
 			Assert.IsFalse((bool)result.BestMatch);
@@ -28,7 +26,7 @@ public sealed class AdditionalBoolTypeReader_Tests
 	{
 		foreach (var value in AdditionalBoolTypeReader.TrueVals)
 		{
-			var result = await ReadAsync(value).CAF();
+			var result = await ReadAsync(value).ConfigureAwait(false);
 			Assert.IsTrue(result.IsSuccess);
 			Assert.IsInstanceOfType(result.BestMatch, typeof(bool));
 			Assert.IsTrue((bool)result.BestMatch);

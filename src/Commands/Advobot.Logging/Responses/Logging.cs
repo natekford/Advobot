@@ -1,8 +1,6 @@
 ﻿using Advobot.Modules;
 using Advobot.Utilities;
 
-using AdvorangesUtils;
-
 using Discord;
 
 using static Advobot.Resources.Responses;
@@ -31,7 +29,7 @@ public sealed class Logging : AdvobotResult
 	{
 		return Success(LoggingModifiedIgnoredLogChannels.Format(
 			GetIgnored(ignored).WithNoMarkdown(),
-			channels.Join(x => x.Format()).WithBlock()
+			channels.Select(x => x.Format()).Join().WithBlock()
 		));
 	}
 
@@ -41,7 +39,7 @@ public sealed class Logging : AdvobotResult
 	{
 		return Success(LoggingModifiedLogActions.Format(
 			GetEnabled(enable).WithNoMarkdown(),
-			logActions.Join(x => x.ToString()).WithBlock()
+			logActions.Select(x => x.ToString()).Join().WithBlock()
 		));
 	}
 

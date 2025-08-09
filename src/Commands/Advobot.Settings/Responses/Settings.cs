@@ -2,8 +2,6 @@
 using Advobot.Services.HelpEntries;
 using Advobot.Utilities;
 
-using AdvorangesUtils;
-
 using static Advobot.Resources.Responses;
 
 namespace Advobot.Settings.Responses;
@@ -17,7 +15,7 @@ public sealed class Settings : AdvobotResult
 	public static AdvobotResult ClearedCommands(IEnumerable<IModuleHelpEntry> entries)
 	{
 		return Success(SettingsClearedCommands.Format(
-			entries.Join(x => x.Name.WithBlock().Value).WithNoMarkdown()
+			entries.Select(x => x.Name.WithBlock().Value).Join().WithNoMarkdown()
 		));
 	}
 
@@ -29,7 +27,7 @@ public sealed class Settings : AdvobotResult
 		var format = enabled ? SettingsEnabledCommands : SettingsDisabledCommands;
 		return Success(format.Format(
 			priority.ToString().WithBlock(),
-			entries.Join(x => x.Name.WithBlock().Value).WithNoMarkdown()
+			entries.Select(x => x.Name.WithBlock().Value).Join().WithNoMarkdown()
 		));
 	}
 }

@@ -1,8 +1,6 @@
 ﻿using Advobot.Embeds;
 using Advobot.Utilities;
 
-using AdvorangesUtils;
-
 using Discord;
 using Discord.Commands;
 
@@ -117,13 +115,13 @@ public class AdvobotResult : RuntimeResult
 		var destination = context.Channel;
 		if (OverrideDestinationChannelId is ulong id)
 		{
-			destination = await context.Guild.GetTextChannelAsync(id).CAF();
+			destination = await context.Guild.GetTextChannelAsync(id).ConfigureAwait(false);
 			if (destination == null)
 			{
 				return await context.Channel.SendMessageAsync(new SendMessageArgs
 				{
 					Content = $"{id} is not a valid destination channel.",
-				}).CAF();
+				}).ConfigureAwait(false);
 			}
 		}
 
@@ -131,7 +129,7 @@ public class AdvobotResult : RuntimeResult
 		{
 			Content = Reason,
 			Files = File.HasValue ? [File.Value] : null,
-		}).CAF();
+		}).ConfigureAwait(false);
 	}
 
 	/// <summary>

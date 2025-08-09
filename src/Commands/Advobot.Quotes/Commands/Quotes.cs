@@ -6,8 +6,6 @@ using Advobot.Quotes.Models;
 using Advobot.Quotes.ParameterPreconditions;
 using Advobot.Resources;
 
-using AdvorangesUtils;
-
 using Discord.Commands;
 
 using static Advobot.Quotes.Responses.Quotes;
@@ -38,7 +36,7 @@ public sealed class Quotes : ModuleBase
 				Description = text,
 				GuildId = Context.Guild.Id,
 			};
-			await Db.AddQuoteAsync(quote).CAF();
+			await Db.AddQuoteAsync(quote).ConfigureAwait(false);
 			return AddedQuote(quote);
 		}
 
@@ -46,7 +44,7 @@ public sealed class Quotes : ModuleBase
 		[LocalizedAlias(nameof(Aliases.Remove))]
 		public async Task<RuntimeResult> Remove([Remainder] Quote quote)
 		{
-			await Db.DeleteQuoteAsync(quote).CAF();
+			await Db.DeleteQuoteAsync(quote).ConfigureAwait(false);
 			return RemovedQuote(quote);
 		}
 	}
@@ -60,7 +58,7 @@ public sealed class Quotes : ModuleBase
 		[Command]
 		public async Task<RuntimeResult> Command()
 		{
-			var quotes = await Db.GetQuotesAsync(Context.Guild.Id).CAF();
+			var quotes = await Db.GetQuotesAsync(Context.Guild.Id).ConfigureAwait(false);
 			return ShowQuotes(quotes);
 		}
 
@@ -74,7 +72,7 @@ public sealed class Quotes : ModuleBase
 			[Remainder]
 				IReadOnlyList<Quote> quote)
 		{
-			var entry = await NextItemAtIndexAsync(quote, x => x.Name).CAF();
+			var entry = await NextItemAtIndexAsync(quote, x => x.Name).ConfigureAwait(false);
 			if (entry.HasValue)
 			{
 				return Quote(entry.Value);

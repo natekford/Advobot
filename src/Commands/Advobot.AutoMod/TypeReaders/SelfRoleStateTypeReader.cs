@@ -3,8 +3,6 @@ using Advobot.AutoMod.Database;
 using Advobot.AutoMod.Models;
 using Advobot.Utilities;
 
-using AdvorangesUtils;
-
 using Discord;
 using Discord.Commands;
 
@@ -20,7 +18,7 @@ public sealed class SelfRoleStateTypeReader : RoleTypeReader<IRole>
 		string input,
 		IServiceProvider services)
 	{
-		var result = await base.ReadAsync(context, input, services).CAF();
+		var result = await base.ReadAsync(context, input, services).ConfigureAwait(false);
 		if (!result.IsSuccess)
 		{
 			return result;
@@ -28,7 +26,7 @@ public sealed class SelfRoleStateTypeReader : RoleTypeReader<IRole>
 		var role = (IRole)result.BestMatch;
 
 		var db = services.GetRequiredService<IAutoModDatabase>();
-		var selfRole = await db.GetSelfRoleAsync(role.Id).CAF();
+		var selfRole = await db.GetSelfRoleAsync(role.Id).ConfigureAwait(false);
 		if (selfRole == null)
 		{
 			return TypeReaderResult.FromError(CommandError.ObjectNotFound,
@@ -38,7 +36,7 @@ public sealed class SelfRoleStateTypeReader : RoleTypeReader<IRole>
 		IReadOnlyList<IRole> conflicting = [];
 		if (selfRole.GroupId != SelfRole.NO_GROUP)
 		{
-			conflicting = await GetConflictingRoles(db, context, selfRole).CAF();
+			conflicting = await GetConflictingRoles(db, context, selfRole).ConfigureAwait(false);
 		}
 
 		var state = new SelfRoleState(selfRole.GroupId, role, conflicting);
@@ -50,7 +48,7 @@ public sealed class SelfRoleStateTypeReader : RoleTypeReader<IRole>
 		ICommandContext context,
 		SelfRole item)
 	{
-		var selfRoles = await db.GetSelfRolesAsync(context.Guild.Id, item.GroupId).CAF();
+		var selfRoles = await db.GetSelfRolesAsync(context.Guild.Id, item.GroupId).ConfigureAwait(false);
 		var conflicting = new List<IRole>(selfRoles.Count);
 		var deletable = new List<ulong>();
 
@@ -70,7 +68,7 @@ public sealed class SelfRoleStateTypeReader : RoleTypeReader<IRole>
 
 		if (deletable.Count != 0)
 		{
-			await db.DeleteSelfRolesAsync(deletable).CAF();
+			await db.DeleteSelfRolesAsync(deletable).ConfigureAwait(false);
 		}
 		return conflicting;
 	}

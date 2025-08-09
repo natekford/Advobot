@@ -2,8 +2,6 @@
 using Advobot.Services.HelpEntries;
 using Advobot.Utilities;
 
-using AdvorangesUtils;
-
 using Discord.Commands;
 
 using Microsoft.Extensions.DependencyInjection;

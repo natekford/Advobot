@@ -2,13 +2,11 @@
 using Advobot.Localization;
 using Advobot.Modules;
 using Advobot.ParameterPreconditions.Discord.Users;
-using Advobot.ParameterPreconditions.Numbers;
 using Advobot.ParameterPreconditions.Strings;
 using Advobot.Preconditions.Permissions;
 using Advobot.Resources;
 using Advobot.TypeReaders;
-
-using AdvorangesUtils;
+using Advobot.Utilities;
 
 using Discord;
 using Discord.Commands;
@@ -29,7 +27,7 @@ public sealed class Nicknames : ModuleBase
 		public async Task<RuntimeResult> Command(
 			[CanModifyUser] IGuildUser user)
 		{
-			await user.ModifyAsync(x => x.Nickname = user.Username, GetOptions()).CAF();
+			await user.ModifyAsync(x => x.Nickname = user.Username, GetOptions()).ConfigureAwait(false);
 			return Responses.Nicknames.RemovedNickname(user);
 		}
 
@@ -38,7 +36,7 @@ public sealed class Nicknames : ModuleBase
 			[CanModifyUser] IGuildUser user,
 			[Nickname] string nickname)
 		{
-			await user.ModifyAsync(x => x.Nickname = nickname, GetOptions()).CAF();
+			await user.ModifyAsync(x => x.Nickname = nickname, GetOptions()).ConfigureAwait(false);
 			return Responses.Nicknames.ModifiedNickname(user, nickname);
 		}
 	}
@@ -53,7 +51,7 @@ public sealed class Nicknames : ModuleBase
 		[Command(RunMode = RunMode.Async)]
 		public async Task<RuntimeResult> Command(
 			[OverrideTypeReader(typeof(BypassUserLimitTypeReader))]
-				bool bypass = false
+			bool bypass = false
 		)
 		{
 			var amountChanged = await ProcessAsync(
@@ -62,35 +60,7 @@ public sealed class Nicknames : ModuleBase
 				(u, o) => u.ModifyAsync(x => x.Nickname = u.Username, o),
 				i => Responses.Users.MultiUserActionProgress(i.AmountLeft).Reason,
 				GetOptions()
-			).CAF();
-			return Responses.Users.MultiUserActionSuccess(amountChanged);
-		}
-	}
-
-	[LocalizedGroup(nameof(Groups.ReplaceByUtf16))]
-	[LocalizedAlias(nameof(Aliases.ReplaceByUtf16))]
-	[LocalizedSummary(nameof(Summaries.ReplaceByUtf16))]
-	[Meta("8d4e53fd-c728-4e55-9262-3078468738e5", IsEnabled = true)]
-	[RequireGuildPermissions(GuildPermission.ManageNicknames)]
-	public sealed class ReplaceByUtf16 : MultiUserActionModuleBase
-	{
-		[Command(RunMode = RunMode.Async)]
-		public async Task<RuntimeResult> Command(
-			[Positive]
-			int upperLimit,
-			[Nickname]
-			string replace,
-			[OverrideTypeReader(typeof(BypassUserLimitTypeReader))]
-			bool bypass = false
-		)
-		{
-			var amountChanged = await ProcessAsync(
-				bypass,
-				u => (u.Nickname?.AllCharsWithinLimit(upperLimit) == false) || (u.Nickname == null && !u.Username.AllCharsWithinLimit(upperLimit)),
-				(u, o) => u.ModifyAsync(x => x.Nickname = replace, o),
-				i => Responses.Users.MultiUserActionProgress(i.AmountLeft).Reason,
-				GetOptions()
-			).CAF();
+			).ConfigureAwait(false);
 			return Responses.Users.MultiUserActionSuccess(amountChanged);
 		}
 	}
@@ -118,7 +88,7 @@ public sealed class Nicknames : ModuleBase
 				(u, o) => u.ModifyAsync(x => x.Nickname = replace, o),
 				i => Responses.Users.MultiUserActionProgress(i.AmountLeft).Reason,
 				GetOptions()
-			).CAF();
+			).ConfigureAwait(false);
 			return Responses.Users.MultiUserActionSuccess(amountChanged);
 		}
 	}

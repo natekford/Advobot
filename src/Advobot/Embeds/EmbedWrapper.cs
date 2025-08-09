@@ -1,4 +1,4 @@
-﻿using AdvorangesUtils;
+﻿using Advobot.Utilities;
 
 using Discord;
 
@@ -229,7 +229,7 @@ public sealed class EmbedWrapper
 
 	/// <inheritdoc />
 	public override string ToString()
-		=> _Errors.Join(x => $"{x.PropertyPath}:\n{x.Value}", "\n\n");
+		=> _Errors.Select(x => $"{x.PropertyPath}:\n{x.Value}").Join("\n\n");
 
 	/// <summary>
 	/// Attempts to modify the author. Does nothing if fails.
@@ -424,7 +424,7 @@ public sealed class EmbedWrapper
 	}
 
 	private EmbedValidator CreateValidator(Action setter)
-			=> new(setter, _Errors);
+		=> new(setter, _Errors);
 
 	private int GetRemainingLength(string? propertyToDisregard)
 	{

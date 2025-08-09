@@ -6,8 +6,6 @@ using Advobot.ParameterPreconditions.Discord.Channels;
 using Advobot.Preconditions.Permissions;
 using Advobot.Resources;
 
-using AdvorangesUtils;
-
 using Discord;
 using Discord.Commands;
 
@@ -37,7 +35,7 @@ public sealed class Notifications : ModuleBase
 			[CanModifyChannel(ManageChannels | ManageRoles)]
 			ITextChannel channel)
 		{
-			await Db.UpsertNotificationChannelAsync(Event, Context.Guild.Id, channel.Id).CAF();
+			await Db.UpsertNotificationChannelAsync(Event, Context.Guild.Id, channel.Id).ConfigureAwait(false);
 			return ModifiedChannel(Event, channel);
 		}
 
@@ -45,7 +43,7 @@ public sealed class Notifications : ModuleBase
 		[LocalizedAlias(nameof(Aliases.Content))]
 		public async Task<RuntimeResult> Content([Remainder] string? content = null)
 		{
-			await Db.UpsertNotificationContentAsync(Event, Context.Guild.Id, content).CAF();
+			await Db.UpsertNotificationContentAsync(Event, Context.Guild.Id, content).ConfigureAwait(false);
 			return ModifiedContent(Event, content);
 		}
 
@@ -53,7 +51,7 @@ public sealed class Notifications : ModuleBase
 		[LocalizedAlias(nameof(Aliases.Default))]
 		public async Task<RuntimeResult> Default()
 		{
-			await DefaultSetter.ResetAsync(Context).CAF();
+			await DefaultSetter.ResetAsync(Context).ConfigureAwait(false);
 			return Responses.Notifications.Default(Event);
 		}
 
@@ -61,7 +59,7 @@ public sealed class Notifications : ModuleBase
 		[LocalizedAlias(nameof(Aliases.Disable))]
 		public async Task<RuntimeResult> Disable()
 		{
-			await Db.UpsertNotificationChannelAsync(Event, Context.Guild.Id, null).CAF();
+			await Db.UpsertNotificationChannelAsync(Event, Context.Guild.Id, null).ConfigureAwait(false);
 			return Disabled(Event);
 		}
 
@@ -69,7 +67,7 @@ public sealed class Notifications : ModuleBase
 		[LocalizedAlias(nameof(Aliases.Embed))]
 		public async Task<RuntimeResult> Embed(CustomEmbed? embed = null)
 		{
-			await Db.UpsertNotificationEmbedAsync(Event, Context.Guild.Id, embed).CAF();
+			await Db.UpsertNotificationEmbedAsync(Event, Context.Guild.Id, embed).ConfigureAwait(false);
 			return ModifiedEmbed(Event, embed);
 		}
 
@@ -77,7 +75,7 @@ public sealed class Notifications : ModuleBase
 		[LocalizedAlias(nameof(Aliases.Send))]
 		public async Task<RuntimeResult> Send()
 		{
-			var notification = await Db.GetAsync(Event, Context.Guild.Id).CAF();
+			var notification = await Db.GetAsync(Event, Context.Guild.Id).ConfigureAwait(false);
 			return SendNotification(Event, notification);
 		}
 	}
@@ -98,7 +96,7 @@ public sealed class Notifications : ModuleBase
 			[CanModifyChannel(ManageChannels | ManageRoles)]
 			ITextChannel channel)
 		{
-			await Db.UpsertNotificationChannelAsync(Event, Context.Guild.Id, channel.Id).CAF();
+			await Db.UpsertNotificationChannelAsync(Event, Context.Guild.Id, channel.Id).ConfigureAwait(false);
 			return ModifiedChannel(Event, channel);
 		}
 
@@ -106,7 +104,7 @@ public sealed class Notifications : ModuleBase
 		[LocalizedAlias(nameof(Aliases.Content))]
 		public async Task<RuntimeResult> Content([Remainder] string? content = null)
 		{
-			await Db.UpsertNotificationContentAsync(Event, Context.Guild.Id, content).CAF();
+			await Db.UpsertNotificationContentAsync(Event, Context.Guild.Id, content).ConfigureAwait(false);
 			return ModifiedContent(Event, content);
 		}
 
@@ -114,7 +112,7 @@ public sealed class Notifications : ModuleBase
 		[LocalizedAlias(nameof(Aliases.Default))]
 		public async Task<RuntimeResult> Default()
 		{
-			await DefaultSetter.ResetAsync(Context).CAF();
+			await DefaultSetter.ResetAsync(Context).ConfigureAwait(false);
 			return Responses.Notifications.Default(Event);
 		}
 
@@ -122,7 +120,7 @@ public sealed class Notifications : ModuleBase
 		[LocalizedAlias(nameof(Aliases.Disable))]
 		public async Task<RuntimeResult> Disable()
 		{
-			await Db.UpsertNotificationChannelAsync(Event, Context.Guild.Id, null).CAF();
+			await Db.UpsertNotificationChannelAsync(Event, Context.Guild.Id, null).ConfigureAwait(false);
 			return Disabled(Event);
 		}
 
@@ -130,7 +128,7 @@ public sealed class Notifications : ModuleBase
 		[LocalizedAlias(nameof(Aliases.Embed))]
 		public async Task<RuntimeResult> Embed(CustomEmbed? embed = null)
 		{
-			await Db.UpsertNotificationEmbedAsync(Event, Context.Guild.Id, embed).CAF();
+			await Db.UpsertNotificationEmbedAsync(Event, Context.Guild.Id, embed).ConfigureAwait(false);
 			return ModifiedEmbed(Event, embed);
 		}
 
@@ -138,7 +136,7 @@ public sealed class Notifications : ModuleBase
 		[LocalizedAlias(nameof(Aliases.Send))]
 		public async Task<RuntimeResult> Send()
 		{
-			var notification = await Db.GetAsync(Event, Context.Guild.Id).CAF();
+			var notification = await Db.GetAsync(Event, Context.Guild.Id).ConfigureAwait(false);
 			return SendNotification(Event, notification);
 		}
 	}

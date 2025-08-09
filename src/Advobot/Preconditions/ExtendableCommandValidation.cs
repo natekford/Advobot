@@ -1,8 +1,6 @@
 ﻿using Advobot.Services;
 using Advobot.Services.HelpEntries;
 
-using AdvorangesUtils;
-
 using Discord.Commands;
 
 using Microsoft.Extensions.DependencyInjection;
@@ -28,7 +26,7 @@ public sealed class ExtendableCommandValidation
 	{
 		foreach (var checker in services.GetServices<ICommandValidator>())
 		{
-			var result = await checker.CanInvokeAsync(context, command).CAF();
+			var result = await checker.CanInvokeAsync(context, command).ConfigureAwait(false);
 			if (!result.IsSuccess)
 			{
 				return result;

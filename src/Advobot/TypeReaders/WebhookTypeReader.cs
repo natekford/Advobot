@@ -1,8 +1,6 @@
 ﻿using Advobot.Attributes;
 using Advobot.Utilities;
 
-using AdvorangesUtils;
-
 using Discord;
 using Discord.Commands;
 
@@ -26,13 +24,15 @@ public sealed class WebhookTypeReader : TypeReader
 		string input,
 		IServiceProvider services)
 	{
-		var whs = await context.Guild.GetWebhooksAsync().CAF();
-		if (ulong.TryParse(input, out var id) && whs.TryGetFirst(x => x.Id == id, out var wh))
+		var webhooks = await context.Guild.GetWebhooksAsync().ConfigureAwait(false);
+
+		if (ulong.TryParse(input, out var id)
+			&& webhooks.FirstOrDefault(x => x.Id == id) is IWebhook wh)
 		{
 			return TypeReaderResult.FromSuccess(wh);
 		}
 
-		var matches = whs.Where(x => x.Name.CaseInsEquals(input)).ToArray();
+		var matches = webhooks.Where(x => x.Name.CaseInsEquals(input)).ToArray();
 		return TypeReaderUtils.SingleValidResult(matches, "webhooks", input);
 	}
 }

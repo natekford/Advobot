@@ -1,8 +1,6 @@
 ﻿using Advobot.ParameterPreconditions.Discord;
 using Advobot.Tests.TestBases;
 
-using AdvorangesUtils;
-
 namespace Advobot.Tests.Core.ParameterPreconditions.Numbers;
 
 [TestClass]
@@ -15,10 +13,10 @@ public sealed class NotBotOwner_Tests : ParameterPrecondition_Tests<NotBotOwner>
 	{
 		Context.Client.FakeApplication.Owner = Context.User;
 
-		await AssertFailureAsync(Context.User.Id).CAF();
+		await AssertFailureAsync(Context.User.Id).ConfigureAwait(false);
 	}
 
 	[TestMethod]
 	public async Task Valid_Test()
-		=> await AssertSuccessAsync(Context.User.Id).CAF();
+		=> await AssertSuccessAsync(Context.User.Id).ConfigureAwait(false);
 }

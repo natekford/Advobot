@@ -2,8 +2,6 @@
 using Advobot.Tests.Fakes.Discord.Users;
 using Advobot.Tests.Utilities;
 
-using AdvorangesUtils;
-
 using Discord;
 using Discord.Audio;
 
@@ -219,7 +217,7 @@ public sealed class FakeGuild : FakeSnowflake, IGuild
 		};
 		if (func is not null)
 		{
-			await channel.ModifyAsync(func, options).CAF();
+			await channel.ModifyAsync(func, options).ConfigureAwait(false);
 		}
 		FakeChannels.Add(channel);
 		return channel;
@@ -250,7 +248,7 @@ public sealed class FakeGuild : FakeSnowflake, IGuild
 		=> Task.CompletedTask;
 
 	public async Task<IVoiceChannel> GetAFKChannelAsync(CacheMode mode = CacheMode.AllowDownload, RequestOptions? options = null)
-		=> (IVoiceChannel)await GetChannelAsync(AFKChannelId ?? 0).CAF();
+		=> (IVoiceChannel)await GetChannelAsync(AFKChannelId ?? 0).ConfigureAwait(false);
 
 	public Task<IApplicationCommand> GetApplicationCommandAsync(ulong id, CacheMode mode = CacheMode.AllowDownload, RequestOptions options = null)
 		=> throw new NotImplementedException();

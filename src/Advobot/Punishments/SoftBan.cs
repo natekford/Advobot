@@ -1,6 +1,4 @@
-﻿using AdvorangesUtils;
-
-using Discord;
+﻿using Discord;
 
 namespace Advobot.Punishments;
 
@@ -17,7 +15,7 @@ public sealed class SoftBan(IGuild guild, ulong userId) : PunishmentBase(guild, 
 	/// <inheritdoc/>
 	protected internal override async Task ExecuteAsync()
 	{
-		await Guild.AddBanAsync(UserId, Days, Options?.AuditLogReason, Options).CAF();
-		await Guild.RemoveBanAsync(UserId, Options).CAF();
+		await Guild.AddBanAsync(UserId, Days, Options?.AuditLogReason, Options).ConfigureAwait(false);
+		await Guild.RemoveBanAsync(UserId, Options).ConfigureAwait(false);
 	}
 }

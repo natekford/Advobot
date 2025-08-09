@@ -5,10 +5,9 @@ using Advobot.Modules;
 using Advobot.Services.BotSettings;
 using Advobot.Utilities;
 
-using AdvorangesUtils;
-
 using Discord;
 using Discord.Commands;
+using Discord.WebSocket;
 
 using Microsoft.Extensions.Logging;
 
@@ -16,6 +15,7 @@ namespace Advobot.Logging.Service;
 
 public sealed class CommandHandlerLogger(
 	ILogger logger,
+	BaseSocketClient client,
 	ILoggingDatabase db,
 	IRuntimeConfig botSettings)
 {
@@ -50,31 +50,30 @@ public sealed class CommandHandlerLogger(
 			Error = result.IsSuccess ? null : result.ErrorReason,
 		};
 		_Logger.LogInformation(
-			eventId: new EventId(1, nameof(OnCommandInvoked)),
 			message: "Command executed. {@Info}",
 			args: info
 		);
 
 		if (result is AdvobotResult advobotResult)
 		{
-			await advobotResult.SendAsync(context).CAF();
+			await advobotResult.SendAsync(context).ConfigureAwait(false);
 		}
 		else if (!result.IsSuccess)
 		{
 			await context.Channel.SendMessageAsync(new SendMessageArgs
 			{
 				Content = result.ErrorReason
-			}).CAF();
+			}).ConfigureAwait(false);
 		}
 
-		var ignoredChannels = await _Db.GetIgnoredChannelsAsync(context.Guild.Id).CAF();
+		var ignoredChannels = await _Db.GetIgnoredChannelsAsync(context.Guild.Id).ConfigureAwait(false);
 		if (ignoredChannels.Contains(context.Channel.Id))
 		{
 			return;
 		}
 
-		var channels = await _Db.GetLogChannelsAsync(context.Guild.Id).CAF();
-		var modLog = await context.Guild.GetTextChannelAsync(channels.ModLogId).CAF();
+		var channels = await _Db.GetLogChannelsAsync(context.Guild.Id).ConfigureAwait(false);
+		var modLog = await context.Guild.GetTextChannelAsync(channels.ModLogId).ConfigureAwait(false);
 		if (modLog is null)
 		{
 			return;
@@ -85,15 +84,17 @@ public sealed class CommandHandlerLogger(
 			Description = context.Message.Content,
 			Author = context.User.CreateAuthor(),
 			Footer = new() { Text = "Mod Log", },
-		}.ToMessageArgs()).CAF();
+		}.ToMessageArgs()).ConfigureAwait(false);
 	}
 
 	public Task OnReady()
 	{
-		ConsoleUtils.WriteLine($"Bot version: {Constants.BOT_VERSION}; " +
-			$"Discord.Net version: {Constants.DISCORD_NET_VERSION}; " +
+		var launchDuration = DateTime.UtcNow - AdvobotUtils.StartTime;
+		Console.WriteLine($"Bot: '{client.CurrentUser.Username}'; " +
+			$"Version: {Constants.BOT_VERSION}; " +
+			$"D.Net Version: {Constants.DISCORD_NET_VERSION}; " +
 			$"Prefix: {_BotSettings.Prefix}; " +
-			$"Launch Time: {ProcessInfoUtils.GetUptime().TotalMilliseconds:n}ms");
+			$"Launch Time: {launchDuration.TotalMilliseconds:n}ms");
 		return Task.CompletedTask;
 	}
 }

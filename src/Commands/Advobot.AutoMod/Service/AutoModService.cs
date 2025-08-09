@@ -5,10 +5,10 @@ using Advobot.Punishments;
 using Advobot.Services.Time;
 using Advobot.Utilities;
 
-using AdvorangesUtils;
-
 using Discord;
 using Discord.WebSocket;
+
+using Microsoft.Extensions.Logging;
 
 using System.Collections.Concurrent;
 
@@ -30,18 +30,21 @@ public sealed class AutoModService
 		= DiscordUtils.GenerateRequestOptions("Persistent roles.");
 
 	private readonly IAutoModDatabase _Db;
+	private readonly ILogger _Logger;
 	private readonly GuildSpecific<ulong, EnumMapped<PunishmentType, int>> _Phrases = new();
 	private readonly IPunishmentService _Punisher;
 	private readonly ITime _Time;
 	private ConcurrentDictionary<ulong, (ConcurrentBag<ulong>, ITextChannel)> _Messages = new();
 
 	public AutoModService(
+		ILogger<AutoModService> logger,
 		BaseSocketClient client,
 		IAutoModDatabase db,
 		ITime time,
 		IPunishmentService punisher)
 	{
 		_Db = db;
+		_Logger = logger;
 		_Time = time;
 		_Punisher = punisher;
 
@@ -58,15 +61,24 @@ public sealed class AutoModService
 				{
 					try
 					{
-						await channel.DeleteMessagesAsync(messages, _AutoMod).CAF();
+						await channel.DeleteMessagesAsync(messages, _AutoMod).ConfigureAwait(false);
 					}
 					catch (Exception e)
 					{
-						e.Write();
+						_Logger.LogWarning(
+							exception: e,
+							message: "Exception occurred while deleting messages. {@Info}",
+							new
+							{
+								GuildId = channel.GuildId,
+								ChannelId = channel.Id,
+								MessageIds = messages,
+							}
+						);
 					}
 				}
 
-				await Task.Delay(TimeSpan.FromSeconds(1)).CAF();
+				await Task.Delay(TimeSpan.FromSeconds(1)).ConfigureAwait(false);
 			}
 		});
 	}
@@ -79,15 +91,15 @@ public sealed class AutoModService
 			return;
 		}
 
-		var settings = await _Db.GetAutoModSettingsAsync(context.Guild.Id).CAF();
+		var settings = await _Db.GetAutoModSettingsAsync(context.Guild.Id).ConfigureAwait(false);
 		var ts = _Time.UtcNow - message.CreatedAt.UtcDateTime;
-		if (!await settings.ShouldScanMessageAsync(message, ts).CAF())
+		if (!await settings.ShouldScanMessageAsync(message, ts).ConfigureAwait(false))
 		{
 			return;
 		}
 
-		var isBannedPhrase = await ProcessBannedPhrasesAsync(context).CAF();
-		var isAllowed = await ProcessChannelSettings(context).CAF();
+		var isBannedPhrase = await ProcessBannedPhrasesAsync(context).ConfigureAwait(false);
+		var isAllowed = await ProcessChannelSettings(context).ConfigureAwait(false);
 		if (isBannedPhrase || !isAllowed)
 		{
 			QueueMessageForDeletion(context.Channel, message);
@@ -105,23 +117,23 @@ public sealed class AutoModService
 			return;
 		}
 
-		var isBannedName = await ProcessBannedNamesAsync(context).CAF();
+		var isBannedName = await ProcessBannedNamesAsync(context).ConfigureAwait(false);
 		if (isBannedName)
 		{
 			return;
 		}
 
-		await ProcessPersistentRolesAsync(context).CAF();
+		await ProcessPersistentRolesAsync(context).ConfigureAwait(false);
 	}
 
 	private async Task<bool> ProcessBannedNamesAsync(AutoModContext context)
 	{
-		var names = await _Db.GetBannedNamesAsync(context.Guild.Id).CAF();
+		var names = await _Db.GetBannedNamesAsync(context.Guild.Id).ConfigureAwait(false);
 		foreach (var name in names)
 		{
 			if (name.IsMatch(context.User.Username))
 			{
-				await PunishAsync(context.Guild, context.User.Id, _Ban, _BannedName).CAF();
+				await PunishAsync(context.Guild, context.User.Id, _Ban, _BannedName).ConfigureAwait(false);
 				return true;
 			}
 		}
@@ -130,7 +142,7 @@ public sealed class AutoModService
 
 	private async Task<bool> ProcessBannedPhrasesAsync(AutoModMessageContext context)
 	{
-		var phrases = await _Db.GetBannedPhrasesAsync(context.Guild.Id).CAF();
+		var phrases = await _Db.GetBannedPhrasesAsync(context.Guild.Id).ConfigureAwait(false);
 		var instances = _Phrases.Get(context.Guild, context.User.Id);
 
 		var isDirty = false;
@@ -147,7 +159,7 @@ public sealed class AutoModService
 			return false;
 		}
 
-		var punishments = await _Db.GetPunishmentsAsync(context.Guild.Id).CAF();
+		var punishments = await _Db.GetPunishmentsAsync(context.Guild.Id).ConfigureAwait(false);
 		foreach (var punishment in punishments)
 		{
 			foreach (var instance in instances)
@@ -155,7 +167,7 @@ public sealed class AutoModService
 				if (punishment.PunishmentType == instance.Key &&
 					punishment.Instances == instance.Value)
 				{
-					await PunishAsync(context.Guild, context.User.Id, punishment, _BannedPhrase).CAF();
+					await PunishAsync(context.Guild, context.User.Id, punishment, _BannedPhrase).ConfigureAwait(false);
 				}
 			}
 		}
@@ -164,7 +176,7 @@ public sealed class AutoModService
 
 	private async Task<bool> ProcessChannelSettings(AutoModMessageContext context)
 	{
-		var settings = await _Db.GetChannelSettingsAsync(context.Channel.Id).CAF();
+		var settings = await _Db.GetChannelSettingsAsync(context.Channel.Id).ConfigureAwait(false);
 		if (settings is null)
 		{
 			return true;
@@ -175,7 +187,7 @@ public sealed class AutoModService
 
 	private async Task<bool> ProcessPersistentRolesAsync(AutoModContext context)
 	{
-		var persistent = await _Db.GetPersistentRolesAsync(context.Guild.Id, context.User.Id).CAF();
+		var persistent = await _Db.GetPersistentRolesAsync(context.Guild.Id, context.User.Id).ConfigureAwait(false);
 		if (persistent.Count == 0)
 		{
 			return false;
@@ -188,7 +200,7 @@ public sealed class AutoModService
 			rolesToAdd: roles,
 			rolesToRemove: [],
 			_PersistentRoles
-		).CAF();
+		).ConfigureAwait(false);
 		return true;
 	}
 

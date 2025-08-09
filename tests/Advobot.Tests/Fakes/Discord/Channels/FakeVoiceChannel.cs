@@ -1,6 +1,4 @@
-﻿using AdvorangesUtils;
-
-using Discord;
+﻿using Discord;
 using Discord.Audio;
 
 namespace Advobot.Tests.Fakes.Discord.Channels;
@@ -106,7 +104,7 @@ public sealed class FakeVoiceChannel(FakeGuild guild)
 
 	public async Task SyncPermissionsAsync(RequestOptions? options = null)
 	{
-		var category = await GetCategoryAsync().CAF();
+		var category = await GetCategoryAsync().ConfigureAwait(false);
 		if (category == null)
 		{
 			return;

@@ -1,8 +1,6 @@
 ﻿using Advobot.Tests.TestBases;
 using Advobot.TypeReaders;
 
-using AdvorangesUtils;
-
 namespace Advobot.Tests.Core.TypeReaders;
 
 [TestClass]
@@ -13,7 +11,7 @@ public sealed class UriTypeReader_Tests : TypeReader_Tests<UriTypeReader>
 	[TestMethod]
 	public async Task Valid_Test()
 	{
-		var result = await ReadAsync("https://www.google.com").CAF();
+		var result = await ReadAsync("https://www.google.com").ConfigureAwait(false);
 		Assert.IsTrue(result.IsSuccess);
 		Assert.IsInstanceOfType(result.BestMatch, typeof(Uri));
 	}

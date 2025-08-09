@@ -3,8 +3,6 @@ using Advobot.Quotes.Database;
 using Advobot.Quotes.Models;
 using Advobot.Utilities;
 
-using AdvorangesUtils;
-
 using Discord.Commands;
 
 using Microsoft.Extensions.DependencyInjection;
@@ -28,7 +26,7 @@ public sealed class RuleTypeReader : TypeReader
 		}
 
 		var db = services.GetRequiredService<RuleDatabase>();
-		var rule = await db.GetRuleAsync(context.Guild.Id, category, position).CAF();
+		var rule = await db.GetRuleAsync(context.Guild.Id, category, position).ConfigureAwait(false);
 		if (rule is null)
 		{
 			return TypeReaderUtils.ParseFailedResult<Rule>();

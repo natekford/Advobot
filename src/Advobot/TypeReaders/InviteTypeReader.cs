@@ -1,8 +1,6 @@
 ﻿using Advobot.Attributes;
 using Advobot.Utilities;
 
-using AdvorangesUtils;
-
 using Discord;
 using Discord.Commands;
 
@@ -22,7 +20,7 @@ public sealed class InviteTypeReader : TypeReader
 	{
 		{
 			var code = input.Split('/')[^1];
-			var invites = await context.Guild.GetInvitesAsync().CAF();
+			var invites = await context.Guild.GetInvitesAsync().ConfigureAwait(false);
 			var invite = invites.FirstOrDefault(x => x.Code.CaseInsEquals(code));
 			if (invite != null)
 			{
@@ -31,7 +29,7 @@ public sealed class InviteTypeReader : TypeReader
 		}
 
 		{
-			var invite = await context.Client.GetInviteAsync(input).CAF();
+			var invite = await context.Client.GetInviteAsync(input).ConfigureAwait(false);
 			if (invite is IInviteMetadata meta && invite.GuildId == context.Guild.Id)
 			{
 				return TypeReaderResult.FromSuccess(meta);

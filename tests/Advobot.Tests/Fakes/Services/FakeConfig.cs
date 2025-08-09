@@ -4,7 +4,9 @@ namespace Advobot.Tests.Fakes.Services;
 
 public sealed class FakeConfig : IConfig
 {
-	public DirectoryInfo BaseBotDirectory => throw new NotImplementedException();
+	public static FakeConfig Singleton { get; } = new();
+
+	public DirectoryInfo BaseBotDirectory { get; } = new(Environment.CurrentDirectory);
 	public ulong BotId => ulong.MinValue;
 	public string DatabaseConnectionString => "";
 	public int Instance => int.MaxValue;

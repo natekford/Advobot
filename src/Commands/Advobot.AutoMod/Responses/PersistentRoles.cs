@@ -1,8 +1,6 @@
 ﻿using Advobot.Modules;
 using Advobot.Utilities;
 
-using AdvorangesUtils;
-
 using Discord;
 
 using System.Text;
@@ -24,12 +22,12 @@ public sealed class PersistentRoles : AdvobotResult
 		var sb = new StringBuilder("```\n");
 		foreach (var group in roles)
 		{
-			sb.AppendLineFeed(group.Key);
+			sb.AppendLine(group.Key);
 			foreach (var role in group)
 			{
-				sb.AppendLineFeed("\t" + role.Format());
+				sb.AppendLine("\t" + role.Format());
 			}
-			sb.AppendLineFeed();
+			sb.AppendLine();
 		}
 		sb.Append("```");
 		return Success(sb.ToString());

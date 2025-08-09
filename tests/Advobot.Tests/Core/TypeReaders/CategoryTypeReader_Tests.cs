@@ -3,8 +3,6 @@ using Advobot.Tests.Fakes.Services.HelpEntries;
 using Advobot.Tests.TestBases;
 using Advobot.TypeReaders;
 
-using AdvorangesUtils;
-
 using Microsoft.Extensions.DependencyInjection;
 
 namespace Advobot.Tests.Core.TypeReaders;
@@ -20,7 +18,7 @@ public sealed class CommandCategory_Tests : TypeReader_Tests<CategoryTypeReader>
 	{
 		_Service.Add(new FakeHelpEntry { Category = "i exist" });
 
-		var result = await ReadAsync(_Service.GetCategories().First()).CAF();
+		var result = await ReadAsync(_Service.GetCategories().First()).ConfigureAwait(false);
 		Assert.IsTrue(result.IsSuccess);
 	}
 

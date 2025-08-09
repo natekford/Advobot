@@ -4,8 +4,6 @@ using Advobot.AutoMod.TypeReaders;
 using Advobot.Punishments;
 using Advobot.Tests.TestBases;
 
-using AdvorangesUtils;
-
 using Microsoft.Extensions.DependencyInjection;
 
 namespace Advobot.Tests.Commands.AutoMod.TypeReaders;
@@ -33,9 +31,9 @@ public abstract class BannedPhraseTypeReader_Tests<T> : TypeReader_Tests<T>
 			IsRegex: IsRegex,
 			Phrase: PHRASE,
 			PunishmentType: PunishmentType.Nothing
-		)).CAF();
+		)).ConfigureAwait(false);
 
-		var result = await ReadAsync(PHRASE).CAF();
+		var result = await ReadAsync(PHRASE).ConfigureAwait(false);
 		Assert.IsTrue(result.IsSuccess);
 		Assert.IsInstanceOfType(result.BestMatch, typeof(BannedPhrase));
 	}
@@ -53,9 +51,9 @@ public abstract class BannedPhraseTypeReader_Tests<T> : TypeReader_Tests<T>
 			IsRegex: !IsRegex,
 			Phrase: PHRASE,
 			PunishmentType: PunishmentType.Nothing
-		)).CAF();
+		)).ConfigureAwait(false);
 
-		var result = await ReadAsync(PHRASE).CAF();
+		var result = await ReadAsync(PHRASE).ConfigureAwait(false);
 		Assert.IsFalse(result.IsSuccess);
 	}
 

@@ -1,6 +1,4 @@
-﻿using AdvorangesUtils;
-
-using Discord.WebSocket;
+﻿using Discord.WebSocket;
 
 using Microsoft.Extensions.Logging;
 
@@ -14,11 +12,9 @@ public sealed class ClientLogger(ILogger logger, BaseSocketClient client)
 	public Task OnGuildAvailable(SocketGuild guild)
 	{
 		var shard = _Client is DiscordShardedClient s ? s.GetShardIdFor(guild) : 0;
-		var memory = ProcessInfoUtils.GetMemoryMB();
 		_Logger.LogInformation(
-			eventId: new EventId(1, nameof(OnGuildAvailable)),
-			message: "Guild is now online {Guild} ({Shard}, {MemberCount}, {Memory:0.00}MB)",
-			guild.Id, shard, guild.MemberCount, memory
+			message: "Guild is now online {Guild} ({Shard}, {MemberCount})",
+			guild.Id, shard, guild.MemberCount
 		);
 		return Task.CompletedTask;
 	}
@@ -26,7 +22,6 @@ public sealed class ClientLogger(ILogger logger, BaseSocketClient client)
 	public Task OnGuildUnavailable(SocketGuild guild)
 	{
 		_Logger.LogInformation(
-			eventId: new EventId(2, nameof(OnGuildUnavailable)),
 			message: "Guild is now offline {Guild}",
 			guild.Id
 		);
@@ -36,7 +31,6 @@ public sealed class ClientLogger(ILogger logger, BaseSocketClient client)
 	public Task OnJoinedGuild(SocketGuild guild)
 	{
 		_Logger.LogInformation(
-			eventId: new EventId(3, nameof(OnJoinedGuild)),
 			message: "Joined guild {Guild}",
 			guild.Id
 		);
@@ -54,7 +48,6 @@ public sealed class ClientLogger(ILogger logger, BaseSocketClient client)
 		if (botPercentage > allowedPercentage)
 		{
 			_Logger.LogInformation(
-				eventId: new EventId(5, "TooManyBots"),
 				message: "Too many bots in guild {Guild} ({Percentage}%)",
 				guild.Id, botPercentage
 			);
@@ -66,7 +59,6 @@ public sealed class ClientLogger(ILogger logger, BaseSocketClient client)
 	public Task OnLeftGuild(SocketGuild guild)
 	{
 		_Logger.LogInformation(
-			eventId: new EventId(4, nameof(OnLeftGuild)),
 			message: "Left guild {Guild}",
 			guild.Id
 		);

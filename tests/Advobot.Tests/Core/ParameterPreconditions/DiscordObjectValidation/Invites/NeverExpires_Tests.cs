@@ -2,8 +2,6 @@
 using Advobot.Tests.Fakes.Discord;
 using Advobot.Tests.TestBases;
 
-using AdvorangesUtils;
-
 namespace Advobot.Tests.Core.ParameterPreconditions.DiscordObjectValidation.Invites;
 
 [TestClass]
@@ -17,7 +15,7 @@ public sealed class NeverExpires_Tests : ParameterPrecondition_Tests<NeverExpire
 		await AssertFailureAsync(new FakeInviteMetadata(Context.Channel, Context.User)
 		{
 			MaxAge = 3600,
-		}).CAF();
+		}).ConfigureAwait(false);
 	}
 
 	[TestMethod]
@@ -26,6 +24,6 @@ public sealed class NeverExpires_Tests : ParameterPrecondition_Tests<NeverExpire
 		await AssertSuccessAsync(new FakeInviteMetadata(Context.Channel, Context.User)
 		{
 			MaxAge = null,
-		}).CAF();
+		}).ConfigureAwait(false);
 	}
 }

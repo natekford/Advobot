@@ -7,8 +7,6 @@ using Advobot.Preconditions.Permissions;
 using Advobot.Resources;
 using Advobot.TypeReaders;
 
-using AdvorangesUtils;
-
 using Discord;
 using Discord.Commands;
 
@@ -44,7 +42,7 @@ public sealed class Invites : ModuleBase
 		{
 			args ??= new();
 			var options = GetOptions();
-			var invite = await channel.CreateInviteAsync(args.Time, args.Uses, args.IsTemporary, args.IsUnique, options).CAF();
+			var invite = await channel.CreateInviteAsync(args.Time, args.Uses, args.IsTemporary, args.IsUnique, options).ConfigureAwait(false);
 			return Responses.Snowflakes.Created(invite);
 		}
 
@@ -82,7 +80,7 @@ public sealed class Invites : ModuleBase
 		[Command]
 		public async Task<RuntimeResult> Command([FromThisGuild] IInviteMetadata invite)
 		{
-			await invite.DeleteAsync(GetOptions()).CAF();
+			await invite.DeleteAsync(GetOptions()).ConfigureAwait(false);
 			return Responses.Snowflakes.Deleted(invite);
 		}
 	}
@@ -97,7 +95,7 @@ public sealed class Invites : ModuleBase
 		[Command]
 		public async Task<RuntimeResult> Command()
 		{
-			var invites = await Context.Guild.GetInvitesAsync().CAF();
+			var invites = await Context.Guild.GetInvitesAsync().ConfigureAwait(false);
 			var ordered = invites.OrderByDescending(x => x.Uses).ToArray();
 			return Responses.Invites.DisplayInvites(ordered);
 		}

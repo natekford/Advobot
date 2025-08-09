@@ -1,6 +1,5 @@
 ﻿using Advobot.Quotes.Models;
-
-using AdvorangesUtils;
+using Advobot.Utilities;
 
 using Discord.Commands;
 
@@ -202,17 +201,17 @@ public sealed class RuleFormatter
 		FormatName(sb, category.Value);
 		for (var i = 0; i < rules.Count; ++i)
 		{
-			FormatRule(sb, rules[i].Value, i, rules.Count).AppendLineFeed();
+			FormatRule(sb, rules[i].Value, i, rules.Count).AppendLine();
 		}
-		sb.AppendLineFeed();
+		sb.AppendLine();
 	}
 
 	private StringBuilder FormatName(StringBuilder sb, string name)
 	{
-		sb.Append(name.FormatTitle()).TrimEnd();
+		sb.Append(name.ToTitleCase()).TrimEnd();
 		if (_Options?.Contains(RuleFormatOption.ExtraLines) == true)
 		{
-			sb.AppendLineFeed();
+			sb.AppendLine();
 		}
 		sb.AddMarkDown(TitleMarkDownFormat ?? _DefaultTitleFormats[RuleFormat]);
 		return sb;
@@ -268,7 +267,7 @@ public sealed class RuleFormatter
 		sb.TrimEnd();
 		if (_Options?.Contains(RuleFormatOption.ExtraLines) == true)
 		{
-			sb.AppendLineFeed();
+			sb.AppendLine();
 		}
 		return sb.AddMarkDown(RuleMarkDownFormat ?? _DefaultRuleFormats[RuleFormat]);
 	}

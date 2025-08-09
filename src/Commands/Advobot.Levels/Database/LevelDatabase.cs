@@ -2,8 +2,6 @@
 using Advobot.Levels.Models;
 using Advobot.SQLite;
 
-using AdvorangesUtils;
-
 using Dapper;
 
 using System.Data;
@@ -26,7 +24,7 @@ public sealed class LevelDatabase(IConnectionString<LevelDatabase> conn) : Datab
 			( GuildId, ChannelId )
 			VALUES
 			( @GuildId, @ChannelId )
-		", @params).CAF();
+		", @params).ConfigureAwait(false);
 	}
 
 	public async Task<int> DeleteIgnoredChannelsAsync(ulong guildId, IEnumerable<ulong> channels)
@@ -39,30 +37,30 @@ public sealed class LevelDatabase(IConnectionString<LevelDatabase> conn) : Datab
 		return await BulkModifyAsync(@"
 			DELETE FROM IgnoredChannel
 			WHERE GuildId = @GuildId AND ChannelId = @ChannelId
-		", @params).CAF();
+		", @params).ConfigureAwait(false);
 	}
 
 	public async Task<int> GetDistinctUserCountAsync(SearchArgs args)
 	{
-		await using var connection = await GetConnectionAsync().CAF();
+		await using var connection = await GetConnectionAsync().ConfigureAwait(false);
 
 		return await connection.QuerySingleAsync<int>($@"
 			SELECT COUNT(DISTINCT UserId)
 			FROM User
 			{GenerateWhereStatement(args)}
-		", args).CAF();
+		", args).ConfigureAwait(false);
 	}
 
 	public async Task<IReadOnlyList<ulong>> GetIgnoredChannelsAsync(ulong guildId)
 	{
-		await using var connection = await GetConnectionAsync().CAF();
+		await using var connection = await GetConnectionAsync().ConfigureAwait(false);
 
 		var param = new { GuildId = guildId.ToString() };
 		var result = await connection.QueryAsync<ulong>(@"
 			SELECT ChannelId
 			FROM IgnoredChannel
 			WHERE GuildId = @GuildId
-		", param).CAF();
+		", param).ConfigureAwait(false);
 		return [.. result];
 	}
 
@@ -73,15 +71,15 @@ public sealed class LevelDatabase(IConnectionString<LevelDatabase> conn) : Datab
 			throw new ArgumentException("UserId cannot be null", nameof(args));
 		}
 
-		await using var connection = await GetConnectionAsync().CAF();
+		await using var connection = await GetConnectionAsync().ConfigureAwait(false);
 
-		var xp = await GetXpAsync(args).CAF();
+		var xp = await GetXpAsync(args).ConfigureAwait(false);
 		var results = await connection.QueryAsync<int>($@"
 			SELECT SUM(Experience)
 			FROM User
 			{GenerateWhereStatement(args)}
 			GROUP BY UserId
-		", args).CAF();
+		", args).ConfigureAwait(false);
 
 		var rank = 1;
 		var total = 0;
@@ -98,7 +96,7 @@ public sealed class LevelDatabase(IConnectionString<LevelDatabase> conn) : Datab
 
 	public async Task<IReadOnlyList<IRank>> GetRanksAsync(SearchArgs args, int offset, int limit)
 	{
-		await using var connection = await GetConnectionAsync().CAF();
+		await using var connection = await GetConnectionAsync().ConfigureAwait(false);
 
 		var param = new
 		{
@@ -115,8 +113,8 @@ public sealed class LevelDatabase(IConnectionString<LevelDatabase> conn) : Datab
 			GROUP BY UserId
 			ORDER BY Xp DESC
 			Limit @Limit OFFSET @Offset
-		", param).CAF();
-		var count = await GetDistinctUserCountAsync(args).CAF();
+		", param).ConfigureAwait(false);
+		var count = await GetDistinctUserCountAsync(args).ConfigureAwait(false);
 		return [.. results.Select((x, i) => new Rank(x.UserId, x.Xp, offset + i, count))];
 	}
 
@@ -126,7 +124,7 @@ public sealed class LevelDatabase(IConnectionString<LevelDatabase> conn) : Datab
 			SELECT *
 			FROM User
 			{GenerateSingleUserWhereStatement(args)}
-		", args).CAF() ?? new User(args);
+		", args).ConfigureAwait(false) ?? new User(args);
 	}
 
 	public async Task<int> GetXpAsync(SearchArgs args)
@@ -135,7 +133,7 @@ public sealed class LevelDatabase(IConnectionString<LevelDatabase> conn) : Datab
 			SELECT SUM(Experience)
 			FROM User
 			{GenerateSingleUserWhereStatement(args)}
-		", args).CAF() ?? 0;
+		", args).ConfigureAwait(false) ?? 0;
 	}
 
 	public Task<int> UpsertUserAsync(User user)

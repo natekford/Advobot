@@ -10,7 +10,8 @@ namespace Advobot.Localization;
 /// Used for a localized alias.
 /// </summary>
 [AttributeUsage(AttributeTargets.Method | AttributeTargets.Class, AllowMultiple = false, Inherited = true)]
-public class LocalizedAliasAttribute(string[] names, ResourceManager resources) : AliasAttribute(Array.ConvertAll(names, x => resources.GetStringEnsured(x))), ILocalized
+public class LocalizedAliasAttribute(string[] names, ResourceManager resources)
+	: AliasAttribute(Array.ConvertAll(names, resources.GetStringEnsured)), ILocalized
 {
 	private static readonly ResourceManager _RM = Resources.Aliases.ResourceManager;
 

@@ -3,8 +3,6 @@ using Advobot.ParameterPreconditions.Strings;
 using Advobot.Quotes.Database;
 using Advobot.Utilities;
 
-using AdvorangesUtils;
-
 using Discord;
 using Discord.Commands;
 
@@ -30,14 +28,14 @@ public sealed class QuoteName
 		string value,
 		IServiceProvider services)
 	{
-		var result = await base.CheckPermissionsAsync(context, parameter, invoker, value, services).CAF();
+		var result = await base.CheckPermissionsAsync(context, parameter, invoker, value, services).ConfigureAwait(false);
 		if (!result.IsSuccess)
 		{
 			return result;
 		}
 
 		var db = services.GetRequiredService<IQuoteDatabase>();
-		var quote = await db.GetQuoteAsync(context.Guild.Id, value).CAF();
+		var quote = await db.GetQuoteAsync(context.Guild.Id, value).ConfigureAwait(false);
 		var exists = quote != null;
 		return this.FromExistence(exists, value, StringType);
 	}

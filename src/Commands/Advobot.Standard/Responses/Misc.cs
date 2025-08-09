@@ -4,8 +4,6 @@ using Advobot.Modules;
 using Advobot.Services.HelpEntries;
 using Advobot.Utilities;
 
-using AdvorangesUtils;
-
 using Discord.Commands;
 
 using System.Reflection;
@@ -32,7 +30,8 @@ public sealed class Misc : AdvobotResult
 			category.WithTitleCase()
 		);
 		var description = entries
-			.Join(x => x.Name)
+			.Select(x => x.Name)
+			.Join()
 			.WithBigBlock()
 			.Value;
 		return Success(new EmbedWrapper
@@ -126,7 +125,7 @@ public sealed class Misc : AdvobotResult
 		{
 			var commands = "\n" + module.Commands.Select((x, i) =>
 			{
-				var parameters = x.Parameters.Join(FormatParameter);
+				var parameters = x.Parameters.Select(FormatParameter).Join();
 				var name = string.IsNullOrWhiteSpace(x.Name) ? "" : x.Name + " ";
 				return $"{i + 1}. {name}({parameters})";
 			}).Join("\n").WithBigBlock().Value;
@@ -151,7 +150,7 @@ public sealed class Misc : AdvobotResult
 
 		var info = new InfoMatrix();
 		var top = info.CreateCollection();
-		top.Add(MiscTitleAliases, command.Aliases.Join(x => x.WithBlock().Value));
+		top.Add(MiscTitleAliases, command.Aliases.Select(x => x.WithBlock().Value).Join());
 		top.Add(MiscTitleBasePermissions, FormatPreconditions(command.Preconditions));
 		var description = info.CreateCollection();
 		description.Add(MiscTitleDescription, command.Summary);
@@ -202,18 +201,18 @@ public sealed class Misc : AdvobotResult
 		}
 		if (preconditions.Any(x => x.Group == null))
 		{
-			return preconditions.Join(x => x.Summary, VariableAnd);
+			return preconditions.Select(x => x.Summary).Join(VariableAnd);
 		}
 
 		var groups = preconditions
 			.GroupBy(x => x.Group)
-			.Select(g => g.Join(x => x.Summary, VariableOr))
+			.Select(g => g.Select(x => x.Summary).Join(VariableOr))
 			.ToArray();
 		if (groups.Length == 1)
 		{
 			return groups[0];
 		}
-		return groups.Join(g => $"({g})", VariableAnd);
+		return groups.Select(x => $"({x})").Join(VariableAnd);
 	}
 
 	private static string FormatPreconditions(IEnumerable<IParameterPrecondition> preconditions)
@@ -222,10 +221,10 @@ public sealed class Misc : AdvobotResult
 		{
 			return VariableNotApplicable;
 		}
-		return preconditions.Join(x => x.Summary, VariableAnd);
+		return preconditions.Select(x => x.Summary).Join(VariableAnd);
 	}
 
-	private static MarkdownFormattedArg GetPrefixedCommand(
+	private static MarkdownString GetPrefixedCommand(
 		string prefix,
 		Type command,
 		string args = "")

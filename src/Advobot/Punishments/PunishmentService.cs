@@ -1,7 +1,5 @@
 ﻿using Advobot.Utilities;
 
-using AdvorangesUtils;
-
 using Discord;
 
 namespace Advobot.Punishments;
@@ -28,7 +26,7 @@ internal sealed class PunishmentService : IPunishmentService
 	/// <inheritdoc />
 	public async Task HandleAsync(IPunishmentContext context)
 	{
-		await context.ExecuteAsync().CAF();
-		await (context.IsGive ? _PunishmentGiven : _PunishmentRemoved).InvokeAsync(context).CAF();
+		await context.ExecuteAsync().ConfigureAwait(false);
+		await (context.IsGive ? _PunishmentGiven : _PunishmentRemoved).InvokeAsync(context).ConfigureAwait(false);
 	}
 }

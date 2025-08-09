@@ -2,8 +2,6 @@
 using Advobot.AutoMod.Models;
 using Advobot.Utilities;
 
-using AdvorangesUtils;
-
 using Discord.Commands;
 
 using Microsoft.Extensions.DependencyInjection;
@@ -29,7 +27,7 @@ public abstract class BannedPhraseTypeReaderBase : TypeReader
 		IServiceProvider services)
 	{
 		var db = services.GetRequiredService<IAutoModDatabase>();
-		var phrases = await db.GetBannedPhrasesAsync(context.Guild.Id).CAF();
+		var phrases = await db.GetBannedPhrasesAsync(context.Guild.Id).ConfigureAwait(false);
 		var matches = phrases.Where(x => IsValid(x, input)).ToArray();
 
 		var type = BannedPhraseType.Format(BannedPhraseName.WithNoMarkdown());

@@ -3,8 +3,6 @@ using Advobot.Services.GuildSettings;
 using Advobot.Settings.Database;
 using Advobot.Utilities;
 
-using AdvorangesUtils;
-
 using Discord;
 
 using System.Globalization;
@@ -25,7 +23,7 @@ public class GuildSettingsProvider(ISettingsDatabase db, IRuntimeConfig settings
 
 	public async Task<CultureInfo> GetCultureAsync(IGuild guild)
 	{
-		var settings = await _Db.GetGuildSettingsAsync(guild.Id).CAF();
+		var settings = await _Db.GetGuildSettingsAsync(guild.Id).ConfigureAwait(false);
 		if (settings.Culture != null)
 		{
 			return CultureInfo.GetCultureInfo(settings.Culture);
@@ -35,7 +33,7 @@ public class GuildSettingsProvider(ISettingsDatabase db, IRuntimeConfig settings
 
 	public async Task<IRole> GetMuteRoleAsync(IGuild guild)
 	{
-		var settings = await _Db.GetGuildSettingsAsync(guild.Id).CAF();
+		var settings = await _Db.GetGuildSettingsAsync(guild.Id).ConfigureAwait(false);
 		if (settings.MuteRoleId != 0)
 		{
 			foreach (var role in guild.Roles)
@@ -51,13 +49,13 @@ public class GuildSettingsProvider(ISettingsDatabase db, IRuntimeConfig settings
 		await _Db.UpsertGuildSettingsAsync(settings with
 		{
 			MuteRoleId = newRole.Id,
-		}).CAF();
+		}).ConfigureAwait(false);
 		return newRole;
 	}
 
 	public async Task<string> GetPrefixAsync(IGuild guild)
 	{
-		var settings = await _Db.GetGuildSettingsAsync(guild.Id).CAF();
+		var settings = await _Db.GetGuildSettingsAsync(guild.Id).ConfigureAwait(false);
 		return settings.Prefix ?? _Settings.Prefix;
 	}
 }

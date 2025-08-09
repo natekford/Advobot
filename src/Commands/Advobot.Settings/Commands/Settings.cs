@@ -5,8 +5,6 @@ using Advobot.Resources;
 using Advobot.Services.HelpEntries;
 using Advobot.Settings.Models;
 
-using AdvorangesUtils;
-
 using Discord.Commands;
 
 using static Advobot.Settings.Responses.Settings;
@@ -122,12 +120,12 @@ public sealed class Settings : ModuleBase
 
 				if (ShouldEnable.HasValue)
 				{
-					await Db.UpsertCommandOverridesAsync(overrides).CAF();
+					await Db.UpsertCommandOverridesAsync(overrides).ConfigureAwait(false);
 					return ModifiedCommands(commands, priority, ShouldEnable.Value);
 				}
 				else
 				{
-					await Db.DeleteCommandOverridesAsync(overrides).CAF();
+					await Db.DeleteCommandOverridesAsync(overrides).ConfigureAwait(false);
 					return ClearedCommands(commands);
 				}
 			}
@@ -229,7 +227,7 @@ public sealed class Settings : ModuleBase
 		public async Task Command(
 			bool enable,
 			[ValidateTextChannel(FromContext = true)] SocketTextChannel channel)
-			=> await ModifyCollectionAsync(x => x.IgnoredCommandChannels, enable, channel.Id).CAF();
+			=> await ModifyCollectionAsync(x => x.IgnoredCommandChannels, enable, channel.Id).ConfigureAwait(false);
 
 		[ImplicitCommand, ImplicitAlias]
 		public Task Category(bool enable, [ValidateCommandCategory] string category, [ValidateTextChannel(FromContext = true)] SocketTextChannel channel)
@@ -268,7 +266,7 @@ public sealed class Settings : ModuleBase
 				if (botUser == null || botUser.Permissions == 0)
 				{
 					var error = $"`{user.Format()}` has no extra permissions from the bot.");
-					await MessageUtils.SendErrorMessageAsync(Context, error).CAF();
+					await MessageUtils.SendErrorMessageAsync(Context, error).ConfigureAwait(false);
 					return;
 				}
 
@@ -277,7 +275,7 @@ public sealed class Settings : ModuleBase
 					Title = $"Permissions for {user.Format()}",
 					Description = $"`{string.Join("`, `", EnumUtils.GetFlagNames((GuildPermission)botUser.Permissions))}`"
 				};
-				await MessageUtils.SendMessageAsync(Context.Channel, null, embed).CAF();
+				await MessageUtils.SendMessageAsync(Context.Channel, null, embed).ConfigureAwait(false);
 			}
 			[Command]
 			public async Task Command(bool add, IUser user, [Remainder, OverrideTypeReader(typeof(GuildPermissionsTypeReader))] ulong permissions)
@@ -290,13 +288,13 @@ public sealed class Settings : ModuleBase
 				if (!add && botUser == null)
 				{
 					var error = $"`{user.Format()}` does not have any bot permissions to remove");
-					await MessageUtils.SendErrorMessageAsync(Context, error).CAF();
+					await MessageUtils.SendErrorMessageAsync(Context, error).ConfigureAwait(false);
 					return;
 				}
 
 				var modifiedPerms = string.Join("`, `", botUser.ModifyPermissions(add, (IGuildUser)Context.User, permissions));
 				var resp = $"Successfully {(add ? "removed" : "added")} the following bot permissions on `{user.Format()}`: `{modifiedPerms}`.";
-				await MessageUtils.MakeAndDeleteSecondaryMessageAsync(Context, resp).CAF();
+				await MessageUtils.MakeAndDeleteSecondaryMessageAsync(Context, resp).ConfigureAwait(false);
 			}
 
 			protected override IGuildSettings GetSettings() => Context.GuildSettings;

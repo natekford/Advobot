@@ -7,8 +7,6 @@ using Advobot.Services.GuildSettings;
 using Advobot.Services.HelpEntries;
 using Advobot.Utilities;
 
-using AdvorangesUtils;
-
 using Discord;
 using Discord.Commands;
 using Discord.WebSocket;
@@ -102,7 +100,7 @@ internal sealed class CommandHandlerService : ICommandHandlerService
 		{
 			foreach (var culture in assembly.SupportedCultures)
 			{
-				await AddCommandsAsync(culture, assembly.Assembly).CAF();
+				await AddCommandsAsync(culture, assembly.Assembly).ConfigureAwait(false);
 			}
 		}
 
@@ -141,7 +139,7 @@ internal sealed class CommandHandlerService : ICommandHandlerService
 		CultureInfo.CurrentUICulture = culture;
 		var commandService = _CommandService.Get();
 
-		var modules = await commandService.AddModulesAsync(assembly, _Provider).CAF();
+		var modules = await commandService.AddModulesAsync(assembly, _Provider).ConfigureAwait(false);
 
 		static IEnumerable<ModuleInfo> GetAllModules(ModuleInfo module)
 		{
@@ -160,7 +158,7 @@ internal sealed class CommandHandlerService : ICommandHandlerService
 		var newCategories = new HashSet<string>();
 		foreach (var module in modules.SelectMany(GetAllModules))
 		{
-			var meta = module.Attributes.GetAttribute<MetaAttribute>();
+			var meta = module.Attributes.OfType<MetaAttribute>().FirstOrDefault();
 			if (meta is null)
 			{
 				continue;
@@ -172,13 +170,13 @@ internal sealed class CommandHandlerService : ICommandHandlerService
 			{
 				++helpEntryCount;
 
-				var category = module.Attributes.GetAttribute<CategoryAttribute>();
+				var category = module.Attributes.OfType<CategoryAttribute>().First();
 				newCategories.Add(category.Category);
 				_Help.Add(new ModuleHelpEntry(module, meta, category));
 			}
 		}
 
-		ConsoleUtils.WriteLine($"Successfully loaded {newCategories.Count} categories " +
+		Console.WriteLine($"Successfully loaded {newCategories.Count} categories " +
 			$"containing {commandCount} commands " +
 			$"({helpEntryCount} were given help entries) " +
 			$"from {assembly.GetName().Name} in the {culture} culture.");
@@ -249,19 +247,19 @@ internal sealed class CommandHandlerService : ICommandHandlerService
 		var argPos = -1;
 		if (!msg.HasMentionPrefix(_Client.CurrentUser, ref argPos))
 		{
-			var prefix = await _GuildSettings.GetPrefixAsync(user.Guild).CAF();
+			var prefix = await _GuildSettings.GetPrefixAsync(user.Guild).ConfigureAwait(false);
 			if (!msg.HasStringPrefix(prefix, ref argPos))
 			{
 				return;
 			}
 		}
 
-		var culture = await _GuildSettings.GetCultureAsync(user.Guild).CAF();
+		var culture = await _GuildSettings.GetCultureAsync(user.Guild).ConfigureAwait(false);
 		CultureInfo.CurrentUICulture = culture;
 		CultureInfo.CurrentCulture = culture;
 		var commands = _CommandService.Get();
 		var context = new AdvobotCommandContext(_Client, msg);
-		await commands.ExecuteAsync(context, argPos, _Provider).CAF();
+		await commands.ExecuteAsync(context, argPos, _Provider).ConfigureAwait(false);
 	}
 
 	private async Task OnShardReady(DiscordSocketClient _)
@@ -280,8 +278,8 @@ internal sealed class CommandHandlerService : ICommandHandlerService
 			stream = $"https://www.twitch.tv/{stream[(stream.LastIndexOf('/') + 1)..]}";
 			activityType = ActivityType.Streaming;
 		}
-		await _Client.SetGameAsync(game, stream, activityType).CAF();
+		await _Client.SetGameAsync(game, stream, activityType).ConfigureAwait(false);
 
-		await _Ready.InvokeAsync().CAF();
+		await _Ready.InvokeAsync().ConfigureAwait(false);
 	}
 }

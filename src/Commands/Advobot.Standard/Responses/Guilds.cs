@@ -2,8 +2,6 @@
 using Advobot.Modules;
 using Advobot.Utilities;
 
-using AdvorangesUtils;
-
 using Discord;
 
 using static Advobot.Resources.Responses;
@@ -19,7 +17,8 @@ public sealed class Guilds : AdvobotResult
 	public static AdvobotResult DisplayRegions(IReadOnlyCollection<IVoiceRegion> regions)
 	{
 		var description = regions
-			.Join(x => x.Id, Environment.NewLine)
+			.Select(x => x.Id)
+			.Join(Environment.NewLine)
 			.WithBigBlock()
 			.Value;
 		return Success(new EmbedWrapper

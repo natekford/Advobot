@@ -4,8 +4,6 @@ using Advobot.Settings.Database;
 using Advobot.Settings.Models;
 using Advobot.Utilities;
 
-using AdvorangesUtils;
-
 using Discord;
 using Discord.Commands;
 
@@ -43,7 +41,7 @@ public class CommandValidator(ISettingsDatabase db) : ICommandValidator
 		}
 
 		var id = meta.Guid.ToString();
-		var overrides = await _Db.GetCommandOverridesAsync(context.Guild.Id, id).CAF();
+		var overrides = await _Db.GetCommandOverridesAsync(context.Guild.Id, id).ConfigureAwait(false);
 		foreach (var @override in overrides)
 		{
 			var entity = GetEntity(context, @override);

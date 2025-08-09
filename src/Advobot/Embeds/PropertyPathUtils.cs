@@ -1,4 +1,4 @@
-﻿using AdvorangesUtils;
+﻿using Advobot.Utilities;
 
 using System.Linq.Expressions;
 using System.Reflection;
@@ -37,7 +37,7 @@ internal static class PropertyPathUtils
 	private static string GetFromCall(this MethodCallExpression call)
 	{
 		var name = call.Method.Name;
-		var args = call.Arguments.Join(GetFromAny);
+		var args = call.Arguments.Select(GetFromAny).Join();
 
 		//Changing indexer from obj.get_Item to obj[]
 		if (call.Method.IsSpecialName)
@@ -122,7 +122,7 @@ internal static class PropertyPathUtils
 	private static string GetFromNew(this NewExpression @new)
 	{
 		var name = @new.Type.Name;
-		var args = @new.Arguments.Join(GetFromAny);
+		var args = @new.Arguments.Select(GetFromAny).Join();
 		return $"new {name}({args})";
 	}
 

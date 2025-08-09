@@ -1,11 +1,11 @@
 ﻿using Advobot.AutoMod.Database;
 using Advobot.AutoMod.Service;
 using Advobot.Punishments;
+using Advobot.Serilog;
 using Advobot.Services.Time;
+using Advobot.Tests.Fakes.Services;
 using Advobot.Tests.Fakes.Services.Time;
 using Advobot.Tests.TestBases;
-
-using AdvorangesUtils;
 
 using Discord;
 
@@ -29,20 +29,20 @@ public sealed class RemovablePunishment_Tests : TestsBase
 	[TestMethod]
 	public async Task BansGetAdded_Test()
 	{
-		await AddBansAsync(5).CAF();
+		await AddBansAsync(5).ConfigureAwait(false);
 
-		var retrieved = await _Db.GetOldPunishmentsAsync(DateTime.MaxValue.Ticks).CAF();
+		var retrieved = await _Db.GetOldPunishmentsAsync(DateTime.MaxValue.Ticks).ConfigureAwait(false);
 		Assert.HasCount(5, retrieved);
 	}
 
 	[TestMethod]
 	public async Task OldRemovablePunishmentsGetIgnored_Test()
 	{
-		await AddBansAsync(5).CAF();
+		await AddBansAsync(5).ConfigureAwait(false);
 
 		_Time.UtcNow += TimeSpan.FromDays(10);
 		{
-			var retrieved = await _Db.GetOldPunishmentsAsync(_Time.UtcNow.Ticks).CAF();
+			var retrieved = await _Db.GetOldPunishmentsAsync(_Time.UtcNow.Ticks).ConfigureAwait(false);
 			Assert.HasCount(5, retrieved);
 		}
 
@@ -60,11 +60,11 @@ public sealed class RemovablePunishment_Tests : TestsBase
 		};
 		_Service.Start();
 
-		var value = await tcs.Task.CAF();
+		var value = await tcs.Task.ConfigureAwait(false);
 		Assert.AreEqual(5, value);
 
 		{
-			var retrieved = await _Db.GetOldPunishmentsAsync(DateTime.MaxValue.Ticks).CAF();
+			var retrieved = await _Db.GetOldPunishmentsAsync(DateTime.MaxValue.Ticks).ConfigureAwait(false);
 			Assert.IsEmpty(retrieved);
 		}
 	}
@@ -72,11 +72,11 @@ public sealed class RemovablePunishment_Tests : TestsBase
 	[TestMethod]
 	public async Task RemovablePunishmentsGetProcessed_Test()
 	{
-		await AddBansAsync(5).CAF();
+		await AddBansAsync(5).ConfigureAwait(false);
 
 		_Time.UtcNow += TimeSpan.FromDays(3);
 		{
-			var retrieved = await _Db.GetOldPunishmentsAsync(_Time.UtcNow.Ticks).CAF();
+			var retrieved = await _Db.GetOldPunishmentsAsync(_Time.UtcNow.Ticks).ConfigureAwait(false);
 			Assert.HasCount(5, retrieved);
 		}
 
@@ -95,12 +95,12 @@ public sealed class RemovablePunishment_Tests : TestsBase
 		};
 		_Service.Start();
 
-		var value = await tcs.Task.CAF();
+		var value = await tcs.Task.ConfigureAwait(false);
 		Assert.AreEqual(5, value);
 		Assert.AreEqual(5, punishmentRemovedCount);
 
 		{
-			var retrieved = await _Db.GetOldPunishmentsAsync(DateTime.MaxValue.Ticks).CAF();
+			var retrieved = await _Db.GetOldPunishmentsAsync(DateTime.MaxValue.Ticks).ConfigureAwait(false);
 			Assert.IsEmpty(retrieved);
 		}
 	}
@@ -112,7 +112,9 @@ public sealed class RemovablePunishment_Tests : TestsBase
 			.AddSingleton<IDiscordClient>(Context.Client)
 			.AddSingleton<IPunishmentService>(_Punisher)
 			.AddSingleton<ITime>(_Time)
-			.AddSingleton<RemovablePunishmentService>();
+			.AddSingleton<IConfig>(FakeConfig.Singleton)
+			.AddSingleton<RemovablePunishmentService>()
+			.AddLogger<RemovablePunishmentService>("TEMP");
 	}
 
 	private async Task AddBansAsync(ulong count)
@@ -122,7 +124,7 @@ public sealed class RemovablePunishment_Tests : TestsBase
 			await _Punisher.HandleAsync(new Ban(Context.Guild, i, true)
 			{
 				Time = TimeSpan.FromDays(1),
-			}).CAF();
+			}).ConfigureAwait(false);
 		}
 	}
 }

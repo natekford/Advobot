@@ -3,8 +3,6 @@ using Advobot.Logging.Models;
 using Advobot.ParameterPreconditions;
 using Advobot.Utilities;
 
-using AdvorangesUtils;
-
 using Discord;
 using Discord.Commands;
 
@@ -37,7 +35,7 @@ public abstract class LogParameterPrecondition : AdvobotParameterPrecondition<IT
 		IServiceProvider services)
 	{
 		var service = services.GetRequiredService<ILoggingDatabase>();
-		var channels = await service.GetLogChannelsAsync(context.Guild.Id).CAF();
+		var channels = await service.GetLogChannelsAsync(context.Guild.Id).ConfigureAwait(false);
 		if (GetId(channels) != value.Id)
 		{
 			return this.FromSuccess();

@@ -1,7 +1,7 @@
-﻿using AdvorangesUtils;
+﻿using Discord;
 
-using Discord;
-
+using System.Diagnostics.CodeAnalysis;
+using System.Globalization;
 using System.Text;
 
 namespace Advobot.Utilities;
@@ -25,6 +25,15 @@ public static class FormattingUtils
 			Url = author?.GetAvatarUrl(),
 		};
 	}
+
+	/// <summary>
+	/// Returns the input string with ` escaped.
+	/// </summary>
+	/// <param name="input">The input to escape backticks from.</param>
+	/// <returns>The input with escaped backticks.</returns>
+	[return: NotNullIfNotNull(nameof(input))]
+	public static string? EscapeBackTicks(this string? input)
+		=> input?.Replace("`", "\\`");
 
 	/// <summary>
 	/// Returns a string with the object's name and id.
@@ -143,7 +152,7 @@ public static class FormattingUtils
 			}
 
 			var description = embed.Description?.EscapeBackTicks() ?? "No description";
-			sb.AppendLineFeed();
+			sb.AppendLine();
 			sb.Append("Embed ").Append(currentEmbed + 1).Append(": ").Append(description);
 			if (embed.Url != null)
 			{
@@ -156,10 +165,10 @@ public static class FormattingUtils
 			++currentEmbed;
 		}
 
-		var attachments = msg.Attachments.Join(x => x.Filename, " + ");
+		var attachments = msg.Attachments.Select(x => x.Filename).Join(" + ");
 		if (!string.IsNullOrWhiteSpace(attachments))
 		{
-			sb.AppendLineFeed().AppendLineFeed($" + {attachments.EscapeBackTicks()}");
+			sb.AppendLine().AppendLine($" + {attachments.EscapeBackTicks()}");
 		}
 		return sb.Append("```").ToString();
 	}
@@ -230,81 +239,122 @@ public static class FormattingUtils
 	/// <param name="format"></param>
 	/// <param name="args"></param>
 	/// <returns></returns>
-	public static string Format(this string format, params MarkdownFormattedArg[] args)
+	public static string Format(this string format, params MarkdownString[] args)
 	{
 		var casted = Array.ConvertAll(args, x => x.Value);
 		return string.Format(format, casted);
 	}
 
 	/// <summary>
-	/// Formats the interpolated string with the specified format provider.
+	/// Returns a string which is a numbered list of the passed in strings.
 	/// </summary>
-	/// <param name="provider"></param>
-	/// <param name="formattable"></param>
-	/// <returns></returns>
-	public static string FormatInterpolated(
-		this IFormatProvider provider,
-		FormattableString formattable)
-		=> formattable.ToString(provider);
-
-	/// <summary>
-	/// Formats the permissions into a precondition string.
-	/// </summary>
-	/// <typeparam name="T"></typeparam>
-	/// <param name="permissions"></param>
-	/// <returns></returns>
-	public static string FormatPermissions<T>(this IEnumerable<T> permissions)
-		where T : Enum
+	/// <param name="values">The strings to put into a numbered list.</param>
+	/// <returns>A numbered list of strings.</returns>
+	public static string FormatNumberedList(this IEnumerable<string> values)
 	{
-		return permissions.Select(x =>
+		var maxLen = values.Count().ToString().Length;
+		return values.Select((x, index) =>
 		{
-			var perms = default(List<string>);
-			foreach (Enum e in Enum.GetValues(x.GetType()))
-			{
-				if (x.Equals(e))
-				{
-					return e.ToString();
-				}
-				else if (x.HasFlag(e))
-				{
-					perms ??= [];
-					perms.Add(e.ToString());
-				}
-			}
-			return perms.Join(" & ");
-		}).Join(" | ");
+			var number = (index + 1).ToString().PadLeft(maxLen, '0');
+			return $"`{number}.` {x}";
+		}).Join("\n");
 	}
 
 	/// <summary>
-	/// Returns a dictionary of the names of each permission and its value.
+	/// Formats the permission values into a string.
 	/// </summary>
-	/// <typeparam name="T"></typeparam>
 	/// <param name="values"></param>
-	/// <param name="localizer"></param>
-	/// <param name="padLength"></param>
 	/// <returns></returns>
-	/// <exception cref="IndexOutOfRangeException"></exception>
-	public static IDictionary<string, string> FormatPermissionValues<T>(
-		this IDictionary<T, PermValue> values,
-		Func<T, string> localizer,
-		out int padLength) where T : Enum
+	public static string FormatPermissionList(this IDictionary<string, PermValue> values)
 	{
-		padLength = -1;
-		var temp = new Dictionary<string, string>();
-		foreach (var kvp in values)
-		{
-			var name = localizer(kvp.Key);
-			var value = kvp.Value switch
+		var padLength = values.Keys.Max(x => x.Length);
+		return values
+			.Select(kvp =>
 			{
-				PermValue.Allow => Constants.ALLOWED,
-				PermValue.Deny => Constants.DENIED,
-				PermValue.Inherit => Constants.INHERITED,
-				_ => throw new IndexOutOfRangeException(nameof(kvp.Value)),
-			};
-			padLength = Math.Max(padLength, name.Length);
-			temp.Add(name, value);
+				var emoji = kvp.Value switch
+				{
+					PermValue.Allow => Constants.ALLOWED,
+					PermValue.Deny => Constants.DENIED,
+					PermValue.Inherit => Constants.INHERITED,
+					_ => throw new IndexOutOfRangeException(nameof(kvp.Value)),
+				};
+				return $"{kvp.Key.PadRight(padLength)} {emoji}";
+			})
+			.Join("\n");
+	}
+
+	/// <summary>
+	/// Joins the strings together with <paramref name="separator"/>.
+	/// </summary>
+	/// <param name="source">The values to join.</param>
+	/// <param name="separator">The value to join each string with.</param>
+	/// <returns>All strings joined together.</returns>
+	public static string Join(this IEnumerable<string> source, string? separator = null)
+	{
+		separator ??= CultureInfo.CurrentCulture.TextInfo.ListSeparator + " ";
+		return string.Join(separator, source);
+	}
+
+	/// <summary>
+	/// Returns the input string with carriage returns changed to new lines,
+	/// no duplicate new lines, and no markdown.
+	/// </summary>
+	/// <param name="input">The input to remove duplicate new lines and markdown from.</param>
+	/// <param name="keepMarkdown">Whether or not to keep markdown.</param>
+	/// <returns>The input without any duplicate new lines or markdown.</returns>
+	[return: NotNullIfNotNull(nameof(input))]
+	public static string? Sanitize(this string? input, bool keepMarkdown)
+	{
+		if (string.IsNullOrEmpty(input))
+		{
+			return input;
 		}
-		return temp;
+		if (!keepMarkdown)
+		{
+			input = input.Replace("\\", "").Replace("*", "").Replace("_", "").Replace("~", "").Replace("`", "");
+		}
+
+		var str = input.Replace("\r", "\n");
+		int len;
+		do
+		{
+			len = str.Length;
+			str = str.Replace("\n\n", "\n");
+		} while (len != str.Length);
+		return str;
+	}
+
+	/// <summary>
+	/// Returns the passed in time as a human readable time.
+	/// </summary>
+	/// <param name="dt">The datetime to format.</param>
+	/// <returns>Formatted string that is readable by humans.</returns>
+	public static string ToReadable(this DateTime dt)
+	{
+		var utc = dt.ToUniversalTime();
+		var month = CultureInfo.CurrentCulture.DateTimeFormat.GetMonthName(utc.Month);
+		return $"{month} {utc.Day}, {utc.Year} at {utc.ToLongTimeString()}";
+	}
+
+	/// <summary>
+	/// Adds in spaces between each capital letter and capitalizes every letter after a space.
+	/// </summary>
+	/// <param name="input">The input to put into title case.</param>
+	/// <returns>The input in title case.</returns>
+	public static string ToTitleCase(this string input)
+	{
+		var sb = new StringBuilder();
+		for (var i = 0; i < input.Length; ++i)
+		{
+			var c = input[i];
+			if (char.IsUpper(c) && i > 0 && !char.IsWhiteSpace(input[i - 1]))
+			{
+				sb.Append(' ');
+			}
+			//Determine if the char should be made capital
+			sb.Append(i == 0 || (i > 0 && char.IsWhiteSpace(input[i - 1])) ? char.ToUpper(c) : c);
+		}
+		return sb.ToString();
 	}
 
 	/// <summary>
@@ -312,7 +362,7 @@ public static class FormattingUtils
 	/// </summary>
 	/// <param name="value"></param>
 	/// <returns></returns>
-	public static MarkdownFormattedArg WithBigBlock(this string value)
+	public static MarkdownString WithBigBlock(this string value)
 		=> new(value, value.AddMarkdown("```"));
 
 	/// <summary>
@@ -320,7 +370,7 @@ public static class FormattingUtils
 	/// </summary>
 	/// <param name="value"></param>
 	/// <returns></returns>
-	public static MarkdownFormattedArg WithBlock(this string value)
+	public static MarkdownString WithBlock(this string value)
 		=> new(value, value.AddMarkdown("`"));
 
 	/// <summary>
@@ -328,7 +378,7 @@ public static class FormattingUtils
 	/// </summary>
 	/// <param name="value"></param>
 	/// <returns></returns>
-	public static MarkdownFormattedArg WithNoMarkdown(this string value)
+	public static MarkdownString WithNoMarkdown(this string value)
 		=> new(value, value);
 
 	/// <summary>
@@ -336,17 +386,17 @@ public static class FormattingUtils
 	/// </summary>
 	/// <param name="value"></param>
 	/// <returns></returns>
-	public static MarkdownFormattedArg WithTitleCase(this string value)
-		=> new(value, value.FormatTitle());
+	public static MarkdownString WithTitleCase(this string value)
+		=> new(value, value.ToTitleCase());
 
 	/// <summary>
 	/// Formats the string as a title (in title case, with a colon at the end, and in bold).
 	/// </summary>
 	/// <param name="value"></param>
 	/// <returns></returns>
-	public static MarkdownFormattedArg WithTitleCaseAndColon(this string value)
+	public static MarkdownString WithTitleCaseAndColon(this string value)
 	{
-		var title = value.FormatTitle();
+		var title = value.ToTitleCase();
 		if (!title.EndsWith(':'))
 		{
 			title += ":";
@@ -361,11 +411,11 @@ public static class FormattingUtils
 	/// Contains the original value and a newly formatted value.
 	/// </summary>
 	/// <remarks>
-	/// Creates an instance of <see cref="MarkdownFormattedArg"/>.
+	/// Creates an instance of <see cref="MarkdownString"/>.
 	/// </remarks>
 	/// <param name="original"></param>
 	/// <param name="current"></param>
-	public readonly struct MarkdownFormattedArg(string original, string current)
+	public readonly struct MarkdownString(string original, string current)
 	{
 		/// <summary>
 		/// The original value.

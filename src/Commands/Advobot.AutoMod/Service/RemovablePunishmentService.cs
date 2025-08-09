@@ -3,10 +3,10 @@ using Advobot.AutoMod.Models;
 using Advobot.Punishments;
 using Advobot.Services.Time;
 
-using AdvorangesUtils;
-
 using Discord;
 using Discord.Net;
+
+using Microsoft.Extensions.Logging;
 
 using System.Net;
 
@@ -16,6 +16,7 @@ public sealed class RemovablePunishmentService
 {
 	private readonly IDiscordClient _Client;
 	private readonly IRemovablePunishmentDatabase _Db;
+	private readonly ILogger _Logger;
 	private readonly IPunishmentService _Punisher;
 	private readonly ITime _Time;
 	// If the background task is processing removable punishments it adds them to a list
@@ -27,6 +28,7 @@ public sealed class RemovablePunishmentService
 	private readonly HashSet<IPunishmentContext> _WillBeBatchRemoved = [];
 
 	public RemovablePunishmentService(
+		ILogger<RemovablePunishmentService> logger,
 		IRemovablePunishmentDatabase db,
 		IDiscordClient client,
 		ITime time,
@@ -34,6 +36,7 @@ public sealed class RemovablePunishmentService
 	{
 		_Db = db;
 		_Client = client;
+		_Logger = logger;
 		_Time = time;
 		_Punisher = punisher;
 
@@ -47,27 +50,31 @@ public sealed class RemovablePunishmentService
 		{
 			while (true)
 			{
-				var values = await _Db.GetOldPunishmentsAsync(_Time.UtcNow.Ticks).CAF();
+				var values = await _Db.GetOldPunishmentsAsync(_Time.UtcNow.Ticks).ConfigureAwait(false);
 
 				var handled = new List<RemovablePunishment>();
 				foreach (var punishment in values)
 				{
 					try
 					{
-						if (await RemovePunishmentAsync(punishment).CAF())
+						if (await RemovePunishmentAsync(punishment).ConfigureAwait(false))
 						{
 							handled.Add(punishment);
 						}
 					}
 					catch (Exception e)
 					{
-						e.Write();
+						_Logger.LogWarning(
+							exception: e,
+							message: "Exception occurred while removing a punishment. {@Info}.",
+							punishment
+						);
 					}
 				}
-				await _Db.DeleteRemovablePunishmentsAsync(handled).CAF();
+				await _Db.DeleteRemovablePunishmentsAsync(handled).ConfigureAwait(false);
 				_WillBeBatchRemoved.Clear();
 
-				await Task.Delay(TimeSpan.FromMinutes(1)).CAF();
+				await Task.Delay(TimeSpan.FromMinutes(1)).ConfigureAwait(false);
 			}
 		});
 	}
@@ -98,7 +105,7 @@ public sealed class RemovablePunishmentService
 			return true;
 		}
 
-		var guild = await _Client.GetGuildAsync(punishment.GuildId).CAF();
+		var guild = await _Client.GetGuildAsync(punishment.GuildId).ConfigureAwait(false);
 		if (guild is null)
 		{
 			return false;
@@ -111,7 +118,7 @@ public sealed class RemovablePunishmentService
 				RoleId = punishment.RoleId
 			};
 			_WillBeBatchRemoved.Add(context);
-			await _Punisher.HandleAsync(context).CAF();
+			await _Punisher.HandleAsync(context).ConfigureAwait(false);
 		}
 		// Lacking permissions, assume the punishment will be handled by someone else
 		catch (HttpException e) when (e.HttpCode == HttpStatusCode.Forbidden)

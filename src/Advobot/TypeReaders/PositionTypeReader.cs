@@ -1,7 +1,5 @@
 ﻿using Advobot.Utilities;
 
-using AdvorangesUtils;
-
 using Discord.Commands;
 
 namespace Advobot.TypeReaders;
@@ -28,7 +26,7 @@ public abstract class PositionTypeReader<T> : TypeReader
 			return TypeReaderUtils.ParseFailedResult<int>();
 		}
 
-		var matches = await GetObjectsWithPositionAsync(context, position).CAF();
+		var matches = await GetObjectsWithPositionAsync(context, position).ConfigureAwait(false);
 		return TypeReaderUtils.SingleValidResult(matches, $"{ObjectTypeName} by position", input);
 	}
 

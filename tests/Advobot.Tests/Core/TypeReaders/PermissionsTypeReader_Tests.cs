@@ -1,7 +1,6 @@
 ﻿using Advobot.Tests.TestBases;
 using Advobot.TypeReaders;
-
-using AdvorangesUtils;
+using Advobot.Utilities;
 
 using Discord;
 
@@ -16,7 +15,7 @@ public sealed class PermissionsTypeReader_Tests
 	[TestMethod]
 	public async Task InvalidNumber_Test()
 	{
-		var result = await ReadAsync("123412341234123412341234132412341234123412341234").CAF();
+		var result = await ReadAsync("123412341234123412341234132412341234123412341234").ConfigureAwait(false);
 		Assert.IsFalse(result.IsSuccess);
 	}
 
@@ -31,7 +30,7 @@ public sealed class PermissionsTypeReader_Tests
 				ChannelPermission.EmbedLinks,
 				ChannelPermission.ManageWebhooks
 			};
-		var result = await ReadAsync(perms.Join(x => x.ToString())).CAF();
+		var result = await ReadAsync(perms.Select(x => x.ToString()).Join()).ConfigureAwait(false);
 		Assert.IsTrue(result.IsSuccess);
 		Assert.IsInstanceOfType(result.BestMatch, typeof(ChannelPermission));
 	}
@@ -39,7 +38,7 @@ public sealed class PermissionsTypeReader_Tests
 	[TestMethod]
 	public async Task ValidNumber_Test()
 	{
-		var result = await ReadAsync("123456789").CAF();
+		var result = await ReadAsync("123456789").ConfigureAwait(false);
 		Assert.IsTrue(result.IsSuccess);
 		Assert.IsInstanceOfType(result.BestMatch, typeof(ChannelPermission));
 	}

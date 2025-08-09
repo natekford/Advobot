@@ -1,8 +1,6 @@
 ﻿using Advobot.Services.HelpEntries;
 using Advobot.Utilities;
 
-using AdvorangesUtils;
-
 using Discord.Commands;
 
 namespace Advobot.Preconditions;
@@ -23,7 +21,7 @@ public sealed class RequireBotOwner : PreconditionAttribute, IPrecondition
 		CommandInfo command,
 		IServiceProvider services)
 	{
-		var application = await context.Client.GetApplicationInfoAsync().CAF();
+		var application = await context.Client.GetApplicationInfoAsync().ConfigureAwait(false);
 		if (application.Owner.Id == context.User.Id)
 		{
 			return this.FromSuccess();

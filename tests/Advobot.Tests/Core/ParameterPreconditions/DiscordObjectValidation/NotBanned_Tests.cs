@@ -1,8 +1,6 @@
 ﻿using Advobot.ParameterPreconditions.Discord;
 using Advobot.Tests.TestBases;
 
-using AdvorangesUtils;
-
 namespace Advobot.Tests.Core.ParameterPreconditions.DiscordObjectValidation;
 
 [TestClass]
@@ -14,12 +12,12 @@ public sealed class NotBanned_Tests : ParameterPrecondition_Tests<NotBanned>
 	[TestMethod]
 	public async Task BanExisting_Test()
 	{
-		await Context.Guild.AddBanAsync(ID).CAF();
+		await Context.Guild.AddBanAsync(ID).ConfigureAwait(false);
 
-		await AssertFailureAsync(ID).CAF();
+		await AssertFailureAsync(ID).ConfigureAwait(false);
 	}
 
 	[TestMethod]
 	public async Task BanNotExisting_Test()
-		=> await AssertSuccessAsync(ID).CAF();
+		=> await AssertSuccessAsync(ID).ConfigureAwait(false);
 }

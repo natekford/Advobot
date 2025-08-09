@@ -4,8 +4,6 @@ using Advobot.Punishments;
 using Advobot.Tests.Fakes.Database;
 using Advobot.Tests.TestBases;
 
-using AdvorangesUtils;
-
 namespace Advobot.Tests.Commands.AutoMod.Database;
 
 [TestClass]
@@ -19,7 +17,7 @@ public sealed class AutoModCRUD_Tests
 	[TestMethod]
 	public async Task AutoModSettingsCRUD_Test()
 	{
-		var db = await GetDatabaseAsync().CAF();
+		var db = await GetDatabaseAsync().ConfigureAwait(false);
 
 		var settings = new AutoModSettings
 		(
@@ -31,9 +29,9 @@ public sealed class AutoModCRUD_Tests
 
 		async Task AssertEqualAsync()
 		{
-			await db.UpsertAutoModSettingsAsync(settings).CAF();
+			await db.UpsertAutoModSettingsAsync(settings).ConfigureAwait(false);
 
-			var retrieved = await db!.GetAutoModSettingsAsync(settings.GuildId).CAF();
+			var retrieved = await db!.GetAutoModSettingsAsync(settings.GuildId).ConfigureAwait(false);
 			Assert.IsNotNull(retrieved);
 			Assert.AreEqual(settings.CheckDuration, retrieved.CheckDuration);
 			Assert.AreEqual(settings.Duration, retrieved.Duration);
@@ -42,7 +40,7 @@ public sealed class AutoModCRUD_Tests
 			Assert.AreEqual(settings.IgnoreHigherHierarchy, retrieved.IgnoreHigherHierarchy);
 		}
 
-		await AssertEqualAsync().CAF();
+		await AssertEqualAsync().ConfigureAwait(false);
 
 		settings = settings with
 		{
@@ -50,13 +48,13 @@ public sealed class AutoModCRUD_Tests
 			IgnoreAdmins = false,
 		};
 
-		await AssertEqualAsync().CAF();
+		await AssertEqualAsync().ConfigureAwait(false);
 	}
 
 	[TestMethod]
 	public async Task BannedNameCRUD_Test()
 	{
-		var db = await GetDatabaseAsync().CAF();
+		var db = await GetDatabaseAsync().ConfigureAwait(false);
 
 		var phrase = new BannedPhrase
 		(
@@ -70,9 +68,9 @@ public sealed class AutoModCRUD_Tests
 
 		async Task AssertEqualAsync()
 		{
-			await db.UpsertBannedPhraseAsync(phrase).CAF();
+			await db.UpsertBannedPhraseAsync(phrase).ConfigureAwait(false);
 
-			var retrieved = (await db.GetBannedNamesAsync(phrase.GuildId).CAF()).Single();
+			var retrieved = (await db.GetBannedNamesAsync(phrase.GuildId).ConfigureAwait(false)).Single();
 			Assert.IsNotNull(retrieved);
 			Assert.AreEqual(phrase.GuildId, retrieved.GuildId);
 			Assert.AreEqual(phrase.IsContains, retrieved.IsContains);
@@ -81,7 +79,7 @@ public sealed class AutoModCRUD_Tests
 			Assert.AreEqual(phrase.PunishmentType, retrieved.PunishmentType);
 		}
 
-		await AssertEqualAsync().CAF();
+		await AssertEqualAsync().ConfigureAwait(false);
 
 		phrase = phrase with
 		{
@@ -89,21 +87,21 @@ public sealed class AutoModCRUD_Tests
 			PunishmentType = PunishmentType.Kick,
 		};
 
-		await AssertEqualAsync().CAF();
+		await AssertEqualAsync().ConfigureAwait(false);
 
 		phrase = phrase with
 		{
 			Phrase = "not joe",
 		};
-		await db.UpsertBannedPhraseAsync(phrase).CAF();
-		var retrieved = await db.GetBannedNamesAsync(GUILD_ID).CAF();
+		await db.UpsertBannedPhraseAsync(phrase).ConfigureAwait(false);
+		var retrieved = await db.GetBannedNamesAsync(GUILD_ID).ConfigureAwait(false);
 		Assert.HasCount(2, retrieved);
 	}
 
 	[TestMethod]
 	public async Task BannedPhraseCRUD_Test()
 	{
-		var db = await GetDatabaseAsync().CAF();
+		var db = await GetDatabaseAsync().ConfigureAwait(false);
 
 		var phrase = new BannedPhrase
 		(
@@ -117,9 +115,9 @@ public sealed class AutoModCRUD_Tests
 
 		async Task AssertEqualAsync()
 		{
-			await db.UpsertBannedPhraseAsync(phrase).CAF();
+			await db.UpsertBannedPhraseAsync(phrase).ConfigureAwait(false);
 
-			var retrieved = (await db.GetBannedPhrasesAsync(phrase.GuildId).CAF()).Single();
+			var retrieved = (await db.GetBannedPhrasesAsync(phrase.GuildId).ConfigureAwait(false)).Single();
 			Assert.IsNotNull(retrieved);
 			Assert.AreEqual(phrase.GuildId, retrieved.GuildId);
 			Assert.AreEqual(phrase.IsContains, retrieved.IsContains);
@@ -128,7 +126,7 @@ public sealed class AutoModCRUD_Tests
 			Assert.AreEqual(phrase.PunishmentType, retrieved.PunishmentType);
 		}
 
-		await AssertEqualAsync().CAF();
+		await AssertEqualAsync().ConfigureAwait(false);
 
 		phrase = phrase with
 		{
@@ -136,21 +134,21 @@ public sealed class AutoModCRUD_Tests
 			PunishmentType = PunishmentType.Kick,
 		};
 
-		await AssertEqualAsync().CAF();
+		await AssertEqualAsync().ConfigureAwait(false);
 
 		phrase = phrase with
 		{
 			Phrase = "not joe",
 		};
-		await db.UpsertBannedPhraseAsync(phrase).CAF();
-		var retrieved = await db.GetBannedPhrasesAsync(GUILD_ID).CAF();
+		await db.UpsertBannedPhraseAsync(phrase).ConfigureAwait(false);
+		var retrieved = await db.GetBannedPhrasesAsync(GUILD_ID).ConfigureAwait(false);
 		Assert.HasCount(2, retrieved);
 	}
 
 	[TestMethod]
 	public async Task ChannelSettingsCRUD_Test()
 	{
-		var db = await GetDatabaseAsync().CAF();
+		var db = await GetDatabaseAsync().ConfigureAwait(false);
 
 		var settings = new ChannelSettings
 		{
@@ -161,29 +159,29 @@ public sealed class AutoModCRUD_Tests
 
 		async Task AssertEqualAsync()
 		{
-			await db.UpsertChannelSettings(settings).CAF();
+			await db.UpsertChannelSettings(settings).ConfigureAwait(false);
 
-			var retrieved = await db!.GetChannelSettingsAsync(settings.ChannelId).CAF();
+			var retrieved = await db!.GetChannelSettingsAsync(settings.ChannelId).ConfigureAwait(false);
 			Assert.IsNotNull(retrieved);
 			Assert.AreEqual(settings.GuildId, retrieved!.GuildId);
 			Assert.AreEqual(settings.ChannelId, retrieved.ChannelId);
 			Assert.AreEqual(settings.IsImageOnly, retrieved.IsImageOnly);
 		}
 
-		await AssertEqualAsync().CAF();
+		await AssertEqualAsync().ConfigureAwait(false);
 
 		settings = settings with
 		{
 			IsImageOnly = false,
 		};
 
-		await AssertEqualAsync().CAF();
+		await AssertEqualAsync().ConfigureAwait(false);
 	}
 
 	[TestMethod]
 	public async Task PersistentRoleCRUD_Test()
 	{
-		var db = await GetDatabaseAsync().CAF();
+		var db = await GetDatabaseAsync().ConfigureAwait(false);
 
 		var role = new PersistentRole
 		{
@@ -191,16 +189,16 @@ public sealed class AutoModCRUD_Tests
 			RoleId = ROLE_ID,
 			UserId = USER_ID,
 		};
-		await db.AddPersistentRoleAsync(role).CAF();
+		await db.AddPersistentRoleAsync(role).ConfigureAwait(false);
 
 		var list = new List<PersistentRole>();
 		{
-			var retrieved = await db.GetPersistentRolesAsync(role.GuildId, role.UserId).CAF();
+			var retrieved = await db.GetPersistentRolesAsync(role.GuildId, role.UserId).ConfigureAwait(false);
 			Assert.HasCount(1, retrieved);
 			list.AddRange(retrieved);
 		}
 		{
-			var retrieved = await db.GetPersistentRolesAsync(role.GuildId).CAF();
+			var retrieved = await db.GetPersistentRolesAsync(role.GuildId).ConfigureAwait(false);
 			Assert.HasCount(1, retrieved);
 			list.AddRange(retrieved);
 		}
@@ -213,15 +211,15 @@ public sealed class AutoModCRUD_Tests
 			Assert.AreEqual(role.UserId, retrieved.UserId);
 		}
 
-		await db.DeletePersistentRoleAsync(list[0]).CAF();
-		var empty = await db.GetPersistentRolesAsync(role.GuildId).CAF();
+		await db.DeletePersistentRoleAsync(list[0]).ConfigureAwait(false);
+		var empty = await db.GetPersistentRolesAsync(role.GuildId).ConfigureAwait(false);
 		Assert.IsEmpty(empty);
 	}
 
 	[TestMethod]
 	public async Task SelfRoleCRUD_Test()
 	{
-		var db = await GetDatabaseAsync().CAF();
+		var db = await GetDatabaseAsync().ConfigureAwait(false);
 
 		var selfRole = new SelfRole
 		{
@@ -232,9 +230,9 @@ public sealed class AutoModCRUD_Tests
 
 		async Task AssertEqualAsync()
 		{
-			await db.UpsertSelfRolesAsync([selfRole]).CAF();
+			await db.UpsertSelfRolesAsync([selfRole]).ConfigureAwait(false);
 
-			var retrieved = await db!.GetSelfRoleAsync(selfRole.RoleId).CAF();
+			var retrieved = await db!.GetSelfRoleAsync(selfRole.RoleId).ConfigureAwait(false);
 			if (retrieved is null)
 			{
 				Assert.IsNotNull(retrieved);
@@ -245,14 +243,14 @@ public sealed class AutoModCRUD_Tests
 			Assert.AreEqual(selfRole.GroupId, retrieved.GroupId);
 		}
 
-		await AssertEqualAsync().CAF();
+		await AssertEqualAsync().ConfigureAwait(false);
 
 		selfRole = selfRole with
 		{
 			GroupId = 2
 		};
 
-		await AssertEqualAsync().CAF();
+		await AssertEqualAsync().ConfigureAwait(false);
 
 		await db.UpsertSelfRolesAsync(
 		[
@@ -264,13 +262,13 @@ public sealed class AutoModCRUD_Tests
 			{
 				RoleId = 5,
 			},
-		]).CAF();
+		]).ConfigureAwait(false);
 
-		var ret = await db.GetSelfRolesAsync(Context.Guild.Id).CAF();
+		var ret = await db.GetSelfRolesAsync(Context.Guild.Id).ConfigureAwait(false);
 		Assert.HasCount(3, ret);
 
-		await db.DeleteSelfRolesGroupAsync(Context.Guild.Id, selfRole.GroupId).CAF();
-		var ret2 = await db.GetSelfRolesAsync(Context.Guild.Id).CAF();
+		await db.DeleteSelfRolesGroupAsync(Context.Guild.Id, selfRole.GroupId).ConfigureAwait(false);
+		var ret2 = await db.GetSelfRolesAsync(Context.Guild.Id).ConfigureAwait(false);
 		Assert.IsEmpty(ret2);
 	}
 }

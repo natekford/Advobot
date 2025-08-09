@@ -6,8 +6,6 @@ using Advobot.Logging.Utilities;
 using Advobot.Services.Time;
 using Advobot.Utilities;
 
-using AdvorangesUtils;
-
 using Discord;
 using Discord.WebSocket;
 
@@ -77,7 +75,7 @@ public sealed class UserLogger
 				continue;
 			}
 
-			await _UserUpdated.HandleAsync(new(before, user)).CAF();
+			await _UserUpdated.HandleAsync(new(before, user)).ConfigureAwait(false);
 		}
 	}
 
@@ -89,7 +87,6 @@ public sealed class UserLogger
 		}
 
 		_Logger.LogInformation(
-			eventId: new EventId(1, nameof(HandleJoinLogging)),
 			message: "Logging {User} joining {Guild}",
 			context.State.User.Id, context.Guild.Id
 		);
@@ -97,7 +94,7 @@ public sealed class UserLogger
 		var description = $"**ID:** {context.State.User.Id}";
 
 		var cache = _Invites.GetOrAdd(context.Guild.Id, _ => new());
-		var invite = await cache.GetInviteUserJoinedOnAsync(context.State.Guild, context.State.User).CAF();
+		var invite = await cache.GetInviteUserJoinedOnAsync(context.State.Guild, context.State.User).ConfigureAwait(false);
 		if (invite is not null)
 		{
 			description += $"\n**Invite:** {invite}";
@@ -129,7 +126,6 @@ public sealed class UserLogger
 		}
 
 		_Logger.LogInformation(
-			eventId: new EventId(2, nameof(HandleLeftLogging)),
 			message: "Logging {User} leaving {Guild}",
 			context.State.User.Id, context.Guild.Id
 		);
@@ -163,7 +159,6 @@ public sealed class UserLogger
 		}
 
 		_Logger.LogInformation(
-			eventId: new EventId(3, nameof(HandleUsernameUpdated)),
 			message: "Logging {User} username updated in {Guild}",
 			context.State.User.Id, context.Guild.Id
 		);

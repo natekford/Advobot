@@ -4,8 +4,6 @@ using Advobot.Logging.ParameterPreconditions;
 using Advobot.Tests.Fakes.Services.Logging;
 using Advobot.Tests.TestBases;
 
-using AdvorangesUtils;
-
 using Microsoft.Extensions.DependencyInjection;
 
 namespace Advobot.Tests.Commands.Logging.ParameterPreconditions;
@@ -20,14 +18,14 @@ public sealed class NotImageLog_Tests : ParameterPrecondition_Tests<NotImageLog>
 	[TestMethod]
 	public async Task LogExisting_Test()
 	{
-		await _Db.UpsertLogChannelAsync(Log.Image, Context.Guild.Id, Context.Channel.Id).CAF();
+		await _Db.UpsertLogChannelAsync(Log.Image, Context.Guild.Id, Context.Channel.Id).ConfigureAwait(false);
 
-		await AssertFailureAsync(Context.Channel).CAF();
+		await AssertFailureAsync(Context.Channel).ConfigureAwait(false);
 	}
 
 	[TestMethod]
 	public async Task LogNotExisting_Test()
-		=> await AssertSuccessAsync(Context.Channel).CAF();
+		=> await AssertSuccessAsync(Context.Channel).ConfigureAwait(false);
 
 	protected override void ModifyServices(IServiceCollection services)
 	{

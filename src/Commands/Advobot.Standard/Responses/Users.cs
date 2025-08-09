@@ -2,8 +2,6 @@
 using Advobot.Modules;
 using Advobot.Utilities;
 
-using AdvorangesUtils;
-
 using Discord;
 
 using static Advobot.Resources.Responses;
@@ -53,8 +51,8 @@ public sealed class Users : AdvobotResult
 	{
 		var padLen = bans.Count.ToString().Length;
 		var description = bans
-			.Select((x, i) => (Position: i, Ban: x))
-			.Join(x => $"{x.Position.ToString().PadRight(padLen)} {x.Ban.User.Format()}", Environment.NewLine)
+			.Select((x, i) => $"{i.ToString().PadRight(padLen)} {x.User.Format()}")
+			.Join(Environment.NewLine)
 			.WithBigBlock()
 			.Value;
 		return Success(new EmbedWrapper
@@ -134,17 +132,17 @@ public sealed class Users : AdvobotResult
 	public static AdvobotResult VoiceMuted(bool punished, IUser user, TimeSpan? time)
 		=> Punished(punished, VariableVoiceMuted, VariableUnvoiceMuted, Format(user), time);
 
-	private static MarkdownFormattedArg Format(IEnumerable<IUser> users)
-		=> users.Join(x => x.Format()).WithBlock();
+	private static MarkdownString Format(IEnumerable<IUser> users)
+		=> users.Select(x => x.Format()).Join().WithBlock();
 
-	private static MarkdownFormattedArg Format(IUser user)
+	private static MarkdownString Format(IUser user)
 		=> user.Format().WithBlock();
 
 	private static AdvobotResult Punished(
 		bool punished,
 		string punishment,
 		string unpunishment,
-		MarkdownFormattedArg users,
+		MarkdownString users,
 		TimeSpan? time)
 	{
 		var action = punished ? punishment : unpunishment;

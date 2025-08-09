@@ -1,9 +1,9 @@
 ﻿using Advobot.AutoMod.Models;
 using Advobot.Utilities;
 
-using AdvorangesUtils;
-
 using Discord;
+
+using System.Text.RegularExpressions;
 
 namespace Advobot.AutoMod.Utils;
 
@@ -22,7 +22,7 @@ public static class AutoModUtils
 	{
 		if (phrase.IsRegex)
 		{
-			return RegexUtils.IsMatch(content, phrase.Phrase);
+			return Regex.IsMatch(content, phrase.Phrase);
 		}
 		else if (phrase.IsContains)
 		{
@@ -55,7 +55,7 @@ public static class AutoModUtils
 
 		static async ValueTask<bool> CheckHierarchyAsync(IGuildUser user)
 		{
-			var bot = await user.Guild.GetCurrentUserAsync().CAF();
+			var bot = await user.Guild.GetCurrentUserAsync().ConfigureAwait(false);
 			return bot.CanModify(user);
 		}
 

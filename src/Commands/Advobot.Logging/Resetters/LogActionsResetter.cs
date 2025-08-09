@@ -1,8 +1,6 @@
 ﻿using Advobot.Logging.Database;
 using Advobot.Services;
 
-using AdvorangesUtils;
-
 using Discord.Commands;
 
 namespace Advobot.Logging.Resetters;
@@ -23,7 +21,7 @@ public sealed class LogActionsResetter(ILoggingDatabase db) : IResetter
 
 	public async Task ResetAsync(ICommandContext context)
 	{
-		await db.DeleteLogActionsAsync(context.Guild.Id, All).CAF();
-		await db.AddLogActionsAsync(context.Guild.Id, Default).CAF();
+		await db.DeleteLogActionsAsync(context.Guild.Id, All).ConfigureAwait(false);
+		await db.AddLogActionsAsync(context.Guild.Id, Default).ConfigureAwait(false);
 	}
 }

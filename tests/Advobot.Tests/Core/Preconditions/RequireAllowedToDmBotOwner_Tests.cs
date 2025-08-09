@@ -3,8 +3,6 @@ using Advobot.Services.BotSettings;
 using Advobot.Tests.Fakes.Services.BotSettings;
 using Advobot.Tests.TestBases;
 
-using AdvorangesUtils;
-
 using Microsoft.Extensions.DependencyInjection;
 
 namespace Advobot.Tests.Core.Preconditions;
@@ -19,7 +17,7 @@ public sealed class RequireAllowedToDmBotOwner_Tests
 	[TestMethod]
 	public async Task CanDmBotOwner_Test()
 	{
-		var result = await CheckPermissionsAsync().CAF();
+		var result = await CheckPermissionsAsync().ConfigureAwait(false);
 		Assert.IsTrue(result.IsSuccess);
 	}
 
@@ -28,7 +26,7 @@ public sealed class RequireAllowedToDmBotOwner_Tests
 	{
 		_BotSettings.UsersUnableToDmOwner.Add(Context.User.Id);
 
-		var result = await CheckPermissionsAsync().CAF();
+		var result = await CheckPermissionsAsync().ConfigureAwait(false);
 		Assert.IsFalse(result.IsSuccess);
 	}
 

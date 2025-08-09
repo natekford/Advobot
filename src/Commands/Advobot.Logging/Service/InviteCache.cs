@@ -1,6 +1,4 @@
-﻿using AdvorangesUtils;
-
-using Discord;
+﻿using Discord;
 using Discord.Net;
 
 using System.Collections.Concurrent;
@@ -21,7 +19,7 @@ public sealed class InviteCache
 	/// <param name="guild"></param>
 	/// <returns></returns>
 	public async Task CacheInvitesAsync(IGuild guild)
-		=> CacheInvites(await SafeGetInvitesAsync(guild).CAF());
+		=> CacheInvites(await SafeGetInvitesAsync(guild).ConfigureAwait(false));
 
 	/// <summary>
 	/// Attempts to find the invite a user has joined on.
@@ -39,7 +37,7 @@ public sealed class InviteCache
 
 		//If the bot can't get invites then determining the correct invite is not possible with any accuracy
 		//No invites means single use, vanity url, or linked twitch
-		var current = await SafeGetInvitesAsync(guild).CAF();
+		var current = await SafeGetInvitesAsync(guild).ConfigureAwait(false);
 		if (current == null)
 		{
 			return null;
@@ -90,12 +88,12 @@ public sealed class InviteCache
 
 	private async Task<IReadOnlyCollection<IInviteMetadata>?> SafeGetInvitesAsync(IGuild guild)
 	{
-		var currentUser = await guild.GetCurrentUserAsync().CAF();
+		var currentUser = await guild.GetCurrentUserAsync().ConfigureAwait(false);
 		if (currentUser.GuildPermissions.ManageGuild)
 		{
 			try
 			{
-				return await guild.GetInvitesAsync(new RequestOptions { Timeout = 250, }).CAF();
+				return await guild.GetInvitesAsync(new RequestOptions { Timeout = 250, }).ConfigureAwait(false);
 			}
 			catch (HttpException e) when (e.HttpCode == HttpStatusCode.InternalServerError)
 			{

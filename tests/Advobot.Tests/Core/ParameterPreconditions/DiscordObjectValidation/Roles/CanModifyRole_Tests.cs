@@ -2,8 +2,6 @@
 using Advobot.Tests.Fakes.Discord;
 using Advobot.Tests.TestBases;
 
-using AdvorangesUtils;
-
 namespace Advobot.Tests.Core.ParameterPreconditions.DiscordObjectValidation.Roles;
 
 [TestClass]
@@ -24,36 +22,36 @@ public sealed class CanModifyRole_Tests : ParameterPrecondition_Tests<CanModifyR
 	[TestMethod]
 	public async Task BotIsLower_Test()
 	{
-		await Context.User.AddRoleAsync(_HigherRole).CAF();
-		await Context.Guild.FakeCurrentUser.AddRoleAsync(_LowerRole).CAF();
+		await Context.User.AddRoleAsync(_HigherRole).ConfigureAwait(false);
+		await Context.Guild.FakeCurrentUser.AddRoleAsync(_LowerRole).ConfigureAwait(false);
 
-		await AssertFailureAsync(_Role).CAF();
+		await AssertFailureAsync(_Role).ConfigureAwait(false);
 	}
 
 	[TestMethod]
 	public async Task InvokerAndBotAreHigher_Test()
 	{
-		await Context.User.AddRoleAsync(_HigherRole).CAF();
-		await Context.Guild.FakeCurrentUser.AddRoleAsync(_HigherRole).CAF();
+		await Context.User.AddRoleAsync(_HigherRole).ConfigureAwait(false);
+		await Context.Guild.FakeCurrentUser.AddRoleAsync(_HigherRole).ConfigureAwait(false);
 
-		await AssertSuccessAsync(_Role).CAF();
+		await AssertSuccessAsync(_Role).ConfigureAwait(false);
 	}
 
 	[TestMethod]
 	public async Task InvokerIsLower_Test()
 	{
-		await Context.User.AddRoleAsync(_LowerRole).CAF();
-		await Context.Guild.FakeCurrentUser.AddRoleAsync(_HigherRole).CAF();
+		await Context.User.AddRoleAsync(_LowerRole).ConfigureAwait(false);
+		await Context.Guild.FakeCurrentUser.AddRoleAsync(_HigherRole).ConfigureAwait(false);
 
-		await AssertFailureAsync(_Role).CAF();
+		await AssertFailureAsync(_Role).ConfigureAwait(false);
 	}
 
 	[TestMethod]
 	public async Task NeitherHigher_Test()
 	{
-		await Context.User.AddRoleAsync(_LowerRole).CAF();
-		await Context.Guild.FakeCurrentUser.AddRoleAsync(_LowerRole).CAF();
+		await Context.User.AddRoleAsync(_LowerRole).ConfigureAwait(false);
+		await Context.Guild.FakeCurrentUser.AddRoleAsync(_LowerRole).ConfigureAwait(false);
 
-		await AssertFailureAsync(_Role).CAF();
+		await AssertFailureAsync(_Role).ConfigureAwait(false);
 	}
 }

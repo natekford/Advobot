@@ -10,7 +10,8 @@ namespace Advobot.Localization;
 /// Used for a localized group.
 /// </summary>
 [AttributeUsage(AttributeTargets.Class, AllowMultiple = false, Inherited = true)]
-public class LocalizedGroupAttribute(string name, ResourceManager resources) : GroupAttribute(resources.GetStringEnsured(name)), ILocalized
+public class LocalizedGroupAttribute(string name, ResourceManager resources)
+	: GroupAttribute(resources.GetStringEnsured(name)), ILocalized
 {
 	private static readonly ResourceManager _RM = Resources.Groups.ResourceManager;
 

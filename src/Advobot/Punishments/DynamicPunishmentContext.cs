@@ -1,6 +1,4 @@
-﻿using AdvorangesUtils;
-
-using Discord;
+﻿using Discord;
 
 namespace Advobot.Punishments;
 
@@ -28,7 +26,7 @@ public sealed class DynamicPunishmentContext(IGuild guild, ulong userId, bool is
 	/// <inheritdoc/>
 	protected internal override async Task ExecuteAsync()
 	{
-		var context = await GetContextAsync().CAF();
+		var context = await GetContextAsync().ConfigureAwait(false);
 		if (context == null)
 		{
 			return;
@@ -36,7 +34,7 @@ public sealed class DynamicPunishmentContext(IGuild guild, ulong userId, bool is
 
 		context.Options = Options;
 		context.Time = Time;
-		await context.ExecuteAsync().CAF();
+		await context.ExecuteAsync().ConfigureAwait(false);
 	}
 
 	private async Task<PunishmentBase?> GetContextAsync()
@@ -50,7 +48,7 @@ public sealed class DynamicPunishmentContext(IGuild guild, ulong userId, bool is
 				return IsGive ? new SoftBan(Guild, UserId) : null;
 		}
 
-		var user = await Guild.GetUserAsync(UserId).CAF();
+		var user = await Guild.GetUserAsync(UserId).ConfigureAwait(false);
 		return Type switch
 		{
 			PunishmentType.Deafen => new Deafen(user, IsGive),

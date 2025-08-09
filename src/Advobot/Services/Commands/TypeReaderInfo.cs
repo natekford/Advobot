@@ -1,6 +1,5 @@
 ﻿using Advobot.Attributes;
-
-using AdvorangesUtils;
+using Advobot.Utilities;
 
 using Discord.Commands;
 
@@ -14,7 +13,7 @@ internal readonly struct TypeReaderInfo(TypeReader instance, TypeReaderTargetTyp
 {
 	public TypeReader Instance { get; } = instance;
 	public IReadOnlyList<Type> TargetTypes { get; } = attribute.TargetTypes;
-	private string DebuggerDisplay => TargetTypes.Join(x => x.FullName, ", ");
+	private string DebuggerDisplay => TargetTypes.Select(x => x.FullName!).Join(", ");
 }
 
 internal static class TypeReaderInfoUtils

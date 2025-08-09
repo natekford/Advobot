@@ -10,7 +10,8 @@ namespace Advobot.Localization;
 /// Used for a localized summary.
 /// </summary>
 [AttributeUsage(AttributeTargets.Method | AttributeTargets.Class | AttributeTargets.Parameter, AllowMultiple = false, Inherited = true)]
-public class LocalizedSummaryAttribute(string name, ResourceManager resources) : SummaryAttribute(resources.GetStringEnsured(name)), ILocalized
+public class LocalizedSummaryAttribute(string name, ResourceManager resources)
+	: SummaryAttribute(resources.GetStringEnsured(name)), ILocalized
 {
 	private static readonly ResourceManager _RM = Resources.Summaries.ResourceManager;
 

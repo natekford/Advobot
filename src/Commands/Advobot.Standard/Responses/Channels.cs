@@ -2,8 +2,6 @@
 using Advobot.Modules;
 using Advobot.Utilities;
 
-using AdvorangesUtils;
-
 using Discord;
 
 using System.Runtime.CompilerServices;
@@ -63,7 +61,8 @@ public sealed class Channels : AdvobotResult
 		);
 		var description = channels
 			.OrderBy(x => x.Position)
-			.Join(x => $"{x.Position:00}. {x.Name}", "\n")
+			.Select(x => $"{x.Position:00}. {x.Name}")
+			.Join("\n")
 			.WithBigBlock()
 			.Value;
 		return Success(new EmbedWrapper
@@ -83,8 +82,8 @@ public sealed class Channels : AdvobotResult
 			channel.Format().WithNoMarkdown()
 		);
 		var description = values
-			.FormatPermissionValues(x => x.ToString(), out var padLen)
-			.Join(x => $"{x.Key.PadRight(padLen)} {x.Value}", Environment.NewLine)
+			.ToDictionary(x => x.Key.ToString(), x => x.Value)
+			.FormatPermissionList()
 			.WithBigBlock()
 			.Value;
 		return Success(new EmbedWrapper
@@ -164,7 +163,7 @@ public sealed class Channels : AdvobotResult
 		};
 
 		return Success(format.Format(
-			EnumUtils.GetFlagNames(permissions).Join().WithBlock(),
+			permissions.ToString("F").WithBlock(),
 			obj.Format().WithBlock(),
 			channel.Format().WithBlock()
 		));

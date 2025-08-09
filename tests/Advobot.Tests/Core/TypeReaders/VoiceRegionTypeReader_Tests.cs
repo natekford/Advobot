@@ -2,8 +2,6 @@
 using Advobot.Tests.TestBases;
 using Advobot.TypeReaders;
 
-using AdvorangesUtils;
-
 using Discord;
 
 namespace Advobot.Tests.Core.TypeReaders;
@@ -22,7 +20,7 @@ public sealed class VoiceRegionTypeReader_Tests : TypeReader_Tests<VoiceRegionTy
 		};
 		Context.Client.FakeVoiceRegions.Add(region);
 
-		var result = await ReadAsync(region.Name).CAF();
+		var result = await ReadAsync(region.Name).ConfigureAwait(false);
 		Assert.IsTrue(result.IsSuccess);
 		Assert.IsInstanceOfType(result.BestMatch, typeof(IVoiceRegion));
 	}

@@ -3,8 +3,6 @@ using Advobot.AutoMod.Models;
 using Advobot.AutoMod.TypeReaders;
 using Advobot.Tests.TestBases;
 
-using AdvorangesUtils;
-
 using Discord;
 
 using Microsoft.Extensions.DependencyInjection;
@@ -24,7 +22,7 @@ public sealed class SelfRoleStateTypeReader_Tests
 		var roles = new List<IRole>();
 		foreach (var name in new[] { "joe", "bob", "tom" })
 		{
-			roles.Add(await Context.Guild.CreateRoleAsync(name, null, null, false, null).CAF());
+			roles.Add(await Context.Guild.CreateRoleAsync(name, null, null, false, null).ConfigureAwait(false));
 		}
 
 		var selfRoles = roles.ConvertAll(x => new SelfRole
@@ -33,15 +31,15 @@ public sealed class SelfRoleStateTypeReader_Tests
 			RoleId = x.Id,
 			GroupId = 2,
 		});
-		await _Db.UpsertSelfRolesAsync(selfRoles).CAF();
+		await _Db.UpsertSelfRolesAsync(selfRoles).ConfigureAwait(false);
 
 		{
-			var retrieved = await _Db.GetSelfRolesAsync(Context.Guild.Id).CAF();
+			var retrieved = await _Db.GetSelfRolesAsync(Context.Guild.Id).ConfigureAwait(false);
 			Assert.AreEqual(roles.Count, retrieved.Count);
 		}
 
 		{
-			var result = await ReadAsync(roles[0].Name).CAF();
+			var result = await ReadAsync(roles[0].Name).ConfigureAwait(false);
 			Assert.IsTrue(result.IsSuccess);
 			Assert.IsInstanceOfType(result.BestMatch, typeof(SelfRoleState));
 
@@ -52,15 +50,15 @@ public sealed class SelfRoleStateTypeReader_Tests
 			Assert.AreEqual(roles.Count - 1, cast.ConflictingRoles.Count);
 		}
 
-		await roles[^1].DeleteAsync().CAF();
+		await roles[^1].DeleteAsync().ConfigureAwait(false);
 
 		{
-			var retrieved = await _Db.GetSelfRolesAsync(Context.Guild.Id).CAF();
+			var retrieved = await _Db.GetSelfRolesAsync(Context.Guild.Id).ConfigureAwait(false);
 			Assert.AreEqual(roles.Count, retrieved.Count);
 		}
 
 		{
-			var result = await ReadAsync(roles[0].Name).CAF();
+			var result = await ReadAsync(roles[0].Name).ConfigureAwait(false);
 			Assert.IsTrue(result.IsSuccess);
 			Assert.IsInstanceOfType(result.BestMatch, typeof(SelfRoleState));
 
@@ -72,7 +70,7 @@ public sealed class SelfRoleStateTypeReader_Tests
 		}
 
 		{
-			var retrieved = await _Db.GetSelfRolesAsync(Context.Guild.Id).CAF();
+			var retrieved = await _Db.GetSelfRolesAsync(Context.Guild.Id).ConfigureAwait(false);
 			Assert.AreEqual(roles.Count - 1, retrieved.Count);
 		}
 	}

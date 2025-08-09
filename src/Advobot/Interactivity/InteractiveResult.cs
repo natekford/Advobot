@@ -6,7 +6,6 @@
 /// <typeparam name="T"></typeparam>
 public sealed class InteractiveResult<T> : IInteractiveResult
 {
-
 	/// <summary>
 	/// A canceled result.
 	/// </summary>

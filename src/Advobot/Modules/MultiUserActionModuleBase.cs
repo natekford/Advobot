@@ -1,7 +1,5 @@
 ﻿using Advobot.Utilities;
 
-using AdvorangesUtils;
-
 using Discord;
 
 using System.Collections.Concurrent;
@@ -96,7 +94,7 @@ public abstract class MultiUserActionModuleBase : AdvobotModuleBase
 						{
 							Content = formatProgress(args),
 							Options = options,
-						}).CAF();
+						}).ConfigureAwait(false);
 					}
 					else if (message is null)
 					{
@@ -104,21 +102,20 @@ public abstract class MultiUserActionModuleBase : AdvobotModuleBase
 					}
 					else if (args.IsEnd)
 					{
-						await message.DeleteAsync(options).CAF();
+						await message.DeleteAsync(options).ConfigureAwait(false);
 					}
 					else if (args.CurrentProgress % 10 == 0)
 					{
-						await message.ModifyAsync(x => x.Content = formatProgress(args), options).CAF();
+						await message.ModifyAsync(x => x.Content = formatProgress(args), options).ConfigureAwait(false);
 					}
 				}
-				catch (Exception e)
+				catch
 				{
-					e.Write();
 					hasException = true;
 				}
 			}
 
-			await update(users[i], options).CAF();
+			await update(users[i], options).ConfigureAwait(false);
 		}
 		return i;
 	}

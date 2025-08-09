@@ -1,8 +1,6 @@
 ﻿using Advobot.Services.HelpEntries;
 using Advobot.Utilities;
 
-using AdvorangesUtils;
-
 using Discord;
 using Discord.Commands;
 
@@ -72,7 +70,7 @@ public abstract class AdvobotParameterPrecondition<T>
 		var count = 0;
 		foreach (var value in enumerable)
 		{
-			var result = await CheckPermissionsAsync(context, parameter, invoker!, value, services).CAF();
+			var result = await CheckPermissionsAsync(context, parameter, invoker!, value, services).ConfigureAwait(false);
 			// Don't bother testing more if anything is a failure.
 			if (!result.IsSuccess)
 			{

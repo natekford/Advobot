@@ -3,8 +3,6 @@ using Advobot.Logging.Models;
 using Advobot.Services.HelpEntries;
 using Advobot.Utilities;
 
-using AdvorangesUtils;
-
 using Discord.Commands;
 
 using Microsoft.Extensions.DependencyInjection;
@@ -35,7 +33,7 @@ public abstract class LogPrecondition : PreconditionAttribute, IPrecondition
 		IServiceProvider services)
 	{
 		var service = services.GetRequiredService<ILoggingDatabase>();
-		var channels = await service.GetLogChannelsAsync(context.Guild.Id).CAF();
+		var channels = await service.GetLogChannelsAsync(context.Guild.Id).ConfigureAwait(false);
 		if (GetId(channels) != 0)
 		{
 			return this.FromSuccess();

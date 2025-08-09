@@ -1,4 +1,4 @@
-﻿using AdvorangesUtils;
+﻿using Advobot.Utilities;
 
 using Discord;
 
@@ -57,6 +57,6 @@ public sealed class InfoMatrix
 	{
 		//Any collections with no information in them dont need to be added
 		var valid = Collections.Where(x => x.Information.Count > 0);
-		return valid.Join(x => x.ToString(args), args.CollectionSeparator);
+		return valid.Select(x => x.ToString(args)).Join(args.CollectionSeparator);
 	}
 }

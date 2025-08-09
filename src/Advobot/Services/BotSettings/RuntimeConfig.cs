@@ -1,10 +1,9 @@
 ﻿using Advobot.Utilities;
 
-using AdvorangesUtils;
-
 using Discord;
 
-using Newtonsoft.Json;
+using System.Text.Json;
+using System.Text.Json.Serialization;
 
 namespace Advobot.Services.BotSettings;
 
@@ -45,27 +44,35 @@ internal sealed class RuntimeConfig : IRuntimeConfig
 	/// <returns></returns>
 	public static RuntimeConfig CreateOrLoad(IConfig config)
 	{
+		RuntimeConfig runtimeConfig;
 		var path = GetPath(config);
-
-		RuntimeConfig settings;
 		if (path.Exists)
 		{
-			settings = IOUtils.DeserializeFromFile<RuntimeConfig>(path);
+			using var stream = path.OpenRead();
+			runtimeConfig = JsonSerializer.Deserialize<RuntimeConfig>(stream, AdvobotConfig.JsonOptions)!;
 		}
 		else
 		{
-			settings = new RuntimeConfig();
-			IOUtils.SafeWriteAllText(path, IOUtils.Serialize(settings));
+			runtimeConfig = new RuntimeConfig();
 		}
 
-		settings.BaseBotDirectory = config.BaseBotDirectory;
-		settings.RestartArguments = config.RestartArguments;
-		return settings;
+		runtimeConfig.BaseBotDirectory = config.BaseBotDirectory;
+		runtimeConfig.RestartArguments = config.RestartArguments;
+
+		// File doesn't exist, save the original config so the user can edit it
+		if (!path.Exists)
+		{
+			runtimeConfig.Save();
+		}
+		return runtimeConfig;
 	}
 
 	/// <inheritdoc />
 	public void Save()
-		=> IOUtils.SafeWriteAllText(GetPath(this), IOUtils.Serialize(this));
+	{
+		using var stream = GetPath(this).OpenWrite();
+		JsonSerializer.Serialize(stream, this, AdvobotConfig.JsonOptions);
+	}
 
 	private static FileInfo GetPath(IConfig config)
 		=> config.GetFile("BotSettings.json");

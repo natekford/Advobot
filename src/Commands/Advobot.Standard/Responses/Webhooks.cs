@@ -2,8 +2,6 @@
 using Advobot.Modules;
 using Advobot.Utilities;
 
-using AdvorangesUtils;
-
 using Discord;
 
 using static Advobot.Resources.Responses;
@@ -24,7 +22,8 @@ public sealed class Webhooks : AdvobotResult
 			source.Format().WithBlock()
 		);
 		var description = webhooks
-			.Join(x => x.Format(), Environment.NewLine)
+			.Select(x => x.Format())
+			.Join(Environment.NewLine)
 			.WithBigBlock()
 			.Value;
 		return Success(new EmbedWrapper

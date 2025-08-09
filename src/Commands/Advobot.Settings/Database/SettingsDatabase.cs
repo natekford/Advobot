@@ -1,8 +1,6 @@
 ﻿using Advobot.Settings.Models;
 using Advobot.SQLite;
 
-using AdvorangesUtils;
-
 using System.Data.SQLite;
 
 namespace Advobot.Settings.Database;
@@ -30,7 +28,7 @@ public sealed class SettingsDatabase(IConnectionString<SettingsDatabase> conn) :
 				SELECT * FROM CommandOverride
 				WHERE GuildId = @GuildId AND CommandId = @CommandId
 				ORDER BY Priority DESC, TargetType ASC
-			", param).CAF();
+			", param).ConfigureAwait(false);
 	}
 
 	public async Task<IReadOnlyList<CommandOverride>> GetCommandOverridesAsync(
@@ -41,7 +39,7 @@ public sealed class SettingsDatabase(IConnectionString<SettingsDatabase> conn) :
 				SELECT * FROM CommandOverride
 				WHERE GuildId = @GuildId
 				ORDER BY CommandId ASC, Priority DESC, TargetType ASC
-			", param).CAF();
+			", param).ConfigureAwait(false);
 	}
 
 	public async Task<GuildSettings> GetGuildSettingsAsync(ulong guildId)
@@ -50,7 +48,7 @@ public sealed class SettingsDatabase(IConnectionString<SettingsDatabase> conn) :
 		return await GetOneAsync<GuildSettings>(@"
 				SELECT * FROM GuildSetting
 				WHERE GuildId = @GuildId
-			", param).CAF() ?? new GuildSettings { GuildId = guildId };
+			", param).ConfigureAwait(false) ?? new GuildSettings { GuildId = guildId };
 	}
 
 	public Task<int> UpsertCommandOverridesAsync(IEnumerable<CommandOverride> overrides)

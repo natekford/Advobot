@@ -3,8 +3,6 @@ using Advobot.MyCommands.Models;
 using Advobot.Tests.Fakes.Database;
 using Advobot.Tests.TestBases;
 
-using AdvorangesUtils;
-
 namespace Advobot.Tests.Commands.MyCommands.Database;
 
 [TestClass]
@@ -14,10 +12,10 @@ public sealed class DetectLanguageConfig_Tests
 	[TestMethod]
 	public async Task DetectLanguageConfigInsertionAndRetrieval_Test()
 	{
-		var db = await GetDatabaseAsync().CAF();
+		var db = await GetDatabaseAsync().ConfigureAwait(false);
 
 		{
-			var retrieved = await db.GetDetectLanguageConfigAsync().CAF();
+			var retrieved = await db.GetDetectLanguageConfigAsync().ConfigureAwait(false);
 			Assert.IsNull(retrieved.APIKey);
 			Assert.AreEqual(new DetectLanguageConfig().ConfidenceLimit, retrieved.ConfidenceLimit);
 			Assert.IsNull(retrieved.CooldownStartTicks);
@@ -25,13 +23,13 @@ public sealed class DetectLanguageConfig_Tests
 		}
 
 		{
-			var updated = await db.GetDetectLanguageConfigAsync().CAF() with
+			var updated = await db.GetDetectLanguageConfigAsync().ConfigureAwait(false) with
 			{
 				APIKey = "joe",
 				CooldownStartTicks = 888888888888888
 			};
-			await db.UpsertDetectLanguageConfigAsync(updated).CAF();
-			var retrieved = await db.GetDetectLanguageConfigAsync().CAF();
+			await db.UpsertDetectLanguageConfigAsync(updated).ConfigureAwait(false);
+			var retrieved = await db.GetDetectLanguageConfigAsync().ConfigureAwait(false);
 			Assert.AreEqual(updated.APIKey, retrieved.APIKey);
 			Assert.AreEqual(updated.ConfidenceLimit, retrieved.ConfidenceLimit);
 			Assert.AreEqual(updated.CooldownStartTicks, retrieved.CooldownStartTicks);

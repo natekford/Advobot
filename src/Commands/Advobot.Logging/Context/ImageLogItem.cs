@@ -1,6 +1,8 @@
-﻿using AdvorangesUtils;
+﻿using Advobot.Utilities;
 
 using Discord;
+
+using MimeTypes;
 
 namespace Advobot.Logging.Context;
 
@@ -20,7 +22,7 @@ public readonly struct ImageLogItem
 	public static ImageLogItem FromAttachment(IAttachment attachment)
 	{
 		var url = attachment.Url;
-		var ext = MimeTypes.MimeTypeMap.GetMimeType(Path.GetExtension(url));
+		var ext = MimeTypeMap.GetMimeType(Path.GetExtension(url));
 		var (footer, imageUrl) = ext switch
 		{
 			string s when s.CaseInsContains("/gif") => ("Gif", GetVideoThumbnail(url)),

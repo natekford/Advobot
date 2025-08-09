@@ -1,8 +1,7 @@
 ﻿using Advobot.Attributes;
 using Advobot.Settings.Models;
 using Advobot.TypeReaders;
-
-using AdvorangesUtils;
+using Advobot.Utilities;
 
 using Discord;
 using Discord.Commands;
@@ -22,25 +21,25 @@ public class EntityTypeReader : TypeReader
 		string input,
 		IServiceProvider services)
 	{
-		var userResult = await _UserTypeReader.ReadAsync(context, input, services).CAF();
+		var userResult = await _UserTypeReader.ReadAsync(context, input, services).ConfigureAwait(false);
 		if (userResult.IsSuccess && userResult.BestMatch is IGuildUser user)
 		{
 			return TypeReaderResult.FromSuccess(new CommandOverrideEntity(user));
 		}
 
-		var roleResult = await _RoleTypeReader.ReadAsync(context, input, services).CAF();
+		var roleResult = await _RoleTypeReader.ReadAsync(context, input, services).ConfigureAwait(false);
 		if (roleResult.IsSuccess && roleResult.BestMatch is IRole role)
 		{
 			return TypeReaderResult.FromSuccess(new CommandOverrideEntity(role));
 		}
 
-		var channelResult = await _ChannelTypeReader.ReadAsync(context, input, services).CAF();
+		var channelResult = await _ChannelTypeReader.ReadAsync(context, input, services).ConfigureAwait(false);
 		if (channelResult.IsSuccess && channelResult.BestMatch is ITextChannel channel)
 		{
 			return TypeReaderResult.FromSuccess(new CommandOverrideEntity(channel));
 		}
 
-		var guildResult = await _GuildTypeReader.ReadAsync(context, input, services).CAF();
+		var guildResult = await _GuildTypeReader.ReadAsync(context, input, services).ConfigureAwait(false);
 		if (guildResult.IsSuccess && guildResult.BestMatch is IGuild guild)
 		{
 			return TypeReaderResult.FromSuccess(new CommandOverrideEntity(guild));

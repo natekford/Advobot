@@ -1,9 +1,9 @@
-﻿using Discord;
+﻿using Advobot.Embeds;
+
+using Discord;
 
 using System.Linq.Expressions;
 using System.Runtime.CompilerServices;
-
-using Advobot.Embeds;
 
 namespace Advobot.Tests.Core;
 

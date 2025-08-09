@@ -1,8 +1,6 @@
 ﻿using Advobot.Tests.TestBases;
 using Advobot.TypeReaders;
 
-using AdvorangesUtils;
-
 using Discord;
 
 namespace Advobot.Tests.Core.TypeReaders;
@@ -15,8 +13,8 @@ public sealed class WebhookTypeReader_Tests : TypeReader_Tests<WebhookTypeReader
 	[TestMethod]
 	public async Task ValidId_Test()
 	{
-		var wh = await Context.Channel.CreateWebhookAsync("testo").CAF();
-		var result = await ReadAsync(wh.Id.ToString()).CAF();
+		var wh = await Context.Channel.CreateWebhookAsync("testo").ConfigureAwait(false);
+		var result = await ReadAsync(wh.Id.ToString()).ConfigureAwait(false);
 		Assert.IsTrue(result.IsSuccess);
 		Assert.IsInstanceOfType(result.BestMatch, typeof(IWebhook));
 	}
@@ -24,8 +22,8 @@ public sealed class WebhookTypeReader_Tests : TypeReader_Tests<WebhookTypeReader
 	[TestMethod]
 	public async Task ValidName_Test()
 	{
-		var wh = await Context.Channel.CreateWebhookAsync("testo").CAF();
-		var result = await ReadAsync(wh.Name).CAF();
+		var wh = await Context.Channel.CreateWebhookAsync("testo").ConfigureAwait(false);
+		var result = await ReadAsync(wh.Name).ConfigureAwait(false);
 		Assert.IsTrue(result.IsSuccess);
 		Assert.IsInstanceOfType(result.BestMatch, typeof(IWebhook));
 	}

@@ -1,4 +1,4 @@
-﻿using AdvorangesUtils;
+﻿using Advobot.Utilities;
 
 using System.Diagnostics.CodeAnalysis;
 

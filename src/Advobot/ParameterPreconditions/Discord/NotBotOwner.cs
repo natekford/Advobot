@@ -1,7 +1,5 @@
 ﻿using Advobot.Utilities;
 
-using AdvorangesUtils;
-
 using Discord;
 using Discord.Commands;
 
@@ -24,7 +22,7 @@ public sealed class NotBotOwner : AdvobotParameterPrecondition<ulong>
 		ulong value,
 		IServiceProvider services)
 	{
-		var application = await context.Client.GetApplicationInfoAsync().CAF();
+		var application = await context.Client.GetApplicationInfoAsync().ConfigureAwait(false);
 		if (application.Owner.Id != value)
 		{
 			return this.FromSuccess();

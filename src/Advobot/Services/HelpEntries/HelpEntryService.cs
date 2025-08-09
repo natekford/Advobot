@@ -1,6 +1,5 @@
 ﻿using Advobot.Localization;
-
-using AdvorangesUtils;
+using Advobot.Utilities;
 
 namespace Advobot.Services.HelpEntries;
 

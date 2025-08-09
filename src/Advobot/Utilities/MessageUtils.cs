@@ -1,7 +1,5 @@
 ﻿using Advobot.Embeds;
 
-using AdvorangesUtils;
-
 using Discord;
 
 namespace Advobot.Utilities;
@@ -60,11 +58,11 @@ public static class MessageUtils
 		{
 			if (messages.Count == 1)
 			{
-				await messages[0].DeleteAsync(args.Options).CAF();
+				await messages[0].DeleteAsync(args.Options).ConfigureAwait(false);
 			}
 			else if (messages.Count > 1)
 			{
-				await channel.DeleteMessagesAsync(messages, args.Options).CAF();
+				await channel.DeleteMessagesAsync(messages, args.Options).ConfigureAwait(false);
 			}
 			return args.DeleteCount - remaining + messages.Count;
 		}
@@ -77,7 +75,7 @@ public static class MessageUtils
 			List<IMessage> messages,
 			DeleteMessageArgs args)
 		{
-			await channel.DeleteMessagesAsync(messages, args.Options).CAF();
+			await channel.DeleteMessagesAsync(messages, args.Options).ConfigureAwait(false);
 			var count = messages.Count;
 			messages.Clear();
 			return count;
@@ -99,7 +97,7 @@ public static class MessageUtils
 					// Messages are too old to bulk delete, stop looking
 					if (args.Now - message.CreatedAt.UtcDateTime > OldestAllowed)
 					{
-						return await DoneAsync(channel, messages, deleteCount, args).CAF();
+						return await DoneAsync(channel, messages, deleteCount, args).ConfigureAwait(false);
 					}
 					if (args.Predicate == null || args.Predicate(message))
 					{
@@ -109,12 +107,12 @@ public static class MessageUtils
 					// We have the requested amount of message to delete
 					if (messages.Count == deleteCount)
 					{
-						return await DoneAsync(channel, messages, deleteCount, args).CAF();
+						return await DoneAsync(channel, messages, deleteCount, args).ConfigureAwait(false);
 					}
 					// We have reached the max count of messages we can delete in one batch
 					if (messages.Count == DiscordConfig.MaxMessagesPerBatch)
 					{
-						deleteCount -= await DeleteBatchAsync(channel, messages, args).CAF();
+						deleteCount -= await DeleteBatchAsync(channel, messages, args).ConfigureAwait(false);
 						startCount = int.MaxValue;
 					}
 				}
@@ -124,7 +122,7 @@ public static class MessageUtils
 			// endlessly searching
 			if (startCount == messages.Count)
 			{
-				return await DoneAsync(channel, messages, deleteCount, args).CAF();
+				return await DoneAsync(channel, messages, deleteCount, args).ConfigureAwait(false);
 			}
 		}
 		return args.DeleteCount;
@@ -164,7 +162,7 @@ public static class MessageUtils
 
 		// Make sure the content is sanitized, and any overly long messages are added
 		// to the error file
-		args.Content = args.Content.Sanitize();
+		args.Content = Sanitize(args.Content);
 		if (args.Content.Length > 2000)
 		{
 			args.Errors ??= new(new MemoryStream());
@@ -210,7 +208,7 @@ public static class MessageUtils
 					args.Components,
 					args.Stickers,
 					args.Embeds
-				).CAF();
+				).ConfigureAwait(false);
 			}
 
 			return await channel.SendMessageAsync(
@@ -223,18 +221,18 @@ public static class MessageUtils
 				args.Components,
 				args.Stickers,
 				args.Embeds
-			).CAF();
+			).ConfigureAwait(false);
 		}
 		// If the message fails to send, then return the error
 		catch (Exception e)
 		{
 			return await channel.SendMessageAsync(
-				e.Message.Sanitize(),
+				Sanitize(e.Message),
 				false,
 				null,
 				args.Options,
 				args.AllowedMentions
-			).CAF();
+			).ConfigureAwait(false);
 		}
 		finally
 		{

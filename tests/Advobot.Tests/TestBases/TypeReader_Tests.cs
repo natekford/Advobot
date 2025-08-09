@@ -1,6 +1,4 @@
-﻿using AdvorangesUtils;
-
-using Discord.Commands;
+﻿using Discord.Commands;
 
 namespace Advobot.Tests.TestBases;
 
@@ -18,7 +16,7 @@ public abstract class TypeReader_Tests<T> : TestsBase
 			return;
 		}
 
-		var result = await ReadAsync(NotExisting).CAF();
+		var result = await ReadAsync(NotExisting).ConfigureAwait(false);
 		Assert.IsFalse(result.IsSuccess);
 	}
 

@@ -2,8 +2,6 @@
 using Advobot.Tests.TestBases;
 using Advobot.Tests.Utilities;
 
-using AdvorangesUtils;
-
 using Discord;
 
 namespace Advobot.Tests.Core.Preconditions;
@@ -17,7 +15,7 @@ public sealed class RequirePartneredGuild_Tests
 	[TestMethod]
 	public async Task IsNotPartnered_Test()
 	{
-		var result = await CheckPermissionsAsync().CAF();
+		var result = await CheckPermissionsAsync().ConfigureAwait(false);
 		Assert.IsFalse(result.IsSuccess);
 	}
 
@@ -29,7 +27,7 @@ public sealed class RequirePartneredGuild_Tests
 			Value = GuildFeature.Partnered,
 		}.Build();
 
-		var result = await CheckPermissionsAsync().CAF();
+		var result = await CheckPermissionsAsync().ConfigureAwait(false);
 		Assert.IsTrue(result.IsSuccess);
 	}
 }

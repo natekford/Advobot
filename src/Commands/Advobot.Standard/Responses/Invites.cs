@@ -2,8 +2,6 @@
 using Advobot.Modules;
 using Advobot.Utilities;
 
-using AdvorangesUtils;
-
 using Discord;
 
 using static Advobot.Resources.Responses;
@@ -38,7 +36,8 @@ public sealed class Invites : AdvobotResult
 			=> $"{i.Code.PadRight(codeLen)} {(i.Uses ?? 0).ToString().PadRight(useLen)} {i.Inviter.Format()}";
 
 		var description = invites
-			.Join(FormatInvite, "\n")
+			.Select(FormatInvite)
+			.Join("\n")
 			.WithBigBlock()
 			.Value;
 		return Success(new EmbedWrapper

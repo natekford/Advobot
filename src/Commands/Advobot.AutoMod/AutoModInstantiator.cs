@@ -1,6 +1,7 @@
 ﻿using Advobot.AutoMod.Database;
 using Advobot.AutoMod.Service;
 using Advobot.CommandAssemblies;
+using Advobot.Serilog;
 using Advobot.SQLite;
 
 using Microsoft.Extensions.DependencyInjection;
@@ -14,10 +15,12 @@ public sealed class AutoModInstantiator : ICommandAssemblyInstantiator
 		services
 			.AddSingleton<IAutoModDatabase, AutoModDatabase>()
 			.AddSQLiteFileDatabaseConnectionString<AutoModDatabase>("AutoMod.db")
+			.AddSingleton<AutoModService>()
+			.AddLogger<AutoModService>("Automod")
 			.AddSingleton<IRemovablePunishmentDatabase, RemovablePunishmentDatabase>()
 			.AddSQLiteFileDatabaseConnectionString<RemovablePunishmentDatabase>("RemovablePunishments.db")
-			.AddSingleton<AutoModService>()
-			.AddSingleton<RemovablePunishmentService>();
+			.AddSingleton<RemovablePunishmentService>()
+			.AddLogger<RemovablePunishmentService>("RemovablePunishments");
 
 		return Task.CompletedTask;
 	}

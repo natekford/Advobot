@@ -4,7 +4,6 @@ using Advobot.Logging.Resetters;
 using Advobot.Logging.Service;
 using Advobot.Serilog;
 using Advobot.SQLite;
-using Advobot.Utilities;
 
 using Microsoft.Extensions.DependencyInjection;
 

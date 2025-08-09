@@ -4,10 +4,8 @@ using Advobot.Services.BotSettings;
 using Advobot.Services.Commands;
 using Advobot.Services.GuildSettings;
 using Advobot.Services.HelpEntries;
-using Advobot.Services.LogCounters;
 using Advobot.Services.Time;
-
-using AdvorangesUtils;
+using Advobot.Utilities;
 
 using Discord;
 using Discord.Commands;
@@ -32,16 +30,17 @@ public sealed class AdvobotLauncher
 	/// <returns></returns>
 	public static async Task<IServiceProvider> NoConfigurationStart(string[] args)
 	{
-		AppDomain.CurrentDomain.UnhandledException += (sender, e)
-			=> IOUtils.LogUncaughtException(e.ExceptionObject);
-		ConsoleUtils.PrintingFlags = 0
-			| ConsolePrintingFlags.Print
-			| ConsolePrintingFlags.LogTime
-			| ConsolePrintingFlags.LogCaller
-			| ConsolePrintingFlags.RemoveDuplicateNewLines;
+		AppDomain.CurrentDomain.UnhandledException += (sender, e) =>
+		{
+			var file = Path.Combine(Directory.GetCurrentDirectory(), "CrashLog.txt");
+			var output = $"{DateTime.UtcNow.ToReadable()}: {e.ExceptionObject}\n";
+			File.AppendAllText(file, output);
+
+			Console.WriteLine($"!!! Something has gone drastically wrong. Check {file} for more details.");
+		};
 
 		var config = AdvobotConfig.Load(args);
-		ConsoleUtils.DebugWrite($"Args: {config.Instance}|{config.PreviousProcessId}", "Launcher Arguments");
+		Console.WriteLine($"Supplied arguments: Instance={config.Instance}, PreviousProcessId={config.PreviousProcessId}");
 
 		// Wait until the old process is killed
 		if (config.PreviousProcessId != -1)
@@ -64,16 +63,16 @@ public sealed class AdvobotLauncher
 		}
 
 		// Get the bot key
-		var validKey = await config.ValidateBotKey(null, true).CAF();
+		var validKey = await config.ValidateBotKey(null, true).ConfigureAwait(false);
 		while (!validKey)
 		{
-			validKey = await config.ValidateBotKey(Console.ReadLine(), false).CAF();
+			validKey = await config.ValidateBotKey(Console.ReadLine(), false).ConfigureAwait(false);
 		}
 
-		var services = await CreateServicesAsync(config).CAF();
+		var services = await CreateServicesAsync(config).ConfigureAwait(false);
 
 		var client = services.GetRequiredService<BaseSocketClient>();
-		await config.StartAsync(client).CAF();
+		await config.StartAsync(client).ConfigureAwait(false);
 
 		return services;
 	}
@@ -114,7 +113,6 @@ public sealed class AdvobotLauncher
 			.AddSingleton<ITime, DefaultTime>()
 			.AddSingleton<IHelpEntryService, HelpEntryService>()
 			.AddSingleton<ICommandHandlerService, CommandHandlerService>()
-			.AddSingleton<ILogCounterService, LogCounterService>()
 			.AddSingleton<IPunishmentService, PunishmentService>()
 			.AddSingleton<IGuildSettingsService, NaiveGuildSettingsService>();
 
@@ -126,7 +124,7 @@ public sealed class AdvobotLauncher
 		{
 			if (assembly.Instantiator != null)
 			{
-				await assembly.Instantiator.AddServicesAsync(collection).CAF();
+				await assembly.Instantiator.AddServicesAsync(collection).ConfigureAwait(false);
 			}
 		}
 
@@ -147,13 +145,13 @@ public sealed class AdvobotLauncher
 		{
 			if (assembly.Instantiator != null)
 			{
-				await assembly.Instantiator.ConfigureServicesAsync(services).CAF();
+				await assembly.Instantiator.ConfigureServicesAsync(services).ConfigureAwait(false);
 			}
 		}
 
 		// Add in commands
 		var commandHandler = services.GetRequiredService<ICommandHandlerService>();
-		await commandHandler.AddCommandsAsync(commandAssemblies).CAF();
+		await commandHandler.AddCommandsAsync(commandAssemblies).ConfigureAwait(false);
 
 		return services;
 	}

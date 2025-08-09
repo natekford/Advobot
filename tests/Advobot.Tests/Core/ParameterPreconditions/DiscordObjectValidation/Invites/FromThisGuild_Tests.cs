@@ -4,8 +4,6 @@ using Advobot.Tests.Fakes.Discord.Channels;
 using Advobot.Tests.Fakes.Discord.Users;
 using Advobot.Tests.TestBases;
 
-using AdvorangesUtils;
-
 namespace Advobot.Tests.Core.ParameterPreconditions.DiscordObjectValidation.Invites;
 
 [TestClass]
@@ -18,7 +16,7 @@ public sealed class FromThisGuild_Tests : ParameterPrecondition_Tests<FromThisGu
 	{
 		var invite = new FakeInviteMetadata(Context.Channel, Context.User);
 
-		await AssertSuccessAsync(invite).CAF();
+		await AssertSuccessAsync(invite).ConfigureAwait(false);
 	}
 
 	[TestMethod]
@@ -29,6 +27,6 @@ public sealed class FromThisGuild_Tests : ParameterPrecondition_Tests<FromThisGu
 		var user = new FakeGuildUser(guild);
 		var invite = new FakeInviteMetadata(channel, user);
 
-		await AssertFailureAsync(invite).CAF();
+		await AssertFailureAsync(invite).ConfigureAwait(false);
 	}
 }

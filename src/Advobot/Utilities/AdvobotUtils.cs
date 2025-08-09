@@ -1,7 +1,4 @@
-﻿using Advobot.Services;
-
-using Microsoft.Extensions.DependencyInjection;
-
+﻿using System.Diagnostics;
 using System.Globalization;
 using System.Resources;
 
@@ -13,19 +10,9 @@ namespace Advobot.Utilities;
 public static class AdvobotUtils
 {
 	/// <summary>
-	/// Adds a default options setter.
+	/// The time the bot was started in UTC.
 	/// </summary>
-	/// <typeparam name="T"></typeparam>
-	/// <param name="services"></param>
-	/// <returns></returns>
-	public static IServiceCollection AddDefaultOptionsSetter<T>(
-		this IServiceCollection services)
-		where T : class, IResetter
-	{
-		return services
-			.AddSingleton<T>()
-			.AddSingleton<IResetter>(x => x.GetRequiredService<T>());
-	}
+	public static DateTime StartTime { get; } = Process.GetCurrentProcess().StartTime.ToUniversalTime();
 
 	/// <summary>
 	/// Gets the file inside the bot directory.

@@ -1,8 +1,6 @@
 ﻿using Advobot.Services.HelpEntries;
 using Advobot.Utilities;
 
-using AdvorangesUtils;
-
 using Discord;
 using Discord.Commands;
 using Discord.WebSocket;
@@ -39,7 +37,23 @@ public abstract class RequirePermissions : PreconditionAttribute, IPrecondition
 	protected RequirePermissions(IEnumerable<Enum> permissions)
 	{
 		Permissions = [.. permissions];
-		Summary = Permissions.FormatPermissions();
+		Summary = permissions.Select(x =>
+		{
+			var perms = default(List<string>);
+			foreach (Enum e in Enum.GetValues(x.GetType()))
+			{
+				if (x.Equals(e))
+				{
+					return e.ToString();
+				}
+				else if (x.HasFlag(e))
+				{
+					perms ??= [];
+					perms.Add(e.ToString());
+				}
+			}
+			return perms.Join(" & ");
+		}).Join(" | ");
 	}
 
 	/// <inheritdoc />
@@ -53,12 +67,12 @@ public abstract class RequirePermissions : PreconditionAttribute, IPrecondition
 			IGuildUser user,
 			IServiceProvider services)
 		{
-			var perms = await GetUserPermissionsAsync(context, user, services).CAF();
+			var perms = await GetUserPermissionsAsync(context, user, services).ConfigureAwait(false);
 			if (perms == null)
 			{
 				return PreconditionResult.FromError($"`{user.Format()}` has no permissions.");
 			}
-			else if (!Permissions.Any(x => perms.HasFlag(x)))
+			else if (!Permissions.Any(perms.HasFlag))
 			{
 				return PreconditionResult.FromError($"`{user.Format()}` does not have any suitable permissions.");
 			}
@@ -72,7 +86,7 @@ public abstract class RequirePermissions : PreconditionAttribute, IPrecondition
 				return this.FromInvalidInvoker();
 			}
 
-			var result = await CheckPermissionsAsync(context, user, services).CAF();
+			var result = await CheckPermissionsAsync(context, user, services).ConfigureAwait(false);
 			if (!result.IsSuccess)
 			{
 				return result;
@@ -80,9 +94,9 @@ public abstract class RequirePermissions : PreconditionAttribute, IPrecondition
 		}
 		if (AppliesToBot)
 		{
-			var bot = await context.Guild.GetCurrentUserAsync().CAF();
+			var bot = await context.Guild.GetCurrentUserAsync().ConfigureAwait(false);
 
-			var result = await CheckPermissionsAsync(context, bot, services).CAF();
+			var result = await CheckPermissionsAsync(context, bot, services).ConfigureAwait(false);
 			if (!result.IsSuccess)
 			{
 				return result;

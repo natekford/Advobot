@@ -1,6 +1,7 @@
 ﻿using Advobot.CommandAssemblies;
 using Advobot.Levels.Database;
 using Advobot.Levels.Service;
+using Advobot.Serilog;
 using Advobot.SQLite;
 
 using Microsoft.Extensions.DependencyInjection;
@@ -15,7 +16,8 @@ public sealed class LevelInstantiator : ICommandAssemblyInstantiator
 			.AddSingleton<LevelServiceConfig>()
 			.AddSingleton<ILevelDatabase, LevelDatabase>()
 			.AddSQLiteFileDatabaseConnectionString<LevelDatabase>("Levels.db")
-			.AddSingleton<ILevelService, LevelService>();
+			.AddSingleton<LevelService>()
+			.AddLogger<LevelService>("Levels");
 
 		return Task.CompletedTask;
 	}

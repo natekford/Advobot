@@ -1,6 +1,4 @@
-﻿using AdvorangesUtils;
-
-using Microsoft.Extensions.DependencyInjection;
+﻿using Microsoft.Extensions.DependencyInjection;
 
 namespace Advobot.Services;
 
@@ -10,33 +8,26 @@ namespace Advobot.Services;
 public static class ReplacableUtils
 {
 	/// <summary>
-	/// Removes all services of the specified type that have <see cref="ReplacableAttribute"/>.
-	/// </summary>
-	/// <typeparam name="T"></typeparam>
-	/// <param name="services"></param>
-	public static void Remove<T>(this IServiceCollection services)
-		where T : class
-	{
-		services.RemoveAll(x =>
-		{
-			return x.ServiceType == typeof(T)
-				&& x.ImplementationType != null
-				&& x.ImplementationType
-					.GetCustomAttributes(typeof(ReplacableAttribute), false).Length != 0;
-		});
-	}
-
-	/// <summary>
 	/// Removes all services of the specified type that have <see cref="ReplacableAttribute"/> and then adds a singleton of the other specified type.
 	/// </summary>
 	/// <typeparam name="T">The type to remove.</typeparam>
 	/// <typeparam name="TImpl">The type to add.</typeparam>
 	/// <param name="services"></param>
-	public static void ReplaceWithSingleton<T, TImpl>(this IServiceCollection services)
+	public static void ReplaceAllWithSingleton<T, TImpl>(this IServiceCollection services)
 		where T : class
 		where TImpl : class, T
 	{
-		services.Remove<T>();
+		for (var i = services.Count - 1; i >= 0; --i)
+		{
+			var service = services[i];
+			if (service.ServiceType == typeof(T)
+				&& service.ImplementationType != null
+				&& service.ImplementationType
+					.GetCustomAttributes(typeof(ReplacableAttribute), false).Length != 0)
+			{
+				services.RemoveAt(i);
+			}
+		}
 		services.AddSingleton<T, TImpl>();
 	}
 }

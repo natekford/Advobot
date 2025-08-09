@@ -1,7 +1,5 @@
 ﻿using Advobot.Utilities;
 
-using AdvorangesUtils;
-
 using Discord.Commands;
 
 namespace Advobot.TypeReaders;
@@ -12,7 +10,7 @@ namespace Advobot.TypeReaders;
 /// <typeparam name="T"></typeparam>
 public sealed class PermissionsTypeReader<T> : TypeReader where T : struct, Enum
 {
-	private static readonly char[] _SplitChars = ['/', ' ', ','];
+	private static readonly char[] _ReplaceChars = ['|', '/', '\\'];
 	private static readonly char[] _TrimChars = ['"'];
 
 	/// <summary>
@@ -27,19 +25,22 @@ public sealed class PermissionsTypeReader<T> : TypeReader where T : struct, Enum
 		string input,
 		IServiceProvider services)
 	{
-		//Check with standard TryParse
-		if (Enum.TryParse<T>(input, out var result))
+		input = input.Trim(_TrimChars);
+		if (Enum.TryParse<T>(input, true, out var result))
 		{
 			return TypeReaderResult.FromSuccess(result).AsTask();
 		}
-		//Then check permission names
-		var split = input
-			.Split(_SplitChars, StringSplitOptions.RemoveEmptyEntries)
-			.Select(x => x.Trim(_TrimChars));
-		if (EnumUtils.TryParseFlags(split, out T value, out var invalidPerms))
+
+		foreach (var replaceChar in _ReplaceChars)
 		{
-			return TypeReaderResult.FromSuccess(value).AsTask();
+			// TODO: does culture list separator matter?
+			input = input.Replace(replaceChar, ',');
 		}
+		if (Enum.TryParse(input, true, out result))
+		{
+			return TypeReaderResult.FromSuccess(result).AsTask();
+		}
+
 		return TypeReaderUtils.ParseFailedResult<T>().AsTask();
 	}
 }

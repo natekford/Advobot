@@ -4,8 +4,6 @@ using Advobot.AutoMod.ParameterPreconditions;
 using Advobot.Punishments;
 using Advobot.Tests.TestBases;
 
-using AdvorangesUtils;
-
 using Microsoft.Extensions.DependencyInjection;
 
 namespace Advobot.Tests.Commands.AutoMod.ParameterPreconditions;
@@ -32,14 +30,14 @@ public abstract class NotAlreadyBannedPhrase_Tests<T> : ParameterPrecondition_Te
 			IsRegex: IsRegex,
 			Phrase: PHRASE,
 			PunishmentType: PunishmentType.Nothing
-		)).CAF();
+		)).ConfigureAwait(false);
 
-		await AssertFailureAsync(PHRASE).CAF();
+		await AssertFailureAsync(PHRASE).ConfigureAwait(false);
 	}
 
 	[TestMethod]
 	public async Task NotExisting_Test()
-		=> await AssertSuccessAsync("not existing").CAF();
+		=> await AssertSuccessAsync("not existing").ConfigureAwait(false);
 
 	[TestMethod]
 	public async Task NotExistingButOtherTypeExists_Test()
@@ -54,9 +52,9 @@ public abstract class NotAlreadyBannedPhrase_Tests<T> : ParameterPrecondition_Te
 			IsRegex: !IsRegex,
 			Phrase: PHRASE,
 			PunishmentType: PunishmentType.Nothing
-		)).CAF();
+		)).ConfigureAwait(false);
 
-		await AssertSuccessAsync(PHRASE).CAF();
+		await AssertSuccessAsync(PHRASE).ConfigureAwait(false);
 	}
 
 	protected override void ModifyServices(IServiceCollection services)

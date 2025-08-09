@@ -5,8 +5,6 @@ using Advobot.Logging.Database;
 using Advobot.Logging.Utilities;
 using Advobot.Utilities;
 
-using AdvorangesUtils;
-
 using Discord;
 using Discord.WebSocket;
 
@@ -65,20 +63,29 @@ public sealed class MessageLogger
 		{
 			while (true)
 			{
-				var messageGroups = Interlocked.Exchange(ref _Messages, new());
+				var messageGroups = Interlocked.Exchange(ref _Messages, []);
 				foreach (var (_, (messages, channel)) in messageGroups)
 				{
 					try
 					{
-						await PrintDeletedMessagesAsync(channel, messages).CAF();
+						QueueDeletedMessages(channel, messages);
 					}
 					catch (Exception e)
 					{
-						e.Write();
+						_Logger.LogWarning(
+							exception: e,
+							message: "Exception occurred while queuing messages for deletion. Info: {@Info}",
+							new
+							{
+								GuildId = channel.GuildId,
+								ChannelId = channel.Id,
+								MessageIds = messages.Select(x => x.Id).ToArray(),
+							}
+						);
 					}
 				}
 
-				await Task.Delay(TimeSpan.FromSeconds(5)).CAF();
+				await Task.Delay(TimeSpan.FromSeconds(5)).ConfigureAwait(false);
 			}
 		});
 	}
@@ -110,7 +117,6 @@ public sealed class MessageLogger
 		}
 
 		_Logger.LogInformation(
-			eventId: new EventId(1, nameof(HandleImageLoggingAsync)),
 			message: "Logging images for {@Info}",
 			new
 			{
@@ -152,7 +158,6 @@ public sealed class MessageLogger
 		}
 
 		_Logger.LogInformation(
-			eventId: new EventId(2, nameof(HandleMessageDeletedLogging)),
 			message: "Logging deleted message {@Info}",
 			new
 			{
@@ -189,7 +194,6 @@ public sealed class MessageLogger
 		}
 
 		_Logger.LogInformation(
-			eventId: new EventId(3, nameof(HandleMessageEditedLoggingAsync)),
 			message: "Logging edited message {@Info}",
 			new
 			{
@@ -212,9 +216,10 @@ public sealed class MessageLogger
 				content = "Empty";
 			}
 
-			var text = content.RemoveAllMarkdown().RemoveDuplicateNewLines();
-			var valid = text.Length <= MAX_FIELD_LENGTH && text.CountLineBreaks() < MAX_FIELD_LINES;
-			return (valid, text);
+			var text = content.Sanitize(keepMarkdown: false);
+			var isValid = text.Length <= MAX_FIELD_LENGTH
+				&& text.Count(c => c is '\r' or '\n') < MAX_FIELD_LINES;
+			return (isValid, text);
 		}
 
 		var (beforeValid, beforeContent) = FormatContent(state.Before);
@@ -260,7 +265,6 @@ public sealed class MessageLogger
 		}
 
 		_Logger.LogInformation(
-			eventId: new EventId(2, nameof(HandleMessageDeletedLogging)),
 			message: "Logging {Count} deleted messages for {@Info}",
 			context.State.Messages.Count, new
 			{
@@ -269,15 +273,15 @@ public sealed class MessageLogger
 			}
 		);
 
-		return PrintDeletedMessagesAsync(context.ServerLog, context.State.Messages);
+		QueueDeletedMessages(context.ServerLog, context.State.Messages);
+		return Task.CompletedTask;
 	}
 
-	private Task PrintDeletedMessagesAsync(ITextChannel log, IEnumerable<IMessage> messages)
+	private void QueueDeletedMessages(ITextChannel log, IEnumerable<IMessage> messages)
 	{
 		var ordered = messages.OrderBy(x => x.Id).ToList();
 
 		_Logger.LogInformation(
-			eventId: new EventId(4, nameof(PrintDeletedMessagesAsync)),
 			message: "Printing {Count} deleted messages {@Info}",
 			ordered.Count, new
 			{
@@ -293,9 +297,9 @@ public sealed class MessageLogger
 		var lineCount = 0;
 		foreach (var message in ordered)
 		{
-			var text = message.Format(withMentions: true).RemoveDuplicateNewLines();
-			lineCount += text.CountLineBreaks();
-			sb.AppendLineFeed(text);
+			var text = message.Format(withMentions: true).Sanitize(keepMarkdown: true);
+			lineCount += text.Count(c => c is '\r' or '\n');
+			sb.AppendLine(text);
 
 			//Can only stay in an embed if the description is less than 2048
 			//and if the line numbers are less than 20
@@ -322,10 +326,8 @@ public sealed class MessageLogger
 			sb.Clear();
 			foreach (var message in ordered)
 			{
-				var text = message.Format(withMentions: false)
-					.RemoveDuplicateNewLines()
-					.RemoveAllMarkdown();
-				sb.AppendLineFeed(text);
+				var text = message.Format(withMentions: false).Sanitize(keepMarkdown: false);
+				sb.AppendLine(text);
 			}
 
 			sendMessageArgs = new SendMessageArgs
@@ -333,14 +335,13 @@ public sealed class MessageLogger
 				Files =
 				[
 					MessageUtils.CreateTextFile(
-						$"{ordered.Count}_Deleted_Messages",
-						sb.ToString()
+						fileName: $"{ordered.Count}_Deleted_Messages",
+						content: sb.ToString()
 					),
 				],
 			};
 		}
 
 		_MessageQueue.Enqueue((log, sendMessageArgs));
-		return Task.CompletedTask;
 	}
 }

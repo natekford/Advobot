@@ -1,7 +1,5 @@
 ﻿using Advobot.SQLite.TypeHandlers;
 
-using AdvorangesUtils;
-
 using Dapper;
 
 using System.Data;
@@ -13,12 +11,16 @@ namespace Advobot.SQLite;
 /// Base class for a SQL database.
 /// </summary>
 /// <typeparam name="T"></typeparam>
-public abstract class DatabaseBase<T> where T : DbConnection, new()
+/// <remarks>
+/// Creates an instance of <see cref="DatabaseBase{T}"/>.
+/// </remarks>
+/// <param name="conn"></param>
+public abstract class DatabaseBase<T>(IConnectionString conn) where T : DbConnection, new()
 {
 	/// <summary>
 	/// Starts the database.
 	/// </summary>
-	protected IConnectionString Connection { get; }
+	protected IConnectionString Connection { get; } = conn;
 
 	static DatabaseBase()
 	{
@@ -32,18 +34,6 @@ public abstract class DatabaseBase<T> where T : DbConnection, new()
 		// Simply removing the type map causes issues, we need to overwrite it with string
 		SqlMapper.AddTypeMap(typeof(ulong), DbType.String);
 		SqlMapper.AddTypeMap(typeof(ulong?), DbType.String);
-
-		ConsoleUtils.DebugWrite("Added in the ulong handler for SQLite.", nameof(DatabaseBase<T>));
-	}
-
-	/// <summary>
-	/// Creates an instance of <see cref="DatabaseBase{T}"/>.
-	/// </summary>
-	/// <param name="conn"></param>
-	protected DatabaseBase(IConnectionString conn)
-	{
-		Connection = conn;
-		ConsoleUtils.DebugWrite($"Created database with the connection \"{conn.ConnectionString}\".", nameof(DatabaseBase<T>));
 	}
 
 	/// <summary>
@@ -56,10 +46,10 @@ public abstract class DatabaseBase<T> where T : DbConnection, new()
 	protected async Task<int> BulkModifyAsync<TParam>(string sql, IEnumerable<TParam> @params)
 	{
 		//Use a transaction to make bulk modifying way faster in SQLite
-		using var connection = await GetConnectionAsync().CAF();
-		await using var transaction = await connection.BeginTransactionAsync().CAF();
+		using var connection = await GetConnectionAsync().ConfigureAwait(false);
+		await using var transaction = await connection.BeginTransactionAsync().ConfigureAwait(false);
 
-		var affectedRowCount = await connection.ExecuteAsync(sql, @params, transaction).CAF();
+		var affectedRowCount = await connection.ExecuteAsync(sql, @params, transaction).ConfigureAwait(false);
 		transaction.Commit();
 		return affectedRowCount;
 	}
@@ -80,8 +70,8 @@ public abstract class DatabaseBase<T> where T : DbConnection, new()
 	/// <returns></returns>
 	protected async Task<TRet[]> GetManyAsync<TRet>(string sql, object? param)
 	{
-		using var connection = await GetConnectionAsync().CAF();
-		var result = await connection.QueryAsync<TRet>(sql, param).CAF();
+		using var connection = await GetConnectionAsync().ConfigureAwait(false);
+		var result = await connection.QueryAsync<TRet>(sql, param).ConfigureAwait(false);
 		return [.. result];
 	}
 
@@ -94,8 +84,8 @@ public abstract class DatabaseBase<T> where T : DbConnection, new()
 	/// <returns></returns>
 	protected async Task<TRet?> GetOneAsync<TRet>(string sql, object param)
 	{
-		using var connection = await GetConnectionAsync().CAF();
-		return await connection.QuerySingleOrDefaultAsync<TRet>(sql, param).CAF();
+		using var connection = await GetConnectionAsync().ConfigureAwait(false);
+		return await connection.QuerySingleOrDefaultAsync<TRet>(sql, param).ConfigureAwait(false);
 	}
 
 	/// <summary>
@@ -107,7 +97,7 @@ public abstract class DatabaseBase<T> where T : DbConnection, new()
 	/// <returns></returns>
 	protected async Task<int> ModifyAsync<TParam>(string sql, TParam param)
 	{
-		using var connection = await GetConnectionAsync().CAF();
-		return await connection.ExecuteAsync(sql, param).CAF();
+		using var connection = await GetConnectionAsync().ConfigureAwait(false);
+		return await connection.ExecuteAsync(sql, param).ConfigureAwait(false);
 	}
 }

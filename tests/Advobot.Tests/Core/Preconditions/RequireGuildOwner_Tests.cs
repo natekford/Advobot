@@ -1,8 +1,6 @@
 ﻿using Advobot.Preconditions;
 using Advobot.Tests.TestBases;
 
-using AdvorangesUtils;
-
 namespace Advobot.Tests.Core.Preconditions;
 
 [TestClass]
@@ -13,7 +11,7 @@ public sealed class RequireGuildOwner_Tests : Precondition_Tests<RequireGuildOwn
 	[TestMethod]
 	public async Task InvokerIsNotOwner_Test()
 	{
-		var result = await CheckPermissionsAsync().CAF();
+		var result = await CheckPermissionsAsync().ConfigureAwait(false);
 		Assert.IsFalse(result.IsSuccess);
 	}
 
@@ -22,7 +20,7 @@ public sealed class RequireGuildOwner_Tests : Precondition_Tests<RequireGuildOwn
 	{
 		Context.Guild.FakeOwner = Context.User;
 
-		var result = await CheckPermissionsAsync().CAF();
+		var result = await CheckPermissionsAsync().ConfigureAwait(false);
 		Assert.IsTrue(result.IsSuccess);
 	}
 }

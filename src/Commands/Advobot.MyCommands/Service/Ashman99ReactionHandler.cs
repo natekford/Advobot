@@ -1,6 +1,4 @@
-﻿using AdvorangesUtils;
-
-using Discord;
+﻿using Discord;
 using Discord.WebSocket;
 
 namespace Advobot.MyCommands.Service;
@@ -31,7 +29,7 @@ public sealed class Ashman99ReactionHandler
 		SocketReaction reaction)
 	{
 		if (reaction.UserId != ASH_ID
-			|| await channel.GetOrDownloadAsync().CAF() is not IGuildChannel chn
+			|| await channel.GetOrDownloadAsync().ConfigureAwait(false) is not IGuildChannel chn
 			|| chn.Guild.Id != TED_SERVER_ID
 			|| ++_Amount <= AMOUNT_ALLOWED)
 		{
@@ -46,7 +44,7 @@ public sealed class Ashman99ReactionHandler
 			return;
 		}
 
-		var msg = await message.GetOrDownloadAsync().CAF();
-		await msg.RemoveReactionAsync(reaction.Emote, reaction.UserId, _ReactionRemoval).CAF();
+		var msg = await message.GetOrDownloadAsync().ConfigureAwait(false);
+		await msg.RemoveReactionAsync(reaction.Emote, reaction.UserId, _ReactionRemoval).ConfigureAwait(false);
 	}
 }

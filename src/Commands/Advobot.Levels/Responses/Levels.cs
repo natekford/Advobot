@@ -4,8 +4,6 @@ using Advobot.Levels.Metadata;
 using Advobot.Modules;
 using Advobot.Utilities;
 
-using AdvorangesUtils;
-
 using Discord;
 
 using static Advobot.Resources.Responses;
@@ -56,7 +54,7 @@ public sealed class Levels : AdvobotResult
 		var title = LevelsTopTitle.Format(
 			GetSearchType(args).WithTitleCase()
 		);
-		var description = ranks.Join(x =>
+		var description = ranks.Select(x =>
 		{
 			var (level, user) = getInfo(x);
 			return LevelsTopDescription.Format(
@@ -65,7 +63,7 @@ public sealed class Levels : AdvobotResult
 				x.Experience.ToString().WithNoMarkdown(),
 				level.ToString().WithNoMarkdown()
 			);
-		}, Environment.NewLine);
+		}).Join(Environment.NewLine);
 		return Success(new EmbedWrapper
 		{
 			Title = title,

@@ -25,7 +25,7 @@ public class RequireGuildPermissions(params GuildPermission[] permissions) : Req
 		if (!user.IsBot)
 		{
 			var settingsFactory = services.GetRequiredService<IGuildSettingsFactory>();
-			var settings = await settingsFactory.GetOrCreateAsync(context.Guild).CAF();
+			var settings = await settingsFactory.GetOrCreateAsync(context.Guild).ConfigureAwait(false);
 			var match = settings.BotUsers.FirstOrDefault(x => x.UserId == context.User.Id);
 			bits |= match?.Permissions ?? 0;
 		}*/

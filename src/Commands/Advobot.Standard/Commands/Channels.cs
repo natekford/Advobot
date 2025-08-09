@@ -9,8 +9,6 @@ using Advobot.Resources;
 using Advobot.TypeReaders;
 using Advobot.Utilities;
 
-using AdvorangesUtils;
-
 using Discord;
 using Discord.Commands;
 
@@ -34,7 +32,7 @@ public sealed class Channels : ModuleBase
 				IGuildChannel channel
 		)
 		{
-			var count = await channel.ClearOverwritesAsync(null, GetOptions()).CAF();
+			var count = await channel.ClearOverwritesAsync(null, GetOptions()).ConfigureAwait(false);
 			return Responses.Channels.ClearedOverwrites(channel, count);
 		}
 	}
@@ -77,7 +75,7 @@ public sealed class Channels : ModuleBase
 				return Responses.Channels.MismatchType(input, output);
 			}
 
-			var overwrites = await input.CopyOverwritesAsync(output, obj?.Id, GetOptions()).CAF();
+			var overwrites = await input.CopyOverwritesAsync(output, obj?.Id, GetOptions()).ConfigureAwait(false);
 			return Responses.Channels.CopiedOverwrites(input, output, obj, overwrites);
 		}
 	}
@@ -107,7 +105,7 @@ public sealed class Channels : ModuleBase
 		private async Task<RuntimeResult> CommandRunner<T>(string name,
 			Func<string, Action<GuildChannelProperties>?, RequestOptions, Task<T>> creator) where T : IGuildChannel
 		{
-			var channel = await creator.Invoke(name, null, GetOptions()).CAF();
+			var channel = await creator.Invoke(name, null, GetOptions()).ConfigureAwait(false);
 			return Responses.Snowflakes.Created(channel);
 		}
 	}
@@ -129,10 +127,10 @@ public sealed class Channels : ModuleBase
 		)
 		{
 			var options = GetOptions();
-			var role = await Context.Guild.CreateEmptyRoleAsync(name, options).CAF();
-			var channel = await Context.Guild.CreateVoiceChannelAsync(name, null, options).CAF();
-			await channel.AddPermissionOverwriteAsync(Context.Guild.EveryoneRole, _Deny).CAF();
-			await channel.AddPermissionOverwriteAsync(role, _Allow).CAF();
+			var role = await Context.Guild.CreateEmptyRoleAsync(name, options).ConfigureAwait(false);
+			var channel = await Context.Guild.CreateVoiceChannelAsync(name, null, options).ConfigureAwait(false);
+			await channel.AddPermissionOverwriteAsync(Context.Guild.EveryoneRole, _Deny).ConfigureAwait(false);
+			await channel.AddPermissionOverwriteAsync(role, _Allow).ConfigureAwait(false);
 			return Responses.Channels.CreatededRoleRestrictedChannel(channel, role);
 		}
 	}
@@ -148,7 +146,7 @@ public sealed class Channels : ModuleBase
 		public async Task<RuntimeResult> Command(
 			[CanModifyChannel(ManageChannels)] IGuildChannel channel)
 		{
-			await channel.DeleteAsync(GetOptions()).CAF();
+			await channel.DeleteAsync(GetOptions()).ConfigureAwait(false);
 			return Responses.Snowflakes.Deleted(channel);
 		}
 	}
@@ -196,7 +194,8 @@ public sealed class Channels : ModuleBase
 
 		private Task<RuntimeResult> FormatOverwrite(IGuildChannel channel, ISnowflakeEntity obj)
 		{
-			if (!channel.PermissionOverwrites.TryGetSingle(x => x.TargetId == obj.Id, out var overwrite))
+			var overwrite = channel.PermissionOverwrites.FirstOrDefault(x => x.TargetId == obj.Id);
+			if (overwrite.TargetId == 0)
 			{
 				return Responses.Channels.NoOverwriteFound(channel, obj);
 			}
@@ -242,7 +241,7 @@ public sealed class Channels : ModuleBase
 			[ChannelBitrate] int bitrate)
 		{
 			//Have to multiply by 1000 because in bps and treats, say, 50 as 50bps and not 50kbps
-			await channel.ModifyAsync(x => x.Bitrate = bitrate * 1000, GetOptions()).CAF();
+			await channel.ModifyAsync(x => x.Bitrate = bitrate * 1000, GetOptions()).ConfigureAwait(false);
 			return Responses.Channels.ModifiedBitrate(channel, bitrate);
 		}
 	}
@@ -259,7 +258,7 @@ public sealed class Channels : ModuleBase
 			[CanModifyChannel(ManageChannels)] IVoiceChannel channel,
 			[ChannelLimit] int limit)
 		{
-			await channel.ModifyAsync(x => x.UserLimit = limit, GetOptions()).CAF();
+			await channel.ModifyAsync(x => x.UserLimit = limit, GetOptions()).ConfigureAwait(false);
 			return Responses.Channels.ModifiedLimit(channel, limit);
 		}
 	}
@@ -333,7 +332,7 @@ public sealed class Channels : ModuleBase
 
 		private async Task<RuntimeResult> CommandRunner(IGuildChannel channel, string name)
 		{
-			await channel.ModifyAsync(x => x.Name = name, GetOptions()).CAF();
+			await channel.ModifyAsync(x => x.Name = name, GetOptions()).ConfigureAwait(false);
 			return Responses.Snowflakes.ModifiedName(channel, name);
 		}
 	}
@@ -350,7 +349,7 @@ public sealed class Channels : ModuleBase
 			[CanModifyChannel(ManageChannels)] ITextChannel channel)
 		{
 			var isNsfw = channel.IsNsfw;
-			await channel.ModifyAsync(x => x.IsNsfw = !isNsfw).CAF();
+			await channel.ModifyAsync(x => x.IsNsfw = !isNsfw).ConfigureAwait(false);
 			return Responses.Channels.ModifiedNsfw(channel, isNsfw);
 		}
 	}
@@ -392,7 +391,7 @@ public sealed class Channels : ModuleBase
 		{
 			var overwrite = channel.GetPermissionOverwrite(obj);
 			var perms = overwrite.ModifyPermissions(action, Context.User, permissions);
-			await channel.AddPermissionOverwriteAsync(obj, perms, GetOptions()).CAF();
+			await channel.AddPermissionOverwriteAsync(obj, perms, GetOptions()).ConfigureAwait(false);
 			return Responses.Channels.ModifiedOverwrite(channel, obj, (ChannelPermission)permissions, action);
 		}
 	}
@@ -409,7 +408,7 @@ public sealed class Channels : ModuleBase
 			[CanModifyChannel] IGuildChannel channel,
 			[Positive] int position)
 		{
-			await channel.ModifyAsync(x => x.Position = position, GetOptions()).CAF();
+			await channel.ModifyAsync(x => x.Position = position, GetOptions()).ConfigureAwait(false);
 			return Responses.Channels.Moved(channel, position);
 		}
 	}
@@ -425,7 +424,7 @@ public sealed class Channels : ModuleBase
 		public async Task<RuntimeResult> Command(
 			[CanModifyChannel(ManageChannels)] ITextChannel channel)
 		{
-			await channel.ModifyAsync(x => x.Topic = null, GetOptions()).CAF();
+			await channel.ModifyAsync(x => x.Topic = null, GetOptions()).ConfigureAwait(false);
 			return Responses.Channels.RemovedTopic(channel);
 		}
 
@@ -434,7 +433,7 @@ public sealed class Channels : ModuleBase
 			[CanModifyChannel(ManageChannels)] ITextChannel channel,
 			[Remainder, ChannelTopic] string topic)
 		{
-			await channel.ModifyAsync(x => x.Topic = topic, GetOptions()).CAF();
+			await channel.ModifyAsync(x => x.Topic = topic, GetOptions()).ConfigureAwait(false);
 			return Responses.Channels.ModifiedTopic(channel, topic);
 		}
 	}
@@ -458,14 +457,14 @@ public sealed class Channels : ModuleBase
 					var allow = x.AllowValue & ~view;
 					var deny = x.DenyValue | view;
 					return new(allow, deny);
-				}, GetOptions()).CAF();
+				}, GetOptions()).ConfigureAwait(false);
 			}
 
 			//Double check the everyone role has the correct perms
 			if (channel.PermissionOverwrites.All(x => x.TargetId != Context.Guild.EveryoneRole.Id))
 			{
 				var everyonePermissions = new OverwritePermissions(viewChannel: PermValue.Deny);
-				await channel.AddPermissionOverwriteAsync(Context.Guild.EveryoneRole, everyonePermissions, GetOptions()).CAF();
+				await channel.AddPermissionOverwriteAsync(Context.Guild.EveryoneRole, everyonePermissions, GetOptions()).ConfigureAwait(false);
 			}
 			return Responses.Snowflakes.SoftDeleted(channel);
 		}

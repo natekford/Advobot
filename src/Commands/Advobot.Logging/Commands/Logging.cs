@@ -7,8 +7,6 @@ using Advobot.ParameterPreconditions.Discord.Channels;
 using Advobot.Preconditions.Permissions;
 using Advobot.Resources;
 
-using AdvorangesUtils;
-
 using Discord;
 using Discord.Commands;
 
@@ -38,11 +36,11 @@ public sealed class Logging : ModuleBase
 		{
 			if (enable)
 			{
-				await Db.AddLogActionsAsync(Context.Guild.Id, LogActionsResetter.All).CAF();
+				await Db.AddLogActionsAsync(Context.Guild.Id, LogActionsResetter.All).ConfigureAwait(false);
 			}
 			else
 			{
-				await Db.DeleteLogActionsAsync(Context.Guild.Id, LogActionsResetter.All).CAF();
+				await Db.DeleteLogActionsAsync(Context.Guild.Id, LogActionsResetter.All).ConfigureAwait(false);
 			}
 			return ModifiedAllLogActions(enable);
 		}
@@ -52,11 +50,11 @@ public sealed class Logging : ModuleBase
 		{
 			if (enable)
 			{
-				await Db.AddLogActionsAsync(Context.Guild.Id, logActions).CAF();
+				await Db.AddLogActionsAsync(Context.Guild.Id, logActions).ConfigureAwait(false);
 			}
 			else
 			{
-				await Db.DeleteLogActionsAsync(Context.Guild.Id, logActions).CAF();
+				await Db.DeleteLogActionsAsync(Context.Guild.Id, logActions).ConfigureAwait(false);
 			}
 			return ModifiedLogActions(logActions, enable);
 		}
@@ -65,7 +63,7 @@ public sealed class Logging : ModuleBase
 		[LocalizedAlias(nameof(Aliases.Default))]
 		public async Task<RuntimeResult> Default()
 		{
-			await DefaultSetter.ResetAsync(Context).CAF();
+			await DefaultSetter.ResetAsync(Context).ConfigureAwait(false);
 			return DefaultLogActions();
 		}
 	}
@@ -85,7 +83,7 @@ public sealed class Logging : ModuleBase
 		)
 		{
 			var ids = channels.Select(x => x.Id);
-			await Db.AddIgnoredChannelsAsync(Context.Guild.Id, ids).CAF();
+			await Db.AddIgnoredChannelsAsync(Context.Guild.Id, ids).ConfigureAwait(false);
 			return ModifiedIgnoredLogChannels(channels, true);
 		}
 
@@ -97,7 +95,7 @@ public sealed class Logging : ModuleBase
 		)
 		{
 			var ids = channels.Select(x => x.Id);
-			await Db.DeleteIgnoredChannelsAsync(Context.Guild.Id, ids).CAF();
+			await Db.DeleteIgnoredChannelsAsync(Context.Guild.Id, ids).ConfigureAwait(false);
 			return ModifiedIgnoredLogChannels(channels, false);
 		}
 	}
@@ -116,7 +114,7 @@ public sealed class Logging : ModuleBase
 			[NotImageLog, CanModifyChannel(ManageChannels | ManageRoles)]
 			ITextChannel channel)
 		{
-			await Db.UpsertLogChannelAsync(LogType, Context.Guild.Id, channel.Id).CAF();
+			await Db.UpsertLogChannelAsync(LogType, Context.Guild.Id, channel.Id).ConfigureAwait(false);
 			return SetLog(VariableImageLog, channel);
 		}
 
@@ -125,7 +123,7 @@ public sealed class Logging : ModuleBase
 		[RequireImageLog]
 		public async Task<RuntimeResult> Remove()
 		{
-			await Db.UpsertLogChannelAsync(LogType, Context.Guild.Id, null).CAF();
+			await Db.UpsertLogChannelAsync(LogType, Context.Guild.Id, null).ConfigureAwait(false);
 			return Removed(VariableImageLog);
 		}
 	}
@@ -144,7 +142,7 @@ public sealed class Logging : ModuleBase
 			[NotModLog, CanModifyChannel(ManageChannels | ManageRoles)]
 			ITextChannel channel)
 		{
-			await Db.UpsertLogChannelAsync(LogType, Context.Guild.Id, channel.Id).CAF();
+			await Db.UpsertLogChannelAsync(LogType, Context.Guild.Id, channel.Id).ConfigureAwait(false);
 			return SetLog(VariableModLog, channel);
 		}
 
@@ -153,7 +151,7 @@ public sealed class Logging : ModuleBase
 		[RequireModLog]
 		public async Task<RuntimeResult> Remove()
 		{
-			await Db.UpsertLogChannelAsync(LogType, Context.Guild.Id, null).CAF();
+			await Db.UpsertLogChannelAsync(LogType, Context.Guild.Id, null).ConfigureAwait(false);
 			return Removed(VariableModLog);
 		}
 	}
@@ -172,7 +170,7 @@ public sealed class Logging : ModuleBase
 			[NotServerLog, CanModifyChannel(ManageChannels | ManageRoles)]
 			ITextChannel channel)
 		{
-			await Db.UpsertLogChannelAsync(LogType, Context.Guild.Id, channel.Id).CAF();
+			await Db.UpsertLogChannelAsync(LogType, Context.Guild.Id, channel.Id).ConfigureAwait(false);
 			return SetLog(VariableServerLog, channel);
 		}
 
@@ -181,7 +179,7 @@ public sealed class Logging : ModuleBase
 		[RequireServerLog]
 		public async Task<RuntimeResult> Remove()
 		{
-			await Db.UpsertLogChannelAsync(LogType, Context.Guild.Id, null).CAF();
+			await Db.UpsertLogChannelAsync(LogType, Context.Guild.Id, null).ConfigureAwait(false);
 			return Removed(VariableServerLog);
 		}
 	}

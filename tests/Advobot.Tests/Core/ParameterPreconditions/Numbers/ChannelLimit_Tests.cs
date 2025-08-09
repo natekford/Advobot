@@ -1,8 +1,6 @@
 ﻿using Advobot.ParameterPreconditions.Numbers;
 using Advobot.Tests.TestBases;
 
-using AdvorangesUtils;
-
 namespace Advobot.Tests.Core.ParameterPreconditions.Numbers;
 
 [TestClass]
@@ -12,17 +10,17 @@ public sealed class ChannelLimit_Tests : ParameterPrecondition_Tests<ChannelLimi
 
 	[TestMethod]
 	public async Task Negative_Test()
-		=> await AssertFailureAsync(-1).CAF();
+		=> await AssertFailureAsync(-1).ConfigureAwait(false);
 
 	[TestMethod]
 	public async Task Value0_Test()
-		=> await AssertSuccessAsync(0).CAF();
+		=> await AssertSuccessAsync(0).ConfigureAwait(false);
 
 	[TestMethod]
 	public async Task Value100_Test()
-		=> await AssertFailureAsync(100).CAF();
+		=> await AssertFailureAsync(100).ConfigureAwait(false);
 
 	[TestMethod]
 	public async Task Value99_Test()
-		=> await AssertSuccessAsync(1).CAF();
+		=> await AssertSuccessAsync(1).ConfigureAwait(false);
 }

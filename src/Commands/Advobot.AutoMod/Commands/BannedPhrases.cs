@@ -8,8 +8,6 @@ using Advobot.Preconditions.Permissions;
 using Advobot.Punishments;
 using Advobot.Resources;
 
-using AdvorangesUtils;
-
 using Discord.Commands;
 
 using static Advobot.AutoMod.Responses.BannedPhrases;
@@ -48,7 +46,7 @@ public sealed class BannedPhrases : ModuleBase
 
 		private async Task<RuntimeResult> CommandRunner(bool @string, bool regex, bool name)
 		{
-			var phrases = await Db.GetBannedPhrasesAsync(Context.Guild.Id).CAF();
+			var phrases = await Db.GetBannedPhrasesAsync(Context.Guild.Id).ConfigureAwait(false);
 			return Display(phrases.Where(x =>
 			{
 				return (regex && x.IsRegex)
@@ -80,7 +78,7 @@ public sealed class BannedPhrases : ModuleBase
 				IsRegex: false,
 				Phrase: name,
 				PunishmentType: punishment
-			)).CAF();
+			)).ConfigureAwait(false);
 			return Added(VariableName, name);
 		}
 
@@ -94,7 +92,7 @@ public sealed class BannedPhrases : ModuleBase
 			await Db.UpsertBannedPhraseAsync(name with
 			{
 				PunishmentType = punishment
-			}).CAF();
+			}).ConfigureAwait(false);
 			return PunishmentChanged(VariableName, name.Phrase, punishment);
 		}
 
@@ -104,7 +102,7 @@ public sealed class BannedPhrases : ModuleBase
 			[OverrideTypeReader(typeof(BannedNameTypeReader))]
 				BannedPhrase name)
 		{
-			await Db.DeletedBannedPhraseAsync(name).CAF();
+			await Db.DeletedBannedPhraseAsync(name).ConfigureAwait(false);
 			return Removed(VariableName, name.Phrase);
 		}
 	}
@@ -131,7 +129,7 @@ public sealed class BannedPhrases : ModuleBase
 				IsRegex: true,
 				Phrase: regex,
 				PunishmentType: punishment
-			)).CAF();
+			)).ConfigureAwait(false);
 			return Added(VariableRegex, regex);
 		}
 
@@ -145,7 +143,7 @@ public sealed class BannedPhrases : ModuleBase
 			await Db.UpsertBannedPhraseAsync(regex with
 			{
 				PunishmentType = punishment
-			}).CAF();
+			}).ConfigureAwait(false);
 			return PunishmentChanged(VariableRegex, regex.Phrase, punishment);
 		}
 
@@ -155,7 +153,7 @@ public sealed class BannedPhrases : ModuleBase
 			[OverrideTypeReader(typeof(BannedRegexTypeReader))]
 				BannedPhrase regex)
 		{
-			await Db.DeletedBannedPhraseAsync(regex).CAF();
+			await Db.DeletedBannedPhraseAsync(regex).ConfigureAwait(false);
 			return Removed(VariableRegex, regex.Phrase);
 		}
 	}
@@ -182,7 +180,7 @@ public sealed class BannedPhrases : ModuleBase
 				IsRegex: false,
 				Phrase: phrase,
 				PunishmentType: punishment
-			)).CAF();
+			)).ConfigureAwait(false);
 			return Added(VariableString, phrase);
 		}
 
@@ -196,7 +194,7 @@ public sealed class BannedPhrases : ModuleBase
 			await Db.UpsertBannedPhraseAsync(phrase with
 			{
 				PunishmentType = punishment
-			}).CAF();
+			}).ConfigureAwait(false);
 			return PunishmentChanged(VariableString, phrase.Phrase, punishment);
 		}
 
@@ -206,7 +204,7 @@ public sealed class BannedPhrases : ModuleBase
 			[OverrideTypeReader(typeof(BannedStringTypeReader))]
 				BannedPhrase phrase)
 		{
-			await Db.DeletedBannedPhraseAsync(phrase).CAF();
+			await Db.DeletedBannedPhraseAsync(phrase).ConfigureAwait(false);
 			return Removed(VariableString, phrase.Phrase);
 		}
 	}

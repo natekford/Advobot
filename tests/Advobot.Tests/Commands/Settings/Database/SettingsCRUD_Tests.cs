@@ -3,8 +3,6 @@ using Advobot.Settings.Models;
 using Advobot.Tests.Fakes.Database;
 using Advobot.Tests.TestBases;
 
-using AdvorangesUtils;
-
 namespace Advobot.Tests.Commands.Settings.Database;
 
 [TestClass]
@@ -16,7 +14,7 @@ public sealed class SettingsCRUD_Tests
 	{
 		const string COMMAND_ID = "joe";
 
-		var db = await GetDatabaseAsync().CAF();
+		var db = await GetDatabaseAsync().ConfigureAwait(false);
 
 		var overrides = new[]
 		{
@@ -40,10 +38,10 @@ public sealed class SettingsCRUD_Tests
 				},
 			};
 
-		await db.UpsertCommandOverridesAsync(overrides).CAF();
+		await db.UpsertCommandOverridesAsync(overrides).ConfigureAwait(false);
 
 		{
-			var retrieved = await db.GetCommandOverridesAsync(Context.Guild.Id).CAF();
+			var retrieved = await db.GetCommandOverridesAsync(Context.Guild.Id).ConfigureAwait(false);
 			var expected = overrides
 				.OrderBy(x => x.CommandId)
 				.ThenByDescending(x => x.Priority)
@@ -63,7 +61,7 @@ public sealed class SettingsCRUD_Tests
 		}
 
 		{
-			var retrieved = await db.GetCommandOverridesAsync(Context.Guild.Id, COMMAND_ID).CAF();
+			var retrieved = await db.GetCommandOverridesAsync(Context.Guild.Id, COMMAND_ID).ConfigureAwait(false);
 			var expected = overrides
 				.Where(x => x.CommandId == COMMAND_ID)
 				.OrderBy(x => x.CommandId)
@@ -90,10 +88,10 @@ public sealed class SettingsCRUD_Tests
 				Enabled = false,
 			};
 		}
-		await db.UpsertCommandOverridesAsync(overrides).CAF();
+		await db.UpsertCommandOverridesAsync(overrides).ConfigureAwait(false);
 
 		{
-			var retrieved = await db.GetCommandOverridesAsync(Context.Guild.Id).CAF();
+			var retrieved = await db.GetCommandOverridesAsync(Context.Guild.Id).ConfigureAwait(false);
 			var expected = overrides
 				.OrderBy(x => x.CommandId)
 				.ThenByDescending(x => x.Priority)
@@ -113,10 +111,10 @@ public sealed class SettingsCRUD_Tests
 		}
 
 		var toDelete = overrides.Where(x => x.CommandId != COMMAND_ID);
-		await db.DeleteCommandOverridesAsync(toDelete).CAF();
+		await db.DeleteCommandOverridesAsync(toDelete).ConfigureAwait(false);
 
 		{
-			var retrieved = await db.GetCommandOverridesAsync(Context.Guild.Id).CAF();
+			var retrieved = await db.GetCommandOverridesAsync(Context.Guild.Id).ConfigureAwait(false);
 			var expected = overrides
 				.Where(x => x.CommandId == COMMAND_ID)
 				.OrderBy(x => x.CommandId)

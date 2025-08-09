@@ -3,8 +3,6 @@ using Advobot.Quotes.Models;
 using Advobot.Quotes.ParameterPreconditions;
 using Advobot.Tests.TestBases;
 
-using AdvorangesUtils;
-
 using Microsoft.Extensions.DependencyInjection;
 
 namespace Advobot.Tests.Commands.Quotes.ParameterPreconditions;
@@ -25,14 +23,14 @@ public sealed class QuoteName_Tests : ParameterPrecondition_Tests<QuoteName>
 			Name = "dog",
 			Description = "joe",
 		};
-		await _Db.AddQuoteAsync(quote).CAF();
+		await _Db.AddQuoteAsync(quote).ConfigureAwait(false);
 
-		await AssertFailureAsync(quote.Name).CAF();
+		await AssertFailureAsync(quote.Name).ConfigureAwait(false);
 	}
 
 	[TestMethod]
 	public async Task QuoteNotExisting_Test()
-		=> await AssertSuccessAsync("i dont exist").CAF();
+		=> await AssertSuccessAsync("i dont exist").ConfigureAwait(false);
 
 	protected override void ModifyServices(IServiceCollection services)
 	{

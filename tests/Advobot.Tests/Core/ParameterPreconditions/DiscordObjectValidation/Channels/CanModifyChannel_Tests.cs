@@ -3,8 +3,6 @@ using Advobot.Tests.Fakes.Discord;
 using Advobot.Tests.Fakes.Discord.Channels;
 using Advobot.Tests.TestBases;
 
-using AdvorangesUtils;
-
 using Discord;
 
 namespace Advobot.Tests.Core.ParameterPreconditions.DiscordObjectValidation.Channels;
@@ -35,27 +33,27 @@ public sealed class CanModifyChannel_Tests : ParameterPrecondition_Tests<CanModi
 	public async Task CanModify_Test()
 	{
 		var role = new FakeRole(Context.Guild);
-		await role.ModifyAsync(x => x.Permissions = _ManageMessages).CAF();
-		await Context.User.AddRoleAsync(role).CAF();
-		await Context.Guild.FakeCurrentUser.AddRoleAsync(role).CAF();
+		await role.ModifyAsync(x => x.Permissions = _ManageMessages).ConfigureAwait(false);
+		await Context.User.AddRoleAsync(role).ConfigureAwait(false);
+		await Context.Guild.FakeCurrentUser.AddRoleAsync(role).ConfigureAwait(false);
 
-		await _Channel.AddPermissionOverwriteAsync(Context.User, _Allowed).CAF();
-		await _Channel.AddPermissionOverwriteAsync(Context.Guild.FakeCurrentUser, _Allowed).CAF();
+		await _Channel.AddPermissionOverwriteAsync(Context.User, _Allowed).ConfigureAwait(false);
+		await _Channel.AddPermissionOverwriteAsync(Context.Guild.FakeCurrentUser, _Allowed).ConfigureAwait(false);
 
-		await AssertSuccessAsync(_Channel).CAF();
+		await AssertSuccessAsync(_Channel).ConfigureAwait(false);
 	}
 
 	[TestMethod]
 	public async Task CannotModify_Test()
 	{
 		var role = new FakeRole(Context.Guild);
-		await role.ModifyAsync(x => x.Permissions = _ManageMessages).CAF();
-		await Context.User.AddRoleAsync(role).CAF();
-		await Context.Guild.FakeCurrentUser.AddRoleAsync(role).CAF();
+		await role.ModifyAsync(x => x.Permissions = _ManageMessages).ConfigureAwait(false);
+		await Context.User.AddRoleAsync(role).ConfigureAwait(false);
+		await Context.Guild.FakeCurrentUser.AddRoleAsync(role).ConfigureAwait(false);
 
-		await _Channel.AddPermissionOverwriteAsync(Context.User, _Denied).CAF();
-		await _Channel.AddPermissionOverwriteAsync(Context.Guild.FakeCurrentUser, _Denied).CAF();
+		await _Channel.AddPermissionOverwriteAsync(Context.User, _Denied).ConfigureAwait(false);
+		await _Channel.AddPermissionOverwriteAsync(Context.Guild.FakeCurrentUser, _Denied).ConfigureAwait(false);
 
-		await AssertFailureAsync(_Channel).CAF();
+		await AssertFailureAsync(_Channel).ConfigureAwait(false);
 	}
 }

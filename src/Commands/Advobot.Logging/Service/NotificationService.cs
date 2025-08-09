@@ -2,8 +2,6 @@
 using Advobot.Logging.Utilities;
 using Advobot.Utilities;
 
-using AdvorangesUtils;
-
 using Discord.WebSocket;
 
 using Microsoft.Extensions.Logging;
@@ -34,7 +32,7 @@ public sealed class NotificationService
 
 	private async Task OnEvent(Notification notifType, SocketGuild guild, SocketUser user)
 	{
-		var notification = await _Db.GetAsync(notifType, guild.Id).CAF();
+		var notification = await _Db.GetAsync(notifType, guild.Id).ConfigureAwait(false);
 		if (notification is null || notification.GuildId == 0)
 		{
 			return;
@@ -47,7 +45,6 @@ public sealed class NotificationService
 		}
 
 		_Logger.LogInformation(
-			eventId: new EventId(1, nameof(OnEvent)),
 			message: "Sending event of type {Event} to {@Info}",
 			notifType, new
 			{

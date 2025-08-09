@@ -10,8 +10,6 @@ using Advobot.Services.GuildSettings;
 using Advobot.Services.HelpEntries;
 using Advobot.Utilities;
 
-using AdvorangesUtils;
-
 using Discord;
 using Discord.Commands;
 
@@ -34,7 +32,7 @@ public sealed class Misc : ModuleBase
 		[Command]
 		public async Task<RuntimeResult> Command()
 		{
-			var prefix = await GuildSettings.GetPrefixAsync(Context.Guild).CAF();
+			var prefix = await GuildSettings.GetPrefixAsync(Context.Guild).ConfigureAwait(false);
 			return GeneralCommandInfo(HelpEntries.GetCategories(), prefix);
 		}
 
@@ -58,7 +56,7 @@ public sealed class Misc : ModuleBase
 		[LocalizedSummary(nameof(Summaries.HelpGeneralHelp))]
 		public async Task<RuntimeResult> Command()
 		{
-			var prefix = await GuildSettings.GetPrefixAsync(Context.Guild).CAF();
+			var prefix = await GuildSettings.GetPrefixAsync(Context.Guild).ConfigureAwait(false);
 			return GeneralHelp(prefix);
 		}
 
@@ -91,7 +89,7 @@ public sealed class Misc : ModuleBase
 			IReadOnlyList<IModuleHelpEntry> helpEntries
 		)
 		{
-			var entry = await NextItemAtIndexAsync(helpEntries, x => x.Name).CAF();
+			var entry = await NextItemAtIndexAsync(helpEntries, x => x.Name).ConfigureAwait(false);
 			if (entry.HasValue)
 			{
 				return Responses.Misc.Help(entry.Value);
@@ -111,10 +109,10 @@ public sealed class Misc : ModuleBase
 		[Command]
 		public async Task Command([Remainder] string message)
 		{
-			var owner = (await Context.Client.GetApplicationInfoAsync().CAF()).Owner;
+			var owner = (await Context.Client.GetApplicationInfoAsync().ConfigureAwait(false)).Owner;
 			var cut = message[..Math.Min(message.Length, 250)];
 			var text = $"`{Context.User.Format()}` - `{Context.Guild.Format()}`:\n```\n{cut}```";
-			await owner.SendMessageAsync(text).CAF();
+			await owner.SendMessageAsync(text).ConfigureAwait(false);
 		}
 	}
 
@@ -132,9 +130,9 @@ public sealed class Misc : ModuleBase
 		{
 			var cut = message[..Math.Min(message.Length, 250)];
 			var text = $"From `{Context.User.Format()}`, {role.Mention}: {cut}";
-			await role.ModifyAsync(x => x.Mentionable = true, GetOptions()).CAF();
-			await ReplyAsync(text).CAF();
-			await role.ModifyAsync(x => x.Mentionable = false, GetOptions()).CAF();
+			await role.ModifyAsync(x => x.Mentionable = true, GetOptions()).ConfigureAwait(false);
+			await ReplyAsync(text).ConfigureAwait(false);
+			await role.ModifyAsync(x => x.Mentionable = false, GetOptions()).ConfigureAwait(false);
 		}
 	}
 
@@ -163,13 +161,13 @@ public sealed class Misc : ModuleBase
 				.ToList();
 			for (var i = 0; i < users.Count; ++i)
 			{
-				await users[i].BanAsync(7, "scam accounts").CAF();
+				await users[i].BanAsync(7, "scam accounts").ConfigureAwait(false);
 				if (i % 10 == 0)
 				{
 					Console.WriteLine($"{users.Count - i} users left to ban.");
 				}
 			}
-			await Context.Channel.SendMessageAsync($"Banned {users.Count} users.").CAF();
+			await Context.Channel.SendMessageAsync($"Banned {users.Count} users.").ConfigureAwait(false);
 		}
 	}
 }

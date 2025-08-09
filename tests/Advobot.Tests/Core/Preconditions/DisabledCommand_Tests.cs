@@ -1,8 +1,6 @@
 ﻿using Advobot.Preconditions;
 using Advobot.Tests.TestBases;
 
-using AdvorangesUtils;
-
 namespace Advobot.Tests.Core.Preconditions;
 
 [Obsolete("asdf")]
@@ -14,7 +12,7 @@ public sealed class DisabledCommand_Tests : Precondition_Tests<DisabledCommand>
 	[TestMethod]
 	public async Task NeverWorks_Test()
 	{
-		var result = await CheckPermissionsAsync().CAF();
+		var result = await CheckPermissionsAsync().ConfigureAwait(false);
 		Assert.IsFalse(result.IsSuccess);
 	}
 }

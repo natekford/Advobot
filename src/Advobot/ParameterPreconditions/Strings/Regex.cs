@@ -1,11 +1,10 @@
 ﻿using Advobot.Utilities;
 
-using AdvorangesUtils;
-
 using Discord;
 using Discord.Commands;
 
 using System.Text;
+using System.Text.RegularExpressions;
 
 namespace Advobot.ParameterPreconditions.Strings;
 
@@ -31,7 +30,7 @@ public sealed class Regex : StringLengthParameterPrecondition
 		string value,
 		IServiceProvider services)
 	{
-		var result = await base.CheckPermissionsAsync(context, parameter, invoker, value, services).CAF();
+		var result = await base.CheckPermissionsAsync(context, parameter, invoker, value, services).ConfigureAwait(false);
 		if (!result.IsSuccess)
 		{
 			return result;
@@ -49,27 +48,27 @@ public sealed class Regex : StringLengthParameterPrecondition
 
 		var tests = new (string Name, Func<string, bool> Test)[]
 		{
-				("empty", x => RegexUtils.IsMatch("", x)),
-				("space", x => RegexUtils.IsMatch(" ", x)),
-				("new line", x =>  RegexUtils.IsMatch(Environment.NewLine, x)),
-				("random", x =>
+			("empty", x => IsMatch("", x)),
+			("space", x => IsMatch(" ", x)),
+			("new line", x =>  IsMatch(Environment.NewLine, x)),
+			("random", x =>
+			{
+				var randomMatchCount = 0;
+				for (var i = 0; i < 10; ++i)
 				{
-					var randomMatchCount = 0;
-					for (var i = 0; i < 10; ++i)
+					var r = new Random();
+					var p = new StringBuilder();
+					for (var j = 0; j < r.Next(1, 100); ++j)
 					{
-						var r = new Random();
-						var p = new StringBuilder();
-						for (var j = 0; j < r.Next(1, 100); ++j)
-						{
-							p.Append((char)r.Next(1, 10000));
-						}
-						if (RegexUtils.IsMatch(p.ToString(), x))
-						{
-							++randomMatchCount;
-						}
+						p.Append((char)r.Next(1, 10000));
 					}
-					return randomMatchCount >= 5;
-				}),
+					if (IsMatch(p.ToString(), x))
+					{
+						++randomMatchCount;
+					}
+				}
+				return randomMatchCount >= 5;
+			}),
 		};
 
 		foreach (var (Name, Test) in tests)
@@ -80,5 +79,22 @@ public sealed class Regex : StringLengthParameterPrecondition
 			}
 		}
 		return this.FromSuccess();
+	}
+
+	private bool IsMatch(string input, string pattern)
+	{
+		try
+		{
+			return System.Text.RegularExpressions.Regex.IsMatch(
+				input: input,
+				pattern: pattern,
+				options: RegexOptions.None,
+				matchTimeout: TimeSpan.FromSeconds(.1)
+			);
+		}
+		catch (RegexMatchTimeoutException)
+		{
+			return false;
+		}
 	}
 }

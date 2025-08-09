@@ -1,8 +1,6 @@
 ﻿using Advobot.Attributes;
 using Advobot.Utilities;
 
-using AdvorangesUtils;
-
 using Discord;
 using Discord.Commands;
 
@@ -29,7 +27,7 @@ public sealed class BanTypeReader : TypeReader
 		var ban = default(IBan?);
 		if (MentionUtils.TryParseUser(input, out var id) || ulong.TryParse(input, out id))
 		{
-			ban = await context.Guild.GetBanAsync(id).CAF();
+			ban = await context.Guild.GetBanAsync(id).ConfigureAwait(false);
 		}
 
 		if (ban is not null)

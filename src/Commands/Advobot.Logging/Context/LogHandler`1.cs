@@ -1,7 +1,5 @@
 ﻿using Advobot.Logging.Database;
 
-using AdvorangesUtils;
-
 using Discord;
 
 using Microsoft.Extensions.Logging;
@@ -39,13 +37,13 @@ public sealed class LogHandler<T>(LogAction action, ILogger logger, ILoggingData
 
 	public async Task HandleAsync(T state)
 	{
-		var context = await CreateContextAsync(state).CAF();
+		var context = await CreateContextAsync(state).ConfigureAwait(false);
 		if (context is null)
 		{
 			return;
 		}
 
-		var canLog = await state.CanLog(_Db, context).CAF();
+		var canLog = await state.CanLog(_Db, context).ConfigureAwait(false);
 		if (!canLog)
 		{
 			return;
@@ -58,15 +56,14 @@ public sealed class LogHandler<T>(LogAction action, ILogger logger, ILoggingData
 			{
 				try
 				{
-					await action.Invoke(context).CAF();
+					await action.Invoke(context).ConfigureAwait(false);
 				}
 				catch (Exception e)
 				{
 					_Logger.LogWarning(
-						eventId: new EventId(1, Action.ToString()),
 						exception: e,
-						message: "Exception occurred during logging to Discord. Info: {@Info}",
-						context.State
+						message: "Exception occurred while logging ({Action}) to Discord. Info: {@Info}",
+						Action, context.State
 					);
 				}
 			}
@@ -88,23 +85,23 @@ public sealed class LogHandler<T>(LogAction action, ILogger logger, ILoggingData
 		}
 
 		// Action is disabled so don't bother logging
-		var actions = await _Db.GetLogActionsAsync(guild.Id).CAF();
+		var actions = await _Db.GetLogActionsAsync(guild.Id).ConfigureAwait(false);
 		if (!actions.Contains(Action))
 		{
 			return null;
 		}
 
-		var channels = await _Db.GetLogChannelsAsync(guild.Id).CAF();
-		var imageLog = await guild.GetTextChannelAsync(channels.ImageLogId).CAF();
-		var modLog = await guild.GetTextChannelAsync(channels.ModLogId).CAF();
-		var serverLog = await guild.GetTextChannelAsync(channels.ServerLogId).CAF();
+		var channels = await _Db.GetLogChannelsAsync(guild.Id).ConfigureAwait(false);
+		var imageLog = await guild.GetTextChannelAsync(channels.ImageLogId).ConfigureAwait(false);
+		var modLog = await guild.GetTextChannelAsync(channels.ModLogId).ConfigureAwait(false);
+		var serverLog = await guild.GetTextChannelAsync(channels.ServerLogId).ConfigureAwait(false);
 		// No log channels so there's no point in going further
 		if (imageLog is null && modLog is null && serverLog is null)
 		{
 			return null;
 		}
 
-		var bot = await guild.GetCurrentUserAsync().CAF();
+		var bot = await guild.GetCurrentUserAsync().ConfigureAwait(false);
 		return new(state, guild, bot, imageLog, modLog, serverLog);
 	}
 

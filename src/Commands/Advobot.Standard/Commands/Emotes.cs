@@ -7,8 +7,6 @@ using Advobot.ParameterPreconditions.Strings;
 using Advobot.Preconditions.Permissions;
 using Advobot.Resources;
 
-using AdvorangesUtils;
-
 using Discord;
 using Discord.Commands;
 
@@ -27,7 +25,7 @@ public sealed class Emotes : ModuleBase
 		[Command]
 		public async Task<RuntimeResult> Command(GuildEmote emote)
 		{
-			await Context.Guild.DeleteEmoteAsync(emote, GetOptions()).CAF();
+			await Context.Guild.DeleteEmoteAsync(emote, GetOptions()).ConfigureAwait(false);
 			return Responses.Snowflakes.Deleted(emote);
 		}
 	}
@@ -69,7 +67,7 @@ public sealed class Emotes : ModuleBase
 			string name
 		)
 		{
-			await Context.Guild.ModifyEmoteAsync(emote, x => x.Name = name, GetOptions()).CAF();
+			await Context.Guild.ModifyEmoteAsync(emote, x => x.Name = name, GetOptions()).ConfigureAwait(false);
 			return Responses.Snowflakes.ModifiedName(emote, name);
 		}
 	}
@@ -94,7 +92,7 @@ public sealed class Emotes : ModuleBase
 				var currentRoles = x.Roles.GetValueOrDefault([]);
 				var concat = currentRoles.Concat(roles).Distinct();
 				x.Roles = Optional.Create(concat);
-			}, GetOptions()).CAF();
+			}, GetOptions()).ConfigureAwait(false);
 			return Responses.Emotes.AddedRequiredRoles(emote, roles);
 		}
 
@@ -107,7 +105,7 @@ public sealed class Emotes : ModuleBase
 			params IRole[] roles
 		)
 		{
-			await Context.Guild.ModifyEmoteAsync(emote, x => x.Roles = Optional.Create(x.Roles.Value.Where(r => !roles.Contains(r))), GetOptions()).CAF();
+			await Context.Guild.ModifyEmoteAsync(emote, x => x.Roles = Optional.Create(x.Roles.Value.Where(r => !roles.Contains(r))), GetOptions()).ConfigureAwait(false);
 			return Responses.Emotes.RemoveRequiredRoles(emote, roles);
 		}
 
@@ -119,7 +117,7 @@ public sealed class Emotes : ModuleBase
 		)
 		{
 			var roles = emote.RoleIds.Select(x => Context.Guild.GetRole(x));
-			await Context.Guild.ModifyEmoteAsync(emote, x => x.Roles = Optional.Create<IEnumerable<IRole>?>(null), GetOptions()).CAF();
+			await Context.Guild.ModifyEmoteAsync(emote, x => x.Roles = Optional.Create<IEnumerable<IRole>?>(null), GetOptions()).ConfigureAwait(false);
 			return Responses.Emotes.RemoveRequiredRoles(emote, roles);
 		}
 	}

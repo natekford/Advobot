@@ -1,7 +1,5 @@
 ﻿using Advobot.Levels.Models;
 
-using AdvorangesUtils;
-
 using Discord;
 using Discord.WebSocket;
 
@@ -19,7 +17,7 @@ public static class LevelUtils
 	}
 
 	public static async Task<IUser?> GetUserAsync(this BaseSocketClient client, ulong id)
-		=> client.GetUser(id) ?? (IUser)await client.Rest.GetUserAsync(id).CAF();
+		=> client.GetUser(id) ?? (IUser)await client.Rest.GetUserAsync(id).ConfigureAwait(false);
 
 	public static User RemoveXp(this User user, int xp)
 	{

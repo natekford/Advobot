@@ -3,8 +3,6 @@ using Advobot.Quotes.Database;
 using Advobot.Quotes.Models;
 using Advobot.Utilities;
 
-using AdvorangesUtils;
-
 using Discord.Commands;
 
 using Microsoft.Extensions.DependencyInjection;
@@ -25,7 +23,7 @@ public sealed class RuleCategoryTypeReader : TypeReader
 		}
 
 		var db = services.GetRequiredService<RuleDatabase>();
-		var categories = await db.GetCategoriesAsync(context.Guild.Id).CAF();
+		var categories = await db.GetCategoriesAsync(context.Guild.Id).ConfigureAwait(false);
 		var matches = categories.Where(x => x.Category == category).ToArray();
 		return TypeReaderUtils.SingleValidResult(matches, "categories", input);
 	}

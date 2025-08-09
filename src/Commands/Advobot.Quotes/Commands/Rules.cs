@@ -7,8 +7,6 @@ using Advobot.Quotes.Formatting;
 using Advobot.Quotes.Models;
 using Advobot.Resources;
 
-using AdvorangesUtils;
-
 using Discord.Commands;
 
 using static Advobot.Quotes.Responses.Rules;
@@ -31,7 +29,7 @@ public sealed class Rules : ModuleBase
 			[Remainder, ParameterPreconditions.Rule]
 				string value)
 		{
-			var categories = await Db.GetCategoriesAsync(Context.Guild.Id).CAF();
+			var categories = await Db.GetCategoriesAsync(Context.Guild.Id).ConfigureAwait(false);
 
 			var category = new RuleCategory
 			{
@@ -39,7 +37,7 @@ public sealed class Rules : ModuleBase
 				Value = value,
 				Category = categories.Count + 1,
 			};
-			await Db.UpsertRuleCategoryAsync(category).CAF();
+			await Db.UpsertRuleCategoryAsync(category).ConfigureAwait(false);
 			return CreatedCategory(category);
 		}
 
@@ -47,7 +45,7 @@ public sealed class Rules : ModuleBase
 		[LocalizedAlias(nameof(Aliases.Delete))]
 		public async Task<RuntimeResult> Delete(RuleCategory category)
 		{
-			await Db.DeleteRuleCategoryAsync(category).CAF();
+			await Db.DeleteRuleCategoryAsync(category).ConfigureAwait(false);
 			return DeletedCategory(category);
 		}
 
@@ -62,7 +60,7 @@ public sealed class Rules : ModuleBase
 			{
 				Value = value,
 			};
-			await Db.UpsertRuleCategoryAsync(copy).CAF();
+			await Db.UpsertRuleCategoryAsync(copy).ConfigureAwait(false);
 			return ModifiedCategoryValue(copy);
 		}
 
@@ -76,7 +74,7 @@ public sealed class Rules : ModuleBase
 			{
 				Category = categoryB.Category,
 			};
-			var rulesA = await Db.GetRulesAsync(categoryA).CAF();
+			var rulesA = await Db.GetRulesAsync(categoryA).ConfigureAwait(false);
 			var copyRulesA = rulesA.Select(x => x with
 			{
 				Category = copyA.Category,
@@ -86,15 +84,15 @@ public sealed class Rules : ModuleBase
 			{
 				Category = categoryA.Category,
 			};
-			var rulesB = await Db.GetRulesAsync(categoryB).CAF();
+			var rulesB = await Db.GetRulesAsync(categoryB).ConfigureAwait(false);
 			var copyRulesB = rulesB.Select(x => x with
 			{
 				Category = copyB.Category,
 			});
 
-			await Db.UpsertRuleCategoryAsync(copyA).CAF();
-			await Db.UpsertRuleCategoryAsync(copyB).CAF();
-			await Db.UpsertRulesAsync(copyRulesA.Concat(copyRulesB)).CAF();
+			await Db.UpsertRuleCategoryAsync(copyA).ConfigureAwait(false);
+			await Db.UpsertRuleCategoryAsync(copyB).ConfigureAwait(false);
+			await Db.UpsertRulesAsync(copyRulesA.Concat(copyRulesB)).ConfigureAwait(false);
 
 			// Example:
 			// 1.1, 1.2, 1.3, 1.4 | 2.1, 2.2
@@ -107,7 +105,7 @@ public sealed class Rules : ModuleBase
 					? (rulesA, rulesB)
 					: (rulesB, rulesA);
 				var needsDeleting = longer.Skip(shorter.Count);
-				await Db.DeleteRulesAsync(needsDeleting).CAF();
+				await Db.DeleteRulesAsync(needsDeleting).ConfigureAwait(false);
 			}
 
 			return SwappedRuleCategories(categoryA, rulesA, categoryB, rulesB);
@@ -128,7 +126,7 @@ public sealed class Rules : ModuleBase
 			[Remainder, ParameterPreconditions.Rule]
 				string value)
 		{
-			var rules = await Db.GetRulesAsync(category).CAF();
+			var rules = await Db.GetRulesAsync(category).ConfigureAwait(false);
 
 			var rule = new Models.Rule
 			{
@@ -137,7 +135,7 @@ public sealed class Rules : ModuleBase
 				Value = value,
 				Position = rules.Count + 1,
 			};
-			await Db.UpsertRuleAsync(rule).CAF();
+			await Db.UpsertRuleAsync(rule).ConfigureAwait(false);
 			return AddedRule(category);
 		}
 
@@ -145,7 +143,7 @@ public sealed class Rules : ModuleBase
 		[LocalizedAlias(nameof(Aliases.Delete))]
 		public async Task<RuntimeResult> Delete(Models.Rule rule)
 		{
-			await Db.DeleteRuleAsync(rule).CAF();
+			await Db.DeleteRuleAsync(rule).ConfigureAwait(false);
 			return RemovedRule(rule);
 		}
 
@@ -160,7 +158,7 @@ public sealed class Rules : ModuleBase
 			{
 				Value = value,
 			};
-			await Db.UpsertRuleAsync(copy).CAF();
+			await Db.UpsertRuleAsync(copy).ConfigureAwait(false);
 			return ModifiedRuleValue(copy);
 		}
 
@@ -177,7 +175,7 @@ public sealed class Rules : ModuleBase
 				Position = ruleA.Position,
 			};
 
-			await Db.UpsertRulesAsync([copyA, copyB]).CAF();
+			await Db.UpsertRulesAsync([copyA, copyB]).ConfigureAwait(false);
 			return SwappedRules(ruleA, ruleB);
 		}
 	}
@@ -194,7 +192,7 @@ public sealed class Rules : ModuleBase
 		{
 			args ??= new();
 
-			var dict = await Db.GetRuleDictionaryAsync(Context.Guild.Id).CAF();
+			var dict = await Db.GetRuleDictionaryAsync(Context.Guild.Id).ConfigureAwait(false);
 			return AdvobotResult.Success(args.Format(dict));
 		}
 
@@ -205,7 +203,7 @@ public sealed class Rules : ModuleBase
 		{
 			args ??= new();
 
-			var rules = await Db.GetRulesAsync(category).CAF();
+			var rules = await Db.GetRulesAsync(category).ConfigureAwait(false);
 			return AdvobotResult.Success(args.Format(category, rules));
 		}
 	}

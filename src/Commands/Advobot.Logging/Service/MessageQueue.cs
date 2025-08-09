@@ -1,7 +1,5 @@
 ﻿using Advobot.Utilities;
 
-using AdvorangesUtils;
-
 using Discord;
 
 using System.Collections.Concurrent;
@@ -32,10 +30,10 @@ public sealed class MessageQueue
 				while (_Messages.TryDequeue(out var item))
 				{
 					var (channel, args) = item;
-					await channel.SendMessageAsync(args).CAF();
+					await channel.SendMessageAsync(args).ConfigureAwait(false);
 				}
 
-				await Task.Delay(Delay).CAF();
+				await Task.Delay(Delay).ConfigureAwait(false);
 			}
 		});
 	}

@@ -1,8 +1,6 @@
 ﻿using Advobot.MyCommands.Models;
 using Advobot.SQLite;
 
-using AdvorangesUtils;
-
 using System.Data.SQLite;
 
 namespace Advobot.MyCommands.Database;
@@ -13,7 +11,7 @@ public sealed class MyCommandsDatabase(IConnectionString<MyCommandsDatabase> con
 	{
 		return await GetOneAsync<DetectLanguageConfig>(@"
 				SELECT * From DetectLanguageConfig
-			", new object()).CAF() ?? new DetectLanguageConfig();
+			", new object()).ConfigureAwait(false) ?? new DetectLanguageConfig();
 	}
 
 	public Task<int> UpsertDetectLanguageConfigAsync(DetectLanguageConfig config)

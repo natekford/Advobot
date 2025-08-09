@@ -1,7 +1,5 @@
 ﻿using Advobot.Utilities;
 
-using AdvorangesUtils;
-
 using Discord;
 using Discord.Commands;
 
@@ -27,7 +25,7 @@ public sealed class NotBanned
 		ulong value,
 		IServiceProvider services)
 	{
-		var ban = await context.Guild.GetBanAsync(value).CAF();
+		var ban = await context.Guild.GetBanAsync(value).ConfigureAwait(false);
 		return this.FromExistence(ban is not null, value, "ban");
 	}
 }

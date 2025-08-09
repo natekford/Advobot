@@ -1,8 +1,6 @@
 ﻿using Advobot.Attributes;
 using Advobot.Utilities;
 
-using AdvorangesUtils;
-
 using Discord;
 using Discord.Commands;
 
@@ -28,14 +26,14 @@ public sealed class GuildTypeReader : TypeReader
 	{
 		if (ulong.TryParse(input, out var id))
 		{
-			var guild = await context.Client.GetGuildAsync(id).CAF();
+			var guild = await context.Client.GetGuildAsync(id).ConfigureAwait(false);
 			if (guild != null)
 			{
 				return TypeReaderResult.FromSuccess(guild);
 			}
 		}
 
-		var guilds = await context.Client.GetGuildsAsync().CAF();
+		var guilds = await context.Client.GetGuildsAsync().ConfigureAwait(false);
 		var matches = guilds.Where(x => x.Name.CaseInsEquals(input)).ToArray();
 		return TypeReaderUtils.SingleValidResult(matches, "guilds", input);
 	}

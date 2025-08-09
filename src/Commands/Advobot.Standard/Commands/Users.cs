@@ -14,8 +14,6 @@ using Advobot.Services.Time;
 using Advobot.TypeReaders;
 using Advobot.Utilities;
 
-using AdvorangesUtils;
-
 using Discord;
 using Discord.Commands;
 
@@ -51,12 +49,12 @@ public sealed class Users : ModuleBase
 			ModerationReason reason = default
 		)
 		{
-			var user = await Context.Client.GetUserAsync(userId).CAF();
+			var user = await Context.Client.GetUserAsync(userId).ConfigureAwait(false);
 			await Punisher.HandleAsync(new Punishments.Ban(Context.Guild, userId, true)
 			{
 				Time = reason.Time,
 				Options = GetOptions(reason.Reason),
-			}).CAF();
+			}).ConfigureAwait(false);
 			return Responses.Users.Banned(true, user!, reason.Time);
 		}
 
@@ -82,8 +80,8 @@ public sealed class Users : ModuleBase
 			foreach (var id in userIds)
 			{
 				var user = new AmbiguousUser(id);
-				await punisher.BanAsync(user, args).CAF();
-				users.Add(await user.GetAsync(Context.Client).CAF());
+				await punisher.BanAsync(user, args).ConfigureAwait(false);
+				users.Add(await user.GetAsync(Context.Client).ConfigureAwait(false));
 			}
 			return Responses.Users.BannedMany(users, args);
 		}*/
@@ -108,7 +106,7 @@ public sealed class Users : ModuleBase
 			{
 				Time = reason.Time,
 				Options = GetOptions(reason.Reason),
-			}).CAF();
+			}).ConfigureAwait(false);
 			return Responses.Users.Deafened(isGive, user, reason.Time);
 		}
 	}
@@ -233,7 +231,7 @@ public sealed class Users : ModuleBase
 				update,
 				i => Responses.Users.MultiUserActionProgress(i.AmountLeft).Reason,
 				GetOptions()
-			).CAF();
+			).ConfigureAwait(false);
 			return Responses.Users.MultiUserActionSuccess(amountChanged);
 		}
 	}
@@ -269,7 +267,7 @@ public sealed class Users : ModuleBase
 			{
 				Time = reason.Time,
 				Options = GetOptions(reason.Reason),
-			}).CAF();
+			}).ConfigureAwait(false);
 			return Responses.Users.Kicked(user);
 		}
 	}
@@ -294,7 +292,7 @@ public sealed class Users : ModuleBase
 				return Responses.Users.AlreadyInChannel(user, channel);
 			}
 
-			await user.ModifyAsync(x => x.Channel = Optional.Create(channel), GetOptions()).CAF();
+			await user.ModifyAsync(x => x.Channel = Optional.Create(channel), GetOptions()).ConfigureAwait(false);
 			return Responses.Users.Moved(user, channel);
 		}
 	}
@@ -316,7 +314,7 @@ public sealed class Users : ModuleBase
 			bool bypass
 		)
 		{
-			var users = await input.GetUsersAsync().FlattenAsync().CAF();
+			var users = await input.GetUsersAsync().FlattenAsync().ConfigureAwait(false);
 			var amountChanged = await ProcessAsync(
 				users,
 				bypass,
@@ -324,7 +322,7 @@ public sealed class Users : ModuleBase
 				(u, o) => u.ModifyAsync(x => x.Channel = Optional.Create(output), o),
 				i => Responses.Users.MultiUserActionProgress(i.AmountLeft).Reason,
 				GetOptions()
-			).CAF();
+			).ConfigureAwait(false);
 			return Responses.Users.MultiUserActionSuccess(amountChanged);
 		}
 	}
@@ -375,15 +373,15 @@ public sealed class Users : ModuleBase
 			ModerationReason reason = default
 		)
 		{
-			var role = await MuteRoleProvider.GetMuteRoleAsync(Context.Guild).CAF();
-			await ConfigureMuteRoleAsync(role).CAF();
+			var role = await MuteRoleProvider.GetMuteRoleAsync(Context.Guild).ConfigureAwait(false);
+			await ConfigureMuteRoleAsync(role).ConfigureAwait(false);
 
 			var isGive = !user.RoleIds.Contains(role.Id);
 			await Punisher.HandleAsync(new Punishments.RoleMute(user, isGive, role)
 			{
 				Time = reason.Time,
 				Options = GetOptions(reason.Reason),
-			}).CAF();
+			}).ConfigureAwait(false);
 			return Responses.Users.Muted(isGive, user, reason.Time);
 		}
 
@@ -391,7 +389,7 @@ public sealed class Users : ModuleBase
 		{
 			if (role.Permissions.RawValue != 0)
 			{
-				await role.ModifyAsync(x => x.Permissions = new GuildPermissions(0)).CAF();
+				await role.ModifyAsync(x => x.Permissions = new GuildPermissions(0)).ConfigureAwait(false);
 			}
 
 			static async Task ConfigureChannelsAsync(
@@ -403,14 +401,14 @@ public sealed class Users : ModuleBase
 				{
 					if (c.GetPermissionOverwrite(role)?.DenyValue != perms.DenyValue)
 					{
-						await c.AddPermissionOverwriteAsync(role, perms).CAF();
+						await c.AddPermissionOverwriteAsync(role, perms).ConfigureAwait(false);
 					}
 				}
 			}
 
-			await ConfigureChannelsAsync(role, Context.Guild.CategoryChannels, CategoryPerms).CAF();
-			await ConfigureChannelsAsync(role, Context.Guild.TextChannels, TextPerms).CAF();
-			await ConfigureChannelsAsync(role, Context.Guild.VoiceChannels, VoicePerms).CAF();
+			await ConfigureChannelsAsync(role, Context.Guild.CategoryChannels, CategoryPerms).ConfigureAwait(false);
+			await ConfigureChannelsAsync(role, Context.Guild.TextChannels, TextPerms).ConfigureAwait(false);
+			await ConfigureChannelsAsync(role, Context.Guild.VoiceChannels, VoicePerms).ConfigureAwait(false);
 		}
 	}
 
@@ -428,7 +426,7 @@ public sealed class Users : ModuleBase
 			int days
 		)
 		{
-			var amt = await Context.Guild.PruneUsersAsync(days, simulate: true, GetOptions()).CAF();
+			var amt = await Context.Guild.PruneUsersAsync(days, simulate: true, GetOptions()).ConfigureAwait(false);
 			return Responses.Users.FakePruned(days, amt);
 		}
 
@@ -438,7 +436,7 @@ public sealed class Users : ModuleBase
 			int days
 		)
 		{
-			var amt = await Context.Guild.PruneUsersAsync(days, simulate: false, GetOptions()).CAF();
+			var amt = await Context.Guild.PruneUsersAsync(days, simulate: false, GetOptions()).ConfigureAwait(false);
 			return Responses.Users.Pruned(days, amt);
 		}
 	}
@@ -509,7 +507,7 @@ public sealed class Users : ModuleBase
 				Predicate = user is null
 					? null
 					: x => x.Author.Id == user?.Id,
-			}).CAF();
+			}).ConfigureAwait(false);
 			return Responses.Users.RemovedMessages(channel, user, deleted);
 		}
 	}
@@ -538,12 +536,12 @@ public sealed class Users : ModuleBase
 			ModerationReason reason = default
 		)
 		{
-			var user = await Context.Client.GetUserAsync(userId).CAF();
+			var user = await Context.Client.GetUserAsync(userId).ConfigureAwait(false);
 			await Punisher.HandleAsync(new Punishments.Ban(Context.Guild, userId, true)
 			{
 				Time = reason.Time,
 				Options = GetOptions(reason.Reason),
-			}).CAF();
+			}).ConfigureAwait(false);
 			return Responses.Users.Banned(true, user!, reason.Time);
 		}
 	}
@@ -566,7 +564,7 @@ public sealed class Users : ModuleBase
 			{
 				Time = reason.Time,
 				Options = GetOptions(reason.Reason),
-			}).CAF();
+			}).ConfigureAwait(false);
 			return Responses.Users.Banned(false, ban.User, reason.Time);
 		}
 	}
@@ -590,7 +588,7 @@ public sealed class Users : ModuleBase
 			{
 				Time = reason.Time,
 				Options = GetOptions(reason.Reason),
-			}).CAF();
+			}).ConfigureAwait(false);
 			return Responses.Users.Deafened(isGive, user, reason.Time);
 		}
 	}

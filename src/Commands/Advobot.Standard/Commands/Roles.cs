@@ -9,8 +9,6 @@ using Advobot.Resources;
 using Advobot.TypeReaders;
 using Advobot.Utilities;
 
-using AdvorangesUtils;
-
 using Discord;
 using Discord.Commands;
 
@@ -32,7 +30,7 @@ public sealed class Roles : ModuleBase
 		public async Task<RuntimeResult> Command([CanModifyRole] IRole role)
 		{
 			var immovable = role.Permissions.RawValue & ~Context.User.GuildPermissions.RawValue;
-			await role.ModifyAsync(x => x.Permissions = new GuildPermissions(immovable), GetOptions()).CAF();
+			await role.ModifyAsync(x => x.Permissions = new GuildPermissions(immovable), GetOptions()).ConfigureAwait(false);
 			return ClearedPermissions(role);
 		}
 	}
@@ -56,7 +54,7 @@ public sealed class Roles : ModuleBase
 			var immovable = output.Permissions.RawValue & ~Context.User.GuildPermissions.RawValue;
 			var permissions = immovable | copyable;
 
-			await output.ModifyAsync(x => x.Permissions = new GuildPermissions(permissions), GetOptions()).CAF();
+			await output.ModifyAsync(x => x.Permissions = new GuildPermissions(permissions), GetOptions()).ConfigureAwait(false);
 			return CopiedPermissions(input, output, (GuildPermission)copyable);
 		}
 	}
@@ -71,7 +69,7 @@ public sealed class Roles : ModuleBase
 		[Command]
 		public async Task<RuntimeResult> Command([RoleName] string name)
 		{
-			var role = await Context.Guild.CreateEmptyRoleAsync(name, GetOptions()).CAF();
+			var role = await Context.Guild.CreateEmptyRoleAsync(name, GetOptions()).ConfigureAwait(false);
 			return Responses.Snowflakes.Created(role);
 		}
 	}
@@ -88,7 +86,7 @@ public sealed class Roles : ModuleBase
 			[CanModifyRole, NotManaged, NotEveryone]
 			IRole role)
 		{
-			await role.DeleteAsync(GetOptions()).CAF();
+			await role.DeleteAsync(GetOptions()).ConfigureAwait(false);
 			return Responses.Snowflakes.Deleted(role);
 		}
 	}
@@ -139,7 +137,7 @@ public sealed class Roles : ModuleBase
 				rolesToAdd: roles,
 				rolesToRemove: [],
 				GetOptions()
-			).CAF();
+			).ConfigureAwait(false);
 			return Gave(roles, user);
 		}
 	}
@@ -157,7 +155,7 @@ public sealed class Roles : ModuleBase
 			IRole role,
 			Color color = default)
 		{
-			await role.ModifyAsync(x => x.Color = color, GetOptions()).CAF();
+			await role.ModifyAsync(x => x.Color = color, GetOptions()).ConfigureAwait(false);
 			return ModifiedColor(role, color);
 		}
 	}
@@ -173,7 +171,7 @@ public sealed class Roles : ModuleBase
 		public async Task<RuntimeResult> Command([CanModifyRole] IRole role)
 		{
 			var hoisted = !role.IsHoisted;
-			await role.ModifyAsync(x => x.Hoist = !role.IsHoisted, GetOptions()).CAF();
+			await role.ModifyAsync(x => x.Hoist = !role.IsHoisted, GetOptions()).ConfigureAwait(false);
 			return ModifiedHoistStatus(role, hoisted);
 		}
 	}
@@ -189,7 +187,7 @@ public sealed class Roles : ModuleBase
 		public async Task<RuntimeResult> Command([CanModifyRole] IRole role)
 		{
 			var mentionability = !role.IsMentionable;
-			await role.ModifyAsync(x => x.Mentionable = !role.IsMentionable, GetOptions()).CAF();
+			await role.ModifyAsync(x => x.Mentionable = !role.IsMentionable, GetOptions()).ConfigureAwait(false);
 			return ModifiedMentionability(role, mentionability);
 		}
 	}
@@ -208,7 +206,7 @@ public sealed class Roles : ModuleBase
 			[Remainder, RoleName]
 			string name)
 		{
-			await role.ModifyAsync(x => x.Name = name, GetOptions()).CAF();
+			await role.ModifyAsync(x => x.Name = name, GetOptions()).ConfigureAwait(false);
 			return Responses.Snowflakes.ModifiedName(role, name);
 		}
 
@@ -244,7 +242,7 @@ public sealed class Roles : ModuleBase
 			var rolePermissions = allow
 				? role.Permissions.RawValue | permissions
 				: role.Permissions.RawValue & ~permissions;
-			await role.ModifyAsync(x => x.Permissions = new GuildPermissions(rolePermissions), GetOptions()).CAF();
+			await role.ModifyAsync(x => x.Permissions = new GuildPermissions(rolePermissions), GetOptions()).ConfigureAwait(false);
 			return ModifiedPermissions(role, (GuildPermission)permissions, allow);
 		}
 	}
@@ -263,7 +261,7 @@ public sealed class Roles : ModuleBase
 			[Positive]
 			int position)
 		{
-			var pos = await role.ModifyRolePositionAsync(position, GetOptions()).CAF();
+			var pos = await role.ModifyRolePositionAsync(position, GetOptions()).ConfigureAwait(false);
 			return Moved(role, pos);
 		}
 	}
@@ -280,7 +278,7 @@ public sealed class Roles : ModuleBase
 			[CanModifyRole, NotManaged, NotEveryone]
 			IRole role)
 		{
-			await role.DeleteAsync(GetOptions()).CAF();
+			await role.DeleteAsync(GetOptions()).ConfigureAwait(false);
 			var copy = await Context.Guild.CreateRoleAsync(
 				name: role.Name,
 				permissions: role.Permissions,
@@ -288,8 +286,8 @@ public sealed class Roles : ModuleBase
 				isHoisted: role.IsHoisted,
 				isMentionable: role.IsMentionable,
 				options: GetOptions()
-			).CAF();
-			await copy.ModifyRolePositionAsync(role.Position, GetOptions()).CAF();
+			).ConfigureAwait(false);
+			await copy.ModifyRolePositionAsync(role.Position, GetOptions()).ConfigureAwait(false);
 			return Responses.Snowflakes.SoftDeleted(role);
 		}
 	}
@@ -311,7 +309,7 @@ public sealed class Roles : ModuleBase
 				rolesToAdd: [],
 				rolesToRemove: roles,
 				GetOptions()
-			).CAF();
+			).ConfigureAwait(false);
 			return Took(roles, user);
 		}
 	}
