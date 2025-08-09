@@ -5,15 +5,10 @@ using Discord.Commands;
 
 namespace Advobot.Logging.Resetters;
 
-public abstract class NotificationResetter : IResetter
+public abstract class NotificationResetter(INotificationDatabase db) : IResetter
 {
-	private readonly INotificationDatabase _Db;
+	private readonly INotificationDatabase _Db = db;
 	protected abstract Notification Event { get; }
-
-	protected NotificationResetter(INotificationDatabase db)
-	{
-		_Db = db;
-	}
 
 	public async Task ResetAsync(ICommandContext context)
 	{

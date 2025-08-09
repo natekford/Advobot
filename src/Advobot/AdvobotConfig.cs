@@ -5,6 +5,8 @@ using Discord.Net;
 using Discord.Rest;
 using Discord.WebSocket;
 
+using Newtonsoft.Json.Converters;
+
 using System.Text.Encodings.Web;
 using System.Text.Json;
 using System.Text.Json.Serialization;
@@ -63,6 +65,11 @@ public sealed class AdvobotConfig : IConfig
 		IncludeFields = true,
 		WriteIndented = true,
 	};
+
+	static AdvobotConfig()
+	{
+		JsonOptions.Converters.Add(new JsonStringEnumConverter());
+	}
 
 	/// <summary>
 	/// Attempts to load the configuration with the supplied instance number otherwise uses the default initialization for config.

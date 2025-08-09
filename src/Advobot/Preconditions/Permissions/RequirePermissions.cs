@@ -12,8 +12,13 @@ namespace Advobot.Preconditions.Permissions;
 /// <summary>
 /// For verifying <see cref="SocketGuildUser"/> permissions.
 /// </summary>
+/// <remarks>
+/// Creates an instance of <see cref="RequirePermissions"/>.
+/// </remarks>
+/// <param name="permissions"></param>
 [AttributeUsage(AttributeTargets.Class | AttributeTargets.Method, AllowMultiple = false, Inherited = true)]
-public abstract class RequirePermissions : PreconditionAttribute, IPrecondition
+public abstract class RequirePermissions(IEnumerable<Enum> permissions)
+	: PreconditionAttribute, IPrecondition
 {
 	/// <summary>
 	/// Whether this precondition has to validate the bot's permissions.
@@ -26,35 +31,25 @@ public abstract class RequirePermissions : PreconditionAttribute, IPrecondition
 	/// <summary>
 	/// The flags required (each is a separate valid combination of flags).
 	/// </summary>
-	public ImmutableHashSet<Enum> Permissions { get; }
+	public ImmutableHashSet<Enum> Permissions { get; } = [.. permissions];
 	/// <inheritdoc />
-	public virtual string Summary { get; }
-
-	/// <summary>
-	/// Creates an instance of <see cref="RequirePermissions"/>.
-	/// </summary>
-	/// <param name="permissions"></param>
-	protected RequirePermissions(IEnumerable<Enum> permissions)
+	public virtual string Summary { get; } = permissions.Select(x =>
 	{
-		Permissions = [.. permissions];
-		Summary = permissions.Select(x =>
+		var perms = default(List<string>);
+		foreach (Enum e in Enum.GetValues(x.GetType()))
 		{
-			var perms = default(List<string>);
-			foreach (Enum e in Enum.GetValues(x.GetType()))
+			if (x.Equals(e))
 			{
-				if (x.Equals(e))
-				{
-					return e.ToString();
-				}
-				else if (x.HasFlag(e))
-				{
-					perms ??= [];
-					perms.Add(e.ToString());
-				}
+				return e.ToString();
 			}
-			return perms.Join(" & ");
-		}).Join(" | ");
-	}
+			else if (x.HasFlag(e))
+			{
+				perms ??= [];
+				perms.Add(e.ToString());
+			}
+		}
+		return perms?.Join(" & ") ?? "";
+	}).Join(" | ");
 
 	/// <inheritdoc />
 	public override async Task<PreconditionResult> CheckPermissionsAsync(
