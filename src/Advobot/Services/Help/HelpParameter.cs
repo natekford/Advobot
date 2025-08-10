@@ -19,7 +19,7 @@ internal sealed class HelpParameter(Discord.Commands.ParameterInfo parameter) : 
 	private static IReadOnlyList<string> GetNamedArgumentNames(Type type)
 	{
 		var info = type.GetTypeInfo();
-		if (info.GetCustomAttribute<NamedArgumentTypeAttribute>() == null)
+		if (info.GetCustomAttribute<NamedArgumentTypeAttribute>() is null)
 		{
 			return [];
 		}

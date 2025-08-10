@@ -38,7 +38,7 @@ public sealed class InviteCache
 		//If the bot can't get invites then determining the correct invite is not possible with any accuracy
 		//No invites means single use, vanity url, or linked twitch
 		var current = await SafeGetInvitesAsync(guild).ConfigureAwait(false);
-		if (current == null)
+		if (current is null)
 		{
 			return null;
 		}
@@ -75,7 +75,7 @@ public sealed class InviteCache
 
 	private void CacheInvites(IEnumerable<IInviteMetadata>? invites)
 	{
-		if (invites == null)
+		if (invites is null)
 		{
 			return;
 		}

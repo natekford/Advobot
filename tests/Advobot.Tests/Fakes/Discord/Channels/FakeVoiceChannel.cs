@@ -105,7 +105,7 @@ public sealed class FakeVoiceChannel(FakeGuild guild)
 	public async Task SyncPermissionsAsync(RequestOptions? options = null)
 	{
 		var category = await GetCategoryAsync().ConfigureAwait(false);
-		if (category == null)
+		if (category is null)
 		{
 			return;
 		}

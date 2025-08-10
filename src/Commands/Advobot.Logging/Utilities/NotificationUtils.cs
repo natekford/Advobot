@@ -30,17 +30,17 @@ public static class NotificationUtils
 
 	public static bool EmbedEmpty(this Models.CustomEmbed custom)
 	{
-		return custom.AuthorIconUrl == null
-			&& custom.AuthorName == null
-			&& custom.AuthorUrl == null
-			&& custom.Color == 0
-			&& custom.Description == null
-			&& custom.Footer == null
-			&& custom.FooterIconUrl == null
-			&& custom.ImageUrl == null
-			&& custom.ThumbnailUrl == null
-			&& custom.Title == null
-			&& custom.Url == null;
+		return custom.AuthorIconUrl is null
+			&& custom.AuthorName is null
+			&& custom.AuthorUrl is null
+			&& custom.Color is 0
+			&& custom.Description is null
+			&& custom.Footer is null
+			&& custom.FooterIconUrl is null
+			&& custom.ImageUrl is null
+			&& custom.ThumbnailUrl is null
+			&& custom.Title is null
+			&& custom.Url is null;
 	}
 
 	public static SendMessageArgs ToMessageArgs(this EmbedWrapper embed)

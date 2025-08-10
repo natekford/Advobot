@@ -22,7 +22,7 @@ public sealed class NeverExpires : AdvobotParameterPrecondition<IInviteMetadata>
 		IInviteMetadata invite,
 		IServiceProvider services)
 	{
-		if (invite.MaxAge == null)
+		if (invite.MaxAge is null)
 		{
 			return this.FromSuccess().AsTask();
 		}

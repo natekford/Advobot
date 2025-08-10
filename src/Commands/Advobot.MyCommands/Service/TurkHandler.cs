@@ -40,7 +40,7 @@ public sealed class TurkHandler
 		}
 
 		var config = await _Db.GetDetectLanguageConfigAsync().ConfigureAwait(false);
-		if (config.APIKey == null
+		if (config.APIKey is null
 			|| config.CooldownStart?.Day == DateTime.UtcNow.Day)
 		{
 			// If no API key set, nothing we can do

@@ -1,12 +1,17 @@
-﻿namespace Advobot.SQLite;
+﻿using Advobot.Services;
+
+namespace Advobot.SQLite;
 
 /// <summary>
 /// Used for starting a SQLite database from a system file.
 /// </summary>
-public sealed class SQLiteSystemFileDatabaseConnectionString : IConnectionString<object>
+public sealed class SQLiteSystemFileDatabaseConnectionString
+	: IConfigurableService, IConnectionString<object>
 {
 	/// <inheritdoc />
 	public string ConnectionString { get; }
+	/// <inheritdoc />
+	public Type Database { get; }
 	/// <summary>
 	/// The path of the SQLite database.
 	/// </summary>
@@ -16,8 +21,10 @@ public sealed class SQLiteSystemFileDatabaseConnectionString : IConnectionString
 	/// Creates an instance of <see cref="SQLiteSystemFileDatabaseConnectionString"/>.
 	/// </summary>
 	/// <param name="path"></param>
-	public SQLiteSystemFileDatabaseConnectionString(string path)
+	/// <param name="db"></param>
+	public SQLiteSystemFileDatabaseConnectionString(string path, Type db)
 	{
+		Database = db;
 		Path = path;
 		ConnectionString = $"Data Source={Path}";
 	}
@@ -31,5 +38,11 @@ public sealed class SQLiteSystemFileDatabaseConnectionString : IConnectionString
 			File.Create(Path).Dispose();
 		}
 		return Task.CompletedTask;
+	}
+
+	async Task IConfigurableService.ConfigureAsync()
+	{
+		await EnsureCreatedAsync().ConfigureAwait(false);
+		this.MigrateUp();
 	}
 }

@@ -37,7 +37,7 @@ public abstract class AdvobotParameterPrecondition<T>
 		}
 
 		var invoker = context.User as IGuildUser;
-		if (!AllowNonGuildInvokers && invoker == null)
+		if (!AllowNonGuildInvokers && invoker is null)
 		{
 			return this.FromInvalidInvoker().AsTask();
 		}

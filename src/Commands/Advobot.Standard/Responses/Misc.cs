@@ -199,7 +199,7 @@ public sealed class Misc : AdvobotResult
 		{
 			return VariableNotApplicable;
 		}
-		if (preconditions.Any(x => x.Group == null))
+		if (preconditions.Any(x => x.Group is null))
 		{
 			return preconditions.Select(x => x.Summary).Join(VariableAnd);
 		}

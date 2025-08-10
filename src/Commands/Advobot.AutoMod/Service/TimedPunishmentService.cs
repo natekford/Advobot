@@ -1,6 +1,7 @@
 ﻿using Advobot.AutoMod.Database;
 using Advobot.AutoMod.Models;
 using Advobot.Punishments;
+using Advobot.Services;
 using Advobot.Services.Time;
 
 using Discord;
@@ -17,8 +18,10 @@ public sealed class TimedPunishmentService(
 	ITimedPunishmentDatabase db,
 	IDiscordClient client,
 	ITimeService time
-) : IPunishmentService
+) : IPunishmentService, IStartableService, IConfigurableService
 {
+	private bool _IsRunning;
+
 	public async Task HandleAsync(IPunishmentContext context)
 	{
 		TimedPunishment ToDbModel(IPunishmentContext context)
@@ -46,9 +49,15 @@ public sealed class TimedPunishmentService(
 
 	public void Start()
 	{
+		if (_IsRunning)
+		{
+			return;
+		}
+		_IsRunning = true;
+
 		_ = Task.Run(async () =>
 		{
-			while (true)
+			while (_IsRunning)
 			{
 				var values = await db.GetExpiredPunishmentsAsync(time.UtcNow.Ticks).ConfigureAwait(false);
 
@@ -73,9 +82,18 @@ public sealed class TimedPunishmentService(
 				}
 				await db.DeleteTimedPunishmentsAsync(handled).ConfigureAwait(false);
 
-				await Task.Delay(TimeSpan.FromMinutes(1)).ConfigureAwait(false);
+				await Task.Delay(TimeSpan.FromSeconds(1)).ConfigureAwait(false);
 			}
 		});
+	}
+
+	public void Stop()
+		=> _IsRunning = false;
+
+	Task IConfigurableService.ConfigureAsync()
+	{
+		Start();
+		return Task.CompletedTask;
 	}
 
 	private async Task<bool> RemovePunishmentAsync(TimedPunishment punishment)

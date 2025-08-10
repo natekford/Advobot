@@ -5,19 +5,21 @@ namespace Advobot.CommandAssemblies;
 /// <summary>
 /// Specifies how to instantiate the command assembly.
 /// </summary>
-public interface ICommandAssemblyInstantiator
+public abstract class CommandAssemblyInstantiator
 {
 	/// <summary>
 	/// Adds some services to <paramref name="services"/>.
 	/// </summary>
 	/// <param name="services"></param>
 	/// <returns></returns>
-	Task AddServicesAsync(IServiceCollection services);
+	public virtual Task AddServicesAsync(IServiceCollection services)
+		=> Task.CompletedTask;
 
 	/// <summary>
 	/// Configures the services and makes sure they are set up correctly.
 	/// </summary>
 	/// <param name="services"></param>
 	/// <returns></returns>
-	Task ConfigureServicesAsync(IServiceProvider services);
+	public virtual Task ConfigureServicesAsync(IServiceProvider services)
+		=> Task.CompletedTask;
 }

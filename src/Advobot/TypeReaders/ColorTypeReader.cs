@@ -29,7 +29,7 @@ public sealed class ColorTypeReader : TypeReader
 	/// <returns></returns>
 	public static bool TryParseColor(string input, out Color result)
 	{
-		if (input == null)
+		if (input is null)
 		{
 			result = default;
 			return true;

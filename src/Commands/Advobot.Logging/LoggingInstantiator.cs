@@ -9,9 +9,9 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace Advobot.Logging;
 
-public sealed class LoggingInstantiator : ICommandAssemblyInstantiator
+public sealed class LoggingInstantiator : CommandAssemblyInstantiator
 {
-	public Task AddServicesAsync(IServiceCollection services)
+	public override Task AddServicesAsync(IServiceCollection services)
 	{
 		services
 			.AddSingleton<ILoggingDatabase, LoggingDatabase>()
@@ -26,15 +26,6 @@ public sealed class LoggingInstantiator : ICommandAssemblyInstantiator
 			.AddDefaultOptionsSetter<LogActionsResetter>()
 			.AddDefaultOptionsSetter<WelcomeNotificationResetter>()
 			.AddDefaultOptionsSetter<GoodbyeNotificationResetter>();
-
-		return Task.CompletedTask;
-	}
-
-	public Task ConfigureServicesAsync(IServiceProvider services)
-	{
-		services.GetRequiredService<IConnectionString<LoggingDatabase>>().MigrateUp();
-		services.GetRequiredService<IConnectionString<NotificationDatabase>>().MigrateUp();
-		services.GetRequiredService<MessageQueue>().Start();
 
 		return Task.CompletedTask;
 	}

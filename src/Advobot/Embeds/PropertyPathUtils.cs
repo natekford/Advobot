@@ -92,7 +92,7 @@ internal static class PropertyPathUtils
 	private static string GetFromMember(this MemberExpression member)
 	{
 		var name = member.Member.Name;
-		if (member.Expression == null)
+		if (member.Expression is null)
 		{
 			return name;
 		}

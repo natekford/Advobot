@@ -45,7 +45,7 @@ public class CommandValidator(ISettingsDatabase db) : ICommandValidator
 		foreach (var @override in overrides)
 		{
 			var entity = GetEntity(context, @override);
-			if (entity == null)
+			if (entity is null)
 			{
 				continue;
 			}

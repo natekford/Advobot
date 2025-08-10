@@ -3,7 +3,7 @@ using Advobot.Interactivity.Criterions;
 using Advobot.Interactivity.TryParsers;
 using Advobot.Preconditions;
 using Advobot.Punishments;
-using Advobot.Services.BotSettings;
+using Advobot.Services.BotConfig;
 using Advobot.Utilities;
 
 using Discord;
@@ -27,7 +27,7 @@ public abstract class AdvobotModuleBase : ModuleBase<AdvobotCommandContext>
 	/// <summary>
 	/// The settings for the bot.
 	/// </summary>
-	public IRuntimeConfig BotSettings { get; set; } = null!;
+	public IRuntimeConfig BotConfig { get; set; } = null!;
 	/// <summary>
 	/// The default time to wait for a user's response.
 	/// </summary>

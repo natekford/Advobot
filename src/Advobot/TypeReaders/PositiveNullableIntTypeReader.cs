@@ -15,7 +15,7 @@ public sealed class PositiveNullableIntTypeReader : TypeReader
 		string input,
 		IServiceProvider services)
 	{
-		if (input == null)
+		if (input is null)
 		{
 			return TypeReaderResult.FromSuccess(null).AsTask();
 		}

@@ -11,7 +11,7 @@ public abstract class TypeReader_Tests<T> : TestsBase
 	[TestMethod]
 	public async Task NotExisting_Test()
 	{
-		if (NotExisting == null)
+		if (NotExisting is null)
 		{
 			return;
 		}

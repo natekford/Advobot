@@ -19,9 +19,10 @@ public abstract class Database_Tests<TDb, TConn> : TestsBase where TDb : class
 
 	protected override void ModifyServices(IServiceCollection services)
 	{
+		var connectionString = new FakeSQLiteConnectionString(typeof(TDb));
 		services
 			.AddSingleton<TDb>()
-			.AddSingleton<IConnectionString<TDb>, FakeSQLiteConnectionString>()
+			.AddSingleton<IConnectionString<TDb>>(connectionString)
 			.AddSingleton<ITimeService, NaiveTimeService>();
 	}
 }

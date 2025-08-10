@@ -146,7 +146,7 @@ public static class FormattingUtils
 		var currentEmbed = default(int);
 		foreach (var embed in msg.Embeds)
 		{
-			if (embed.Description == null && embed.Url == null && !embed.Image.HasValue)
+			if (embed.Description is null && embed.Url is null && !embed.Image.HasValue)
 			{
 				continue;
 			}

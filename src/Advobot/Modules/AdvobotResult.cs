@@ -112,7 +112,7 @@ public class AdvobotResult : RuntimeResult
 		if (OverrideDestinationChannelId is ulong id)
 		{
 			destination = await context.Guild.GetTextChannelAsync(id).ConfigureAwait(false);
-			if (destination == null)
+			if (destination is null)
 			{
 				return await context.Channel.SendMessageAsync(new SendMessageArgs
 				{

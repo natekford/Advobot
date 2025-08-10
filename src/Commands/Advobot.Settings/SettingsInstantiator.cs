@@ -9,22 +9,15 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace Advobot.Settings;
 
-public sealed class SettingsInstantiator : ICommandAssemblyInstantiator
+public sealed class SettingsInstantiator : CommandAssemblyInstantiator
 {
-	public Task AddServicesAsync(IServiceCollection services)
+	public override Task AddServicesAsync(IServiceCollection services)
 	{
 		services
 			.AddSingleton<ISettingsDatabase, SettingsDatabase>()
 			.AddSQLiteFileDatabaseConnectionString<SettingsDatabase>("GuildSettings.db")
 			.AddSingleton<ICommandValidator, CommandValidator>()
 			.ReplaceAllWithSingleton<IGuildSettingsService, GuildSettingsProvider>();
-
-		return Task.CompletedTask;
-	}
-
-	public Task ConfigureServicesAsync(IServiceProvider services)
-	{
-		services.GetRequiredService<IConnectionString<SettingsDatabase>>().MigrateUp();
 
 		return Task.CompletedTask;
 	}

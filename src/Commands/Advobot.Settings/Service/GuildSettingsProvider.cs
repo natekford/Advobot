@@ -1,4 +1,4 @@
-﻿using Advobot.Services.BotSettings;
+﻿using Advobot.Services.BotConfig;
 using Advobot.Services.GuildSettings;
 using Advobot.Settings.Database;
 using Advobot.Utilities;

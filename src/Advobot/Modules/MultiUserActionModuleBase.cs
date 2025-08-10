@@ -52,7 +52,7 @@ public abstract class MultiUserActionModuleBase : AdvobotModuleBase
 		Func<MultiUserActionProgressArgs, string>? formatProgress,
 		RequestOptions options)
 	{
-		var amount = getUnlimitedUsers ? int.MaxValue : BotSettings.MaxUserGatherCount;
+		var amount = getUnlimitedUsers ? int.MaxValue : BotConfig.MaxUserGatherCount;
 		var array = users.Where(userPredicate).Take(amount).ToArray();
 		return ProcessAsync(array, updateUser, formatProgress, options);
 	}

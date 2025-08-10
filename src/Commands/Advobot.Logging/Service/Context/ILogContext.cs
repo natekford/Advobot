@@ -1,12 +1,12 @@
-﻿using Discord;
+﻿using Advobot.Logging.Database;
+
+using Discord;
 
 namespace Advobot.Logging.Service.Context;
 
 public interface ILogContext
 {
-	IGuildUser Bot { get; }
 	IGuild Guild { get; }
-	ITextChannel? ImageLog { get; }
-	ITextChannel? ModLog { get; }
-	ITextChannel? ServerLog { get; }
+
+	Task<bool> IsValidAsync(ILoggingDatabase db);
 }

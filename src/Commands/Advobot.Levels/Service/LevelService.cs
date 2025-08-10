@@ -49,7 +49,7 @@ public sealed class LevelService
 	private async Task AddExperienceAsync(IMessage message)
 	{
 		var context = await XpContext.CreateAsync(_Db, message).ConfigureAwait(false);
-		if (context == null)
+		if (context is null)
 		{
 			return;
 		}
@@ -101,7 +101,7 @@ public sealed class LevelService
 		Cacheable<IMessageChannel, ulong> _)
 	{
 		var context = await XpContext.CreateAsync(_Db, cached.Value).ConfigureAwait(false);
-		if (context == null
+		if (context is null
 			|| !_RuntimeInfo.TryGetValue(context.Key, out var info)
 			|| !info.TryGet(cached.Id, out var hash))
 		{

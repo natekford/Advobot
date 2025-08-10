@@ -2,8 +2,8 @@
 
 namespace Advobot.Logging.Service.Context.Message;
 
-public class MessagesBulkDeletedState(IEnumerable<Cacheable<IMessage, ulong>> messages)
-	: MessageDeletedState(messages.First())
+public class MessagesBulkDeletedContext(IEnumerable<Cacheable<IMessage, ulong>> messages)
+	: MessageContext(messages.First().Value)
 {
 	public IReadOnlyList<IMessage> Messages { get; } = [.. messages
 		.Where(x => x.HasValue)

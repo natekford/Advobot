@@ -61,7 +61,7 @@ public sealed class Notifications : AdvobotResult
 		Notification notif,
 		CustomNotification? notification)
 	{
-		if (notification == null)
+		if (notification is null)
 		{
 			return Failure(NotificationSendNull.Format(
 				notif.ToString().WithBlock()

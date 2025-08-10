@@ -27,7 +27,7 @@ public sealed class DynamicPunishmentContext(IGuild guild, ulong userId, bool is
 	public override async Task ExecuteAsync()
 	{
 		var context = await GetContextAsync().ConfigureAwait(false);
-		if (context == null)
+		if (context is null)
 		{
 			return;
 		}

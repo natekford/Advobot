@@ -10,9 +10,9 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace Advobot.AutoMod;
 
-public sealed class AutoModInstantiator : ICommandAssemblyInstantiator
+public sealed class AutoModInstantiator : CommandAssemblyInstantiator
 {
-	public Task AddServicesAsync(IServiceCollection services)
+	public override Task AddServicesAsync(IServiceCollection services)
 	{
 		services
 			.AddSingleton<IAutoModDatabase, AutoModDatabase>()
@@ -23,14 +23,6 @@ public sealed class AutoModInstantiator : ICommandAssemblyInstantiator
 			.AddSQLiteFileDatabaseConnectionString<TimedPunishmentDatabase>("TimedPunishments.db")
 			.ReplaceAllWithSingleton<IPunishmentService, TimedPunishmentService>()
 			.AddLogger<TimedPunishmentService>("TimedPunishments");
-
-		return Task.CompletedTask;
-	}
-
-	public Task ConfigureServicesAsync(IServiceProvider services)
-	{
-		services.GetRequiredService<IConnectionString<AutoModDatabase>>().MigrateUp();
-		services.GetRequiredService<IConnectionString<TimedPunishmentDatabase>>().MigrateUp();
 
 		return Task.CompletedTask;
 	}

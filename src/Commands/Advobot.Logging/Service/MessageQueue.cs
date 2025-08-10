@@ -1,5 +1,6 @@
 ﻿using Advobot.Embeds;
 using Advobot.Logging.Utilities;
+using Advobot.Services;
 using Advobot.Utilities;
 
 using Discord;
@@ -15,14 +16,12 @@ namespace Advobot.Logging.Service;
 public sealed class MessageQueue(
 	ILogger<LoggingService> logger,
 	BaseSocketClient client
-)
+) : IStartableService, IConfigurableService
 {
 	private readonly ConcurrentQueue<(IMessageChannel, SendMessageArgs)> _Send = new();
 
 	private ConcurrentDictionary<ulong, ConcurrentBag<IMessage>> _Deleted = new();
 	private bool _IsRunning;
-
-	public TimeSpan DeletedMessageDelay { get; set; } = TimeSpan.FromSeconds(5);
 
 	public void EnqueueDeleted(IMessageChannel channel, IMessage message)
 		=> _Deleted.GetOrAdd(channel.Id, _ => []).Add(message);
@@ -36,8 +35,8 @@ public sealed class MessageQueue(
 		{
 			return;
 		}
-
 		_IsRunning = true;
+
 		_ = Task.Run(async () =>
 		{
 			while (_IsRunning)
@@ -61,6 +60,8 @@ public sealed class MessageQueue(
 						);
 					}
 				}
+
+				await Task.Delay(TimeSpan.FromSeconds(1)).ConfigureAwait(false);
 			}
 		});
 		_ = Task.Run(async () =>
@@ -99,13 +100,19 @@ public sealed class MessageQueue(
 					}
 				}
 
-				await Task.Delay(DeletedMessageDelay).ConfigureAwait(false);
+				await Task.Delay(TimeSpan.FromSeconds(5)).ConfigureAwait(false);
 			}
 		});
 	}
 
 	public void Stop()
 		=> _IsRunning = false;
+
+	Task IConfigurableService.ConfigureAsync()
+	{
+		Start();
+		return Task.CompletedTask;
+	}
 
 	private void QueueDeletedMessages(IMessageChannel channel, IEnumerable<IMessage> messages)
 	{

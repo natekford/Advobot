@@ -1,4 +1,4 @@
-﻿using Advobot.Services.BotSettings;
+﻿using Advobot.Services.BotConfig;
 using Advobot.Utilities;
 
 using Discord.Commands;
@@ -22,8 +22,8 @@ public sealed class RequireAllowedToDmBotOwner : AdvobotPrecondition
 		CommandInfo command,
 		IServiceProvider services)
 	{
-		var botSettings = services.GetRequiredService<IRuntimeConfig>();
-		if (!botSettings.UsersUnableToDmOwner.Contains(context.User.Id))
+		var botConfig = services.GetRequiredService<IRuntimeConfig>();
+		if (!botConfig.UsersUnableToDmOwner.Contains(context.User.Id))
 		{
 			return this.FromSuccess().AsTask();
 		}

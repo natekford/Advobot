@@ -85,7 +85,7 @@ public static class MessageUtils
 		{
 			var startCount = messages.Count;
 			// We can't pass in a null message/id so if/else to get the right method
-			var request = from == null
+			var request = from is null
 				? channel.GetMessagesAsync(options: args.Options)
 				: channel.GetMessagesAsync(from, Direction.Before, options: args.Options);
 			await foreach (var batch in request)
@@ -99,7 +99,7 @@ public static class MessageUtils
 					{
 						return await DoneAsync(channel, messages, deleteCount, args).ConfigureAwait(false);
 					}
-					if (args.Predicate == null || args.Predicate(message))
+					if (args.Predicate is null || args.Predicate(message))
 					{
 						messages.Add(message);
 					}
@@ -261,7 +261,7 @@ public static class MessageUtils
 		const string INVITE_3 = "discord.com";
 		const string INVITE_3_CLEAN = INVITE_3 + SPACE;
 
-		if (content == null)
+		if (content is null)
 		{
 			return SPACE;
 		}

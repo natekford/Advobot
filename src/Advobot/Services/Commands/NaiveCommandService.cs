@@ -2,7 +2,7 @@
 using Advobot.CommandAssemblies;
 using Advobot.Localization;
 using Advobot.Modules;
-using Advobot.Services.BotSettings;
+using Advobot.Services.BotConfig;
 using Advobot.Services.GuildSettings;
 using Advobot.Services.Help;
 using Advobot.TypeReaders;
@@ -22,7 +22,7 @@ namespace Advobot.Services.Commands;
 /// </summary>
 public sealed class NaiveCommandService
 {
-	private readonly IRuntimeConfig _BotSettings;
+	private readonly IRuntimeConfig _BotConfig;
 	private readonly DiscordShardedClient _Client;
 	private readonly AsyncEvent<Func<CommandInfo, ICommandContext, IResult, Task>> _CommandInvoked = new();
 	private readonly Localized<CommandService> _CommandService;
@@ -60,23 +60,23 @@ public sealed class NaiveCommandService
 	/// Creates an instance of <see cref="NaiveCommandService"/>.
 	/// </summary>
 	/// <param name="services"></param>
-	/// <param name="config"></param>
+	/// <param name="commandConfig"></param>
 	/// <param name="client"></param>
-	/// <param name="botSettings"></param>
+	/// <param name="botConfig"></param>
 	/// <param name="guildSettings"></param>
 	/// <param name="help"></param>
 	public NaiveCommandService(
 		IServiceProvider services,
-		CommandServiceConfig config,
+		CommandServiceConfig commandConfig,
 		DiscordShardedClient client,
-		IRuntimeConfig botSettings,
+		IRuntimeConfig botConfig,
 		IGuildSettingsService guildSettings,
 		IHelpService help)
 	{
 		_Services = services;
-		_Config = config;
+		_Config = commandConfig;
 		_Client = client;
-		_BotSettings = botSettings;
+		_BotConfig = botConfig;
 		_GuildSettings = guildSettings;
 		_Help = help;
 		_CommandService = new(_ =>
@@ -106,7 +106,7 @@ public sealed class NaiveCommandService
 			foreach (var type in assembly.GetTypes())
 			{
 				var attr = type.GetCustomAttribute<TypeReaderTargetTypeAttribute>();
-				if (attr == null)
+				if (attr is null)
 				{
 					continue;
 				}
@@ -234,10 +234,10 @@ public sealed class NaiveCommandService
 	private async Task OnMessageReceived(IMessage message)
 	{
 		if (_ShardsReady != _Client.Shards.Count
-			|| _BotSettings.Pause
+			|| _BotConfig.Pause
 			|| message.Author.IsBot
 			|| string.IsNullOrWhiteSpace(message.Content)
-			|| _BotSettings.UsersIgnoredFromCommands.Contains(message.Author.Id)
+			|| _BotConfig.UsersIgnoredFromCommands.Contains(message.Author.Id)
 			|| message is not SocketUserMessage msg
 			|| msg.Author is not SocketGuildUser user)
 		{
@@ -275,8 +275,8 @@ public sealed class NaiveCommandService
 		}
 		_Client.ShardReady -= OnShardReady;
 
-		var game = _BotSettings.Game;
-		var stream = _BotSettings.Stream;
+		var game = _BotConfig.Game;
+		var stream = _BotConfig.Stream;
 		var activityType = ActivityType.Playing;
 		if (!string.IsNullOrWhiteSpace(stream))
 		{

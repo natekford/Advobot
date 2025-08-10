@@ -8,9 +8,9 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace Advobot.Levels;
 
-public sealed class LevelInstantiator : ICommandAssemblyInstantiator
+public sealed class LevelInstantiator : CommandAssemblyInstantiator
 {
-	public Task AddServicesAsync(IServiceCollection services)
+	public override Task AddServicesAsync(IServiceCollection services)
 	{
 		services
 			.AddSingleton<LevelServiceConfig>()
@@ -18,13 +18,6 @@ public sealed class LevelInstantiator : ICommandAssemblyInstantiator
 			.AddSQLiteFileDatabaseConnectionString<LevelDatabase>("Levels.db")
 			.AddSingleton<LevelService>()
 			.AddLogger<LevelService>("Levels");
-
-		return Task.CompletedTask;
-	}
-
-	public Task ConfigureServicesAsync(IServiceProvider services)
-	{
-		services.GetRequiredService<IConnectionString<LevelDatabase>>().MigrateUp();
 
 		return Task.CompletedTask;
 	}

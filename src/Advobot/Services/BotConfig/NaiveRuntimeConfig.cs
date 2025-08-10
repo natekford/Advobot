@@ -3,7 +3,7 @@
 using System.Text.Json;
 using System.Text.Json.Serialization;
 
-namespace Advobot.Services.BotSettings;
+namespace Advobot.Services.BotConfig;
 
 /// <summary>
 /// Holds settings for the bot.

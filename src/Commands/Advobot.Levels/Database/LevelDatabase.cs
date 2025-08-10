@@ -66,7 +66,7 @@ public sealed class LevelDatabase(IConnectionString<LevelDatabase> conn) : Datab
 
 	public async Task<IRank> GetRankAsync(SearchArgs args)
 	{
-		if (args.UserId == null)
+		if (args.UserId is null)
 		{
 			throw new ArgumentException("UserId cannot be null", nameof(args));
 		}
@@ -153,7 +153,7 @@ public sealed class LevelDatabase(IConnectionString<LevelDatabase> conn) : Datab
 
 	private void AppendWhereStatement(StringBuilder sb, object? value, string name)
 	{
-		if (value == null)
+		if (value is null)
 		{
 			return;
 		}

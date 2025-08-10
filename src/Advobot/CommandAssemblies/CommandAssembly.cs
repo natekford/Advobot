@@ -17,7 +17,7 @@ public readonly struct CommandAssembly(Assembly assembly, CommandAssemblyAttribu
 	/// <summary>
 	/// The instantiator to use for this command assembly.
 	/// </summary>
-	public ICommandAssemblyInstantiator? Instantiator { get; } = attribute.Instantiator;
+	public CommandAssemblyInstantiator? Instantiator { get; } = attribute.Instantiator;
 	/// <summary>
 	/// The cultures this command assembly supports.
 	/// </summary>

@@ -112,7 +112,7 @@ public sealed class Users : AdvobotResult
 		IUser? user,
 		int deleted)
 	{
-		if (user == null)
+		if (user is null)
 		{
 			return Success(UsersDeletedMessagesNoTarget.Format(
 				deleted.ToString().WithBlock(),

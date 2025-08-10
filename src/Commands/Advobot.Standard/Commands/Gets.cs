@@ -138,7 +138,7 @@ public sealed class Gets : ModuleBase
 			var num = Math.Min(number, 1000);
 			var messages = await channel.GetMessagesAsync(num).FlattenAsync().ConfigureAwait(false);
 			var orderedMessages = messages.OrderBy(x => x.CreatedAt.Ticks).ToArray();
-			return Responses.Gets.Messages(channel, orderedMessages, BotSettings.MaxMessageGatherSize);
+			return Responses.Gets.Messages(channel, orderedMessages, BotConfig.MaxMessageGatherSize);
 		}
 	}
 

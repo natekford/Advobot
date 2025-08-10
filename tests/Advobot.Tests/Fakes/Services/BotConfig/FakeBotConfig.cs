@@ -1,10 +1,10 @@
-﻿using Advobot.Services.BotSettings;
+﻿using Advobot.Services.BotConfig;
 
 using Discord;
 
-namespace Advobot.Tests.Fakes.Services.BotSettings;
+namespace Advobot.Tests.Fakes.Services.BotConfig;
 
-public sealed class FakeBotSettings : IRuntimeConfig
+public sealed class FakeBotConfig : IRuntimeConfig
 {
 	public bool AlwaysDownloadUsers { get; set; } = true;
 	public DirectoryInfo BaseBotDirectory => throw new NotImplementedException();

@@ -46,7 +46,7 @@ public static class SQLiteUtils
 		{
 			var config = x.GetRequiredService<IConfig>();
 			var path = config.ValidateDbPath("SQLite", fileName).FullName;
-			var conn = new SQLiteSystemFileDatabaseConnectionString(path);
+			var conn = new SQLiteSystemFileDatabaseConnectionString(path, typeof(T));
 			return (IConnectionString<T>)(IConnectionString<object>)conn;
 		});
 	}
@@ -83,15 +83,6 @@ public static class SQLiteUtils
 		").ConfigureAwait(false);
 		return [.. result];
 	}
-
-	/// <summary>
-	/// Downgrades to the specified version.
-	/// </summary>
-	/// <typeparam name="T"></typeparam>
-	/// <param name="connection"></param>
-	/// <param name="version"></param>
-	public static void MigrateDown<T>(this IConnectionString<T> connection, long version)
-		=> connection.CreateMigrationRunner().MigrateDown(version);
 
 	/// <summary>
 	/// Runs all migrations which have not been run yet.
@@ -140,7 +131,7 @@ public static class SQLiteUtils
 				x
 				.AddSQLite()
 				.WithGlobalConnectionString(connection.ConnectionString)
-				.ScanIn(typeof(T).Assembly).For.Migrations();
+				.ScanIn(connection.Database.Assembly).For.Migrations();
 			})
 #if DEBUG
 			.AddLogging(x => x.AddFluentMigratorConsole())

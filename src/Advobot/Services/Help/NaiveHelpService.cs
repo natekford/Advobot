@@ -51,7 +51,7 @@ internal sealed class NaiveHelpService : IHelpService
 		}
 
 		var entries = _Help.Get().SelectMany(GetHelpEntries);
-		if (category == null)
+		if (category is null)
 		{
 			return entries;
 		}

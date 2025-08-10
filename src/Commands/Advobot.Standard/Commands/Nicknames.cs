@@ -84,7 +84,7 @@ public sealed class Nicknames : ModuleBase
 		{
 			var amountChanged = await ProcessAsync(
 				bypass,
-				u => (u.Nickname?.CaseInsContains(search) == true) || (u.Nickname == null && u.Username.CaseInsContains(search)),
+				u => (u.Nickname?.CaseInsContains(search) == true) || (u.Nickname is null && u.Username.CaseInsContains(search)),
 				(u, o) => u.ModifyAsync(x => x.Nickname = replace, o),
 				i => Responses.Users.MultiUserActionProgress(i.AmountLeft).Reason,
 				GetOptions()

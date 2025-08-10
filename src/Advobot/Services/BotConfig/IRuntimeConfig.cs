@@ -1,6 +1,6 @@
 ﻿using Discord;
 
-namespace Advobot.Services.BotSettings;
+namespace Advobot.Services.BotConfig;
 
 /// <summary>
 /// Holds bot settings.

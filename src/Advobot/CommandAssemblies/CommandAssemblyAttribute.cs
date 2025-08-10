@@ -11,7 +11,7 @@ public sealed class CommandAssemblyAttribute(params string[] supportedCultures) 
 	/// <summary>
 	/// An instance of <see cref="InstantiatorType"/>.
 	/// </summary>
-	public ICommandAssemblyInstantiator? Instantiator { get; private set; }
+	public CommandAssemblyInstantiator? Instantiator { get; private set; }
 	/// <summary>
 	/// Specifies things to do before these commands can start being used.
 	/// </summary>
@@ -38,9 +38,9 @@ public sealed class CommandAssemblyAttribute(params string[] supportedCultures) 
 				throw new ArgumentException("Must have a parameterless constructor.", nameof(InstantiatorType));
 			}
 
-			if (i is not ICommandAssemblyInstantiator instantiator)
+			if (i is not CommandAssemblyInstantiator instantiator)
 			{
-				throw new ArgumentException($"Must implement {nameof(ICommandAssemblyInstantiator)}.", nameof(InstantiatorType));
+				throw new ArgumentException($"Must implement {nameof(CommandAssemblyInstantiator)}.", nameof(InstantiatorType));
 			}
 
 			field = value;

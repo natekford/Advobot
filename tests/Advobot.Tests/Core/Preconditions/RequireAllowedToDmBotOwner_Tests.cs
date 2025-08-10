@@ -1,6 +1,6 @@
 ﻿using Advobot.Preconditions;
-using Advobot.Services.BotSettings;
-using Advobot.Tests.Fakes.Services.BotSettings;
+using Advobot.Services.BotConfig;
+using Advobot.Tests.Fakes.Services.BotConfig;
 using Advobot.Tests.TestBases;
 
 using Microsoft.Extensions.DependencyInjection;
@@ -11,7 +11,7 @@ namespace Advobot.Tests.Core.Preconditions;
 public sealed class RequireAllowedToDmBotOwner_Tests
 	: Precondition_Tests<RequireAllowedToDmBotOwner>
 {
-	private readonly FakeBotSettings _BotSettings = new();
+	private readonly FakeBotConfig _BotConfig = new();
 	protected override RequireAllowedToDmBotOwner Instance { get; } = new();
 
 	[TestMethod]
@@ -24,7 +24,7 @@ public sealed class RequireAllowedToDmBotOwner_Tests
 	[TestMethod]
 	public async Task CannotDmBotOwner_Test()
 	{
-		_BotSettings.UsersUnableToDmOwner.Add(Context.User.Id);
+		_BotConfig.UsersUnableToDmOwner.Add(Context.User.Id);
 
 		var result = await CheckPermissionsAsync().ConfigureAwait(false);
 		Assert.IsFalse(result.IsSuccess);
@@ -33,6 +33,6 @@ public sealed class RequireAllowedToDmBotOwner_Tests
 	protected override void ModifyServices(IServiceCollection services)
 	{
 		services
-			.AddSingleton<IRuntimeConfig>(_BotSettings);
+			.AddSingleton<IRuntimeConfig>(_BotConfig);
 	}
 }

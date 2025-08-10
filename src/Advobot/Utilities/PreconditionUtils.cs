@@ -151,7 +151,7 @@ public static class PreconditionUtils
 		Func<IGuildUser, T, bool> permissionsCallback)
 		where T : ISnowflakeEntity
 	{
-		if (target == null)
+		if (target is null)
 		{
 			return new UnableToFind(typeof(T));
 		}

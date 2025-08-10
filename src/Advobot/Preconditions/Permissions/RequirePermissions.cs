@@ -62,7 +62,7 @@ public abstract class RequirePermissions(IEnumerable<Enum> permissions)
 			IServiceProvider services)
 		{
 			var perms = await GetUserPermissionsAsync(context, user, services).ConfigureAwait(false);
-			if (perms == null)
+			if (perms is null)
 			{
 				return PreconditionResult.FromError($"`{user.Format()}` has no permissions.");
 			}

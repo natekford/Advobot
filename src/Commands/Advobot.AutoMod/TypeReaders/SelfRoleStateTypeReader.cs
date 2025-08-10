@@ -27,7 +27,7 @@ public sealed class SelfRoleStateTypeReader : RoleTypeReader<IRole>
 
 		var db = services.GetRequiredService<IAutoModDatabase>();
 		var selfRole = await db.GetSelfRoleAsync(role.Id).ConfigureAwait(false);
-		if (selfRole == null)
+		if (selfRole is null)
 		{
 			return TypeReaderResult.FromError(CommandError.ObjectNotFound,
 				$"`{role.Format()}` is not a self assignable role.");
@@ -56,7 +56,7 @@ public sealed class SelfRoleStateTypeReader : RoleTypeReader<IRole>
 		{
 			var role = context.Guild.GetRole(selfRole.RoleId);
 			// Role doesn't exist anymore, so go remove it from the db
-			if (role == null)
+			if (role is null)
 			{
 				deletable.Add(item.RoleId);
 			}

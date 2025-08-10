@@ -1,6 +1,7 @@
 ﻿using Advobot.CommandAssemblies;
 using Advobot.Punishments;
-using Advobot.Services.BotSettings;
+using Advobot.Services;
+using Advobot.Services.BotConfig;
 using Advobot.Services.Commands;
 using Advobot.Services.GuildSettings;
 using Advobot.Services.Help;
@@ -66,17 +67,17 @@ public sealed class AdvobotLauncher
 
 	private static async Task<IServiceProvider> CreateServicesAsync(StartupConfig config)
 	{
-		var botSettings = NaiveRuntimeConfig.CreateOrLoad(config);
+		var botConfig = NaiveRuntimeConfig.CreateOrLoad(config);
 		var commandConfig = new CommandServiceConfig
 		{
 			CaseSensitiveCommands = false,
 			ThrowOnError = false,
-			LogLevel = botSettings.LogLevel,
+			LogLevel = botConfig.LogLevel,
 		};
 		var discordClient = new DiscordShardedClient(new DiscordSocketConfig
 		{
-			MessageCacheSize = botSettings.MessageCacheSize,
-			LogLevel = botSettings.LogLevel,
+			MessageCacheSize = botConfig.MessageCacheSize,
+			LogLevel = botConfig.LogLevel,
 			AlwaysDownloadUsers = true,
 			LogGatewayIntentWarnings = false,
 			GatewayIntents = GatewayIntents.All,
@@ -95,8 +96,8 @@ public sealed class AdvobotLauncher
 			.AddSingleton(discordClient)
 			.AddSingleton<BaseSocketClient>(discordClient)
 			.AddSingleton<IDiscordClient>(discordClient)
-			.AddSingleton<IRuntimeConfig>(botSettings)
-			.AddSingleton<IConfig>(botSettings)
+			.AddSingleton<IRuntimeConfig>(botConfig)
+			.AddSingleton<IConfig>(botConfig)
 			.AddSingleton<NaiveCommandService>()
 			.AddSingleton<ITimeService, NaiveTimeService>()
 			.AddSingleton<IHelpService, NaiveHelpService>()
@@ -116,7 +117,7 @@ public sealed class AdvobotLauncher
 		}
 
 		var services = collection.BuildServiceProvider();
-		// Instantiate each service
+		// Instantiate and configure each service
 		foreach (var service in collection)
 		{
 			if (service.Lifetime != ServiceLifetime.Singleton)
@@ -124,10 +125,14 @@ public sealed class AdvobotLauncher
 				continue;
 			}
 
-			_ = services.GetRequiredService(service.ServiceType);
+			var instance = services.GetRequiredService(service.ServiceType);
+			if (instance is IConfigurableService configurable)
+			{
+				await configurable.ConfigureAsync().ConfigureAwait(false);
+			}
 		}
 
-		// Configure each service
+		// Allow each command assembly to do configuration with access to all of the services
 		foreach (var assembly in commandAssemblies)
 		{
 			if (assembly.Instantiator != null)

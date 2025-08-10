@@ -52,6 +52,6 @@ public sealed class Client : ModuleBase
 	{
 		[Command(RunMode = RunMode.Async)]
 		public Task Command()
-			=> Context.Client.RestartBotAsync(BotSettings);
+			=> Context.Client.RestartBotAsync(BotConfig);
 	}
 }
