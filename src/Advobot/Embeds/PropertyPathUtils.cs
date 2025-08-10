@@ -7,10 +7,6 @@ namespace Advobot.Embeds;
 
 internal static class PropertyPathUtils
 {
-	//TODO: make into class
-	//options: no param expression names or yes param expression names
-	//options: use closure variable names or attempt to get value
-
 	public static string GetPropertyPath(this LambdaExpression expr)
 		=> expr.Body.GetFromAny();
 

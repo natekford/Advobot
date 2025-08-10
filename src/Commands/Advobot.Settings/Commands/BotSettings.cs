@@ -28,9 +28,8 @@ public sealed class BotSettings : ModuleBase
 		public Task Modify(string value)
 		{
 		}
-	}*/
+	}
 
-	/*
 	[LocalizedGroup(nameof(Groups.ModifyGame))][LocalizedAlias(nameof(Aliases.ModifyGame))]
 	[Summary("")]
 	[RequireBotOwner]

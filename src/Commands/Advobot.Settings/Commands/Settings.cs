@@ -147,6 +147,7 @@ public sealed class Settings : ModuleBase
 		}
 	}
 
+#warning reenable
 	/*
 	[LocalizedGroup(nameof(Groups.ShowGuildSettings))]
 	[LocalizedAlias(nameof(Aliases.ShowGuildSettings))]

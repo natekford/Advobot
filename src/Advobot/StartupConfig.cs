@@ -39,12 +39,12 @@ public sealed class StartupConfig : IConfig
 	/// The instance number of the bot at launch. This is used to find the correct config.
 	/// </summary>
 	[JsonIgnore]
-	public int Instance { get; set; } = -1;
+	public int Instance { get; private set; } = -1;
 	/// <summary>
 	/// The previous process id of the application.
 	/// </summary>
 	[JsonIgnore]
-	public int PreviousProcessId { get; set; } = -1;
+	public int PreviousProcessId { get; private set; } = -1;
 	/// <inheritdoc />
 	[JsonIgnore]
 	public string RestartArguments =>
@@ -147,94 +147,94 @@ public sealed class StartupConfig : IConfig
 	}
 
 	/// <summary>
-	/// Attempts to login with the given input. Returns a boolean signifying whether the login was successful or not.
+	/// Prompts the user to enter a valid bot key.
 	/// </summary>
-	/// <param name="key">The bot key.</param>
-	/// <param name="isStartup">Whether or not this should be treated as the first attempt at logging in.</param>
-	/// <returns>A boolean signifying whether the login was successful or not.</returns>
-	public async Task<bool> ValidateBotKey(string? key, bool isStartup)
+	public async Task ValidateBotKey()
 	{
 		if (_IsKeyValidated)
 		{
-			return true;
+			return;
 		}
-
-		key ??= _BotKey;
-		if (isStartup && !string.IsNullOrWhiteSpace(key))
+		else if (!string.IsNullOrWhiteSpace(_BotKey))
 		{
 			try
 			{
-				await _TestClient.LoginAsync(TokenType.Bot, key).ConfigureAwait(false);
+				await _TestClient.LoginAsync(TokenType.Bot, _BotKey).ConfigureAwait(false);
 				BotId = _TestClient.CurrentUser.Id;
-				return _IsKeyValidated = true;
+				_IsKeyValidated = true;
+				return;
 			}
 			catch (HttpException)
 			{
-				Console.WriteLine("The given key is no longer valid. Please enter a new valid key:");
-				return false;
+				Console.WriteLine("The saved key is no longer valid. Enter a new valid key:");
 			}
 		}
-		if (isStartup)
+		else
 		{
-			Console.WriteLine("Please enter the bot's key:");
-			return false;
+			Console.WriteLine("Enter a bot's key:");
 		}
 
-		try
+		do
 		{
-			await _TestClient.LoginAsync(TokenType.Bot, key).ConfigureAwait(false);
-			_BotKey = key;
-			BotId = _TestClient.CurrentUser.Id;
-			Save();
-			Console.WriteLine("Succesfully logged in via the given bot key.");
-			return _IsKeyValidated = true;
-		}
-		catch (HttpException)
-		{
-			Console.WriteLine("The given key is invalid. Please enter a valid key:");
-			return false;
-		}
+			var key = Console.ReadLine();
+			try
+			{
+				await _TestClient.LoginAsync(TokenType.Bot, key).ConfigureAwait(false);
+				_BotKey = key;
+				Save();
+				BotId = _TestClient.CurrentUser.Id;
+				_IsKeyValidated = true;
+
+				// Clear so bot key isn't stuck in the console
+				Console.Clear();
+				Console.WriteLine("Succesfully logged in via the given bot key.");
+				return;
+			}
+			catch (HttpException)
+			{
+				Console.WriteLine("The given key is invalid. Enter a valid key:");
+			}
+		} while (!_IsKeyValidated);
 	}
 
 	/// <summary>
-	/// Attempts to set the save path with the given input. Returns a boolean signifying whether the save path is valid or not.
+	/// Prompts the user to enter a valid directory to save to.
 	/// </summary>
-	/// <param name="path"></param>
-	/// <param name="isStartup"></param>
 	/// <returns></returns>
-	public bool ValidatePath(string? path, bool isStartup)
+	public void ValidatePath()
 	{
 		if (_IsPathValidated)
 		{
-			return true;
+			return;
+		}
+		else if (!string.IsNullOrWhiteSpace(SavePath) && Directory.Exists(SavePath))
+		{
+			_IsPathValidated = true;
+			return;
 		}
 
-		path ??= SavePath;
-		if (isStartup && !string.IsNullOrWhiteSpace(path) && Directory.Exists(path))
+		Console.WriteLine("Enter an existing directory to save files or say 'AppData':");
+		do
 		{
-			return _IsPathValidated = true;
-		}
-		if (isStartup)
-		{
-			Console.WriteLine("Please enter a valid directory path in which to save files or say 'AppData':");
-			return false;
-		}
-		if (path.CaseInsEquals("appdata"))
-		{
-			var appdata = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
-			path = Path.Combine(appdata, "Advobot");
-			Directory.CreateDirectory(path);
-		}
-		if (Directory.Exists(path))
-		{
-			Console.WriteLine($"Successfully set the save path as {path}");
-			SavePath = path;
-			Save();
-			return _IsPathValidated = true;
-		}
+			var path = Console.ReadLine();
+			if (path.CaseInsEquals("appdata"))
+			{
+				var appdata = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
+				path = Path.Combine(appdata, "Advobot");
+				Directory.CreateDirectory(path);
+			}
+			if (Directory.Exists(path))
+			{
+				SavePath = path;
+				Save();
+				_IsPathValidated = true;
 
-		Console.WriteLine("Invalid directory. Please enter a valid directory:");
-		return false;
+				Console.WriteLine($"Successfully set the save path as {path}.");
+				return;
+			}
+
+			Console.WriteLine("Invalid directory. Enter a valid directory:");
+		} while (!_IsPathValidated);
 	}
 
 	private static FileInfo GetPath(int instance)

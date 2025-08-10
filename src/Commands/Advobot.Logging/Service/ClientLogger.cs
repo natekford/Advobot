@@ -179,7 +179,7 @@ public sealed class ClientLogger(
 
 	public Task OnReady()
 	{
-		var launchDuration = DateTime.UtcNow - Constants.StartTime;
+		var launchDuration = DateTime.UtcNow - Constants.START;
 		Console.WriteLine($"Bot: '{client.CurrentUser.Username}'; " +
 			$"Version: {Constants.BOT_VERSION}; " +
 			$"D.Net Version: {Constants.DISCORD_NET_VERSION}; " +

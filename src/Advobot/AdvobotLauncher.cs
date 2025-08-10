@@ -54,20 +54,8 @@ public sealed class AdvobotLauncher
 			}
 			catch (ArgumentException) { }
 		}
-
-		// Get the save path
-		var validPath = config.ValidatePath(null, true);
-		while (!validPath)
-		{
-			validPath = config.ValidatePath(Console.ReadLine(), false);
-		}
-
-		// Get the bot key
-		var validKey = await config.ValidateBotKey(null, true).ConfigureAwait(false);
-		while (!validKey)
-		{
-			validKey = await config.ValidateBotKey(Console.ReadLine(), false).ConfigureAwait(false);
-		}
+		config.ValidatePath();
+		await config.ValidateBotKey().ConfigureAwait(false);
 
 		var services = await CreateServicesAsync(config).ConfigureAwait(false);
 		var client = services.GetRequiredService<BaseSocketClient>();

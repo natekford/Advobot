@@ -25,11 +25,6 @@ public static class NotificationUtils
 		embed.TryAddAuthor(custom.AuthorName, custom.AuthorUrl, custom.AuthorIconUrl, out _);
 		embed.TryAddFooter(custom.Footer, custom.FooterIconUrl, out _);
 
-		/*
-		foreach (var field in FieldInfo)
-		{
-			embed.TryAddField(field.Name, field.Text, field.Inline, out _);
-		}*/
 		return embed;
 	}
 

@@ -14,7 +14,7 @@ public class UserState(IGuild guild, IUser user) : ILogState
 	{
 	}
 
-	// Only log if it wasn't this bot that was affected
+	// Only log if it wasn't the bot that was affected
 	public virtual Task<bool> CanLog(ILoggingDatabase db, ILogContext context)
 		=> Task.FromResult(User.Id != context.Bot.Id);
 }

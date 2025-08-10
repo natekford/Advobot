@@ -100,5 +100,5 @@ public static class Constants
 	/// <summary>
 	/// The time the bot was started in UTC.
 	/// </summary>
-	public static DateTime StartTime { get; } = Process.GetCurrentProcess().StartTime.ToUniversalTime();
+	public static DateTime START { get; } = Process.GetCurrentProcess().StartTime.ToUniversalTime();
 }

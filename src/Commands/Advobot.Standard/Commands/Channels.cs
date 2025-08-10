@@ -158,15 +158,10 @@ public sealed class Channels : ModuleBase
 	[RequireGuildPermissions(GuildPermission.ManageChannels | GuildPermission.ManageRoles)]
 	public sealed class DisplayChannelPerms : AdvobotModuleBase
 	{
-		/* TODO: reimplement localized
-		[Command]
-		public Task<RuntimeResult> Command()
-			=> Responses.Gets.ShowEnumValues(typeof(ChannelPermission));*/
-
 		[Command]
 		public Task<RuntimeResult> Command(
 			[CanModifyChannel(ManageChannels | ManageRoles)]
-				IGuildChannel channel
+			IGuildChannel channel
 		)
 		{
 			var roles = channel.PermissionOverwrites

@@ -103,8 +103,8 @@ public sealed class Gets : AdvobotResult
 
 	public static AdvobotResult Bot(DiscordShardedClient client)
 	{
-		var startTime = Constants.StartTime.ToReadable();
-		var runDuration = DateTime.UtcNow - Constants.StartTime;
+		var startTime = Constants.START.ToReadable();
+		var runDuration = DateTime.UtcNow - Constants.START;
 		var embed = new EmbedWrapper
 		{
 			Description = $"**Online Since:** `{startTime}` (`{runDuration:g}`)\n" +

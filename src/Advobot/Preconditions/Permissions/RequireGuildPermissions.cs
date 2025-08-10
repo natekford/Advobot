@@ -21,14 +21,6 @@ public class RequireGuildPermissions(params GuildPermission[] permissions) : Req
 		IServiceProvider services)
 	{
 		var bits = user.GuildPermissions.RawValue;
-		/* TODO: reimplement bot perms?
-		if (!user.IsBot)
-		{
-			var settingsFactory = services.GetRequiredService<IGuildSettingsFactory>();
-			var settings = await settingsFactory.GetOrCreateAsync(context.Guild).ConfigureAwait(false);
-			var match = settings.BotUsers.FirstOrDefault(x => x.UserId == context.User.Id);
-			bits |= match?.Permissions ?? 0;
-		}*/
 		return Task.FromResult(bits == 0 ? null : (Enum)(GuildPermission)bits);
 	}
 }

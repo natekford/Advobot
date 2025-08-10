@@ -98,11 +98,6 @@ public sealed class Roles : ModuleBase
 	[RequireGuildPermissions(GuildPermission.ManageRoles)]
 	public sealed class DisplayRolePerms : AdvobotModuleBase
 	{
-		/* TODO: reimplement localized
-		[Command]
-		public Task<RuntimeResult> Command()
-			=> Responses.Gets.ShowEnumValues(typeof(GuildPermission));*/
-
 		[Command]
 		public Task<RuntimeResult> Command(IRole role)
 			=> DisplayPermissions(role);
