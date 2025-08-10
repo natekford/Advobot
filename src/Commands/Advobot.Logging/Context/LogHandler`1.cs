@@ -62,8 +62,8 @@ public sealed class LogHandler<T>(LogAction action, ILogger logger, ILoggingData
 				{
 					_Logger.LogWarning(
 						exception: e,
-						message: "Exception occurred while logging ({Action}) to Discord. Info: {@Info}",
-						Action, context.State
+						message: "Exception occurred while logging ({Action}) to Discord. {@Info}",
+						args: [Action, context.State]
 					);
 				}
 			}

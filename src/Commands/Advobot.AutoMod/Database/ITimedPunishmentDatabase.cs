@@ -2,7 +2,7 @@
 
 namespace Advobot.AutoMod.Database;
 
-public interface IRemovablePunishmentDatabase
+public interface ITimedPunishmentDatabase
 {
 	Task<int> AddRemovablePunishmentAsync(RemovablePunishment punishment);
 

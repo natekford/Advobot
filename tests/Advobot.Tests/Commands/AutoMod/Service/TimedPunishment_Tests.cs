@@ -14,16 +14,16 @@ using Microsoft.Extensions.DependencyInjection;
 namespace Advobot.Tests.Commands.AutoMod.Service;
 
 [TestClass]
-public sealed class RemovablePunishment_Tests : TestsBase
+public sealed class TimedPunishment_Tests : TestsBase
 {
 	private readonly FakeRemovablePunishmentDatabase _Db = new();
 	private readonly PunishmentService _Punisher = new();
-	private readonly RemovablePunishmentService _Service;
+	private readonly TimedPunishmentService _Service;
 	private readonly MutableTime _Time = new();
 
-	public RemovablePunishment_Tests()
+	public TimedPunishment_Tests()
 	{
-		_Service = Services.Value.GetRequiredService<RemovablePunishmentService>();
+		_Service = Services.Value.GetRequiredService<TimedPunishmentService>();
 	}
 
 	[TestMethod]
@@ -108,13 +108,13 @@ public sealed class RemovablePunishment_Tests : TestsBase
 	protected override void ModifyServices(IServiceCollection services)
 	{
 		services
-			.AddSingleton<IRemovablePunishmentDatabase>(_Db)
+			.AddSingleton<ITimedPunishmentDatabase>(_Db)
 			.AddSingleton<IDiscordClient>(Context.Client)
 			.AddSingleton<IPunishmentService>(_Punisher)
 			.AddSingleton<ITime>(_Time)
 			.AddSingleton<IConfig>(FakeConfig.Singleton)
-			.AddSingleton<RemovablePunishmentService>()
-			.AddLogger<RemovablePunishmentService>("TEMP");
+			.AddSingleton<TimedPunishmentService>()
+			.AddLogger<TimedPunishmentService>("TEMP");
 	}
 
 	private async Task AddBansAsync(ulong count)

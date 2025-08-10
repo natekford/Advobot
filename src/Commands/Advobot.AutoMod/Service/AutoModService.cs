@@ -57,22 +57,22 @@ public sealed class AutoModService
 			while (true)
 			{
 				var messageGroups = Interlocked.Exchange(ref _Messages, []);
-				foreach (var (_, (messages, channel)) in messageGroups)
+				foreach (var (_, (messageIds, channel)) in messageGroups)
 				{
 					try
 					{
-						await channel.DeleteMessagesAsync(messages, _AutoMod).ConfigureAwait(false);
+						await channel.DeleteMessagesAsync(messageIds, _AutoMod).ConfigureAwait(false);
 					}
 					catch (Exception e)
 					{
 						_Logger.LogWarning(
 							exception: e,
 							message: "Exception occurred while deleting messages. {@Info}",
-							new
+							args: new
 							{
-								GuildId = channel.GuildId,
-								ChannelId = channel.Id,
-								MessageIds = messages,
+								Guild = channel.GuildId,
+								Channel = channel.Id,
+								Messages = messageIds,
 							}
 						);
 					}

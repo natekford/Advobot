@@ -3,12 +3,9 @@ using Advobot.Services.BotSettings;
 using Advobot.Services.Commands;
 using Advobot.Services.Time;
 
-using Discord;
 using Discord.WebSocket;
 
 using Microsoft.Extensions.Logging;
-
-using System.Net.WebSockets;
 
 namespace Advobot.Logging.Service;
 
@@ -26,7 +23,7 @@ public sealed class LoggingService
 		BaseSocketClient client,
 		ICommandHandlerService commandHandler,
 		IRuntimeConfig botSettings,
-		MessageQueue queue,
+		MessageQueue messageQueue,
 		ITime time)
 	{
 		_Logger = logger;
@@ -42,13 +39,13 @@ public sealed class LoggingService
 		commandHandler.Ready += _ClientLogger.OnReady;
 		commandHandler.Log += _ClientLogger.OnLogMessageSent;
 
-		_MessageLogger = new(_Logger, _Db, queue);
+		_MessageLogger = new(_Logger, _Db, messageQueue);
 		client.MessageDeleted += _MessageLogger.OnMessageDeleted;
 		client.MessagesBulkDeleted += _MessageLogger.OnMessagesBulkDeleted;
 		client.MessageReceived += _MessageLogger.OnMessageReceived;
 		client.MessageUpdated += _MessageLogger.OnMessageUpdated;
 
-		_UserLogger = new(_Logger, _Db, client, queue, time);
+		_UserLogger = new(_Logger, _Db, client, messageQueue, time);
 		client.UserJoined += _UserLogger.OnUserJoined;
 		client.UserLeft += _UserLogger.OnUserLeft;
 		client.UserUpdated += _UserLogger.OnUserUpdated;

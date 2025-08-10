@@ -88,7 +88,7 @@ public sealed class UserLogger
 
 		_Logger.LogInformation(
 			message: "Logging {User} joining {Guild}",
-			context.State.User.Id, context.Guild.Id
+			args: [context.State.User.Id, context.Guild.Id]
 		);
 
 		var description = $"**ID:** {context.State.User.Id}";
@@ -106,7 +106,7 @@ public sealed class UserLogger
 			description += $"\n**New Account:** {age:hh\\:mm\\:ss}";
 		}
 
-		_MessageQueue.Enqueue((context.ServerLog, new EmbedWrapper
+		_MessageQueue.EnqueueSend(context.ServerLog, new EmbedWrapper
 		{
 			Description = description,
 			Color = EmbedWrapper.Join,
@@ -115,7 +115,7 @@ public sealed class UserLogger
 			{
 				Text = context.State.User.IsBot ? "Bot Joined" : "User Joined"
 			},
-		}.ToMessageArgs()));
+		}.ToMessageArgs());
 	}
 
 	private Task HandleLeftLogging(ILogContext<UserState> context)
@@ -127,7 +127,7 @@ public sealed class UserLogger
 
 		_Logger.LogInformation(
 			message: "Logging {User} leaving {Guild}",
-			context.State.User.Id, context.Guild.Id
+			args: [context.State.User.Id, context.Guild.Id]
 		);
 
 		var description = $"**ID:** {context.State.User.Id}";
@@ -138,7 +138,7 @@ public sealed class UserLogger
 			description += $"\n**Stayed for:** {length:d\\:hh\\:mm\\:ss}";
 		}
 
-		_MessageQueue.Enqueue((context.ServerLog, new EmbedWrapper
+		_MessageQueue.EnqueueSend(context.ServerLog, new EmbedWrapper
 		{
 			Description = description,
 			Color = EmbedWrapper.Leave,
@@ -147,7 +147,7 @@ public sealed class UserLogger
 			{
 				Text = context.State.User.IsBot ? "Bot Left" : "User Left",
 			},
-		}.ToMessageArgs()));
+		}.ToMessageArgs());
 		return Task.CompletedTask;
 	}
 
@@ -160,10 +160,10 @@ public sealed class UserLogger
 
 		_Logger.LogInformation(
 			message: "Logging {User} username updated in {Guild}",
-			context.State.User.Id, context.Guild.Id
+			args: [context.State.User.Id, context.Guild.Id]
 		);
 
-		_MessageQueue.Enqueue((context.ServerLog, new EmbedWrapper
+		_MessageQueue.EnqueueSend(context.ServerLog, new EmbedWrapper
 		{
 			Color = EmbedWrapper.UserEdit,
 			Author = context.State.User.CreateAuthor(),
@@ -183,7 +183,7 @@ public sealed class UserLogger
 					IsInline = true
 				},
 			],
-		}.ToMessageArgs()));
+		}.ToMessageArgs());
 		return Task.CompletedTask;
 	}
 }

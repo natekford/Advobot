@@ -46,12 +46,12 @@ public sealed class NotificationService
 
 		_Logger.LogInformation(
 			message: "Sending event of type {Event} to {@Info}",
-			notifType, new
+			args: [notifType, new
 			{
 				Guild = guild.Id,
 				Channel = channel.Id,
 				User = user.Id,
-			}
+			}]
 		);
 
 		var content = notification.Content
@@ -59,11 +59,11 @@ public sealed class NotificationService
 			?.CaseInsReplace(NotificationUtils.USER_STRING, user?.Format() ?? VariableInvalidUser);
 		var embedWrapper = notification.EmbedEmpty() ? null : notification.BuildWrapper();
 
-		_MessageQueue.Enqueue((channel, new(embedWrapper)
+		_MessageQueue.EnqueueSend(channel, new(embedWrapper)
 		{
 			Content = content,
 			AllowedMentions = NotificationUtils.UserMentions,
-		}));
+		});
 	}
 
 	private Task OnUserJoined(SocketGuildUser user)

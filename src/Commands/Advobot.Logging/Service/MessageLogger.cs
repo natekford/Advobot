@@ -10,21 +10,12 @@ using Discord.WebSocket;
 
 using Microsoft.Extensions.Logging;
 
-using System.Collections.Concurrent;
-using System.Text;
-
 namespace Advobot.Logging.Service;
 
 public sealed class MessageLogger
 {
-	private const int MAX_DESCRIPTION_LENGTH = EmbedBuilder.MaxDescriptionLength - 250;
-	private const int MAX_DESCRIPTION_LINES = EmbedWrapper.MAX_DESCRIPTION_LINES;
-	private const int MAX_FIELD_LENGTH = EmbedFieldBuilder.MaxFieldValueLength - 50;
-	private const int MAX_FIELD_LINES = MAX_DESCRIPTION_LENGTH / 2;
-
 	private readonly ILogger _Logger;
 	private readonly MessageQueue _MessageQueue;
-	private ConcurrentDictionary<ulong, (ConcurrentBag<IMessage>, ITextChannel)> _Messages = new();
 
 	#region Handlers
 	private readonly LogHandler<MessageDeletedState> _MessageDeleted;
@@ -36,10 +27,10 @@ public sealed class MessageLogger
 	public MessageLogger(
 		ILogger logger,
 		ILoggingDatabase db,
-		MessageQueue queue)
+		MessageQueue messageQueue)
 	{
 		_Logger = logger;
-		_MessageQueue = queue;
+		_MessageQueue = messageQueue;
 
 		_MessageDeleted = new(LogAction.MessageDeleted, logger, db)
 		{
@@ -58,36 +49,6 @@ public sealed class MessageLogger
 			HandleMessageEditedLoggingAsync,
 			HandleMessageEditedImageLoggingAsync,
 		};
-
-		_ = Task.Run(async () =>
-		{
-			while (true)
-			{
-				var messageGroups = Interlocked.Exchange(ref _Messages, []);
-				foreach (var (_, (messages, channel)) in messageGroups)
-				{
-					try
-					{
-						QueueDeletedMessages(channel, messages);
-					}
-					catch (Exception e)
-					{
-						_Logger.LogWarning(
-							exception: e,
-							message: "Exception occurred while queuing messages for deletion. Info: {@Info}",
-							new
-							{
-								GuildId = channel.GuildId,
-								ChannelId = channel.Id,
-								MessageIds = messages.Select(x => x.Id).ToArray(),
-							}
-						);
-					}
-				}
-
-				await Task.Delay(TimeSpan.FromSeconds(5)).ConfigureAwait(false);
-			}
-		});
 	}
 
 	public Task OnMessageDeleted(
@@ -118,7 +79,7 @@ public sealed class MessageLogger
 
 		_Logger.LogInformation(
 			message: "Logging images for {@Info}",
-			new
+			args: new
 			{
 				Guild = context.Guild.Id,
 				Channel = context.State.Channel.Id,
@@ -134,7 +95,7 @@ public sealed class MessageLogger
 				description += $", [Image]({image.ImageUrl})";
 			}
 
-			_MessageQueue.Enqueue((context.ImageLog, new EmbedWrapper
+			_MessageQueue.EnqueueSend(context.ImageLog, new EmbedWrapper
 			{
 				Description = description,
 				Color = EmbedWrapper.Attachment,
@@ -145,7 +106,7 @@ public sealed class MessageLogger
 					Text = image.Footer,
 					IconUrl = context.State.User.GetAvatarUrl()
 				},
-			}.ToMessageArgs()));
+			}.ToMessageArgs());
 		}
 		return Task.CompletedTask;
 	}
@@ -159,7 +120,7 @@ public sealed class MessageLogger
 
 		_Logger.LogInformation(
 			message: "Logging deleted message {@Info}",
-			new
+			args: new
 			{
 				Guild = context.Guild.Id,
 				Channel = context.State.Channel.Id,
@@ -167,9 +128,7 @@ public sealed class MessageLogger
 			}
 		);
 
-		_Messages
-			.GetOrAdd(context.Guild.Id, _ => ([], context.ServerLog))
-			.Item1.Add(context.State.Message);
+		_MessageQueue.EnqueueDeleted(context.ServerLog, context.State.Message);
 		return Task.CompletedTask;
 	}
 
@@ -195,7 +154,7 @@ public sealed class MessageLogger
 
 		_Logger.LogInformation(
 			message: "Logging edited message {@Info}",
-			new
+			args: new
 			{
 				Guild = context.Guild.Id,
 				Channel = context.State.Channel.Id,
@@ -210,24 +169,18 @@ public sealed class MessageLogger
 				return (true, "Unknown");
 			}
 
-			var content = message.Content;
-			if (string.IsNullOrWhiteSpace(content))
-			{
-				content = "Empty";
-			}
-
-			var text = content.Sanitize(keepMarkdown: false);
-			var isValid = text.Length <= MAX_FIELD_LENGTH
-				&& text.Count(c => c is '\r' or '\n') < MAX_FIELD_LINES;
+			var text = (string.IsNullOrWhiteSpace(message.Content)
+				? "Empty" : message.Content).Sanitize(keepMarkdown: false);
+			var isValid = text.Length < (EmbedFieldBuilder.MaxFieldValueLength - 50)
+				&& text.Count(c => c is '\n') < EmbedWrapper.MAX_DESCRIPTION_LINES / 2;
 			return (isValid, text);
 		}
 
-		var (beforeValid, beforeContent) = FormatContent(state.Before);
-		var (afterValid, afterContent) = FormatContent(state.Message);
-		SendMessageArgs sendMessageArgs;
-		if (beforeValid && afterValid) //Send file instead if text too long
+		var (isBeforeValid, beforeContent) = FormatContent(state.Before);
+		var (isAfterValid, afterContent) = FormatContent(state.Message);
+		if (isBeforeValid && isAfterValid) //Send file instead if text too long
 		{
-			sendMessageArgs = new EmbedWrapper
+			_MessageQueue.EnqueueSend(context.ServerLog, new EmbedWrapper
 			{
 				Color = EmbedWrapper.MessageEdit,
 				Author = state.User.CreateAuthor(),
@@ -237,11 +190,11 @@ public sealed class MessageLogger
 					new() { Name = "Before", Value = beforeContent, },
 					new() { Name = "After", Value = afterContent, },
 				],
-			}.ToMessageArgs();
+			}.ToMessageArgs());
 		}
 		else
 		{
-			sendMessageArgs = new()
+			_MessageQueue.EnqueueSend(context.ServerLog, new()
 			{
 				Files =
 				[
@@ -250,10 +203,8 @@ public sealed class MessageLogger
 						$"Before:\n{beforeContent}\n\nAfter:\n{afterContent}"
 					),
 				],
-			};
+			});
 		}
-
-		_MessageQueue.Enqueue((context.ServerLog, sendMessageArgs));
 		return Task.CompletedTask;
 	}
 
@@ -266,82 +217,17 @@ public sealed class MessageLogger
 
 		_Logger.LogInformation(
 			message: "Logging {Count} deleted messages for {@Info}",
-			context.State.Messages.Count, new
+			args: [context.State.Messages.Count, new
 			{
 				Guild = context.Guild.Id,
 				Channel = context.State.Channel.Id,
-			}
+			}]
 		);
 
-		QueueDeletedMessages(context.ServerLog, context.State.Messages);
+		foreach (var message in context.State.Messages)
+		{
+			_MessageQueue.EnqueueDeleted(context.ServerLog, message);
+		}
 		return Task.CompletedTask;
-	}
-
-	private void QueueDeletedMessages(ITextChannel log, IEnumerable<IMessage> messages)
-	{
-		var ordered = messages.OrderBy(x => x.Id).ToList();
-
-		_Logger.LogInformation(
-			message: "Printing {Count} deleted messages {@Info}",
-			ordered.Count, new
-			{
-				Guild = log.Guild.Id,
-				Channel = log.Id,
-			}
-		);
-
-		//Needs to be not a lot of messages to fit in an embed
-		var inEmbed = ordered.Count < 10;
-		var sb = new StringBuilder();
-
-		var lineCount = 0;
-		foreach (var message in ordered)
-		{
-			var text = message.Format(withMentions: true).Sanitize(keepMarkdown: true);
-			lineCount += text.Count(c => c is '\r' or '\n');
-			sb.AppendLine(text);
-
-			//Can only stay in an embed if the description is less than 2048
-			//and if the line numbers are less than 20
-			if (sb.Length > MAX_DESCRIPTION_LENGTH || lineCount > MAX_DESCRIPTION_LINES)
-			{
-				inEmbed = false;
-				break;
-			}
-		}
-
-		SendMessageArgs sendMessageArgs;
-		if (inEmbed)
-		{
-			sendMessageArgs = new EmbedWrapper
-			{
-				Title = "Deleted Messages",
-				Description = sb.ToString(),
-				Color = EmbedWrapper.MessageDelete,
-				Footer = new() { Text = "Deleted Messages", },
-			}.ToMessageArgs();
-		}
-		else
-		{
-			sb.Clear();
-			foreach (var message in ordered)
-			{
-				var text = message.Format(withMentions: false).Sanitize(keepMarkdown: false);
-				sb.AppendLine(text);
-			}
-
-			sendMessageArgs = new SendMessageArgs
-			{
-				Files =
-				[
-					MessageUtils.CreateTextFile(
-						fileName: $"{ordered.Count}_Deleted_Messages",
-						content: sb.ToString()
-					),
-				],
-			};
-		}
-
-		_MessageQueue.Enqueue((log, sendMessageArgs));
 	}
 }

@@ -12,10 +12,10 @@ using System.Net;
 
 namespace Advobot.AutoMod.Service;
 
-public sealed class RemovablePunishmentService
+public sealed class TimedPunishmentService
 {
 	private readonly IDiscordClient _Client;
-	private readonly IRemovablePunishmentDatabase _Db;
+	private readonly ITimedPunishmentDatabase _Db;
 	private readonly ILogger _Logger;
 	private readonly IPunishmentService _Punisher;
 	private readonly ITime _Time;
@@ -27,21 +27,21 @@ public sealed class RemovablePunishmentService
 	// this hashset prevents that
 	private readonly HashSet<IPunishmentContext> _WillBeBatchRemoved = [];
 
-	public RemovablePunishmentService(
-		ILogger<RemovablePunishmentService> logger,
-		IRemovablePunishmentDatabase db,
+	public TimedPunishmentService(
+		ILogger<TimedPunishmentService> logger,
+		ITimedPunishmentDatabase db,
 		IDiscordClient client,
 		ITime time,
-		IPunishmentService punisher)
+		IPunishmentService punishmentService)
 	{
 		_Db = db;
 		_Client = client;
 		_Logger = logger;
 		_Time = time;
-		_Punisher = punisher;
+		_Punisher = punishmentService;
 
-		punisher.PunishmentGiven += OnPunishmentGiven;
-		punisher.PunishmentRemoved += OnPunishmentRemoved;
+		punishmentService.PunishmentGiven += OnPunishmentGiven;
+		punishmentService.PunishmentRemoved += OnPunishmentRemoved;
 	}
 
 	public void Start()
@@ -67,7 +67,7 @@ public sealed class RemovablePunishmentService
 						_Logger.LogWarning(
 							exception: e,
 							message: "Exception occurred while removing a punishment. {@Info}.",
-							punishment
+							args: punishment
 						);
 					}
 				}

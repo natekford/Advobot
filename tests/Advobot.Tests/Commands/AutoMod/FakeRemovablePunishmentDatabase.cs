@@ -6,7 +6,7 @@ using System.Collections.Concurrent;
 
 namespace Advobot.Tests.Commands.AutoMod;
 
-public sealed class FakeRemovablePunishmentDatabase : IRemovablePunishmentDatabase
+public sealed class FakeRemovablePunishmentDatabase : ITimedPunishmentDatabase
 {
 	private readonly ConcurrentDictionary<Key, RemovablePunishment> _Punishments = new();
 

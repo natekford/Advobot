@@ -36,20 +36,19 @@ public sealed class ClientLogger(
 			return;
 		}
 
-		var info = new
-		{
-			Guild = context.Guild.Id,
-			Channel = context.Channel.Id,
-			User = context.User.Id,
-			Command = command.Aliases[0],
-			Content = context.Message.Content,
-			Elapsed = context is IElapsed elapsed
-				? elapsed.Elapsed.Milliseconds : (int?)null,
-			Error = result.IsSuccess ? null : result.ErrorReason,
-		};
 		logger.LogInformation(
 			message: "Command executed. {@Info}",
-			args: info
+			args: new
+			{
+				Guild = context.Guild.Id,
+				Channel = context.Channel.Id,
+				User = context.User.Id,
+				Command = command.Aliases[0],
+				Content = context.Message.Content,
+				Elapsed = context is IElapsed elapsed
+					? elapsed.Elapsed.Milliseconds : (int?)null,
+				Error = result.IsSuccess ? null : result.ErrorReason,
+			}
 		);
 
 		if (result is AdvobotResult advobotResult)
@@ -90,7 +89,7 @@ public sealed class ClientLogger(
 		var shard = client is DiscordShardedClient s ? s.GetShardIdFor(guild) : 0;
 		logger.LogInformation(
 			message: "Guild is now online {Guild} ({Shard}, {MemberCount})",
-			guild.Id, shard, guild.MemberCount
+			args: [guild.Id, shard, guild.MemberCount]
 		);
 		return Task.CompletedTask;
 	}
@@ -99,7 +98,7 @@ public sealed class ClientLogger(
 	{
 		logger.LogInformation(
 			message: "Guild is now offline {Guild}",
-			guild.Id
+			args: guild.Id
 		);
 		return Task.CompletedTask;
 	}
@@ -108,7 +107,7 @@ public sealed class ClientLogger(
 	{
 		logger.LogInformation(
 			message: "Joined guild {Guild}",
-			guild.Id
+			args: guild.Id
 		);
 
 		//Determine what percentage of bot users to leave at and leave if too many bots
@@ -125,7 +124,7 @@ public sealed class ClientLogger(
 		{
 			logger.LogInformation(
 				message: "Too many bots in guild {Guild} ({Percentage}%)",
-				guild.Id, botPercentage
+				args: [guild.Id, botPercentage]
 			);
 			return guild.LeaveAsync();
 		}
@@ -136,7 +135,7 @@ public sealed class ClientLogger(
 	{
 		logger.LogInformation(
 			message: "Left guild {Guild}",
-			guild.Id
+			args: guild.Id
 		);
 		return Task.CompletedTask;
 	}

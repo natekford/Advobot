@@ -17,10 +17,10 @@ public sealed class AutoModInstantiator : ICommandAssemblyInstantiator
 			.AddSQLiteFileDatabaseConnectionString<AutoModDatabase>("AutoMod.db")
 			.AddSingleton<AutoModService>()
 			.AddLogger<AutoModService>("Automod")
-			.AddSingleton<IRemovablePunishmentDatabase, RemovablePunishmentDatabase>()
+			.AddSingleton<ITimedPunishmentDatabase, RemovablePunishmentDatabase>()
 			.AddSQLiteFileDatabaseConnectionString<RemovablePunishmentDatabase>("RemovablePunishments.db")
-			.AddSingleton<RemovablePunishmentService>()
-			.AddLogger<RemovablePunishmentService>("RemovablePunishments");
+			.AddSingleton<TimedPunishmentService>()
+			.AddLogger<TimedPunishmentService>("RemovablePunishments");
 
 		return Task.CompletedTask;
 	}
