@@ -1,6 +1,4 @@
-﻿using Advobot.Utilities;
-
-using Discord.Commands;
+﻿using Discord.Commands;
 
 using System.Resources;
 

@@ -1,5 +1,4 @@
-﻿using Advobot.Services.HelpEntries;
-using Advobot.Utilities;
+﻿using Advobot.Utilities;
 
 using Discord.Commands;
 
@@ -9,11 +8,10 @@ namespace Advobot.Preconditions;
 /// Will return success if the bot is the owner of the guild in the context.
 /// </summary>
 [AttributeUsage(AttributeTargets.Class | AttributeTargets.Method, AllowMultiple = false, Inherited = true)]
-public class RequireBotIsOwner : PreconditionAttribute, IPrecondition
+public class RequireBotIsOwner : AdvobotPrecondition
 {
 	/// <inheritdoc />
-	public string Summary
-		=> "Bot owns the current guild";
+	public override string Summary => "Bot owns the current guild";
 
 	/// <inheritdoc />
 	public override Task<PreconditionResult> CheckPermissionsAsync(

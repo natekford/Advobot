@@ -16,14 +16,13 @@ namespace Advobot.Tests.Commands.AutoMod.Service;
 [TestClass]
 public sealed class TimedPunishment_Tests : TestsBase
 {
-	private readonly FakeRemovablePunishmentDatabase _Db = new();
-	private readonly PunishmentService _Punisher = new();
-	private readonly TimedPunishmentService _Service;
+	private readonly FakeTimedPunishmentDatabase _Db = new();
 	private readonly MutableTime _Time = new();
+	private readonly TimedPunishmentService _TimedPunishmentService;
 
 	public TimedPunishment_Tests()
 	{
-		_Service = Services.Value.GetRequiredService<TimedPunishmentService>();
+		_TimedPunishmentService = Services.Value.GetRequiredService<TimedPunishmentService>();
 	}
 
 	[TestMethod]
@@ -31,26 +30,20 @@ public sealed class TimedPunishment_Tests : TestsBase
 	{
 		await AddBansAsync(5).ConfigureAwait(false);
 
-		var retrieved = await _Db.GetOldPunishmentsAsync(DateTime.MaxValue.Ticks).ConfigureAwait(false);
+		var retrieved = await _Db.GetExpiredPunishmentsAsync(DateTime.MaxValue.Ticks).ConfigureAwait(false);
 		Assert.HasCount(5, retrieved);
 	}
 
 	[TestMethod]
-	public async Task OldRemovablePunishmentsGetIgnored_Test()
+	public async Task OldTimedPunishmentsGetIgnored_Test()
 	{
 		await AddBansAsync(5).ConfigureAwait(false);
 
 		_Time.UtcNow += TimeSpan.FromDays(10);
 		{
-			var retrieved = await _Db.GetOldPunishmentsAsync(_Time.UtcNow.Ticks).ConfigureAwait(false);
+			var retrieved = await _Db.GetExpiredPunishmentsAsync(_Time.UtcNow.Ticks).ConfigureAwait(false);
 			Assert.HasCount(5, retrieved);
 		}
-
-		_Punisher.PunishmentRemoved += _ =>
-		{
-			Assert.Fail("Punishment was removed instead of ignored for being too old.");
-			return Task.CompletedTask;
-		};
 
 		var tcs = new TaskCompletionSource<int>();
 		_Db.PunishmentsModified += (added, punishments) =>
@@ -58,51 +51,41 @@ public sealed class TimedPunishment_Tests : TestsBase
 			Assert.IsFalse(added);
 			tcs.SetResult(punishments.Count());
 		};
-		_Service.Start();
+		_TimedPunishmentService.Start();
 
 		var value = await tcs.Task.ConfigureAwait(false);
 		Assert.AreEqual(5, value);
-
-		{
-			var retrieved = await _Db.GetOldPunishmentsAsync(DateTime.MaxValue.Ticks).ConfigureAwait(false);
-			Assert.IsEmpty(retrieved);
-		}
+		Assert.IsEmpty(_Db.Punishments);
 	}
 
 	[TestMethod]
-	public async Task RemovablePunishmentsGetProcessed_Test()
+	public async Task TimedPunishmentsGetProcessed_Test()
 	{
 		await AddBansAsync(5).ConfigureAwait(false);
 
 		_Time.UtcNow += TimeSpan.FromDays(3);
 		{
-			var retrieved = await _Db.GetOldPunishmentsAsync(_Time.UtcNow.Ticks).ConfigureAwait(false);
+			var retrieved = await _Db.GetExpiredPunishmentsAsync(_Time.UtcNow.Ticks).ConfigureAwait(false);
 			Assert.HasCount(5, retrieved);
 		}
 
-		var punishmentRemovedCount = 0;
-		_Punisher.PunishmentRemoved += _ =>
-		{
-			++punishmentRemovedCount;
-			return Task.CompletedTask;
-		};
-
+		var count = 0;
 		var tcs = new TaskCompletionSource<int>();
-		_Db.PunishmentsModified += (added, punishments) =>
+		_Db.PunishmentsModified += (added, _) =>
 		{
 			Assert.IsFalse(added);
-			tcs.SetResult(punishments.Count());
+			++count;
+
+			if (_Db.Punishments.IsEmpty)
+			{
+				tcs.SetResult(count);
+			}
 		};
-		_Service.Start();
+		_TimedPunishmentService.Start();
 
 		var value = await tcs.Task.ConfigureAwait(false);
 		Assert.AreEqual(5, value);
-		Assert.AreEqual(5, punishmentRemovedCount);
-
-		{
-			var retrieved = await _Db.GetOldPunishmentsAsync(DateTime.MaxValue.Ticks).ConfigureAwait(false);
-			Assert.IsEmpty(retrieved);
-		}
+		Assert.IsEmpty(_Db.Punishments);
 	}
 
 	protected override void ModifyServices(IServiceCollection services)
@@ -110,10 +93,9 @@ public sealed class TimedPunishment_Tests : TestsBase
 		services
 			.AddSingleton<ITimedPunishmentDatabase>(_Db)
 			.AddSingleton<IDiscordClient>(Context.Client)
-			.AddSingleton<IPunishmentService>(_Punisher)
-			.AddSingleton<ITime>(_Time)
-			.AddSingleton<IConfig>(FakeConfig.Singleton)
 			.AddSingleton<TimedPunishmentService>()
+			.AddSingleton<ITimeService>(_Time)
+			.AddSingleton<IConfig>(FakeConfig.Singleton)
 			.AddLogger<TimedPunishmentService>("TEMP");
 	}
 
@@ -121,7 +103,7 @@ public sealed class TimedPunishment_Tests : TestsBase
 	{
 		for (ulong i = 1; i <= count; ++i)
 		{
-			await _Punisher.HandleAsync(new Ban(Context.Guild, i, true)
+			await _TimedPunishmentService.HandleAsync(new Ban(Context.Guild, i, true)
 			{
 				Time = TimeSpan.FromDays(1),
 			}).ConfigureAwait(false);

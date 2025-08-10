@@ -1,5 +1,4 @@
-﻿using Advobot.Attributes;
-using Advobot.Services.HelpEntries;
+﻿using Advobot.Services.Help;
 using Advobot.Utilities;
 
 using Discord.Commands;
@@ -11,7 +10,7 @@ namespace Advobot.TypeReaders;
 /// <summary>
 /// Attempts to find a help entry with the supplied name.
 /// </summary>
-[TypeReaderTargetType(typeof(IModuleHelpEntry))]
+[TypeReaderTargetType(typeof(IHelpModule))]
 public sealed class HelpEntryTypeReader : TypeReader
 {
 	/// <summary>
@@ -26,8 +25,8 @@ public sealed class HelpEntryTypeReader : TypeReader
 		string input,
 		IServiceProvider services)
 	{
-		var help = services.GetRequiredService<IHelpEntryService>();
-		var matches = help.GetHelpEntries().Where(x =>
+		var help = services.GetRequiredService<IHelpService>();
+		var matches = help.GetHelpModules().Where(x =>
 		{
 			var nameMatch = x.Name.CaseInsEquals(input);
 			var aliasMatch = x.Aliases.CaseInsContains(input);

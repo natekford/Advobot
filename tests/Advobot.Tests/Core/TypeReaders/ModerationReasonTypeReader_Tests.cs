@@ -1,4 +1,5 @@
-﻿using Advobot.Tests.TestBases;
+﻿using Advobot.Punishments;
+using Advobot.Tests.TestBases;
 using Advobot.TypeReaders;
 
 namespace Advobot.Tests.Core.TypeReaders;

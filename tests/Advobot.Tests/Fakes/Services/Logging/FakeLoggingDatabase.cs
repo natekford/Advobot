@@ -1,5 +1,4 @@
-﻿using Advobot.Logging;
-using Advobot.Logging.Database;
+﻿using Advobot.Logging.Database;
 using Advobot.Logging.Models;
 
 namespace Advobot.Tests.Fakes.Services.Logging;

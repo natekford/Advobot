@@ -33,8 +33,5 @@ public abstract class PunishmentBase(IGuild guild, ulong userId, bool isGive, Pu
 	public ulong UserId { get; protected set; } = userId;
 
 	/// <inheritdoc />
-	Task IPunishmentContext.ExecuteAsync() => ExecuteAsync();
-
-	/// <inheritdoc />
-	protected internal abstract Task ExecuteAsync();
+	public abstract Task ExecuteAsync();
 }

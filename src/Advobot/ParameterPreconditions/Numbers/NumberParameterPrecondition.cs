@@ -20,8 +20,7 @@ public abstract class NumberParameterPrecondition : AdvobotParameterPrecondition
 	/// </summary>
 	public ValidateNumber<int> Range { get; }
 	/// <inheritdoc />
-	public override string Summary
-		=> $"Valid {NumberType} ({Range})";
+	public override string Summary => $"Valid {NumberType} ({Range})";
 
 	/// <summary>
 	/// Valid numbers which are the randomly supplied values.

@@ -1,5 +1,4 @@
-﻿using Advobot.Services.HelpEntries;
-using Advobot.Utilities;
+﻿using Advobot.Utilities;
 
 using Discord.Commands;
 
@@ -9,11 +8,10 @@ namespace Advobot.Preconditions;
 /// Requires bot owner before this command will execute.
 /// </summary>
 [AttributeUsage(AttributeTargets.Class | AttributeTargets.Method, AllowMultiple = false, Inherited = true)]
-public sealed class RequireBotOwner : PreconditionAttribute, IPrecondition
+public sealed class RequireBotOwner : AdvobotPrecondition
 {
 	/// <inheritdoc />
-	public string Summary
-		=> "Invoker is the bot owner";
+	public override string Summary => "Invoker is the bot owner";
 
 	/// <inheritdoc />
 	public override async Task<PreconditionResult> CheckPermissionsAsync(

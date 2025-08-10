@@ -8,6 +8,7 @@ using Advobot.ParameterPreconditions.Discord.Users;
 using Advobot.ParameterPreconditions.Numbers;
 using Advobot.ParameterPreconditions.Strings;
 using Advobot.Preconditions.Permissions;
+using Advobot.Punishments;
 using Advobot.Resources;
 using Advobot.Services.GuildSettings;
 using Advobot.Services.Time;
@@ -50,41 +51,13 @@ public sealed class Users : ModuleBase
 		)
 		{
 			var user = await Context.Client.GetUserAsync(userId).ConfigureAwait(false);
-			await Punisher.HandleAsync(new Punishments.Ban(Context.Guild, userId, true)
+			await PunishmentService.HandleAsync(new Punishments.Ban(Context.Guild, userId, true)
 			{
 				Time = reason.Time,
 				Options = GetOptions(reason.Reason),
 			}).ConfigureAwait(false);
 			return Responses.Users.Banned(true, user!, reason.Time);
 		}
-
-		/*
-		[LocalizedCommand(nameof(Groups.Many))]
-		[LocalizedAlias(nameof(Aliases.Many))]
-		[Priority(3)]
-		public Task<RuntimeResult> Many([CanModifyUser] params IGuildUser[] users)
-			=> Many(users.Select(x => x.Id).ToArray());
-
-		[LocalizedCommand(nameof(Groups.Many))]
-		[LocalizedAlias(nameof(Aliases.Many))]
-		[Priority(2)]
-		public async Task<RuntimeResult> Many(params ulong[] userIds)
-		{
-			var punisher = new PunishmentManager(Context.Guild, Timers);
-			var args = new PunishmentArgs
-			{
-				Options = GenerateRequestOptions(),
-			};
-
-			var users = new List<IUser>();
-			foreach (var id in userIds)
-			{
-				var user = new AmbiguousUser(id);
-				await punisher.BanAsync(user, args).ConfigureAwait(false);
-				users.Add(await user.GetAsync(Context.Client).ConfigureAwait(false));
-			}
-			return Responses.Users.BannedMany(users, args);
-		}*/
 	}
 
 	[LocalizedGroup(nameof(Groups.Deafen))]
@@ -102,7 +75,7 @@ public sealed class Users : ModuleBase
 		)
 		{
 			var isGive = !user.IsDeafened;
-			await Punisher.HandleAsync(new Punishments.Deafen(user, isGive)
+			await PunishmentService.HandleAsync(new Punishments.Deafen(user, isGive)
 			{
 				Time = reason.Time,
 				Options = GetOptions(reason.Reason),
@@ -263,7 +236,7 @@ public sealed class Users : ModuleBase
 			ModerationReason reason = default
 		)
 		{
-			await Punisher.HandleAsync(new Punishments.Kick(user)
+			await PunishmentService.HandleAsync(new Punishments.Kick(user)
 			{
 				Time = reason.Time,
 				Options = GetOptions(reason.Reason),
@@ -377,7 +350,7 @@ public sealed class Users : ModuleBase
 			await ConfigureMuteRoleAsync(role).ConfigureAwait(false);
 
 			var isGive = !user.RoleIds.Contains(role.Id);
-			await Punisher.HandleAsync(new Punishments.RoleMute(user, isGive, role)
+			await PunishmentService.HandleAsync(new Punishments.RoleMute(user, isGive, role)
 			{
 				Time = reason.Time,
 				Options = GetOptions(reason.Reason),
@@ -448,7 +421,7 @@ public sealed class Users : ModuleBase
 	[RequireGuildPermissions(GuildPermission.ManageMessages)]
 	public sealed class RemoveMessages : AdvobotModuleBase
 	{
-		public ITime Time { get; set; } = null!;
+		public ITimeService Time { get; set; } = null!;
 
 		[Command]
 		[RequireChannelPermissions(ManageMessages)]
@@ -537,7 +510,7 @@ public sealed class Users : ModuleBase
 		)
 		{
 			var user = await Context.Client.GetUserAsync(userId).ConfigureAwait(false);
-			await Punisher.HandleAsync(new Punishments.Ban(Context.Guild, userId, true)
+			await PunishmentService.HandleAsync(new Punishments.Ban(Context.Guild, userId, true)
 			{
 				Time = reason.Time,
 				Options = GetOptions(reason.Reason),
@@ -560,7 +533,7 @@ public sealed class Users : ModuleBase
 			ModerationReason reason = default
 		)
 		{
-			await Punisher.HandleAsync(new Punishments.Ban(Context.Guild, ban.User.Id, false)
+			await PunishmentService.HandleAsync(new Punishments.Ban(Context.Guild, ban.User.Id, false)
 			{
 				Time = reason.Time,
 				Options = GetOptions(reason.Reason),
@@ -584,7 +557,7 @@ public sealed class Users : ModuleBase
 		)
 		{
 			var isGive = !user.IsMuted;
-			await Punisher.HandleAsync(new Punishments.Mute(user, isGive)
+			await PunishmentService.HandleAsync(new Punishments.Mute(user, isGive)
 			{
 				Time = reason.Time,
 				Options = GetOptions(reason.Reason),

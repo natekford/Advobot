@@ -13,7 +13,7 @@ public static class ReplacableUtils
 	/// <typeparam name="T">The type to remove.</typeparam>
 	/// <typeparam name="TImpl">The type to add.</typeparam>
 	/// <param name="services"></param>
-	public static void ReplaceAllWithSingleton<T, TImpl>(this IServiceCollection services)
+	public static IServiceCollection ReplaceAllWithSingleton<T, TImpl>(this IServiceCollection services)
 		where T : class
 		where TImpl : class, T
 	{
@@ -28,7 +28,7 @@ public static class ReplacableUtils
 				services.RemoveAt(i);
 			}
 		}
-		services.AddSingleton<T, TImpl>();
+		return services.AddSingleton<T, TImpl>();
 	}
 }
 

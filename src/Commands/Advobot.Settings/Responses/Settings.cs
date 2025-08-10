@@ -1,5 +1,5 @@
 ﻿using Advobot.Modules;
-using Advobot.Services.HelpEntries;
+using Advobot.Services.Help;
 using Advobot.Utilities;
 
 using static Advobot.Resources.Responses;
@@ -12,7 +12,7 @@ public sealed class Settings : AdvobotResult
 	{
 	}
 
-	public static AdvobotResult ClearedCommands(IEnumerable<IModuleHelpEntry> entries)
+	public static AdvobotResult ClearedCommands(IEnumerable<IHelpModule> entries)
 	{
 		return Success(SettingsClearedCommands.Format(
 			entries.Select(x => x.Name.WithBlock().Value).Join().WithNoMarkdown()
@@ -20,7 +20,7 @@ public sealed class Settings : AdvobotResult
 	}
 
 	public static AdvobotResult ModifiedCommands(
-		IEnumerable<IModuleHelpEntry> entries,
+		IEnumerable<IHelpModule> entries,
 		int priority,
 		bool enabled)
 	{

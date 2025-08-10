@@ -2,6 +2,7 @@
 using Advobot.Logging.Context;
 using Advobot.Logging.Context.Users;
 using Advobot.Logging.Database;
+using Advobot.Logging.Models;
 using Advobot.Logging.Utilities;
 using Advobot.Services.Time;
 using Advobot.Utilities;
@@ -21,7 +22,7 @@ public sealed class UserLogger
 	private readonly ConcurrentDictionary<ulong, InviteCache> _Invites = new();
 	private readonly ILogger _Logger;
 	private readonly MessageQueue _MessageQueue;
-	private readonly ITime _Time;
+	private readonly ITimeService _Time;
 
 	#region Handlers
 	private readonly LogHandler<UserState> _UserJoined;
@@ -34,7 +35,7 @@ public sealed class UserLogger
 		ILoggingDatabase db,
 		BaseSocketClient client,
 		MessageQueue queue,
-		ITime time)
+		ITimeService time)
 	{
 		_Logger = logger;
 		_Client = client;

@@ -12,36 +12,36 @@ using System.Net;
 
 namespace Advobot.AutoMod.Service;
 
-public sealed class TimedPunishmentService
+public sealed class TimedPunishmentService(
+	ILogger<TimedPunishmentService> logger,
+	ITimedPunishmentDatabase db,
+	IDiscordClient client,
+	ITimeService time
+) : IPunishmentService
 {
-	private readonly IDiscordClient _Client;
-	private readonly ITimedPunishmentDatabase _Db;
-	private readonly ILogger _Logger;
-	private readonly IPunishmentService _Punisher;
-	private readonly ITime _Time;
-	// If the background task is processing removable punishments it adds them to a list
-	// to remove a big batch at once
-	// However, when actually removing the punishment on Discord via the punisher
-	// the event from it still fires back into this class
-	// To prevent removing the punishment by itself then again in the batch removal
-	// this hashset prevents that
-	private readonly HashSet<IPunishmentContext> _WillBeBatchRemoved = [];
-
-	public TimedPunishmentService(
-		ILogger<TimedPunishmentService> logger,
-		ITimedPunishmentDatabase db,
-		IDiscordClient client,
-		ITime time,
-		IPunishmentService punishmentService)
+	public async Task HandleAsync(IPunishmentContext context)
 	{
-		_Db = db;
-		_Client = client;
-		_Logger = logger;
-		_Time = time;
-		_Punisher = punishmentService;
+		TimedPunishment ToDbModel(IPunishmentContext context)
+		{
+			return new()
+			{
+				GuildId = context.Guild.Id,
+				UserId = context.UserId,
+				RoleId = context.Role?.Id ?? 0,
+				PunishmentType = context.Type,
+				EndTimeTicks = (time.UtcNow + context.Time)?.Ticks ?? -1
+			};
+		}
 
-		punishmentService.PunishmentGiven += OnPunishmentGiven;
-		punishmentService.PunishmentRemoved += OnPunishmentRemoved;
+		await context.ExecuteAsync().ConfigureAwait(false);
+		if (context.IsGive && context.Time.HasValue)
+		{
+			await db.AddTimedPunishmentAsync(ToDbModel(context)).ConfigureAwait(false);
+		}
+		else if (!context.IsGive)
+		{
+			await db.DeleteTimedPunishmentAsync(ToDbModel(context)).ConfigureAwait(false);
+		}
 	}
 
 	public void Start()
@@ -50,9 +50,9 @@ public sealed class TimedPunishmentService
 		{
 			while (true)
 			{
-				var values = await _Db.GetOldPunishmentsAsync(_Time.UtcNow.Ticks).ConfigureAwait(false);
+				var values = await db.GetExpiredPunishmentsAsync(time.UtcNow.Ticks).ConfigureAwait(false);
 
-				var handled = new List<RemovablePunishment>();
+				var handled = new List<TimedPunishment>();
 				foreach (var punishment in values)
 				{
 					try
@@ -64,48 +64,29 @@ public sealed class TimedPunishmentService
 					}
 					catch (Exception e)
 					{
-						_Logger.LogWarning(
+						logger.LogWarning(
 							exception: e,
 							message: "Exception occurred while removing a punishment. {@Info}.",
 							args: punishment
 						);
 					}
 				}
-				await _Db.DeleteRemovablePunishmentsAsync(handled).ConfigureAwait(false);
-				_WillBeBatchRemoved.Clear();
+				await db.DeleteTimedPunishmentsAsync(handled).ConfigureAwait(false);
 
 				await Task.Delay(TimeSpan.FromMinutes(1)).ConfigureAwait(false);
 			}
 		});
 	}
 
-	private Task OnPunishmentGiven(IPunishmentContext context)
-	{
-		if (!context.Time.HasValue)
-		{
-			return Task.CompletedTask;
-		}
-		return _Db.AddRemovablePunishmentAsync(ToDbModel(context));
-	}
-
-	private Task OnPunishmentRemoved(IPunishmentContext context)
-	{
-		if (_WillBeBatchRemoved.Remove(context))
-		{
-			return Task.CompletedTask;
-		}
-		return _Db.DeleteRemovablePunishmentAsync(ToDbModel(context));
-	}
-
-	private async Task<bool> RemovePunishmentAsync(RemovablePunishment punishment)
+	private async Task<bool> RemovePunishmentAsync(TimedPunishment punishment)
 	{
 		// Older than a week should be ignored and removed
-		if (_Time.UtcNow - punishment.EndTime > TimeSpan.FromDays(7))
+		if (time.UtcNow - punishment.EndTime > TimeSpan.FromDays(7))
 		{
 			return true;
 		}
 
-		var guild = await _Client.GetGuildAsync(punishment.GuildId).ConfigureAwait(false);
+		var guild = await client.GetGuildAsync(punishment.GuildId).ConfigureAwait(false);
 		if (guild is null)
 		{
 			return false;
@@ -117,8 +98,7 @@ public sealed class TimedPunishmentService
 			{
 				RoleId = punishment.RoleId
 			};
-			_WillBeBatchRemoved.Add(context);
-			await _Punisher.HandleAsync(context).ConfigureAwait(false);
+			await HandleAsync(context).ConfigureAwait(false);
 		}
 		// Lacking permissions, assume the punishment will be handled by someone else
 		catch (HttpException e) when (e.HttpCode == HttpStatusCode.Forbidden)
@@ -132,17 +112,5 @@ public sealed class TimedPunishmentService
 		}
 
 		return true;
-	}
-
-	private RemovablePunishment ToDbModel(IPunishmentContext context)
-	{
-		return new()
-		{
-			GuildId = context.Guild.Id,
-			UserId = context.UserId,
-			RoleId = context.Role?.Id ?? 0,
-			PunishmentType = context.Type,
-			EndTimeTicks = (_Time.UtcNow + context.Time)?.Ticks ?? -1
-		};
 	}
 }

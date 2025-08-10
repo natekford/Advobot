@@ -13,6 +13,6 @@ namespace Advobot.Punishments;
 public sealed class Deafen(IGuildUser user, bool isGive) : GuildUserPunishmentBase(user, isGive, PunishmentType.Deafen)
 {
 	/// <inheritdoc/>
-	protected internal override Task ExecuteAsync()
+	public override Task ExecuteAsync()
 		=> User.ModifyAsync(x => x.Deaf = IsGive, Options);
 }

@@ -34,9 +34,9 @@ public abstract class AdvobotModuleBase : ModuleBase<AdvobotCommandContext>
 	[DontInject]
 	public TimeSpan DefaultInteractivityTime { get; set; } = TimeSpan.FromSeconds(5);
 	/// <summary>
-	/// The punisher to use for giving punishments.
+	/// The service to use for giving punishments.
 	/// </summary>
-	public IPunishmentService Punisher { get; set; } = null!;
+	public IPunishmentService PunishmentService { get; set; } = null!;
 
 	/// <summary>
 	/// Gets a <see cref="RequestOptions"/> that mainly is used for the reason in the audit log.

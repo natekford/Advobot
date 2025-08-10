@@ -10,19 +10,19 @@ public sealed class QuoteDatabase(IConnectionString<QuoteDatabase> conn) : Datab
 	public Task<int> AddQuoteAsync(Quote quote)
 	{
 		return ModifyAsync(@"
-				INSERT OR IGNORE INTO Quote
-				( GuildId, Name, Description )
-				VALUES
-				( @GuildId, @Name, @Description )
-			", quote);
+			INSERT OR IGNORE INTO Quote
+			( GuildId, Name, Description )
+			VALUES
+			( @GuildId, @Name, @Description )
+		", quote);
 	}
 
 	public Task<int> DeleteQuoteAsync(Quote quote)
 	{
 		return ModifyAsync(@"
-				DELETE FROM Quote
-				WHERE GuildId = @GuildId AND Name = @Name
-			", quote);
+			DELETE FROM Quote
+			WHERE GuildId = @GuildId AND Name = @Name
+		", quote);
 	}
 
 	public async Task<Quote?> GetQuoteAsync(ulong guildId, string name)
@@ -33,19 +33,19 @@ public sealed class QuoteDatabase(IConnectionString<QuoteDatabase> conn) : Datab
 			Name = name,
 		};
 		return await GetOneAsync<Quote>(@"
-				SELECT *
-				FROM Quote
-				WHERE GuildId = @GuildId AND Name = @Name
-			", param).ConfigureAwait(false);
+			SELECT *
+			FROM Quote
+			WHERE GuildId = @GuildId AND Name = @Name
+		", param).ConfigureAwait(false);
 	}
 
 	public async Task<IReadOnlyList<Quote>> GetQuotesAsync(ulong guildId)
 	{
 		var param = new { GuildId = guildId.ToString(), };
 		return await GetManyAsync<Quote>(@"
-				SELECT *
-				FROM Quote
-				WHERE GuildId = @GuildId
-			", param).ConfigureAwait(false);
+			SELECT *
+			FROM Quote
+			WHERE GuildId = @GuildId
+		", param).ConfigureAwait(false);
 	}
 }

@@ -1,4 +1,5 @@
-﻿using Advobot.Modules;
+﻿using Advobot.Logging.Models;
+using Advobot.Modules;
 using Advobot.Utilities;
 
 using Discord;

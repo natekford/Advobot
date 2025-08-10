@@ -44,5 +44,5 @@ public interface IPunishmentContext
 	/// Punishes the user.
 	/// </summary>
 	/// <returns></returns>
-	internal Task ExecuteAsync();
+	public Task ExecuteAsync();
 }

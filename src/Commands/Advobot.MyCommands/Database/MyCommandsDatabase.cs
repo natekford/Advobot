@@ -10,17 +10,17 @@ public sealed class MyCommandsDatabase(IConnectionString<MyCommandsDatabase> con
 	public async Task<DetectLanguageConfig> GetDetectLanguageConfigAsync()
 	{
 		return await GetOneAsync<DetectLanguageConfig>(@"
-				SELECT * From DetectLanguageConfig
-			", new object()).ConfigureAwait(false) ?? new DetectLanguageConfig();
+			SELECT * From DetectLanguageConfig
+		", new()).ConfigureAwait(false) ?? new DetectLanguageConfig();
 	}
 
 	public Task<int> UpsertDetectLanguageConfigAsync(DetectLanguageConfig config)
 	{
 		return ModifyAsync(@"
-				INSERT INTO DetectLanguageConfig
-				( APIKey, ConfidenceLimit, CooldownStartTicks )
-				VALUES
-				( @APIKey, @ConfidenceLimit, @CooldownStartTicks )
-			", config);
+			INSERT INTO DetectLanguageConfig
+			( APIKey, ConfidenceLimit, CooldownStartTicks )
+			VALUES
+			( @APIKey, @ConfidenceLimit, @CooldownStartTicks )
+		", config);
 	}
 }

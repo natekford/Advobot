@@ -1,4 +1,4 @@
-﻿using Advobot.Services.HelpEntries;
+﻿using Advobot.Services.Help;
 using Advobot.Tests.Fakes.Services.HelpEntries;
 using Advobot.Tests.TestBases;
 using Advobot.TypeReaders;
@@ -11,7 +11,7 @@ namespace Advobot.Tests.Core.TypeReaders;
 public sealed class CloseHelpEntryTypeReader_Tests
 	: TypeReader_Tests<CloseHelpEntryTypeReader>
 {
-	private readonly HelpEntryService _HelpEntries = new();
+	private readonly NaiveHelpService _HelpEntries = new();
 	protected override CloseHelpEntryTypeReader Instance { get; } = new();
 
 	[TestMethod]
@@ -30,14 +30,14 @@ public sealed class CloseHelpEntryTypeReader_Tests
 			});
 		}
 
-		var result = await ReadAsync(_HelpEntries.GetHelpEntries().First().Name).ConfigureAwait(false);
+		var result = await ReadAsync(_HelpEntries.GetHelpModules().First().Name).ConfigureAwait(false);
 		Assert.IsTrue(result.IsSuccess);
-		Assert.IsInstanceOfType(result.BestMatch, typeof(IEnumerable<IModuleHelpEntry>));
+		Assert.IsInstanceOfType(result.BestMatch, typeof(IEnumerable<IHelpModule>));
 	}
 
 	protected override void ModifyServices(IServiceCollection services)
 	{
 		services
-			.AddSingleton<IHelpEntryService>(_HelpEntries);
+			.AddSingleton<IHelpService>(_HelpEntries);
 	}
 }

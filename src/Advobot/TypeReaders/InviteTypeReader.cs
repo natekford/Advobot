@@ -1,5 +1,4 @@
-﻿using Advobot.Attributes;
-using Advobot.Utilities;
+﻿using Advobot.Utilities;
 
 using Discord;
 using Discord.Commands;

@@ -1,7 +1,7 @@
 ﻿using Advobot.Embeds;
-using Advobot.Formatting;
+using Advobot.Info;
 using Advobot.Modules;
-using Advobot.Services.HelpEntries;
+using Advobot.Services.Help;
 using Advobot.Utilities;
 
 using Discord.Commands;
@@ -23,7 +23,7 @@ public sealed class Misc : AdvobotResult
 	}
 
 	public static AdvobotResult CategoryCommands(
-		IEnumerable<IModuleHelpEntry> entries,
+		IEnumerable<IHelpModule> entries,
 		string category)
 	{
 		var title = MiscTitleCategoryCommands.Format(
@@ -99,7 +99,7 @@ public sealed class Misc : AdvobotResult
 		});
 	}
 
-	public static AdvobotResult Help(IModuleHelpEntry module)
+	public static AdvobotResult Help(IHelpModule module)
 	{
 		var info = new InfoMatrix();
 		var top = info.CreateCollection();
@@ -136,7 +136,7 @@ public sealed class Misc : AdvobotResult
 	}
 
 	public static AdvobotResult Help(
-		IModuleHelpEntry module,
+		IHelpModule module,
 		int position)
 	{
 		if (module.Commands.Count < position)
@@ -186,14 +186,14 @@ public sealed class Misc : AdvobotResult
 		};
 	}
 
-	private static string FormatParameter(IParameterHelpEntry p)
+	private static string FormatParameter(IHelpParameter p)
 	{
 		var left = p.IsOptional ? VariableOptionalLeft : VariableRequiredLeft;
 		var right = p.IsOptional ? VariableOptionalRight : VariableRequiredRight;
 		return left + p.Name + right;
 	}
 
-	private static string FormatPreconditions(IEnumerable<IPrecondition> preconditions)
+	private static string FormatPreconditions(IEnumerable<IHelpPrecondition> preconditions)
 	{
 		if (!preconditions.Any())
 		{
@@ -215,7 +215,7 @@ public sealed class Misc : AdvobotResult
 		return groups.Select(x => $"({x})").Join(VariableAnd);
 	}
 
-	private static string FormatPreconditions(IEnumerable<IParameterPrecondition> preconditions)
+	private static string FormatPreconditions(IEnumerable<IHelpParameterPrecondition> preconditions)
 	{
 		if (!preconditions.Any())
 		{

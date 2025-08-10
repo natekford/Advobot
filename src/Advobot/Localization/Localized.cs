@@ -1,5 +1,6 @@
 ﻿using System.Collections.Concurrent;
 using System.Globalization;
+using System.Resources;
 
 namespace Advobot.Localization;
 
@@ -14,6 +15,25 @@ public static class Localized
 	/// <typeparam name="T"></typeparam>
 	/// <returns></returns>
 	public static Localized<T> Create<T>() where T : new() => new(_ => new T());
+
+	/// <summary>
+	/// Calls <see cref="ResourceManager.GetString(string)"/> and throws an exception if it does not exist.
+	/// </summary>
+	/// <param name="resources"></param>
+	/// <param name="name"></param>
+	/// <returns></returns>
+	/// <exception cref="ArgumentException"></exception>
+	public static string GetStringEnsured(this ResourceManager resources, string name)
+	{
+		var r = resources.GetString(name);
+		if (r != null)
+		{
+			return r;
+		}
+		var culture = CultureInfo.CurrentUICulture;
+		var message = $"{name} does not have an associated string in the {culture} culture.";
+		throw new ArgumentException(message, name);
+	}
 }
 
 /// <summary>
@@ -30,9 +50,10 @@ public sealed class Localized<T>(Func<CultureInfo, T> valueFactory)
 	private readonly Func<CultureInfo, T> _ValueFactory = valueFactory;
 
 	/// <summary>
-	/// Gets or adds a value for the current culture.
+	/// Gets or adds a value for the culture.
 	/// </summary>
+	/// <param name="culture"></param>
 	/// <returns></returns>
-	public T Get()
-		=> _Source.GetOrAdd(CultureInfo.CurrentUICulture, _ValueFactory);
+	public T Get(CultureInfo? culture = null)
+		=> _Source.GetOrAdd(culture ?? CultureInfo.CurrentUICulture, _ValueFactory);
 }

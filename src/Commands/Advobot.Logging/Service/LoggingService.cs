@@ -21,10 +21,10 @@ public sealed class LoggingService
 		ILogger<LoggingService> logger,
 		ILoggingDatabase db,
 		BaseSocketClient client,
-		ICommandHandlerService commandHandler,
+		NaiveCommandService commandHandler,
 		IRuntimeConfig botSettings,
 		MessageQueue messageQueue,
-		ITime time)
+		ITimeService time)
 	{
 		_Logger = logger;
 		_Db = db;
@@ -34,10 +34,10 @@ public sealed class LoggingService
 		client.GuildUnavailable += _ClientLogger.OnGuildUnavailable;
 		client.JoinedGuild += _ClientLogger.OnJoinedGuild;
 		client.LeftGuild += _ClientLogger.OnLeftGuild;
-		client.Log += _ClientLogger.OnLogMessageSent;
+		client.Log += _ClientLogger.OnLog;
 		commandHandler.CommandInvoked += _ClientLogger.OnCommandInvoked;
+		commandHandler.Log += _ClientLogger.OnLog;
 		commandHandler.Ready += _ClientLogger.OnReady;
-		commandHandler.Log += _ClientLogger.OnLogMessageSent;
 
 		_MessageLogger = new(_Logger, _Db, messageQueue);
 		client.MessageDeleted += _MessageLogger.OnMessageDeleted;

@@ -1,5 +1,4 @@
 ﻿using Advobot.Services;
-using Advobot.Services.HelpEntries;
 
 using Discord.Commands;
 
@@ -11,12 +10,10 @@ namespace Advobot.Preconditions;
 /// Checks to make sure the bot is loaded, the guild is loaded, the channel isn't ignored from commands, and the command is enabled for the user.
 /// </summary>
 [AttributeUsage(AttributeTargets.Class | AttributeTargets.Method, AllowMultiple = false, Inherited = true)]
-public sealed class ExtendableCommandValidation
-	: PreconditionAttribute, IPrecondition
+public sealed class ExtendableCommandValidation : AdvobotPrecondition
 {
 	/// <inheritdoc />
-	public string Summary
-		=> "Command is turned on";
+	public override string Summary => "Command is turned on";
 
 	/// <inheritdoc />
 	public override async Task<PreconditionResult> CheckPermissionsAsync(

@@ -2,6 +2,7 @@
 using Advobot.Logging.Context;
 using Advobot.Logging.Context.Message;
 using Advobot.Logging.Database;
+using Advobot.Logging.Models;
 using Advobot.Logging.Utilities;
 using Advobot.Utilities;
 

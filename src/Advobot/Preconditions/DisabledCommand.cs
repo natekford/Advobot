@@ -1,5 +1,4 @@
-﻿using Advobot.Services.HelpEntries;
-using Advobot.Utilities;
+﻿using Advobot.Utilities;
 
 using Discord.Commands;
 
@@ -10,10 +9,10 @@ namespace Advobot.Preconditions;
 /// </summary>
 [Obsolete("This command is disabled.")]
 [AttributeUsage(AttributeTargets.Class | AttributeTargets.Method, AllowMultiple = false, Inherited = true)]
-public sealed class DisabledCommand : PreconditionAttribute, IPrecondition
+public sealed class DisabledCommand : AdvobotPrecondition
 {
 	/// <inheritdoc />
-	public string Summary
+	public override string Summary
 		=> "This command will never be invokable because it is disabled";
 
 	/// <inheritdoc />

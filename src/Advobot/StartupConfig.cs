@@ -29,7 +29,7 @@ public sealed class StartupConfig : IConfig
 	/// <inheritdoc />
 	[JsonIgnore]
 	public DirectoryInfo BaseBotDirectory
-		=> Directory.CreateDirectory(Path.Combine(SavePath!, $"Discord_Servers_{BotId}"));
+		=> Directory.CreateDirectory(Path.Combine(SavePath!, "Advobot", $"{BotId}"));
 	/// <summary>
 	/// The id of the bot.
 	/// </summary>

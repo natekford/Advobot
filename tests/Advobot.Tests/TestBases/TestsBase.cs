@@ -11,7 +11,7 @@ public abstract class TestsBase
 	protected FakeCommandContext Context { get; } = FakeUtils.CreateContext();
 	protected Random Rng { get; } = new();
 	protected Lazy<IServiceProvider> Services { get; }
-	protected ITime Time => Services.Value.GetRequiredService<ITime>();
+	protected ITimeService Time => Services.Value.GetRequiredService<ITimeService>();
 
 	protected TestsBase()
 	{

@@ -21,7 +21,6 @@ public class RequireChannelPermissions(params ChannelPermission[] permissions) :
 		}
 
 		var bits = user.GetPermissions(channel).RawValue;
-		var e = bits == 0 ? null : (Enum)(ChannelPermission)bits;
-		return Task.FromResult(e);
+		return Task.FromResult(bits == 0 ? null : (Enum)(ChannelPermission)bits);
 	}
 }

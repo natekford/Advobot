@@ -3,7 +3,7 @@ using Advobot.Punishments;
 using Advobot.Services.BotSettings;
 using Advobot.Services.Commands;
 using Advobot.Services.GuildSettings;
-using Advobot.Services.HelpEntries;
+using Advobot.Services.Help;
 using Advobot.Services.Time;
 using Advobot.Utilities;
 
@@ -70,7 +70,6 @@ public sealed class AdvobotLauncher
 		}
 
 		var services = await CreateServicesAsync(config).ConfigureAwait(false);
-
 		var client = services.GetRequiredService<BaseSocketClient>();
 		await config.StartAsync(client).ConfigureAwait(false);
 
@@ -79,7 +78,7 @@ public sealed class AdvobotLauncher
 
 	private static async Task<IServiceProvider> CreateServicesAsync(StartupConfig config)
 	{
-		var botSettings = RuntimeConfig.CreateOrLoad(config);
+		var botSettings = NaiveRuntimeConfig.CreateOrLoad(config);
 		var commandConfig = new CommandServiceConfig
 		{
 			CaseSensitiveCommands = false,
@@ -110,10 +109,10 @@ public sealed class AdvobotLauncher
 			.AddSingleton<IDiscordClient>(discordClient)
 			.AddSingleton<IRuntimeConfig>(botSettings)
 			.AddSingleton<IConfig>(botSettings)
-			.AddSingleton<ITime, DefaultTime>()
-			.AddSingleton<IHelpEntryService, HelpEntryService>()
-			.AddSingleton<ICommandHandlerService, CommandHandlerService>()
-			.AddSingleton<IPunishmentService, PunishmentService>()
+			.AddSingleton<NaiveCommandService>()
+			.AddSingleton<ITimeService, NaiveTimeService>()
+			.AddSingleton<IHelpService, NaiveHelpService>()
+			.AddSingleton<IPunishmentService, NaivePunishmentService>()
 			.AddSingleton<IGuildSettingsService, NaiveGuildSettingsService>();
 
 		var commandAssemblyDirectory = AppDomain.CurrentDomain.BaseDirectory;
@@ -150,7 +149,7 @@ public sealed class AdvobotLauncher
 		}
 
 		// Add in commands
-		var commandHandler = services.GetRequiredService<ICommandHandlerService>();
+		var commandHandler = services.GetRequiredService<NaiveCommandService>();
 		await commandHandler.AddCommandsAsync(commandAssemblies).ConfigureAwait(false);
 
 		return services;

@@ -1,6 +1,6 @@
-﻿using Advobot.Attributes;
-using Advobot.AutoMod.Database;
+﻿using Advobot.AutoMod.Database;
 using Advobot.AutoMod.Models;
+using Advobot.TypeReaders;
 using Advobot.Utilities;
 
 using Discord;

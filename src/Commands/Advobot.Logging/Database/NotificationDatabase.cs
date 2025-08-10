@@ -17,10 +17,10 @@ public sealed class NotificationDatabase(IConnectionString<NotificationDatabase>
 			Event = GetNotificationName(notification),
 		};
 		return await GetOneAsync<CustomNotification>(@"
-				SELECT *
-				FROM Notification
-				WHERE GuildId = @GuildId AND Event = @Event
-			", param).ConfigureAwait(false);
+			SELECT *
+			FROM Notification
+			WHERE GuildId = @GuildId AND Event = @Event
+		", param).ConfigureAwait(false);
 	}
 
 	public Task<int> UpsertNotificationChannelAsync(
@@ -35,14 +35,14 @@ public sealed class NotificationDatabase(IConnectionString<NotificationDatabase>
 			ChannelId = channelId?.ToString()
 		};
 		return ModifyAsync(@"
-				INSERT OR IGNORE INTO Notification
-					( GuildId, Event )
-					VALUES
-					( @GuildId, @Event );
-				UPDATE Notification
-				SET ChannelId = @ChannelId
-				WHERE GuildId = @GuildId AND Event = @Event
-			", param);
+			INSERT OR IGNORE INTO Notification
+				( GuildId, Event )
+				VALUES
+				( @GuildId, @Event );
+			UPDATE Notification
+			SET ChannelId = @ChannelId
+			WHERE GuildId = @GuildId AND Event = @Event
+		", param);
 	}
 
 	public Task<int> UpsertNotificationContentAsync(
@@ -57,14 +57,14 @@ public sealed class NotificationDatabase(IConnectionString<NotificationDatabase>
 			Content = content
 		};
 		return ModifyAsync(@"
-				INSERT OR IGNORE INTO Notification
-					( GuildId, Event )
-					VALUES
-					( @GuildId, @Event );
-				UPDATE Notification
-				SET Content = @Content
-				WHERE GuildId = @GuildId AND Event = @Event
-			", param);
+			INSERT OR IGNORE INTO Notification
+				( GuildId, Event )
+				VALUES
+				( @GuildId, @Event );
+			UPDATE Notification
+			SET Content = @Content
+			WHERE GuildId = @GuildId AND Event = @Event
+		", param);
 	}
 
 	public Task<int> UpsertNotificationEmbedAsync(
@@ -89,25 +89,25 @@ public sealed class NotificationDatabase(IConnectionString<NotificationDatabase>
 			embed?.Url,
 		};
 		return ModifyAsync(@"
-				INSERT OR IGNORE INTO Notification
-					( GuildId, Event )
-					VALUES
-					( @GuildId, @Event );
-				UPDATE Notification
-				SET
-					AuthorIconUrl = @AuthorIconUrl,
-					AuthorName = @AuthorName,
-					AuthorUrl = @AuthorUrl,
-					Color = @Color,
-					Description = @Description,
-					Footer = @Footer,
-					FooterIconUrl = @FooterIconUrl,
-					ImageUrl = @ImageUrl,
-					ThumbnailUrl = @ThumbnailUrl,
-					Title = @Title,
-					Url = @Url
-				WHERE GuildId = @GuildId AND Event = @Event
-			", param);
+			INSERT OR IGNORE INTO Notification
+				( GuildId, Event )
+				VALUES
+				( @GuildId, @Event );
+			UPDATE Notification
+			SET
+				AuthorIconUrl = @AuthorIconUrl,
+				AuthorName = @AuthorName,
+				AuthorUrl = @AuthorUrl,
+				Color = @Color,
+				Description = @Description,
+				Footer = @Footer,
+				FooterIconUrl = @FooterIconUrl,
+				ImageUrl = @ImageUrl,
+				ThumbnailUrl = @ThumbnailUrl,
+				Title = @Title,
+				Url = @Url
+			WHERE GuildId = @GuildId AND Event = @Event
+		", param);
 	}
 
 	private string GetNotificationName(Notification notification) => notification switch

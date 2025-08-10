@@ -22,6 +22,6 @@ public abstract class Database_Tests<TDb, TConn> : TestsBase where TDb : class
 		services
 			.AddSingleton<TDb>()
 			.AddSingleton<IConnectionString<TDb>, FakeSQLiteConnectionString>()
-			.AddSingleton<ITime, DefaultTime>();
+			.AddSingleton<ITimeService, NaiveTimeService>();
 	}
 }

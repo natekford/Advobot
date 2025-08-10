@@ -1,5 +1,4 @@
 ﻿using Advobot.Services.BotSettings;
-using Advobot.Services.HelpEntries;
 using Advobot.Utilities;
 
 using Discord.Commands;
@@ -12,11 +11,10 @@ namespace Advobot.Preconditions;
 /// Checks to make sure the user is allowed to dm the bot owner.
 /// </summary>
 [AttributeUsage(AttributeTargets.Class | AttributeTargets.Method, AllowMultiple = false, Inherited = true)]
-public sealed class RequireAllowedToDmBotOwner : PreconditionAttribute, IPrecondition
+public sealed class RequireAllowedToDmBotOwner : AdvobotPrecondition
 {
 	/// <inheritdoc />
-	public string Summary
-		=> "Not blocked by the bot owner";
+	public override string Summary => "Not blocked by the bot owner";
 
 	/// <inheritdoc />
 	public override Task<PreconditionResult> CheckPermissionsAsync(

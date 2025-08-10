@@ -140,7 +140,7 @@ public sealed class ClientLogger(
 		return Task.CompletedTask;
 	}
 
-	public Task OnLogMessageSent(LogMessage message)
+	public Task OnLog(LogMessage message)
 	{
 		var e = message.Exception;
 		// Gateway reconnects have a warning severity, but all they are is spam
@@ -179,7 +179,7 @@ public sealed class ClientLogger(
 
 	public Task OnReady()
 	{
-		var launchDuration = DateTime.UtcNow - AdvobotUtils.StartTime;
+		var launchDuration = DateTime.UtcNow - Constants.StartTime;
 		Console.WriteLine($"Bot: '{client.CurrentUser.Username}'; " +
 			$"Version: {Constants.BOT_VERSION}; " +
 			$"D.Net Version: {Constants.DISCORD_NET_VERSION}; " +

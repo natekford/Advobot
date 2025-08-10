@@ -1,5 +1,4 @@
-﻿using Advobot.ParameterPreconditions;
-using Advobot.Preconditions.Results;
+﻿using Advobot.Preconditions.Results;
 
 using Discord;
 using Discord.Commands;
@@ -41,33 +40,6 @@ public static class PreconditionUtils
 	/// <returns></returns>
 	public static bool CanModify(this IGuildUser invoker, IRole target)
 		=> invoker.GetHierarchy() > target.Position;
-
-	/// <summary>
-	/// Creates a <see cref="PreconditionResult"/> from the exist status of an object.
-	/// </summary>
-	/// <param name="precondition"></param>
-	/// <param name="exists"></param>
-	/// <param name="value"></param>
-	/// <param name="type"></param>
-	/// <returns></returns>
-	public static PreconditionResult FromExistence(
-		this IExistenceParameterPrecondition precondition,
-		bool exists,
-		object value,
-		string type)
-	{
-		if (precondition.Status == ExistenceStatus.MustNotExist && exists)
-		{
-			var error = $"`{value}` already exists as a {type}.";
-			return PreconditionResult.FromError(error);
-		}
-		else if (precondition.Status == ExistenceStatus.MustExist && !exists)
-		{
-			var error = $"`{value}` does not exist as a {type}.";
-			return PreconditionResult.FromError(error);
-		}
-		return SuccessInstance;
-	}
 
 	/// <summary>
 	/// Creates a <see cref="InvalidInvokingUser"/>.

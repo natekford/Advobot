@@ -7,7 +7,7 @@ using Advobot.Preconditions;
 using Advobot.Preconditions.Permissions;
 using Advobot.Resources;
 using Advobot.Services.GuildSettings;
-using Advobot.Services.HelpEntries;
+using Advobot.Services.Help;
 using Advobot.Utilities;
 
 using Discord;
@@ -27,7 +27,7 @@ public sealed class Misc : ModuleBase
 	public sealed class Commands : AdvobotModuleBase
 	{
 		public IGuildSettingsService GuildSettings { get; set; } = null!;
-		public IHelpEntryService HelpEntries { get; set; } = null!;
+		public IHelpService HelpEntries { get; set; } = null!;
 
 		[Command]
 		public async Task<RuntimeResult> Command()
@@ -39,7 +39,7 @@ public sealed class Misc : ModuleBase
 		[Command]
 		public Task<RuntimeResult> Command(Category category)
 		{
-			var entries = HelpEntries.GetHelpEntries(category.Name);
+			var entries = HelpEntries.GetHelpModules(category.Name);
 			return CategoryCommands(entries, category.Name);
 		}
 	}
@@ -66,7 +66,7 @@ public sealed class Misc : ModuleBase
 			[LocalizedSummary(nameof(Summaries.HelpVariableCommand))]
 			[LocalizedName(nameof(Parameters.Command))]
 			[Remainder]
-			IModuleHelpEntry helpEntry
+			IHelpModule helpEntry
 		) => Responses.Misc.Help(helpEntry);
 
 		[Command, Priority(2)]
@@ -79,14 +79,14 @@ public sealed class Misc : ModuleBase
 			[LocalizedSummary(nameof(Summaries.HelpVariableExactCommand))]
 			[LocalizedName(nameof(Parameters.Command))]
 			[Remainder]
-			IModuleHelpEntry helpEntry
+			IHelpModule helpEntry
 		) => Responses.Misc.Help(helpEntry, position);
 
 		[Command(RunMode = RunMode.Async), Priority(0)]
 		[Hidden]
 		public async Task<RuntimeResult> Command(
 			[Remainder]
-			IReadOnlyList<IModuleHelpEntry> helpEntries
+			IReadOnlyList<IHelpModule> helpEntries
 		)
 		{
 			var entry = await NextItemAtIndexAsync(helpEntries, x => x.Name).ConfigureAwait(false);
@@ -144,30 +144,7 @@ public sealed class Misc : ModuleBase
 	public sealed class Test : AdvobotModuleBase
 	{
 		[Command]
-		public async Task Command()
-		{
-			var users = Context.Guild.Users
-				.Where(x =>
-				{
-					if (x.JoinedAt?.LocalDateTime is not DateTime dt)
-					{
-						return false;
-					}
-					var start = new DateTime(2022, 2, 27, 9, 10, 0, DateTimeKind.Local);
-					var end = start + TimeSpan.FromMinutes(14);
-					return dt >= start && dt <= end;
-				})
-				.OrderBy(x => x.JoinedAt)
-				.ToList();
-			for (var i = 0; i < users.Count; ++i)
-			{
-				await users[i].BanAsync(7, "scam accounts").ConfigureAwait(false);
-				if (i % 10 == 0)
-				{
-					Console.WriteLine($"{users.Count - i} users left to ban.");
-				}
-			}
-			await Context.Channel.SendMessageAsync($"Banned {users.Count} users.").ConfigureAwait(false);
-		}
+		public Task Command()
+			=> Task.CompletedTask;
 	}
 }

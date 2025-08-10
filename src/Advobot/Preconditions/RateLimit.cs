@@ -1,5 +1,4 @@
-﻿using Advobot.Services.HelpEntries;
-using Advobot.Services.Time;
+﻿using Advobot.Services.Time;
 using Advobot.Utilities;
 
 using Discord.Commands;
@@ -33,13 +32,12 @@ public enum TimeUnit
 /// Limits the rate a command can be used.
 /// </summary>
 [AttributeUsage(AttributeTargets.Class | AttributeTargets.Method, AllowMultiple = false, Inherited = true)]
-public sealed class RateLimit(TimeUnit unit, double value) : PreconditionAttribute, IPrecondition
+public sealed class RateLimit(TimeUnit unit, double value) : AdvobotPrecondition
 {
 	private static readonly ConcurrentDictionary<(ulong, ulong), DateTimeOffset> _Times = new();
 
 	/// <inheritdoc />
-	public string Summary
-		=> $"Rate limit of {Value} {Unit.ToString().ToLower()}";
+	public override string Summary => $"Rate limit of {Value} {Unit.ToString().ToLower()}";
 	/// <summary>
 	/// The actual timespan.
 	/// </summary>
@@ -65,7 +63,7 @@ public sealed class RateLimit(TimeUnit unit, double value) : PreconditionAttribu
 		CommandInfo command,
 		IServiceProvider services)
 	{
-		var time = services.GetRequiredService<ITime>();
+		var time = services.GetRequiredService<ITimeService>();
 		var key = (context.Guild.Id, context.User.Id);
 		if (_Times.TryGetValue(key, out var next) && time.UtcNow < next)
 		{

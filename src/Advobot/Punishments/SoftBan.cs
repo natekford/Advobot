@@ -13,7 +13,7 @@ namespace Advobot.Punishments;
 public sealed class SoftBan(IGuild guild, ulong userId) : PunishmentBase(guild, userId, true, PunishmentType.Kick)
 {
 	/// <inheritdoc/>
-	protected internal override async Task ExecuteAsync()
+	public override async Task ExecuteAsync()
 	{
 		await Guild.AddBanAsync(UserId, Days, Options?.AuditLogReason, Options).ConfigureAwait(false);
 		await Guild.RemoveBanAsync(UserId, Options).ConfigureAwait(false);

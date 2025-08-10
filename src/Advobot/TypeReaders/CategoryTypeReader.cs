@@ -1,5 +1,4 @@
-﻿using Advobot.Attributes;
-using Advobot.Services.HelpEntries;
+﻿using Advobot.Services.Help;
 using Advobot.Utilities;
 
 using Discord.Commands;
@@ -20,7 +19,7 @@ public class CategoryTypeReader : TypeReader
 		string input,
 		IServiceProvider services)
 	{
-		var helpEntries = services.GetRequiredService<IHelpEntryService>();
+		var helpEntries = services.GetRequiredService<IHelpService>();
 		foreach (var category in helpEntries.GetCategories())
 		{
 			if (category.CaseInsEquals(input))

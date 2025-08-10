@@ -38,8 +38,6 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Advobot.AutoMod", "src\Comm
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Advobot.SQLite", "src\Advobot.SQLite\Advobot.SQLite.csproj", "{18016CD5-C58F-44D0-BB14-E1B0BBD26C03}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Advobot.Quotes", "src\Commands\Advobot.Quotes\Advobot.Quotes.csproj", "{B210DE66-98A9-4BB9-BD79-2F3035CD9543}"
-EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Advobot.Resources", "src\Advobot.Resources\Advobot.Resources.csproj", "{BFAA16EF-9B4D-47B4-A52E-A81CA0ED22A8}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Advobot.MyCommands", "src\Commands\Advobot.MyCommands\Advobot.MyCommands.csproj", "{45BFF840-7735-42A5-B295-F7296EFCB07A}"
@@ -92,10 +90,6 @@ Global
 		{18016CD5-C58F-44D0-BB14-E1B0BBD26C03}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{18016CD5-C58F-44D0-BB14-E1B0BBD26C03}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{18016CD5-C58F-44D0-BB14-E1B0BBD26C03}.Release|Any CPU.Build.0 = Release|Any CPU
-		{B210DE66-98A9-4BB9-BD79-2F3035CD9543}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{B210DE66-98A9-4BB9-BD79-2F3035CD9543}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{B210DE66-98A9-4BB9-BD79-2F3035CD9543}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{B210DE66-98A9-4BB9-BD79-2F3035CD9543}.Release|Any CPU.Build.0 = Release|Any CPU
 		{BFAA16EF-9B4D-47B4-A52E-A81CA0ED22A8}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{BFAA16EF-9B4D-47B4-A52E-A81CA0ED22A8}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{BFAA16EF-9B4D-47B4-A52E-A81CA0ED22A8}.Release|Any CPU.ActiveCfg = Release|Any CPU
@@ -120,17 +114,16 @@ Global
 		{74CC37E0-4AF6-4985-913C-A26211963CB1} = {AE3034B5-0282-4AEA-A15B-BD1ED4485C12}
 		{5EFBA40F-670C-4FD5-B1CC-09308DE609F2} = {AE3034B5-0282-4AEA-A15B-BD1ED4485C12}
 		{0C350A84-2650-4EF9-ADCA-2A45B8043E04} = {AE3034B5-0282-4AEA-A15B-BD1ED4485C12}
-		{B210DE66-98A9-4BB9-BD79-2F3035CD9543} = {AE3034B5-0282-4AEA-A15B-BD1ED4485C12}
 		{45BFF840-7735-42A5-B295-F7296EFCB07A} = {AE3034B5-0282-4AEA-A15B-BD1ED4485C12}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
-		BuildVersion_BuildVersioningStyle = None.None.Increment.None
-		BuildVersion_UseUniversalClock = True
-		BuildVersion_UseGlobalSettings = False
-		BuildVersion_AssemblyInfoFilename = src\Advobot.Core\obj\Debug\netstandard2.0\Advobot.Core.AssemblyInfo.cs
-		BuildVersion_StartDate = 2000/1/1
-		BuildVersion_UpdateFileVersion = True
-		BuildVersion_UpdateAssemblyVersion = True
 		SolutionGuid = {4DFA053C-9378-4F41-B1C1-6DE68D9CF75D}
+		BuildVersion_UpdateAssemblyVersion = True
+		BuildVersion_UpdateFileVersion = True
+		BuildVersion_StartDate = 2000/1/1
+		BuildVersion_AssemblyInfoFilename = src\Advobot.Core\obj\Debug\netstandard2.0\Advobot.Core.AssemblyInfo.cs
+		BuildVersion_UseGlobalSettings = False
+		BuildVersion_UseUniversalClock = True
+		BuildVersion_BuildVersioningStyle = None.None.Increment.None
 	EndGlobalSection
 EndGlobal

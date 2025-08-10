@@ -1,6 +1,7 @@
 ﻿using Discord;
 
 using System.ComponentModel;
+using System.Diagnostics;
 using System.Reflection;
 
 namespace Advobot;
@@ -96,4 +97,8 @@ public static class Constants
 		typeof(IDiscordClient).Assembly
 		.GetCustomAttribute<AssemblyInformationalVersionAttribute>()?.InformationalVersion
 		?? throw new InvalidOperationException("Cannot get Discord.Net version.");
+	/// <summary>
+	/// The time the bot was started in UTC.
+	/// </summary>
+	public static DateTime StartTime { get; } = Process.GetCurrentProcess().StartTime.ToUniversalTime();
 }

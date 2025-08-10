@@ -1,5 +1,4 @@
-﻿using Advobot.Services.HelpEntries;
-using Advobot.Utilities;
+﻿using Advobot.Utilities;
 
 using Discord;
 using Discord.Commands;
@@ -18,7 +17,7 @@ namespace Advobot.Preconditions.Permissions;
 /// <param name="permissions"></param>
 [AttributeUsage(AttributeTargets.Class | AttributeTargets.Method, AllowMultiple = false, Inherited = true)]
 public abstract class RequirePermissions(IEnumerable<Enum> permissions)
-	: PreconditionAttribute, IPrecondition
+	: AdvobotPrecondition
 {
 	/// <summary>
 	/// Whether this precondition has to validate the bot's permissions.
@@ -33,7 +32,7 @@ public abstract class RequirePermissions(IEnumerable<Enum> permissions)
 	/// </summary>
 	public ImmutableHashSet<Enum> Permissions { get; } = [.. permissions];
 	/// <inheritdoc />
-	public virtual string Summary { get; } = permissions.Select(x =>
+	public override string Summary { get; } = permissions.Select(x =>
 	{
 		var perms = default(List<string>);
 		foreach (Enum e in Enum.GetValues(x.GetType()))

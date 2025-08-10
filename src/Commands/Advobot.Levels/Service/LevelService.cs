@@ -20,14 +20,14 @@ public sealed class LevelService
 	private readonly ILevelDatabase _Db;
 	private readonly ILogger _Logger;
 	private readonly ConcurrentDictionary<Key, RuntimeInfo> _RuntimeInfo = new();
-	private readonly ITime _Time;
+	private readonly ITimeService _Time;
 
 	public LevelService(
 		ILogger<LevelService> logger,
 		LevelServiceConfig config,
 		ILevelDatabase db,
 		BaseSocketClient client,
-		ITime time)
+		ITimeService time)
 	{
 		_Config = config;
 		_Client = client;
@@ -145,11 +145,11 @@ public sealed class LevelService
 		}
 	}
 
-	private sealed class RuntimeInfo(ITime time, LevelServiceConfig config)
+	private sealed class RuntimeInfo(ITimeService time, LevelServiceConfig config)
 	{
 		private readonly LevelServiceConfig _Config = config;
 		private readonly ConcurrentQueue<MessageHash> _Messages = new();
-		private readonly ITime _Time = time;
+		private readonly ITimeService _Time = time;
 
 		public IReadOnlyList<MessageHash> Messages => [.. _Messages];
 		public DateTimeOffset Time { get; private set; } = DateTimeOffset.MinValue;

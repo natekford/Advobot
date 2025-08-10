@@ -1,5 +1,4 @@
-﻿using Advobot.Services.HelpEntries;
-using Advobot.Utilities;
+﻿using Advobot.Utilities;
 
 using Discord.Commands;
 
@@ -9,11 +8,10 @@ namespace Advobot.Preconditions;
 /// Requires guild owner before this command will execute.
 /// </summary>
 [AttributeUsage(AttributeTargets.Class | AttributeTargets.Method, AllowMultiple = false, Inherited = true)]
-public sealed class RequireGuildOwner : PreconditionAttribute, IPrecondition
+public sealed class RequireGuildOwner : AdvobotPrecondition
 {
 	/// <inheritdoc />
-	public string Summary
-		=> "Invoker is the guild owner";
+	public override string Summary => "Invoker is the guild owner";
 
 	/// <inheritdoc />
 	public override Task<PreconditionResult> CheckPermissionsAsync(

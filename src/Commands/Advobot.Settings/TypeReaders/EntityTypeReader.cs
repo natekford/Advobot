@@ -1,5 +1,4 @@
-﻿using Advobot.Attributes;
-using Advobot.Settings.Models;
+﻿using Advobot.Settings.Models;
 using Advobot.TypeReaders;
 using Advobot.Utilities;
 

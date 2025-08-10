@@ -1,4 +1,4 @@
-﻿using Advobot.Services.HelpEntries;
+﻿using Advobot.Services.Help;
 using Advobot.Tests.Fakes.Services.HelpEntries;
 using Advobot.Tests.TestBases;
 using Advobot.TypeReaders;
@@ -10,7 +10,7 @@ namespace Advobot.Tests.Core.TypeReaders;
 [TestClass]
 public sealed class CommandCategory_Tests : TypeReader_Tests<CategoryTypeReader>
 {
-	private readonly HelpEntryService _Service = new();
+	private readonly NaiveHelpService _Service = new();
 	protected override CategoryTypeReader Instance { get; } = new();
 
 	[TestMethod]
@@ -25,6 +25,6 @@ public sealed class CommandCategory_Tests : TypeReader_Tests<CategoryTypeReader>
 	protected override void ModifyServices(IServiceCollection services)
 	{
 		services
-			.AddSingleton<IHelpEntryService>(_Service);
+			.AddSingleton<IHelpService>(_Service);
 	}
 }

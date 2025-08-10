@@ -13,6 +13,6 @@ namespace Advobot.Punishments;
 public sealed class Mute(IGuildUser user, bool isGive) : GuildUserPunishmentBase(user, isGive, PunishmentType.VoiceMute)
 {
 	/// <inheritdoc/>
-	protected internal override Task ExecuteAsync()
+	public override Task ExecuteAsync()
 		=> User.ModifyAsync(x => x.Mute = IsGive, Options);
 }

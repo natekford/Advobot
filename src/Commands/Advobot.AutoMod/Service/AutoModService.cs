@@ -32,21 +32,21 @@ public sealed class AutoModService
 	private readonly IAutoModDatabase _Db;
 	private readonly ILogger _Logger;
 	private readonly GuildSpecific<ulong, EnumMapped<PunishmentType, int>> _Phrases = new();
-	private readonly IPunishmentService _Punisher;
-	private readonly ITime _Time;
+	private readonly IPunishmentService _PunishmentService;
+	private readonly ITimeService _Time;
 	private ConcurrentDictionary<ulong, (ConcurrentBag<ulong>, ITextChannel)> _Messages = new();
 
 	public AutoModService(
 		ILogger<AutoModService> logger,
 		BaseSocketClient client,
 		IAutoModDatabase db,
-		ITime time,
-		IPunishmentService punisher)
+		ITimeService time,
+		IPunishmentService punishmentService)
 	{
 		_Db = db;
 		_Logger = logger;
 		_Time = time;
-		_Punisher = punisher;
+		_PunishmentService = punishmentService;
 
 		client.MessageReceived += OnMessageReceived;
 		client.MessageUpdated += OnMessageUpdated;
@@ -215,7 +215,7 @@ public sealed class AutoModService
 			RoleId = punishment.RoleId,
 			Options = options,
 		};
-		return _Punisher.HandleAsync(context);
+		return _PunishmentService.HandleAsync(context);
 	}
 
 	private void QueueMessageForDeletion(ITextChannel channel, IMessage message)

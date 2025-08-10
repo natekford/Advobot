@@ -1,4 +1,4 @@
-﻿using Advobot.Attributes;
+﻿using Advobot.Punishments;
 using Advobot.Utilities;
 
 using Discord.Commands;

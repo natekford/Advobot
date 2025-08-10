@@ -9,11 +9,8 @@ namespace Advobot.ParameterPreconditions.Discord;
 /// Makes sure the passed in <see cref="ulong"/> is not already banned.
 /// </summary>
 [AttributeUsage(AttributeTargets.Parameter, AllowMultiple = false, Inherited = true)]
-public sealed class NotBanned
-	: AdvobotParameterPrecondition<ulong>, IExistenceParameterPrecondition
+public sealed class NotBanned : AdvobotParameterPrecondition<ulong>
 {
-	/// <inheritdoc />
-	public ExistenceStatus Status => ExistenceStatus.MustNotExist;
 	/// <inheritdoc />
 	public override string Summary => "Not already banned";
 
@@ -26,6 +23,10 @@ public sealed class NotBanned
 		IServiceProvider services)
 	{
 		var ban = await context.Guild.GetBanAsync(value).ConfigureAwait(false);
-		return this.FromExistence(ban is not null, value, "ban");
+		if (ban is null)
+		{
+			return this.FromSuccess();
+		}
+		return PreconditionResult.FromError($"`{value}` already exists as a ban.");
 	}
 }

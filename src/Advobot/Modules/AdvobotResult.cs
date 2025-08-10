@@ -15,10 +15,6 @@ public class AdvobotResult : RuntimeResult
 	/// The result to use when this should be fully ignored.
 	/// </summary>
 	public static AdvobotResult IgnoreFailure { get; } = Failure(null, CommandError.Unsuccessful);
-	/// <summary>
-	/// The result to use when indicating a success that has no reason.
-	/// </summary>
-	public static AdvobotResult IgnoreSuccess { get; } = Success("");
 
 	/// <summary>
 	/// The embed to post with the message.

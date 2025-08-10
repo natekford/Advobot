@@ -1,6 +1,7 @@
 ﻿using Advobot.Logging.Database;
 using Advobot.Logging.Models;
-using Advobot.Services.HelpEntries;
+using Advobot.Preconditions;
+using Advobot.Services.Help;
 using Advobot.Utilities;
 
 using Discord.Commands;
@@ -15,10 +16,10 @@ namespace Advobot.Logging.Preconditions;
 /// Requires a log channel to be set.
 /// </summary>
 [AttributeUsage(AttributeTargets.Class | AttributeTargets.Method, AllowMultiple = false, Inherited = true)]
-public abstract class LogPrecondition : PreconditionAttribute, IPrecondition
+public abstract class LogPrecondition : AdvobotPrecondition
 {
 	/// <inheritdoc />
-	public string Summary
+	public override string Summary
 		=> LogPreconditionSummary.Format(LogName.WithNoMarkdown());
 
 	/// <summary>

@@ -19,7 +19,7 @@ public sealed class RoleMute : GuildUserPunishmentBase
 	}
 
 	/// <inheritdoc/>
-	protected internal override Task ExecuteAsync()
+	public override Task ExecuteAsync()
 	{
 		if (IsGive)
 		{

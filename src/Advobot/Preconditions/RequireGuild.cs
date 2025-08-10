@@ -1,5 +1,4 @@
-﻿using Advobot.Services.HelpEntries;
-using Advobot.Utilities;
+﻿using Advobot.Utilities;
 
 using Discord.Commands;
 
@@ -9,14 +8,14 @@ namespace Advobot.Preconditions;
 /// Specifies that the command will only work in the passed in guild.
 /// </summary>
 [AttributeUsage(AttributeTargets.Class | AttributeTargets.Method, AllowMultiple = false, Inherited = true)]
-public sealed class RequireGuild(ulong id) : PreconditionAttribute, IPrecondition
+public sealed class RequireGuild(ulong id) : AdvobotPrecondition
 {
 	/// <summary>
 	/// The id of the guild.
 	/// </summary>
 	public ulong Id { get; } = id;
 	/// <inheritdoc />
-	public string Summary => $"Will only work in the guild with the id {Id}";
+	public override string Summary => $"Will only work in the guild with the id {Id}";
 
 	/// <inheritdoc />
 	public override Task<PreconditionResult> CheckPermissionsAsync(

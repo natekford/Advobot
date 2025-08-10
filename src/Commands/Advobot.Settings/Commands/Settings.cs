@@ -2,7 +2,7 @@
 using Advobot.Localization;
 using Advobot.Preconditions.Permissions;
 using Advobot.Resources;
-using Advobot.Services.HelpEntries;
+using Advobot.Services.Help;
 using Advobot.Settings.Models;
 
 using Discord.Commands;
@@ -41,7 +41,7 @@ public sealed class Settings : ModuleBase
 			[Command]
 			public Task<RuntimeResult> Command(
 				CommandOverrideEntity entity,
-				params IModuleHelpEntry[] commands)
+				params IHelpModule[] commands)
 				=> Modify(entity, commands, 0);
 		}
 
@@ -69,7 +69,7 @@ public sealed class Settings : ModuleBase
 			public Task<RuntimeResult> Command(
 				int priority,
 				CommandOverrideEntity entity,
-				params IModuleHelpEntry[] commands)
+				params IHelpModule[] commands)
 				=> Modify(entity, commands, priority);
 		}
 
@@ -97,18 +97,18 @@ public sealed class Settings : ModuleBase
 			public Task<RuntimeResult> Command(
 				int priority,
 				CommandOverrideEntity entity,
-				params IModuleHelpEntry[] commands)
+				params IHelpModule[] commands)
 				=> Modify(entity, commands, priority);
 		}
 
 		public abstract class ModifyCommandsModuleBase : SettingsModuleBase
 		{
-			public IHelpEntryService HelpEntries { get; set; } = null!;
+			public IHelpService HelpEntries { get; set; } = null!;
 			public abstract bool? ShouldEnable { get; }
 
 			protected async Task<RuntimeResult> Modify(
 				CommandOverrideEntity entity,
-				IEnumerable<IModuleHelpEntry> commands,
+				IEnumerable<IHelpModule> commands,
 				int priority)
 			{
 				var overrides = commands.Select(x => new CommandOverride(entity)
@@ -131,7 +131,7 @@ public sealed class Settings : ModuleBase
 			}
 
 			protected Task<RuntimeResult> ModifyAll(CommandOverrideEntity entity, int priority)
-				=> Modify(entity, HelpEntries.GetHelpEntries(), priority);
+				=> Modify(entity, HelpEntries.GetHelpModules(), priority);
 
 			protected Task<RuntimeResult> ModifyCategories(
 				CommandOverrideEntity entity,
@@ -140,7 +140,7 @@ public sealed class Settings : ModuleBase
 			{
 				var names = categories.Select(x => x.Name).ToHashSet();
 				var entries = HelpEntries
-					.GetHelpEntries()
+					.GetHelpModules()
 					.Where(x => names.Contains(x.Category));
 				return Modify(entity, entries, priority);
 			}

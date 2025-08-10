@@ -1,4 +1,4 @@
-﻿using Advobot.Services.HelpEntries;
+﻿using Advobot.Services.Help;
 using Advobot.Utilities;
 
 using Discord;
@@ -7,10 +7,10 @@ using Discord.Commands;
 namespace Advobot.ParameterPreconditions;
 
 /// <summary>
-/// Requires the parameter meet a precondition unless it's optional.
+/// Requires the parameter to meet a precondition unless it's optional.
 /// </summary>
 public abstract class AdvobotParameterPrecondition<T>
-	: ParameterPreconditionAttribute, IParameterPrecondition
+	: ParameterPreconditionAttribute, IHelpParameterPrecondition
 {
 	/// <inheritdoc />
 	public virtual bool AllowEnumerating { get; set; } = true;
@@ -18,6 +18,8 @@ public abstract class AdvobotParameterPrecondition<T>
 	public virtual bool AllowNonGuildInvokers { get; set; }
 	/// <inheritdoc />
 	public virtual bool AllowOptional { get; set; }
+	/// <inheritdoc />
+	public virtual string Name => Summary;
 	/// <inheritdoc />
 	public abstract string Summary { get; }
 
