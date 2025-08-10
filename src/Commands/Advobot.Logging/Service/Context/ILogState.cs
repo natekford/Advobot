@@ -2,7 +2,7 @@
 
 using Discord;
 
-namespace Advobot.Logging.Context;
+namespace Advobot.Logging.Service.Context;
 
 public interface ILogState
 {

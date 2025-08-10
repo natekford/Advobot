@@ -1,7 +1,6 @@
 ﻿using Advobot.Logging.Database;
 using Advobot.Logging.Models;
 using Advobot.Preconditions;
-using Advobot.Services.Help;
 using Advobot.Utilities;
 
 using Discord.Commands;

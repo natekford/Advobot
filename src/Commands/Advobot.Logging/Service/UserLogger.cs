@@ -1,8 +1,8 @@
 ﻿using Advobot.Embeds;
-using Advobot.Logging.Context;
-using Advobot.Logging.Context.Users;
 using Advobot.Logging.Database;
 using Advobot.Logging.Models;
+using Advobot.Logging.Service.Context;
+using Advobot.Logging.Service.Context.Users;
 using Advobot.Logging.Utilities;
 using Advobot.Services.Time;
 using Advobot.Utilities;
@@ -44,15 +44,15 @@ public sealed class UserLogger
 
 		_UserJoined = new(LogAction.UserJoined, logger, db)
 		{
-			HandleJoinLogging,
+			Handlers = [HandleJoinLogging],
 		};
 		_UserLeft = new(LogAction.UserLeft, logger, db)
 		{
-			HandleLeftLogging,
+			Handlers = [HandleLeftLogging],
 		};
 		_UserUpdated = new(LogAction.UserUpdated, logger, db)
 		{
-			HandleUsernameUpdated,
+			Handlers = [HandleUsernameUpdated]
 		};
 	}
 

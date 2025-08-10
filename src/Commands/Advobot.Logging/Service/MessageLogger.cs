@@ -1,8 +1,8 @@
 ﻿using Advobot.Embeds;
-using Advobot.Logging.Context;
-using Advobot.Logging.Context.Message;
 using Advobot.Logging.Database;
 using Advobot.Logging.Models;
+using Advobot.Logging.Service.Context;
+using Advobot.Logging.Service.Context.Message;
 using Advobot.Logging.Utilities;
 using Advobot.Utilities;
 
@@ -10,6 +10,8 @@ using Discord;
 using Discord.WebSocket;
 
 using Microsoft.Extensions.Logging;
+
+using MimeTypes;
 
 namespace Advobot.Logging.Service;
 
@@ -22,7 +24,7 @@ public sealed class MessageLogger
 	private readonly LogHandler<MessageDeletedState> _MessageDeleted;
 	private readonly LogHandler<MessageState> _MessageReceived;
 	private readonly LogHandler<MessagesBulkDeletedState> _MessagesBulkDeleted;
-	private readonly LogHandler<MessageEditState> _MessageUpdated;
+	private readonly LogHandler<MessageEditedState> _MessageUpdated;
 	#endregion Handlers
 
 	public MessageLogger(
@@ -35,41 +37,44 @@ public sealed class MessageLogger
 
 		_MessageDeleted = new(LogAction.MessageDeleted, logger, db)
 		{
-			HandleMessageDeletedLogging,
+			Handlers = [HandleMessageDeletedLogging],
 		};
 		_MessagesBulkDeleted = new(LogAction.MessageDeleted, logger, db)
 		{
-			HandleMessagesBulkDeletedLogging,
+			Handlers = [HandleMessagesBulkDeletedLogging],
 		};
 		_MessageReceived = new(LogAction.MessageReceived, logger, db)
 		{
-			HandleImageLoggingAsync,
+			Handlers = [HandleImageLoggingAsync],
 		};
 		_MessageUpdated = new(LogAction.MessageUpdated, logger, db)
 		{
-			HandleMessageEditedLoggingAsync,
-			HandleMessageEditedImageLoggingAsync,
+			Handlers =
+			[
+				HandleMessageEditedLoggingAsync,
+				HandleMessageEditedImageLoggingAsync
+			],
 		};
 	}
 
 	public Task OnMessageDeleted(
 		Cacheable<IMessage, ulong> cached,
 		Cacheable<IMessageChannel, ulong> _)
-		=> _MessageDeleted.HandleAsync(new MessageDeletedState(cached));
+		=> _MessageDeleted.HandleAsync(new(cached));
 
 	public Task OnMessageReceived(SocketMessage message)
-		=> _MessageReceived.HandleAsync(new MessageState(message));
+		=> _MessageReceived.HandleAsync(new(message));
 
 	public Task OnMessagesBulkDeleted(
 		IReadOnlyCollection<Cacheable<IMessage, ulong>> cached,
 		Cacheable<IMessageChannel, ulong> _)
-		=> _MessagesBulkDeleted.HandleAsync(new MessagesBulkDeletedState(cached));
+		=> _MessagesBulkDeleted.HandleAsync(new(cached));
 
 	public Task OnMessageUpdated(
 		Cacheable<IMessage, ulong> cached,
 		SocketMessage message,
 		ISocketMessageChannel _)
-		=> _MessageUpdated.HandleAsync(new MessageEditState(cached, message));
+		=> _MessageUpdated.HandleAsync(new(cached, message));
 
 	private Task HandleImageLoggingAsync(ILogContext<MessageState> context)
 	{
@@ -87,24 +92,65 @@ public sealed class MessageLogger
 				Message = context.State.Message.Id,
 			}
 		);
-		foreach (var image in ImageLogItem.GetAllImages(context.State.Message))
+
+		static IEnumerable<(string, string, string?)> GetAllImages(IMessage message)
+		{
+			foreach (var group in message.Attachments.GroupBy(x => x.Url))
+			{
+				var attachment = group.First();
+				var url = attachment.Url;
+				var ext = MimeTypeMap.GetMimeType(Path.GetExtension(url));
+				var (footer, imageUrl) = ext switch
+				{
+					string s when s.CaseInsContains("/gif") => ("Gif", GetVideoThumbnail(url)),
+					string s when s.CaseInsContains("video/") => ("Video", GetVideoThumbnail(url)),
+					string s when s.CaseInsContains("image/") => ("Image", url),
+					_ => ("File", null),
+				};
+				yield return new(footer, url, imageUrl);
+			}
+			foreach (var group in message.Embeds.GroupBy(x => x.Url))
+			{
+				var embed = group.First();
+				if (embed.Video is EmbedVideo video)
+				{
+					var thumb = embed.Thumbnail?.Url ?? GetVideoThumbnail(video.Url);
+					yield return new("Video", embed.Url, thumb);
+					continue;
+				}
+
+				var img = embed.Image?.Url ?? embed.Thumbnail?.Url;
+				if (img != null)
+				{
+					yield return new("Image", embed.Url, img);
+				}
+			}
+		}
+
+		static string GetVideoThumbnail(string url)
+		{
+			var replaced = url.Replace("//cdn.discordapp.com/", "//media.discordapp.net/");
+			return replaced + "?format=jpeg&width=241&height=241";
+		}
+
+		foreach (var (footer, url, imageUrl) in GetAllImages(context.State.Message))
 		{
 			var jump = context.State.Message.GetJumpUrl();
-			var description = $"[Message]({jump}), [Embed Source]({image.Url})";
-			if (image.ImageUrl != null)
+			var description = $"[Message]({jump}), [Embed Source]({url})";
+			if (imageUrl != null)
 			{
-				description += $", [Image]({image.ImageUrl})";
+				description += $", [Image]({imageUrl})";
 			}
 
 			_MessageQueue.EnqueueSend(context.ImageLog, new EmbedWrapper
 			{
 				Description = description,
 				Color = EmbedWrapper.Attachment,
-				ImageUrl = image.ImageUrl,
+				ImageUrl = imageUrl,
 				Author = context.State.User.CreateAuthor(),
 				Footer = new()
 				{
-					Text = image.Footer,
+					Text = footer,
 					IconUrl = context.State.User.GetAvatarUrl()
 				},
 			}.ToMessageArgs());
@@ -133,7 +179,7 @@ public sealed class MessageLogger
 		return Task.CompletedTask;
 	}
 
-	private Task HandleMessageEditedImageLoggingAsync(ILogContext<MessageEditState> context)
+	private Task HandleMessageEditedImageLoggingAsync(ILogContext<MessageEditedState> context)
 	{
 		// If the content is the same then that means the embed finally rendered
 		// meaning we should log the images from them
@@ -145,7 +191,7 @@ public sealed class MessageLogger
 		return HandleImageLoggingAsync(context);
 	}
 
-	private Task HandleMessageEditedLoggingAsync(ILogContext<MessageEditState> context)
+	private Task HandleMessageEditedLoggingAsync(ILogContext<MessageEditedState> context)
 	{
 		var state = context.State;
 		if (context.ServerLog is null || state.Before?.Content == state.Message?.Content)

@@ -2,9 +2,10 @@
 
 using Discord;
 
-namespace Advobot.Logging.Context.Message;
+namespace Advobot.Logging.Service.Context.Message;
 
-public class MessageDeletedState(Cacheable<IMessage, ulong> cached) : MessageState(cached.Value)
+public class MessageDeletedState(Cacheable<IMessage, ulong> cached)
+	: MessageState(cached.Value)
 {
 	public override async Task<bool> CanLog(ILoggingDatabase db, ILogContext context)
 	{

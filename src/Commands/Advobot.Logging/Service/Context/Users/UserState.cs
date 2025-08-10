@@ -2,12 +2,12 @@
 
 using Discord;
 
-namespace Advobot.Logging.Context.Users;
+namespace Advobot.Logging.Service.Context.Users;
 
 public class UserState(IGuild guild, IUser user) : ILogState
 {
 	public IGuild Guild { get; } = guild;
-	public bool IsValid => User is not null;
+	public virtual bool IsValid => User is not null;
 	public IUser User { get; } = user;
 
 	public UserState(IGuildUser user) : this(user.Guild, user)

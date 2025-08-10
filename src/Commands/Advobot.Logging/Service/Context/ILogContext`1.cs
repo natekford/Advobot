@@ -1,4 +1,4 @@
-﻿namespace Advobot.Logging.Context;
+﻿namespace Advobot.Logging.Service.Context;
 
 public interface ILogContext<out T> : ILogContext
 {
