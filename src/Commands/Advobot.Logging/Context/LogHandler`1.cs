@@ -8,8 +8,8 @@ using System.Collections;
 
 namespace Advobot.Logging.Context;
 
-public sealed class LogHandler<T>(LogAction action, ILogger logger, ILoggingDatabase db) : ICollection<Func<ILogContext<T>, Task>>
-	where T : ILogState
+public sealed class LogHandler<T>(LogAction action, ILogger logger, ILoggingDatabase db)
+	: ICollection<Func<ILogContext<T>, Task>> where T : ILogState
 {
 	private readonly ICollection<Func<ILogContext<T>, Task>> _Actions = [];
 

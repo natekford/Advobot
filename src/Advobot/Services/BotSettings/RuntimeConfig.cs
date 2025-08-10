@@ -49,7 +49,7 @@ internal sealed class RuntimeConfig : IRuntimeConfig
 		if (path.Exists)
 		{
 			using var stream = path.OpenRead();
-			runtimeConfig = JsonSerializer.Deserialize<RuntimeConfig>(stream, AdvobotConfig.JsonOptions)!;
+			runtimeConfig = JsonSerializer.Deserialize<RuntimeConfig>(stream, StartupConfig.JsonOptions)!;
 		}
 		else
 		{
@@ -71,7 +71,7 @@ internal sealed class RuntimeConfig : IRuntimeConfig
 	public void Save()
 	{
 		using var stream = GetPath(this).OpenWrite();
-		JsonSerializer.Serialize(stream, this, AdvobotConfig.JsonOptions);
+		JsonSerializer.Serialize(stream, this, StartupConfig.JsonOptions);
 	}
 
 	private static FileInfo GetPath(IConfig config)

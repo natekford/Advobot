@@ -28,7 +28,7 @@ public sealed class AdvobotLauncher
 	/// </summary>
 	/// <param name="args"></param>
 	/// <returns></returns>
-	public static async Task<IServiceProvider> NoConfigurationStart(string[] args)
+	public static async Task<IServiceProvider> Start(string[] args)
 	{
 		AppDomain.CurrentDomain.UnhandledException += (sender, e) =>
 		{
@@ -39,7 +39,7 @@ public sealed class AdvobotLauncher
 			Console.WriteLine($"!!! Something has gone drastically wrong. Check {file} for more details.");
 		};
 
-		var config = AdvobotConfig.Load(args);
+		var config = StartupConfig.Load(args);
 		Console.WriteLine($"Supplied arguments: Instance={config.Instance}, PreviousProcessId={config.PreviousProcessId}");
 
 		// Wait until the old process is killed
@@ -77,7 +77,7 @@ public sealed class AdvobotLauncher
 		return services;
 	}
 
-	private static async Task<IServiceProvider> CreateServicesAsync(AdvobotConfig config)
+	private static async Task<IServiceProvider> CreateServicesAsync(StartupConfig config)
 	{
 		var botSettings = RuntimeConfig.CreateOrLoad(config);
 		var commandConfig = new CommandServiceConfig

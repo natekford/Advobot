@@ -15,7 +15,6 @@ namespace Advobot.Logging.Service;
 public sealed class LoggingService
 {
 	private readonly ClientLogger _ClientLogger;
-	private readonly CommandHandlerLogger _CommandHandlerLogger;
 	private readonly ILoggingDatabase _Db;
 	private readonly ILogger _Logger;
 	private readonly MessageLogger _MessageLogger;
@@ -33,17 +32,15 @@ public sealed class LoggingService
 		_Logger = logger;
 		_Db = db;
 
-		_ClientLogger = new(_Logger, client);
+		_ClientLogger = new(_Logger, client, _Db, botSettings);
 		client.GuildAvailable += _ClientLogger.OnGuildAvailable;
 		client.GuildUnavailable += _ClientLogger.OnGuildUnavailable;
 		client.JoinedGuild += _ClientLogger.OnJoinedGuild;
 		client.LeftGuild += _ClientLogger.OnLeftGuild;
-		client.Log += OnLogMessageSent;
-
-		_CommandHandlerLogger = new(_Logger, client, _Db, botSettings);
-		commandHandler.CommandInvoked += _CommandHandlerLogger.OnCommandInvoked;
-		commandHandler.Ready += _CommandHandlerLogger.OnReady;
-		commandHandler.Log += OnLogMessageSent;
+		client.Log += _ClientLogger.OnLogMessageSent;
+		commandHandler.CommandInvoked += _ClientLogger.OnCommandInvoked;
+		commandHandler.Ready += _ClientLogger.OnReady;
+		commandHandler.Log += _ClientLogger.OnLogMessageSent;
 
 		_MessageLogger = new(_Logger, _Db, queue);
 		client.MessageDeleted += _MessageLogger.OnMessageDeleted;
@@ -55,42 +52,5 @@ public sealed class LoggingService
 		client.UserJoined += _UserLogger.OnUserJoined;
 		client.UserLeft += _UserLogger.OnUserLeft;
 		client.UserUpdated += _UserLogger.OnUserUpdated;
-	}
-
-	private Task OnLogMessageSent(LogMessage message)
-	{
-		var e = message.Exception;
-		// Gateway reconnects have a warning severity, but all they are is spam
-		if (e is GatewayReconnectException
-			|| (e?.InnerException is WebSocketException wse && wse.WebSocketErrorCode == WebSocketError.ConnectionClosedPrematurely))
-		{
-			message = new(LogSeverity.Info, message.Source, message.Message, e);
-		}
-
-		var msg = message.Message;
-		switch (message.Severity)
-		{
-			case LogSeverity.Critical:
-				_Logger.LogCritical(e, msg);
-				break;
-
-			case LogSeverity.Error:
-				_Logger.LogError(e, msg);
-				break;
-
-			case LogSeverity.Info:
-				_Logger.LogInformation(e, msg);
-				break;
-
-			case LogSeverity.Warning:
-				_Logger.LogWarning(e, msg);
-				break;
-
-			default:
-				_Logger.LogDebug(e, msg);
-				break;
-		}
-
-		return Task.CompletedTask;
 	}
 }

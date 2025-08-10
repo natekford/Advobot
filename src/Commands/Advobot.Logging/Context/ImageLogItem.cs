@@ -6,19 +6,8 @@ using MimeTypes;
 
 namespace Advobot.Logging.Context;
 
-public readonly struct ImageLogItem
+public readonly record struct ImageLogItem(string Footer, string Url, string? ImageUrl)
 {
-	public string Footer { get; }
-	public string? ImageUrl { get; }
-	public string Url { get; }
-
-	private ImageLogItem(string footer, string url, string? imageUrl)
-	{
-		Footer = footer;
-		Url = url;
-		ImageUrl = imageUrl;
-	}
-
 	public static ImageLogItem FromAttachment(IAttachment attachment)
 	{
 		var url = attachment.Url;

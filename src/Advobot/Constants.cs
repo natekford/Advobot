@@ -38,7 +38,7 @@ public static class Constants
 	/// The current year.
 	/// </summary>
 	[EditorBrowsable(EditorBrowsableState.Never)]
-	public const string ASSEMBLY_COPYRIGHT = "Copyright © 2024";
+	public const string ASSEMBLY_COPYRIGHT = "Copyright © 2025";
 	/// <summary>
 	/// The bot's neutral resources language.
 	/// </summary>

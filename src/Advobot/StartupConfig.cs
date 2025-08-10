@@ -16,7 +16,7 @@ namespace Advobot;
 /// <summary>
 /// Low level configuration that is necessary for the bot to run. Holds the bot key, bot id, and save path.
 /// </summary>
-public sealed class AdvobotConfig : IConfig
+public sealed class StartupConfig : IConfig
 {
 	[JsonIgnore]
 	private readonly DiscordRestClient _TestClient = new();
@@ -66,7 +66,7 @@ public sealed class AdvobotConfig : IConfig
 		WriteIndented = true,
 	};
 
-	static AdvobotConfig()
+	static StartupConfig()
 	{
 		JsonOptions.Converters.Add(new JsonStringEnumConverter());
 	}
@@ -75,7 +75,7 @@ public sealed class AdvobotConfig : IConfig
 	/// Attempts to load the configuration with the supplied instance number otherwise uses the default initialization for config.
 	/// </summary>
 	/// <returns></returns>
-	public static AdvobotConfig Load(string[] args)
+	public static StartupConfig Load(string[] args)
 	{
 		// There are better ways to do this, maybe if more arguments come I'll bother
 		var instance = -1;
@@ -96,16 +96,16 @@ public sealed class AdvobotConfig : IConfig
 		// Instance is for the config so they can be named Advobot1, Advobot2, etc.
 		instance = instance < 1 ? 1 : instance;
 
-		AdvobotConfig advobotConfig;
+		StartupConfig advobotConfig;
 		var path = GetPath(instance);
 		if (path.Exists)
 		{
 			using var stream = path.OpenRead();
-			advobotConfig = JsonSerializer.Deserialize<AdvobotConfig>(stream, JsonOptions)!;
+			advobotConfig = JsonSerializer.Deserialize<StartupConfig>(stream, JsonOptions)!;
 		}
 		else
 		{
-			advobotConfig = new AdvobotConfig();
+			advobotConfig = new StartupConfig();
 		}
 
 		advobotConfig.Instance = instance;
@@ -143,9 +143,9 @@ public sealed class AdvobotConfig : IConfig
 		};
 
 		await client.LoginAsync(TokenType.Bot, _BotKey).ConfigureAwait(false);
-		Console.WriteLine("Connecting the client...");
+		Console.WriteLine("Connecting to Discord...");
 		await client.StartAsync().ConfigureAwait(false);
-		Console.WriteLine("Successfully connected to the client.");
+		Console.WriteLine("Successfully connected to Discord.");
 	}
 
 	/// <summary>
