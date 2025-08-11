@@ -18,15 +18,15 @@ public sealed class MessageQueue(
 	BaseSocketClient client
 ) : StartableService, IConfigurableService
 {
-	private readonly ConcurrentQueue<(IMessageChannel, SendMessageArgs)> _Send = new();
+	private readonly ConcurrentQueue<(IMessageChannel, SendMessageArgs)> _ToSend = new();
 
-	private ConcurrentDictionary<ulong, ConcurrentBag<IMessage>> _Deleted = new();
+	private ConcurrentDictionary<ulong, ConcurrentBag<IMessage>> _ToLog = new();
 
 	public void EnqueueDeleted(IMessageChannel channel, IMessage message)
-		=> _Deleted.GetOrAdd(channel.Id, _ => []).Add(message);
+		=> _ToLog.GetOrAdd(channel.Id, _ => []).Add(message);
 
 	public void EnqueueSend(IMessageChannel channel, SendMessageArgs message)
-		=> _Send.Enqueue((channel, message));
+		=> _ToSend.Enqueue((channel, message));
 
 	protected override Task StartAsyncImpl()
 	{
@@ -34,7 +34,7 @@ public sealed class MessageQueue(
 		{
 			while (IsRunning)
 			{
-				while (_Send.TryDequeue(out var item))
+				while (_ToSend.TryDequeue(out var item))
 				{
 					var (channel, args) = item;
 					try
@@ -61,7 +61,7 @@ public sealed class MessageQueue(
 		{
 			while (IsRunning)
 			{
-				foreach (var (channelId, messages) in Interlocked.Exchange(ref _Deleted, []))
+				foreach (var (channelId, messages) in Interlocked.Exchange(ref _ToLog, []))
 				{
 					try
 					{

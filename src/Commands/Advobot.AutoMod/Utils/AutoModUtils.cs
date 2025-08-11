@@ -9,15 +9,6 @@ namespace Advobot.AutoMod.Utils;
 
 public static class AutoModUtils
 {
-	public static int GetImageCount(this IMessage message)
-	{
-		var attachments = message.Attachments
-			.Count(x => x.Height != null || x.Width != null);
-		var embeds = message.Embeds
-			.Count(x => x.Image != null || x.Video != null);
-		return attachments + embeds;
-	}
-
 	public static bool IsMatch(this BannedPhrase phrase, string content)
 	{
 		if (phrase.IsRegex)

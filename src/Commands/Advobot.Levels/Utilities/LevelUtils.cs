@@ -1,8 +1,5 @@
 ﻿using Advobot.Levels.Models;
 
-using Discord;
-using Discord.WebSocket;
-
 namespace Advobot.Levels.Utilities;
 
 public static class LevelUtils
@@ -15,9 +12,6 @@ public static class LevelUtils
 			MessageCount = user.MessageCount + 1,
 		};
 	}
-
-	public static async Task<IUser?> GetUserAsync(this BaseSocketClient client, ulong id)
-		=> client.GetUser(id) ?? (IUser)await client.Rest.GetUserAsync(id).ConfigureAwait(false);
 
 	public static User RemoveXp(this User user, int xp)
 	{

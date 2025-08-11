@@ -1,4 +1,4 @@
-﻿namespace Advobot.Levels.Metadata;
+﻿namespace Advobot.Levels.Models;
 
 public sealed class Rank(ulong userId, int xp, int position, int total) : IRank
 {

@@ -6,6 +6,6 @@ namespace Advobot.Punishments;
 internal sealed class NaivePunishmentService : IPunishmentService
 {
 	/// <inheritdoc />
-	public Task HandleAsync(IPunishmentContext context)
+	public Task PunishAsync(IPunishmentContext context)
 		=> context.ExecuteAsync();
 }

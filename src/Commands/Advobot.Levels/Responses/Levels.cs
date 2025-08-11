@@ -1,6 +1,6 @@
 ﻿using Advobot.Embeds;
 using Advobot.Levels.Database;
-using Advobot.Levels.Metadata;
+using Advobot.Levels.Models;
 using Advobot.Modules;
 using Advobot.Utilities;
 

@@ -51,7 +51,7 @@ public sealed class Users : ModuleBase
 		)
 		{
 			var user = await Context.Client.GetUserAsync(userId).ConfigureAwait(false);
-			await PunishmentService.HandleAsync(new Punishments.Ban(Context.Guild, userId, true)
+			await PunishmentService.PunishAsync(new Punishments.Ban(Context.Guild, userId, true)
 			{
 				Time = reason.Time,
 				Options = GetOptions(reason.Reason),
@@ -75,7 +75,7 @@ public sealed class Users : ModuleBase
 		)
 		{
 			var isGive = !user.IsDeafened;
-			await PunishmentService.HandleAsync(new Punishments.Deafen(user, isGive)
+			await PunishmentService.PunishAsync(new Punishments.Deafen(user, isGive)
 			{
 				Time = reason.Time,
 				Options = GetOptions(reason.Reason),
@@ -236,7 +236,7 @@ public sealed class Users : ModuleBase
 			ModerationReason reason = default
 		)
 		{
-			await PunishmentService.HandleAsync(new Punishments.Kick(user)
+			await PunishmentService.PunishAsync(new Punishments.Kick(user)
 			{
 				Time = reason.Time,
 				Options = GetOptions(reason.Reason),
@@ -350,7 +350,7 @@ public sealed class Users : ModuleBase
 			await ConfigureMuteRoleAsync(role).ConfigureAwait(false);
 
 			var isGive = !user.RoleIds.Contains(role.Id);
-			await PunishmentService.HandleAsync(new Punishments.RoleMute(user, isGive, role)
+			await PunishmentService.PunishAsync(new Punishments.RoleMute(user, isGive, role)
 			{
 				Time = reason.Time,
 				Options = GetOptions(reason.Reason),
@@ -510,7 +510,7 @@ public sealed class Users : ModuleBase
 		)
 		{
 			var user = await Context.Client.GetUserAsync(userId).ConfigureAwait(false);
-			await PunishmentService.HandleAsync(new Punishments.Ban(Context.Guild, userId, true)
+			await PunishmentService.PunishAsync(new Punishments.Ban(Context.Guild, userId, true)
 			{
 				Time = reason.Time,
 				Options = GetOptions(reason.Reason),
@@ -533,7 +533,7 @@ public sealed class Users : ModuleBase
 			ModerationReason reason = default
 		)
 		{
-			await PunishmentService.HandleAsync(new Punishments.Ban(Context.Guild, ban.User.Id, false)
+			await PunishmentService.PunishAsync(new Punishments.Ban(Context.Guild, ban.User.Id, false)
 			{
 				Time = reason.Time,
 				Options = GetOptions(reason.Reason),
@@ -557,7 +557,7 @@ public sealed class Users : ModuleBase
 		)
 		{
 			var isGive = !user.IsMuted;
-			await PunishmentService.HandleAsync(new Punishments.Mute(user, isGive)
+			await PunishmentService.PunishAsync(new Punishments.Mute(user, isGive)
 			{
 				Time = reason.Time,
 				Options = GetOptions(reason.Reason),

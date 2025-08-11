@@ -1,6 +1,5 @@
 ﻿using Advobot.Attributes;
 using Advobot.Levels.Database;
-using Advobot.Levels.Utilities;
 using Advobot.Localization;
 using Advobot.ParameterPreconditions.Numbers;
 using Advobot.Resources;
@@ -39,7 +38,8 @@ public sealed class Levels : ModuleBase
 		public async Task<RuntimeResult> Command(SearchArgs args)
 		{
 			var rank = await Db.GetRankAsync(args).ConfigureAwait(false);
-			var user = await Context.Client.GetUserAsync(rank.UserId).ConfigureAwait(false);
+			var user = Context.Client.GetUser(rank.UserId)
+				?? (IUser)await Context.Client.Rest.GetUserAsync(rank.UserId).ConfigureAwait(false);
 			if (rank.Experience == 0)
 			{
 				return NoXp(args, rank, user);

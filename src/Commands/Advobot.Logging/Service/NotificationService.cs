@@ -1,6 +1,7 @@
 ﻿using Advobot.Logging.Database;
 using Advobot.Logging.Models;
 using Advobot.Logging.Utilities;
+using Advobot.Services;
 using Advobot.Utilities;
 
 using Discord.WebSocket;
@@ -11,29 +12,32 @@ using static Advobot.Resources.Responses;
 
 namespace Advobot.Logging.Service;
 
-public sealed class NotificationService
+public sealed class NotificationService(
+	ILogger<NotificationService> logger,
+	INotificationDatabase db,
+	BaseSocketClient client,
+	MessageQueue queue
+) : StartableService
 {
-	private readonly INotificationDatabase _Db;
-	private readonly ILogger _Logger;
-	private readonly MessageQueue _MessageQueue;
-
-	public NotificationService(
-		ILogger<NotificationService> logger,
-		INotificationDatabase db,
-		BaseSocketClient client,
-		MessageQueue queue)
+	protected override Task StartAsyncImpl()
 	{
-		_Logger = logger;
-		_Db = db;
-		_MessageQueue = queue;
-
 		client.UserJoined += OnUserJoined;
 		client.UserLeft += OnUserLeft;
+
+		return Task.CompletedTask;
+	}
+
+	protected override Task StopAsyncImpl()
+	{
+		client.UserJoined -= OnUserJoined;
+		client.UserLeft -= OnUserLeft;
+
+		return Task.CompletedTask;
 	}
 
 	private async Task OnEvent(Notification notifType, SocketGuild guild, SocketUser user)
 	{
-		var notification = await _Db.GetAsync(notifType, guild.Id).ConfigureAwait(false);
+		var notification = await db.GetAsync(notifType, guild.Id).ConfigureAwait(false);
 		if (notification is null || notification.GuildId == 0)
 		{
 			return;
@@ -45,8 +49,8 @@ public sealed class NotificationService
 			return;
 		}
 
-		_Logger.LogInformation(
-			message: "Sending event of type {Event} to {@Info}",
+		logger.LogInformation(
+			message: "Sending event of type {Event} to {@Info}.",
 			args: [notifType, new
 			{
 				Guild = guild.Id,
@@ -60,7 +64,7 @@ public sealed class NotificationService
 			?.CaseInsReplace(NotificationUtils.USER_STRING, user?.Format() ?? VariableInvalidUser);
 		var embedWrapper = notification.EmbedEmpty() ? null : notification.BuildWrapper();
 
-		_MessageQueue.EnqueueSend(channel, new(embedWrapper)
+		queue.EnqueueSend(channel, new(embedWrapper)
 		{
 			Content = content,
 			AllowedMentions = NotificationUtils.UserMentions,

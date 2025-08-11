@@ -1,6 +1,6 @@
 ﻿using Advobot.SQLite.Relationships;
 
-namespace Advobot.Levels.Metadata;
+namespace Advobot.Levels.Models;
 
 public interface IRank : IUserChild
 {

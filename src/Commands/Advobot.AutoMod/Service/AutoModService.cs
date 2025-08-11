@@ -36,9 +36,9 @@ public sealed class AutoModService(
 	private static readonly RequestOptions _PersistentRoles
 		= DiscordUtils.GenerateRequestOptions("Persistent roles.");
 
-	private readonly GuildSpecific<ulong, EnumMapped<PunishmentType, int>> _Phrases = new();
+	private readonly ConcurrentDictionary<UserKey, ConcurrentDictionary<PunishmentType, int>> _Infractions = new();
 
-	private ConcurrentDictionary<ulong, (ConcurrentBag<ulong>, ITextChannel)> _Messages = new();
+	private ConcurrentDictionary<ulong, ConcurrentBag<ulong>> _ToDelete = new();
 
 	protected override Task StartAsyncImpl()
 	{
@@ -50,11 +50,22 @@ public sealed class AutoModService(
 		{
 			while (IsRunning)
 			{
-				var messageGroups = Interlocked.Exchange(ref _Messages, []);
-				foreach (var (_, (messageIds, channel)) in messageGroups)
+				foreach (var (channelId, messageIds) in Interlocked.Exchange(ref _ToDelete, []))
 				{
 					try
 					{
+						if (client.GetChannel(channelId) is not ITextChannel channel)
+						{
+							logger.LogWarning(
+								message: "Channel was null while deleting messages. {@Info}",
+								args: new
+								{
+									Channel = channelId
+								}
+							);
+							continue;
+						}
+
 						await channel.DeleteMessagesAsync(messageIds, _AutoMod).ConfigureAwait(false);
 					}
 					catch (Exception e)
@@ -64,8 +75,7 @@ public sealed class AutoModService(
 							message: "Exception occurred while deleting messages. {@Info}",
 							args: new
 							{
-								Guild = channel.GuildId,
-								Channel = channel.Id,
+								Channel = channelId,
 								Messages = messageIds,
 							}
 						);
@@ -87,78 +97,59 @@ public sealed class AutoModService(
 		return Task.CompletedTask;
 	}
 
-	private async Task OnMessageReceived(IMessage message)
-	{
-		var context = AutoModMessageContext.FromMessage(message);
-		if (context is null)
-		{
-			return;
-		}
-
-		var settings = await db.GetAutoModSettingsAsync(context.Guild.Id).ConfigureAwait(false);
-		var ts = time.UtcNow - message.CreatedAt.UtcDateTime;
-		if (!await settings.ShouldScanMessageAsync(message, ts).ConfigureAwait(false))
-		{
-			return;
-		}
-
-		var isBannedPhrase = await ProcessBannedPhrasesAsync(context).ConfigureAwait(false);
-		var isAllowed = await ProcessChannelSettings(context).ConfigureAwait(false);
-		if (isBannedPhrase || !isAllowed)
-		{
-			_Messages
-				.GetOrAdd(message.Channel.Id, _ => ([], context.Channel))
-				.Item1.Add(message.Id);
-		}
-	}
-
-	private Task OnMessageUpdated(Cacheable<IMessage, ulong> cached, IMessage message, ISocketMessageChannel channel)
-		=> OnMessageReceived(message);
-
-	private async Task OnUserJoined(IGuildUser user)
-	{
-		var context = new AutoModContext(user);
-		if (context is null)
-		{
-			return;
-		}
-
-		var isBannedName = await ProcessBannedNamesAsync(context).ConfigureAwait(false);
-		if (isBannedName)
-		{
-			return;
-		}
-
-		await ProcessPersistentRolesAsync(context).ConfigureAwait(false);
-	}
-
-	private async Task<bool> ProcessBannedNamesAsync(AutoModContext context)
+	private async Task<bool> HandleBannedNamesAsync(AutoModContext context)
 	{
 		var names = await db.GetBannedNamesAsync(context.Guild.Id).ConfigureAwait(false);
 		foreach (var name in names)
 		{
-			if (name.IsMatch(context.User.Username))
+			if (!name.IsMatch(context.User.Username))
 			{
-				await PunishAsync(context.Guild, context.User.Id, _Ban, _BannedName).ConfigureAwait(false);
-				return true;
+				continue;
 			}
+
+			logger.LogInformation(
+				message: "{User} had a banned name. {@Info}",
+				args: [context.User.Id, new
+				{
+					Guild = context.Guild.Id,
+					Username = context.User.Username,
+					BannedName = name.Phrase,
+				}]
+			);
+
+			await PunishAsync(context.User, _Ban, _BannedName).ConfigureAwait(false);
+			return true;
 		}
 		return false;
 	}
 
-	private async Task<bool> ProcessBannedPhrasesAsync(AutoModMessageContext context)
+	private async Task<bool> HandleBannedPhrasesAsync(AutoModMessageContext context)
 	{
 		var phrases = await db.GetBannedPhrasesAsync(context.Guild.Id).ConfigureAwait(false);
-		var instances = _Phrases.Get(context.Guild, context.User.Id);
+		var infractions = _Infractions.GetOrAdd(
+			key: new(context.Guild.Id, context.User.Id),
+			valueFactory: _ => new(Enum.GetValues<PunishmentType>().ToDictionary(x => x, _ => 0))
+		);
 
 		var isDirty = false;
 		foreach (var phrase in phrases)
 		{
-			if (phrase.IsMatch(context.Message.Content))
+			if (!phrase.IsMatch(context.Message.Content))
 			{
-				++instances[phrase.PunishmentType];
-				isDirty = true;
+				continue;
 			}
+
+			logger.LogInformation(
+				message: "{User} sent a banned phrase. {@Info}",
+				args: [context.User.Id, new
+				{
+					Guild = context.Guild.Id,
+					BannedPhrase = phrase.Phrase,
+				}]
+			);
+
+			++infractions[phrase.PunishmentType];
+			isDirty = true;
 		}
 		if (!isDirty)
 		{
@@ -168,19 +159,134 @@ public sealed class AutoModService(
 		var punishments = await db.GetPunishmentsAsync(context.Guild.Id).ConfigureAwait(false);
 		foreach (var punishment in punishments)
 		{
-			foreach (var instance in instances)
+			foreach (var infraction in infractions)
 			{
-				if (punishment.PunishmentType == instance.Key &&
-					punishment.Instances == instance.Value)
+				if (punishment.PunishmentType == infraction.Key &&
+					punishment.Instances == infraction.Value)
 				{
-					await PunishAsync(context.Guild, context.User.Id, punishment, _BannedPhrase).ConfigureAwait(false);
+					logger.LogInformation(
+						message: "{User} received enough infractions to recieve a punishment. {@Info}",
+						args: [context.User.Id, new
+						{
+							Guild = context.Guild.Id,
+							PunishmentType = punishment.PunishmentType,
+							InfractionCount = punishment.Instances,
+						}]
+					);
+
+					await PunishAsync(context.User, punishment, _BannedPhrase).ConfigureAwait(false);
 				}
 			}
 		}
 		return true;
 	}
 
-	private async Task<bool> ProcessChannelSettings(AutoModMessageContext context)
+	private async Task HandlePersistentRolesAsync(AutoModContext context)
+	{
+		var persistentRoles = await db.GetPersistentRolesAsync(context.Guild.Id, context.User.Id).ConfigureAwait(false);
+		if (persistentRoles.Count == 0)
+		{
+			return;
+		}
+
+		var roles = persistentRoles
+			.Select(x => context.Guild.GetRole(x.RoleId))
+			.Where(x => x != null);
+
+		try
+		{
+			await context.User.ModifyRolesAsync(
+				rolesToAdd: roles,
+				rolesToRemove: [],
+				_PersistentRoles
+			).ConfigureAwait(false);
+		}
+		catch (Exception e)
+		{
+			logger.LogWarning(
+				exception: e,
+				message: "Exception occurred while giving persistent roles. {@Info}",
+				args: new
+				{
+					Guild = context.Guild.Id,
+					User = context.User.Id,
+					Roles = roles.Select(x => x.Id).ToList(),
+				}
+			);
+		}
+	}
+
+	private async Task OnMessageReceived(IMessage message)
+	{
+		if (message is not IUserMessage userMessage
+			|| userMessage.Author is not IGuildUser user
+			|| userMessage.Channel is not ITextChannel channel)
+		{
+			return;
+		}
+
+		var context = new AutoModMessageContext(user, channel, userMessage);
+		var settings = await db.GetAutoModSettingsAsync(context.Guild.Id).ConfigureAwait(false);
+		var ts = time.UtcNow - message.CreatedAt.UtcDateTime;
+		if (!await settings.ShouldScanMessageAsync(message, ts).ConfigureAwait(false))
+		{
+			return;
+		}
+
+		if (await HandleBannedPhrasesAsync(context).ConfigureAwait(false)
+			|| !await ValidateMessageAsync(context).ConfigureAwait(false))
+		{
+			_ToDelete.GetOrAdd(message.Channel.Id, _ => []).Add(message.Id);
+		}
+	}
+
+	private Task OnMessageUpdated(Cacheable<IMessage, ulong> cached, IMessage message, ISocketMessageChannel channel)
+		=> OnMessageReceived(message);
+
+	private async Task OnUserJoined(IGuildUser user)
+	{
+		var context = new AutoModContext(user);
+		if (await HandleBannedNamesAsync(context).ConfigureAwait(false))
+		{
+			return;
+		}
+
+		await HandlePersistentRolesAsync(context).ConfigureAwait(false);
+	}
+
+	private async Task PunishAsync(
+		IGuildUser user,
+		Punishment punishment,
+		RequestOptions options)
+	{
+		var context = new DynamicPunishmentContext(user.Guild, user.Id, true, punishment.PunishmentType)
+		{
+			RoleId = punishment.RoleId,
+			Options = options,
+		};
+
+		try
+		{
+			await punishmentService.PunishAsync(context).ConfigureAwait(false);
+		}
+		catch (Exception e)
+		{
+			logger.LogWarning(
+				exception: e,
+				message: "Exception occurred while auto mod punishing user. {@Info}",
+				args: new
+				{
+					Guild = context.Guild.Id,
+					User = context.UserId,
+					Role = context.Role?.Id ?? 0,
+					PunishmentType = context.Type,
+					IsGive = context.IsGive,
+				}
+			);
+		}
+	}
+
+	private async Task<bool> ValidateMessageAsync(AutoModMessageContext context)
 	{
 		var settings = await db.GetChannelSettingsAsync(context.Channel.Id).ConfigureAwait(false);
 		if (settings is null)
@@ -188,41 +294,19 @@ public sealed class AutoModService(
 			return true;
 		}
 
-		return !settings.IsImageOnly || context.Message.GetImageCount() > 0;
-	}
-
-	private async Task<bool> ProcessPersistentRolesAsync(AutoModContext context)
-	{
-		var persistent = await db.GetPersistentRolesAsync(context.Guild.Id, context.User.Id).ConfigureAwait(false);
-		if (persistent.Count == 0)
+		static int GetImageCount(IMessage message)
 		{
-			return false;
+			var attachments = message.Attachments
+				.Count(x => x.Height != null || x.Width != null);
+			var embeds = message.Embeds
+				.Count(x => x.Image != null || x.Video != null);
+			return attachments + embeds;
 		}
 
-		var roles = persistent
-			.Select(x => context.Guild.GetRole(x.RoleId))
-			.Where(x => x != null);
-		await context.User.ModifyRolesAsync(
-			rolesToAdd: roles,
-			rolesToRemove: [],
-			_PersistentRoles
-		).ConfigureAwait(false);
-		return true;
+		return !settings.IsImageOnly || GetImageCount(context.Message) > 0;
 	}
 
-	private Task PunishAsync(
-		IGuild guild,
-		ulong userId,
-		Punishment punishment,
-		RequestOptions options)
-	{
-		var context = new DynamicPunishmentContext(guild, userId, true, punishment.PunishmentType)
-		{
-			RoleId = punishment.RoleId,
-			Options = options,
-		};
-		return punishmentService.HandleAsync(context);
-	}
+	private readonly record struct UserKey(ulong GuildId, ulong UserId);
 
 	private record AutoModContext(IGuildUser User)
 	{
@@ -233,17 +317,5 @@ public sealed class AutoModService(
 		IGuildUser User,
 		ITextChannel Channel,
 		IUserMessage Message
-	) : AutoModContext(User)
-	{
-		public static AutoModMessageContext? FromMessage(IMessage message)
-		{
-			if (message is not IUserMessage userMessage
-				|| userMessage.Author is not IGuildUser user
-				|| userMessage.Channel is not ITextChannel channel)
-			{
-				return null;
-			}
-			return new(user, channel, userMessage);
-		}
-	}
+	) : AutoModContext(User);
 }

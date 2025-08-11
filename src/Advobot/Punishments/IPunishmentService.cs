@@ -10,5 +10,5 @@ public interface IPunishmentService
 	/// </summary>
 	/// <param name="context"></param>
 	/// <returns></returns>
-	public Task HandleAsync(IPunishmentContext context);
+	public Task PunishAsync(IPunishmentContext context);
 }

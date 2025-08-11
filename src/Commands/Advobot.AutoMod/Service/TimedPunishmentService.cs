@@ -20,7 +20,7 @@ public sealed class TimedPunishmentService(
 	ITimeService time
 ) : StartableService, IPunishmentService
 {
-	public async Task HandleAsync(IPunishmentContext context)
+	public async Task PunishAsync(IPunishmentContext context)
 	{
 		TimedPunishment ToDbModel(IPunishmentContext context)
 		{
@@ -34,14 +34,33 @@ public sealed class TimedPunishmentService(
 			};
 		}
 
-		await context.ExecuteAsync().ConfigureAwait(false);
-		if (context.IsGive && context.Time.HasValue)
+		try
 		{
-			await db.AddTimedPunishmentAsync(ToDbModel(context)).ConfigureAwait(false);
+			await context.ExecuteAsync().ConfigureAwait(false);
+			if (context.IsGive && context.Time.HasValue)
+			{
+				await db.AddTimedPunishmentAsync(ToDbModel(context)).ConfigureAwait(false);
+			}
+			else if (!context.IsGive)
+			{
+				await db.DeleteTimedPunishmentAsync(ToDbModel(context)).ConfigureAwait(false);
+			}
 		}
-		else if (!context.IsGive)
+		catch (Exception e)
 		{
-			await db.DeleteTimedPunishmentAsync(ToDbModel(context)).ConfigureAwait(false);
+			logger.LogWarning(
+				exception: e,
+				message: "Exception occurred while handling punishment. {@Info}",
+				args: new
+				{
+					Guild = context.Guild.Id,
+					User = context.UserId,
+					Role = context.Role?.Id ?? 0,
+					PunishmentType = context.Type,
+					IsGive = context.IsGive,
+				}
+			);
+			throw;
 		}
 	}
 
@@ -94,22 +113,21 @@ public sealed class TimedPunishmentService(
 			return false;
 		}
 
+		var context = new DynamicPunishmentContext(guild, punishment.UserId, false, punishment.PunishmentType)
+		{
+			RoleId = punishment.RoleId
+		};
 		try
 		{
-			var context = new DynamicPunishmentContext(guild, punishment.UserId, false, punishment.PunishmentType)
-			{
-				RoleId = punishment.RoleId
-			};
-			await HandleAsync(context).ConfigureAwait(false);
+			await PunishAsync(context).ConfigureAwait(false);
 		}
 		// Lacking permissions, assume the punishment will be handled by someone else
 		catch (HttpException e) when (e.HttpCode == HttpStatusCode.Forbidden)
 		{
+			return true;
 		}
 		catch
 		{
-			// TODO: differentiate between each error type?
-			// E.G. on 500 retry eventually, but on a 404 or something don't?
 			return false;
 		}
 

@@ -1,5 +1,4 @@
-﻿using Advobot.Levels.Metadata;
-using Advobot.Levels.Models;
+﻿using Advobot.Levels.Models;
 using Advobot.SQLite;
 
 using Dapper;
