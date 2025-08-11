@@ -33,20 +33,13 @@ public sealed partial class LoggingService(
 	IRuntimeConfig botConfig,
 	MessageQueue messageQueue,
 	ITimeService time
-) : IStartableService, IConfigurableService
+) : StartableService, IConfigurableService
 {
 	private readonly ConcurrentDictionary<ulong, InviteCache> _InviteCaches = new();
 	private readonly ConcurrentQueue<(ILogContext, Func<Task>)> _LoggingQueue = new();
-	private bool _IsRunning;
 
-	public void Start()
+	protected override Task StartAsyncImpl()
 	{
-		if (_IsRunning)
-		{
-			return;
-		}
-		_IsRunning = true;
-
 		commands.CommandInvoked += OnCommandInvoked;
 		commands.Log += OnLog;
 		commands.Ready += OnReady;
@@ -68,7 +61,7 @@ public sealed partial class LoggingService(
 
 		_ = Task.Run(async () =>
 		{
-			while (_IsRunning)
+			while (IsRunning)
 			{
 				while (_LoggingQueue.TryDequeue(out var item))
 				{
@@ -90,9 +83,10 @@ public sealed partial class LoggingService(
 				await Task.Delay(TimeSpan.FromSeconds(1)).ConfigureAwait(false);
 			}
 		});
+		return Task.CompletedTask;
 	}
 
-	public void Stop()
+	protected override Task StopAsyncImpl()
 	{
 		commands.CommandInvoked -= OnCommandInvoked;
 		commands.Log -= OnLog;
@@ -113,12 +107,6 @@ public sealed partial class LoggingService(
 		client.UserLeft -= OnUserLeft;
 		client.UserUpdated -= OnUserUpdated;
 
-		_IsRunning = false;
-	}
-
-	Task IConfigurableService.ConfigureAsync()
-	{
-		Start();
 		return Task.CompletedTask;
 	}
 

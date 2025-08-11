@@ -27,7 +27,7 @@ public sealed class Rank_Tests
 
 		//Add a user to a different 'server' to allow checking if the total count stays
 		//the same later on
-		var last = ordered.Last();
+		var last = ordered[^1];
 		var otherServer = new User(new SearchArgs(last.UserId, CHANNEL_ID + 1, GUILD_ID + 1)).AddXp(3);
 		await db.UpsertUserAsync(otherServer).ConfigureAwait(false);
 
@@ -76,12 +76,12 @@ public sealed class Rank_Tests
 	{
 		var data = new[]
 		{
-				new User(new SearchArgs(1000, GUILD_ID, CHANNEL_ID)).AddXp(100),
-				new User(new SearchArgs(2000, GUILD_ID, CHANNEL_ID)).AddXp(300),
-				new User(new SearchArgs(3000, GUILD_ID, CHANNEL_ID)).AddXp(50),
-				new User(new SearchArgs(4000, GUILD_ID, CHANNEL_ID)).AddXp(1000),
-				new User(new SearchArgs(5000, GUILD_ID, CHANNEL_ID)).AddXp(250),
-			};
+			new User(new SearchArgs(1000, GUILD_ID, CHANNEL_ID)).AddXp(100),
+			new User(new SearchArgs(2000, GUILD_ID, CHANNEL_ID)).AddXp(300),
+			new User(new SearchArgs(3000, GUILD_ID, CHANNEL_ID)).AddXp(50),
+			new User(new SearchArgs(4000, GUILD_ID, CHANNEL_ID)).AddXp(1000),
+			new User(new SearchArgs(5000, GUILD_ID, CHANNEL_ID)).AddXp(250),
+		};
 		foreach (var datum in data)
 		{
 			await db.UpsertUserAsync(datum).ConfigureAwait(false);

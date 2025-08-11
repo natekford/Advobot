@@ -18,10 +18,8 @@ public sealed class TimedPunishmentService(
 	ITimedPunishmentDatabase db,
 	IDiscordClient client,
 	ITimeService time
-) : IPunishmentService, IStartableService, IConfigurableService
+) : StartableService, IPunishmentService
 {
-	private bool _IsRunning;
-
 	public async Task HandleAsync(IPunishmentContext context)
 	{
 		TimedPunishment ToDbModel(IPunishmentContext context)
@@ -47,17 +45,11 @@ public sealed class TimedPunishmentService(
 		}
 	}
 
-	public void Start()
+	protected override Task StartAsyncImpl()
 	{
-		if (_IsRunning)
-		{
-			return;
-		}
-		_IsRunning = true;
-
 		_ = Task.Run(async () =>
 		{
-			while (_IsRunning)
+			while (IsRunning)
 			{
 				var values = await db.GetExpiredPunishmentsAsync(time.UtcNow.Ticks).ConfigureAwait(false);
 
@@ -85,14 +77,6 @@ public sealed class TimedPunishmentService(
 				await Task.Delay(TimeSpan.FromSeconds(1)).ConfigureAwait(false);
 			}
 		});
-	}
-
-	public void Stop()
-		=> _IsRunning = false;
-
-	Task IConfigurableService.ConfigureAsync()
-	{
-		Start();
 		return Task.CompletedTask;
 	}
 

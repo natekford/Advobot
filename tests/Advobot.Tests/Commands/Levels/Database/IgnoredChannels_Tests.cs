@@ -22,10 +22,10 @@ public sealed class IgnoredChannels_Tests
 
 		var toInsert = new ulong[]
 		{
-				73,
-				69,
-				420,
-				1337,
+			73,
+			69,
+			420,
+			1337,
 		};
 		{
 			await db.AddIgnoredChannelsAsync(GUILD_ID, toInsert).ConfigureAwait(false);
@@ -37,8 +37,8 @@ public sealed class IgnoredChannels_Tests
 
 		var toRemove = new ulong[]
 		{
-				73,
-				69,
+			73,
+			69,
 		};
 		{
 			await db.DeleteIgnoredChannelsAsync(GUILD_ID, toRemove).ConfigureAwait(false);

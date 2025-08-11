@@ -21,7 +21,7 @@ public sealed class AutoModService(
 	IAutoModDatabase db,
 	ITimeService time,
 	IPunishmentService punishmentService
-) : IStartableService, IConfigurableService
+) : StartableService
 {
 	private static readonly RequestOptions _AutoMod
 		= DiscordUtils.GenerateRequestOptions("Auto mod.");
@@ -38,24 +38,17 @@ public sealed class AutoModService(
 
 	private readonly GuildSpecific<ulong, EnumMapped<PunishmentType, int>> _Phrases = new();
 
-	private bool _IsRunning;
 	private ConcurrentDictionary<ulong, (ConcurrentBag<ulong>, ITextChannel)> _Messages = new();
 
-	public void Start()
+	protected override Task StartAsyncImpl()
 	{
-		if (_IsRunning)
-		{
-			return;
-		}
-		_IsRunning = true;
-
 		client.MessageReceived += OnMessageReceived;
 		client.MessageUpdated += OnMessageUpdated;
 		client.UserJoined += OnUserJoined;
 
 		_ = Task.Run(async () =>
 		{
-			while (_IsRunning)
+			while (IsRunning)
 			{
 				var messageGroups = Interlocked.Exchange(ref _Messages, []);
 				foreach (var (_, (messageIds, channel)) in messageGroups)
@@ -82,20 +75,15 @@ public sealed class AutoModService(
 				await Task.Delay(TimeSpan.FromSeconds(1)).ConfigureAwait(false);
 			}
 		});
+		return Task.CompletedTask;
 	}
 
-	public void Stop()
+	protected override Task StopAsyncImpl()
 	{
 		client.MessageReceived -= OnMessageReceived;
 		client.MessageUpdated -= OnMessageUpdated;
 		client.UserJoined -= OnUserJoined;
 
-		_IsRunning = false;
-	}
-
-	Task IConfigurableService.ConfigureAsync()
-	{
-		Start();
 		return Task.CompletedTask;
 	}
 

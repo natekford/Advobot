@@ -51,7 +51,7 @@ public sealed class TimedPunishment_Tests : TestsBase
 			Assert.IsFalse(added);
 			tcs.SetResult(punishments.Count());
 		};
-		_TimedPunishmentService.Start();
+		await _TimedPunishmentService.StartAsync().ConfigureAwait(false);
 
 		var value = await tcs.Task.ConfigureAwait(false);
 		Assert.AreEqual(5, value);
@@ -81,7 +81,7 @@ public sealed class TimedPunishment_Tests : TestsBase
 				tcs.SetResult(count);
 			}
 		};
-		_TimedPunishmentService.Start();
+		await _TimedPunishmentService.StartAsync().ConfigureAwait(false);
 
 		var value = await tcs.Task.ConfigureAwait(false);
 		Assert.AreEqual(5, value);

@@ -16,12 +16,11 @@ namespace Advobot.Logging.Service;
 public sealed class MessageQueue(
 	ILogger<LoggingService> logger,
 	BaseSocketClient client
-) : IStartableService, IConfigurableService
+) : StartableService, IConfigurableService
 {
 	private readonly ConcurrentQueue<(IMessageChannel, SendMessageArgs)> _Send = new();
 
 	private ConcurrentDictionary<ulong, ConcurrentBag<IMessage>> _Deleted = new();
-	private bool _IsRunning;
 
 	public void EnqueueDeleted(IMessageChannel channel, IMessage message)
 		=> _Deleted.GetOrAdd(channel.Id, _ => []).Add(message);
@@ -29,17 +28,11 @@ public sealed class MessageQueue(
 	public void EnqueueSend(IMessageChannel channel, SendMessageArgs message)
 		=> _Send.Enqueue((channel, message));
 
-	public void Start()
+	protected override Task StartAsyncImpl()
 	{
-		if (_IsRunning)
-		{
-			return;
-		}
-		_IsRunning = true;
-
 		_ = Task.Run(async () =>
 		{
-			while (_IsRunning)
+			while (IsRunning)
 			{
 				while (_Send.TryDequeue(out var item))
 				{
@@ -66,7 +59,7 @@ public sealed class MessageQueue(
 		});
 		_ = Task.Run(async () =>
 		{
-			while (_IsRunning)
+			while (IsRunning)
 			{
 				foreach (var (channelId, messages) in Interlocked.Exchange(ref _Deleted, []))
 				{
@@ -103,14 +96,6 @@ public sealed class MessageQueue(
 				await Task.Delay(TimeSpan.FromSeconds(5)).ConfigureAwait(false);
 			}
 		});
-	}
-
-	public void Stop()
-		=> _IsRunning = false;
-
-	Task IConfigurableService.ConfigureAsync()
-	{
-		Start();
 		return Task.CompletedTask;
 	}
 

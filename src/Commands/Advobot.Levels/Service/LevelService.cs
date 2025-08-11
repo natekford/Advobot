@@ -1,5 +1,6 @@
 ﻿using Advobot.Levels.Database;
 using Advobot.Levels.Utilities;
+using Advobot.Services;
 using Advobot.Services.Time;
 
 using Discord;
@@ -13,232 +14,212 @@ using System.Text;
 
 namespace Advobot.Levels.Service;
 
-public sealed class LevelService
+public sealed class LevelService(
+	ILogger<LevelService> logger,
+	LevelServiceConfig config,
+	ILevelDatabase db,
+	BaseSocketClient client,
+	ITimeService time
+) : StartableService
 {
-	private readonly BaseSocketClient _Client;
-	private readonly LevelServiceConfig _Config;
-	private readonly ILevelDatabase _Db;
-	private readonly ILogger _Logger;
-	private readonly ConcurrentDictionary<Key, RuntimeInfo> _RuntimeInfo = new();
-	private readonly ITimeService _Time;
-
-	public LevelService(
-		ILogger<LevelService> logger,
-		LevelServiceConfig config,
-		ILevelDatabase db,
-		BaseSocketClient client,
-		ITimeService time)
-	{
-		_Config = config;
-		_Client = client;
-		_Db = db;
-		_Logger = logger;
-		_Time = time;
-
-		_Client.MessageReceived += AddExperienceAsync;
-		_Client.MessageDeleted += RemoveExperienceAsync;
-	}
+	private readonly ConcurrentDictionary<UserKey, ConcurrentQueue<MessageHash>> _Hashes = new();
+	private readonly Random _Rng = new();
+	private readonly ConcurrentDictionary<UserKey, DateTimeOffset> _Time = new();
 
 	public int CalculateLevel(int experience)
 	{
-		var logged = Math.Log(experience, _Config.Log);
-		var powed = (int)Math.Pow(logged, _Config.Pow);
+		var logged = Math.Log(experience, config.Log);
+		var powed = (int)Math.Pow(logged, config.Pow);
 		return Math.Max(powed, 0); //No negative levels
+	}
+
+	protected override Task StartAsyncImpl()
+	{
+		client.MessageReceived += AddExperienceAsync;
+		client.MessageDeleted += RemoveExperienceAsync;
+
+		return Task.CompletedTask;
+	}
+
+	protected override Task StopAsyncImpl()
+	{
+		client.MessageReceived -= AddExperienceAsync;
+		client.MessageDeleted -= RemoveExperienceAsync;
+
+		return Task.CompletedTask;
 	}
 
 	private async Task AddExperienceAsync(IMessage message)
 	{
-		var context = await XpContext.CreateAsync(_Db, message).ConfigureAwait(false);
+		var context = await CreateXpContextAsync(message).ConfigureAwait(false);
 		if (context is null)
 		{
 			return;
 		}
 
-		var runtimeInfo = _RuntimeInfo.GetOrAdd(context.Key, _ => new RuntimeInfo(_Time, _Config));
-		var xp = CalculateExperience(context, runtimeInfo, _Config.BaseXp);
-		if (!runtimeInfo.TryAdd(context.Message, context.Channel, xp))
+		var now = time.UtcNow;
+		if (_Time.TryGetValue(context.Key, out var xpLastAdded)
+			&& xpLastAdded + config.WaitDuration > now)
 		{
 			return;
 		}
 
-		var user = await _Db.GetUserAsync(context.CreateArgs()).ConfigureAwait(false);
-		var added = user.AddXp(xp);
-		await _Db.UpsertUserAsync(added).ConfigureAwait(false);
+		var hashes = _Hashes.GetOrAdd(context.Key, _ => []);
+		var xp = CalculateExperience(context, hashes, config.BaseXp);
+		var bytes = Encoding.UTF8.GetBytes(message.Content);
+		var hash = BitConverter.ToString(MD5.HashData(bytes));
 
-		_Logger.LogDebug(
-			"Successfully gave {Xp} xp to {User}.",
-			xp, context.User.Id
+		hashes.Enqueue(new(xp, hash, message.Id));
+		if (hashes.Count > config.CacheSize)
+		{
+			hashes.TryDequeue(out _);
+		}
+		_Time[context.Key] = now;
+
+		var user = await db.GetUserAsync(context.SearchArgs).ConfigureAwait(false);
+		var added = user.AddXp(xp);
+		await db.UpsertUserAsync(added).ConfigureAwait(false);
+
+		logger.LogDebug(
+			message: "Successfully gave {Xp} xp to {User} for {Message}.",
+			args: [xp, context.User.Id, context.Message.Id]
 		);
 	}
 
-	private int CalculateExperience(XpContext context, RuntimeInfo info, int experience)
+	private int CalculateExperience(XpContext context, IReadOnlyCollection<MessageHash> hashes, int experience)
 	{
-		var rng = new Random();
-		//Be within 20% of the base value
-		var xp = (double)experience * rng.Next(80, 120) / 100.0;
-		//Message length adds up to 10% increase capping out at 50 characters (any higher = same)
-		//Reason: Some people just spam short messages for xp and this incentivizes longer messages which indicates better convos
+		// Be within 20% of the base value
+		var xp = (double)experience * _Rng.Next(80, 120) / 100.0;
+		var modifier = 1.00;
+
+		// Message length adds up to 10% capping out at 50 characters
 		var length = context.Message.Content.Length;
-		var lengthFactor = 1 + (Math.Min(length, 50) / 50.0 * .1);
-		//Attachments/embeds remove up to 5% of the xp capping out at 5 attachments/embeds
-		//Reason: Marginally disincentivizes lots of images which discourage conversation
+		modifier += Math.Min(length, 50) / 50.0 * .1;
+
+		// Attachments/embeds remove up to 5% capping out at 5 attachments/embeds
 		var attachments = context.Message.Attachments.Count;
 		var embeds = context.Message.Embeds.Count;
-		var attachmentFactor = 1 - Math.Min((attachments + embeds) * .01, .05);
-		//Any messages with the same hash are considered spam and remove up to 60% of the xp
-		//Reason: Disincentivizes spamming which greatly discourages conversation
-		//The first punishes for spam that was said before and during the last message. This only takes off up to 30% of the xp.
-		//The second punishes for spam that is the same as the last message sent. This takes off up to 60% of the xp.
-		var hashes = info.Messages;
-		var spamFactor = rng.Next(0, 2) != 0
-			? 1 - Math.Min((hashes.Count - hashes.Select(x => x.Hash).Distinct().Count()) * .1, .3)
-			: 1 - Math.Min((hashes.Count(x => x.Hash == hashes[hashes.Count - 1].Hash) - 1) * .1, .6);
-		return (int)Math.Round(xp * lengthFactor * attachmentFactor * spamFactor);
+		modifier -= Math.Min((attachments + embeds) * .01, .05);
+
+		// Messages with the same hash are considered spam and remove up to 30% xp
+		// This punishes for spam before the last message. This removes up to 30% xp.
+		if (hashes.Count != 0)
+		{
+			if (_Rng.Next(0, 2) == 0)
+			{
+				var total = 0;
+				var set = new HashSet<string>(hashes.Count);
+				foreach (var hash in hashes)
+				{
+					++total;
+					set.Add(hash.Hash);
+				}
+				modifier -= Math.Min((total - set.Count) * .1, .3);
+			}
+			// This punishes for spam that is the same as the last message. This removes up to 60% xp.
+			else
+			{
+				var lastHash = "";
+				var dict = new Dictionary<string, int>(hashes.Count);
+				foreach (var hash in hashes)
+				{
+					if (!dict.TryAdd(hash.Hash, 1))
+					{
+						++dict[hash.Hash];
+					}
+					lastHash = hash.Hash;
+				}
+				modifier -= Math.Min((dict[lastHash] - 1) * .1, .6);
+			}
+		}
+
+		return (int)Math.Round(xp * modifier);
+	}
+
+	private async Task<XpContext?> CreateXpContextAsync(IMessage message)
+	{
+		if (message is not IUserMessage msg
+			|| msg.Author.IsBot || msg.Author.IsWebhook
+			|| msg.Channel is not ITextChannel channel
+			|| channel.Guild is not IGuild guild
+			|| msg.Author is not IGuildUser user)
+		{
+			return null;
+		}
+
+		var ignored = await db.GetIgnoredChannelsAsync(guild.Id).ConfigureAwait(false);
+		if (ignored.Contains(channel.Id))
+		{
+			return null;
+		}
+
+		return new(channel, guild, msg, user);
 	}
 
 	private async Task RemoveExperienceAsync(
 		Cacheable<IMessage, ulong> cached,
 		Cacheable<IMessageChannel, ulong> _)
 	{
-		var context = await XpContext.CreateAsync(_Db, cached.Value).ConfigureAwait(false);
-		if (context is null
-			|| !_RuntimeInfo.TryGetValue(context.Key, out var info)
-			|| !info.TryGet(cached.Id, out var hash))
+		var context = await CreateXpContextAsync(cached.Value).ConfigureAwait(false);
+		if (context is null || !_Hashes.TryGetValue(context.Key, out var hashes))
 		{
 			return;
 		}
 
-		var user = await _Db.GetUserAsync(context.CreateArgs()).ConfigureAwait(false);
-		var xp = hash.Experience;
-		var added = user.RemoveXp(xp);
-		await _Db.UpsertUserAsync(added).ConfigureAwait(false);
+		var xp = default(int?);
+		var hashesArray = hashes.ToArray();
+		for (var i = 0; i < hashesArray.Length; ++i)
+		{
+			var hash = hashesArray[i];
+			if (hash.MessageId != context.Message.Id)
+			{
+				continue;
+			}
+			else if (i == hashesArray.Length - 1)
+			{
+				// If the most recent message is deleted, then reset the next time
+				// they can get xp in addition to resetting the xp from that message
+				// (Makes up for bots deleting commands automatically, etc)
+				_Time.TryRemove(context.Key, out var _);
+				logger.LogDebug(
+					message: "Cleared xp cooldown from {User}.",
+					args: [context.User.Id]
+				);
+			}
 
-		_Logger.LogDebug(
-			"Successfully removed {Xp} xp from {User}.",
-			xp, context.User.Id
+			xp = hash.Experience;
+		}
+		if (xp is null)
+		{
+			return;
+		}
+
+		var user = await db.GetUserAsync(context.SearchArgs).ConfigureAwait(false);
+		var added = user.RemoveXp(xp.Value);
+		await db.UpsertUserAsync(added).ConfigureAwait(false);
+
+		logger.LogDebug(
+			message: "Successfully removed {Xp} xp from {User} for {Message}.",
+			args: [xp, context.User.Id, context.Message.Id]
 		);
 	}
 
-	private readonly struct Key(IGuildUser user)
+	private readonly record struct UserKey(ulong GuildId, ulong UserId);
+
+	private sealed record MessageHash(
+		int Experience,
+		string Hash,
+		ulong MessageId
+	);
+
+	private sealed record XpContext(
+		ITextChannel Channel,
+		IGuild Guild,
+		IUserMessage Message,
+		IGuildUser User
+	)
 	{
-		public ulong GuildId { get; } = user.Guild.Id;
-		public ulong UserId { get; } = user.Id;
-	}
-
-	private sealed class MessageHash
-	{
-		public ulong ChannelId { get; }
-		public int Experience { get; }
-		public ulong GuildId { get; }
-		public string Hash { get; }
-		public ulong MessageId { get; }
-
-		public MessageHash(IMessage message, ITextChannel channel, int xp)
-		{
-			GuildId = channel.Guild.Id;
-			ChannelId = channel.Id;
-			MessageId = message.Id;
-			var bytes = Encoding.UTF8.GetBytes(message.Content);
-			var hashed = MD5.HashData(bytes);
-			Hash = BitConverter.ToString(hashed).Replace("-", "").ToLower();
-			Experience = xp;
-		}
-	}
-
-	private sealed class RuntimeInfo(ITimeService time, LevelServiceConfig config)
-	{
-		private readonly LevelServiceConfig _Config = config;
-		private readonly ConcurrentQueue<MessageHash> _Messages = new();
-		private readonly ITimeService _Time = time;
-
-		public IReadOnlyList<MessageHash> Messages => [.. _Messages];
-		public DateTimeOffset Time { get; private set; } = DateTimeOffset.MinValue;
-
-		public bool TryAdd(IUserMessage message, ITextChannel channel, int xp)
-		{
-			if (Time + _Config.WaitTime > _Time.UtcNow)
-			{
-				return false;
-			}
-
-			_Messages.Enqueue(new MessageHash(message, channel, xp));
-			if (_Messages.Count > _Config.CacheSize)
-			{
-				_Messages.TryDequeue(out _);
-			}
-			Time = _Time.UtcNow;
-			return true;
-		}
-
-		public bool TryGet(ulong id, out MessageHash hash)
-		{
-			var stored = Messages;
-			for (var i = 0; i < stored.Count; ++i)
-			{
-				var message = stored[i];
-				if (message.MessageId != id)
-				{
-					continue;
-				}
-				else if (i == 0)
-				{
-					//If the most recent message is deleted, then reset the next time
-					//they can get xp in addition to resetting the xp from that message
-					//(Makes up for bots deleting commands automatically, etc)
-					Time = _Time.UtcNow - _Config.WaitTime;
-				}
-
-				hash = message;
-				return true;
-			}
-			hash = default!;
-			return false;
-		}
-	}
-
-	private sealed class XpContext
-	{
-		public ITextChannel Channel { get; }
-		public IGuild Guild { get; }
-		public Key Key => new(User);
-		public IUserMessage Message { get; }
-		public IGuildUser User { get; }
-
-		private XpContext(
-			IGuild guild,
-			ITextChannel channel,
-			IGuildUser user,
-			IUserMessage message)
-		{
-			Guild = guild;
-			Channel = channel;
-			User = user;
-			Message = message;
-		}
-
-		public static async Task<XpContext?> CreateAsync(
-			ILevelDatabase db,
-			IMessage message)
-		{
-			if (message is not IUserMessage msg
-				|| msg.Author.IsBot || msg.Author.IsWebhook
-				|| msg.Channel is not ITextChannel channel
-				|| channel.Guild is not IGuild guild
-				|| msg.Author is not IGuildUser user)
-			{
-				return null;
-			}
-
-			var ignored = await db.GetIgnoredChannelsAsync(guild.Id).ConfigureAwait(false);
-			if (ignored.Contains(channel.Id))
-			{
-				return null;
-			}
-
-			return new(guild, channel, user, msg);
-		}
-
-		public SearchArgs CreateArgs()
-			=> new(User.Id, Guild.Id, Channel.Id);
+		public UserKey Key { get; } = new(Guild.Id, User.Id);
+		public SearchArgs SearchArgs => new(User.Id, Guild.Id, Channel.Id);
 	}
 }

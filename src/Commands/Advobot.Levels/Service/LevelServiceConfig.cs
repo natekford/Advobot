@@ -6,5 +6,5 @@ public sealed class LevelServiceConfig
 	public int CacheSize { get; set; } = 10;
 	public double Log { get; set; } = 9;
 	public double Pow { get; set; } = 2.3;
-	public TimeSpan WaitTime { get; set; } = TimeSpan.FromSeconds(30);
+	public TimeSpan WaitDuration { get; set; } = TimeSpan.FromSeconds(30);
 }
