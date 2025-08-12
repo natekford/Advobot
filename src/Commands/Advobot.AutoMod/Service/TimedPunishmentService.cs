@@ -30,14 +30,14 @@ public sealed class TimedPunishmentService(
 				UserId = context.UserId,
 				RoleId = context.Role?.Id ?? 0,
 				PunishmentType = context.Type,
-				EndTimeTicks = (time.UtcNow + context.Time)?.Ticks ?? -1
+				EndTimeTicks = (time.UtcNow + context.Duration)?.Ticks ?? -1
 			};
 		}
 
 		try
 		{
 			await context.ExecuteAsync().ConfigureAwait(false);
-			if (context.IsGive && context.Time.HasValue)
+			if (context.IsGive && context.Duration.HasValue)
 			{
 				await db.AddTimedPunishmentAsync(ToDbModel(context)).ConfigureAwait(false);
 			}

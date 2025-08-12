@@ -34,7 +34,7 @@ public sealed class DynamicPunishmentContext(IGuild guild, ulong userId, bool is
 		}
 
 		context.Options = Options;
-		context.Time = Time;
+		context.Duration = Duration;
 		await context.ExecuteAsync().ConfigureAwait(false);
 	}
 

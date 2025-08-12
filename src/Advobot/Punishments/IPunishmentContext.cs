@@ -8,10 +8,6 @@ namespace Advobot.Punishments;
 public interface IPunishmentContext
 {
 	/// <summary>
-	/// The amount of days worth of messages to delete.
-	/// </summary>
-	public int Days { get; }
-	/// <summary>
 	/// The guild for the punishment.
 	/// </summary>
 	public IGuild Guild { get; }
@@ -30,7 +26,7 @@ public interface IPunishmentContext
 	/// <summary>
 	/// The amount of time the punishment should last for.
 	/// </summary>
-	public TimeSpan? Time { get; }
+	public TimeSpan? Duration { get; }
 	/// <summary>
 	/// The type of the punishment.
 	/// </summary>

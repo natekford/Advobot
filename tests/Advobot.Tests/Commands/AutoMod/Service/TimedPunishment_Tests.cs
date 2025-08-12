@@ -105,7 +105,7 @@ public sealed class TimedPunishment_Tests : TestsBase
 		{
 			await _TimedPunishmentService.PunishAsync(new Ban(Context.Guild, i, true)
 			{
-				Time = TimeSpan.FromDays(1),
+				Duration = TimeSpan.FromDays(1),
 			}).ConfigureAwait(false);
 		}
 	}

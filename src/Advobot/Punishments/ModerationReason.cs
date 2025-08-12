@@ -32,11 +32,8 @@ public readonly struct ModerationReason
 		Time = default;
 		foreach (var part in input.Split(' '))
 		{
-			if (!part.CaseInsStartsWith("time:"))
-			{
-				continue;
-			}
-			if (uint.TryParse(part.Split([':'], 2)[^1], out var time))
+			if ((part.CaseInsStartsWith("time:") || part.CaseInsContains("duration:"))
+				&& uint.TryParse(part.Split([':'], 2)[^1], out var time))
 			{
 				Time = TimeSpan.FromMinutes((int)Math.Min(time, 60 * 24 * 7));
 			}

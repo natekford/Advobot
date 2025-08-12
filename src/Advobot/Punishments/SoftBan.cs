@@ -16,7 +16,7 @@ public sealed class SoftBan(IGuild guild, ulong userId)
 	/// <inheritdoc/>
 	public override async Task ExecuteAsync()
 	{
-		await Guild.AddBanAsync(UserId, Days, Options?.AuditLogReason, Options).ConfigureAwait(false);
+		await Guild.AddBanAsync(UserId, 1, Options?.AuditLogReason, Options).ConfigureAwait(false);
 		await Guild.RemoveBanAsync(UserId, Options).ConfigureAwait(false);
 	}
 }

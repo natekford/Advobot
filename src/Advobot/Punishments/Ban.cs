@@ -19,7 +19,7 @@ public sealed class Ban(IGuild guild, ulong userId, bool isGive)
 	{
 		if (IsGive)
 		{
-			return Guild.AddBanAsync(UserId, Days, Options?.AuditLogReason, Options);
+			return Guild.AddBanAsync(UserId, 1, Options?.AuditLogReason, Options);
 		}
 		return Guild.RemoveBanAsync(UserId, Options);
 	}

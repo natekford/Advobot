@@ -53,7 +53,7 @@ public sealed class Users : ModuleBase
 			var user = await Context.Client.GetUserAsync(userId).ConfigureAwait(false);
 			await PunishmentService.PunishAsync(new Punishments.Ban(Context.Guild, userId, true)
 			{
-				Time = reason.Time,
+				Duration = reason.Time,
 				Options = GetOptions(reason.Reason),
 			}).ConfigureAwait(false);
 			return Responses.Users.Banned(true, user!, reason.Time);
@@ -77,7 +77,7 @@ public sealed class Users : ModuleBase
 			var isGive = !user.IsDeafened;
 			await PunishmentService.PunishAsync(new Punishments.Deafen(user, isGive)
 			{
-				Time = reason.Time,
+				Duration = reason.Time,
 				Options = GetOptions(reason.Reason),
 			}).ConfigureAwait(false);
 			return Responses.Users.Deafened(isGive, user, reason.Time);
@@ -238,7 +238,7 @@ public sealed class Users : ModuleBase
 		{
 			await PunishmentService.PunishAsync(new Punishments.Kick(user)
 			{
-				Time = reason.Time,
+				Duration = reason.Time,
 				Options = GetOptions(reason.Reason),
 			}).ConfigureAwait(false);
 			return Responses.Users.Kicked(user);
@@ -352,7 +352,7 @@ public sealed class Users : ModuleBase
 			var isGive = !user.RoleIds.Contains(role.Id);
 			await PunishmentService.PunishAsync(new Punishments.RoleMute(user, isGive, role)
 			{
-				Time = reason.Time,
+				Duration = reason.Time,
 				Options = GetOptions(reason.Reason),
 			}).ConfigureAwait(false);
 			return Responses.Users.Muted(isGive, user, reason.Time);
@@ -512,7 +512,7 @@ public sealed class Users : ModuleBase
 			var user = await Context.Client.GetUserAsync(userId).ConfigureAwait(false);
 			await PunishmentService.PunishAsync(new Punishments.Ban(Context.Guild, userId, true)
 			{
-				Time = reason.Time,
+				Duration = reason.Time,
 				Options = GetOptions(reason.Reason),
 			}).ConfigureAwait(false);
 			return Responses.Users.Banned(true, user!, reason.Time);
@@ -535,7 +535,7 @@ public sealed class Users : ModuleBase
 		{
 			await PunishmentService.PunishAsync(new Punishments.Ban(Context.Guild, ban.User.Id, false)
 			{
-				Time = reason.Time,
+				Duration = reason.Time,
 				Options = GetOptions(reason.Reason),
 			}).ConfigureAwait(false);
 			return Responses.Users.Banned(false, ban.User, reason.Time);
@@ -559,7 +559,7 @@ public sealed class Users : ModuleBase
 			var isGive = !user.IsMuted;
 			await PunishmentService.PunishAsync(new Punishments.Mute(user, isGive)
 			{
-				Time = reason.Time,
+				Duration = reason.Time,
 				Options = GetOptions(reason.Reason),
 			}).ConfigureAwait(false);
 			return Responses.Users.Deafened(isGive, user, reason.Time);

@@ -15,8 +15,8 @@ namespace Advobot.Punishments;
 public abstract class PunishmentBase(IGuild guild, ulong userId, bool isGive, PunishmentType type)
 	: IPunishmentContext
 {
-	/// <inheritdoc/>
-	public int Days { get; set; } = 1;
+	/// <inheritdoc />
+	public TimeSpan? Duration { get; set; }
 	/// <inheritdoc />
 	public IGuild Guild { get; protected set; } = guild;
 	/// <inheritdoc />
@@ -25,8 +25,6 @@ public abstract class PunishmentBase(IGuild guild, ulong userId, bool isGive, Pu
 	public RequestOptions? Options { get; set; }
 	/// <inheritdoc />
 	public IRole? Role { get; protected set; }
-	/// <inheritdoc />
-	public TimeSpan? Time { get; set; }
 	/// <inheritdoc />
 	public PunishmentType Type { get; protected set; } = type;
 	/// <inheritdoc />
