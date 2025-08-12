@@ -10,9 +10,8 @@ namespace Advobot.Punishments;
 /// </remarks>
 /// <param name="user"></param>
 /// <param name="isGive"></param>
-/// <param name="type"></param>
-public abstract class GuildUserPunishmentBase(IGuildUser user, bool isGive, PunishmentType type)
-	: PunishmentBase(user.Guild, user.Id, isGive, type)
+public abstract class GuildUserPunishmentBase(IGuildUser user, bool isGive)
+	: PunishmentBase(user.Guild, user.Id, isGive)
 {
 	/// <summary>
 	/// The user being punished.

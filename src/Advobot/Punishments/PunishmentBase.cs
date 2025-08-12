@@ -11,8 +11,7 @@ namespace Advobot.Punishments;
 /// <param name="guild"></param>
 /// <param name="userId"></param>
 /// <param name="isGive"></param>
-/// <param name="type"></param>
-public abstract class PunishmentBase(IGuild guild, ulong userId, bool isGive, PunishmentType type)
+public abstract class PunishmentBase(IGuild guild, ulong userId, bool isGive)
 	: IPunishmentContext
 {
 	/// <inheritdoc />
@@ -24,7 +23,7 @@ public abstract class PunishmentBase(IGuild guild, ulong userId, bool isGive, Pu
 	/// <inheritdoc />
 	public IRole? Role { get; protected set; }
 	/// <inheritdoc />
-	public PunishmentType Type { get; protected set; } = type;
+	public abstract PunishmentType Type { get; }
 	/// <inheritdoc />
 	public ulong UserId { get; protected set; } = userId;
 

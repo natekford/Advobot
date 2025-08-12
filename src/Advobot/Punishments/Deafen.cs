@@ -11,8 +11,11 @@ namespace Advobot.Punishments;
 /// <param name="user"></param>
 /// <param name="isGive"></param>
 public sealed class Deafen(IGuildUser user, bool isGive)
-	: GuildUserPunishmentBase(user, isGive, PunishmentType.Deafen)
+	: GuildUserPunishmentBase(user, isGive)
 {
+	/// <inheritdoc />
+	public override PunishmentType Type => PunishmentType.Deafen;
+
 	/// <inheritdoc/>
 	public override Task ExecuteAsync(RequestOptions? options = null)
 		=> User.ModifyAsync(x => x.Deaf = IsGive, options);

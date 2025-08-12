@@ -11,8 +11,11 @@ namespace Advobot.Punishments;
 /// <param name="guild"></param>
 /// <param name="userId"></param>
 public sealed class SoftBan(IGuild guild, ulong userId)
-	: PunishmentBase(guild, userId, true, PunishmentType.Kick)
+	: PunishmentBase(guild, userId, true)
 {
+	/// <inheritdoc />
+	public override PunishmentType Type => PunishmentType.Softban;
+
 	/// <inheritdoc/>
 	public override async Task ExecuteAsync(RequestOptions? options = null)
 	{

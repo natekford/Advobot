@@ -13,7 +13,7 @@ namespace Advobot.Punishments;
 /// <param name="isGive"></param>
 /// <param name="type"></param>
 public sealed class DynamicPunishmentContext(IGuild guild, ulong userId, bool isGive, PunishmentType type)
-	: PunishmentBase(guild, userId, isGive, type)
+	: PunishmentBase(guild, userId, isGive)
 {
 	/// <summary>
 	/// The id of the role.
@@ -23,6 +23,8 @@ public sealed class DynamicPunishmentContext(IGuild guild, ulong userId, bool is
 		get => Role?.Id ?? 0;
 		set => Role = Guild.GetRole(value);
 	}
+	/// <inheritdoc />
+	public override PunishmentType Type => type;
 
 	/// <inheritdoc/>
 	public override async Task ExecuteAsync(RequestOptions? options = null)

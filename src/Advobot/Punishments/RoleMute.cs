@@ -7,13 +7,16 @@ namespace Advobot.Punishments;
 /// </summary>
 public sealed class RoleMute : GuildUserPunishmentBase
 {
+	/// <inheritdoc />
+	public override PunishmentType Type => PunishmentType.RoleMute;
+
 	/// <summary>
 	/// Creates an instance of <see cref="RoleMute"/>.
 	/// </summary>
 	/// <param name="user"></param>
 	/// <param name="isGive"></param>
 	/// <param name="role"></param>
-	public RoleMute(IGuildUser user, bool isGive, IRole role) : base(user, isGive, PunishmentType.RoleMute)
+	public RoleMute(IGuildUser user, bool isGive, IRole role) : base(user, isGive)
 	{
 		Role = role;
 	}
