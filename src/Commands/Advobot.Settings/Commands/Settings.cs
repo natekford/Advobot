@@ -1,5 +1,6 @@
 ﻿using Advobot.Attributes;
 using Advobot.Localization;
+using Advobot.Modules;
 using Advobot.Preconditions.Permissions;
 using Advobot.Resources;
 using Advobot.Services.Help;
@@ -103,7 +104,7 @@ public sealed class Settings : ModuleBase
 
 		public abstract class ModifyCommandsModuleBase : SettingsModuleBase
 		{
-			public IHelpService HelpEntries { get; set; } = null!;
+			public required IHelpService HelpEntries { get; set; }
 			public abstract bool? ShouldEnable { get; }
 
 			protected async Task<RuntimeResult> Modify(

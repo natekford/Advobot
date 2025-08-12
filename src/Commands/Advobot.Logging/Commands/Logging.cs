@@ -29,7 +29,7 @@ public sealed class Logging : ModuleBase
 	[RequireGuildPermissions]
 	public sealed class ModifyActions : LoggingModuleBase
 	{
-		public LogActionsResetter DefaultSetter { get; set; } = null!;
+		public required LogActionsResetter DefaultSetter { get; set; }
 
 		[LocalizedCommand(nameof(Groups.All))]
 		[LocalizedAlias(nameof(Aliases.All))]

@@ -1,5 +1,4 @@
-﻿using Advobot.Levels.Database;
-using Advobot.SQLite.Relationships;
+﻿using Advobot.SQLite.Relationships;
 
 namespace Advobot.Levels.Database.Models;
 

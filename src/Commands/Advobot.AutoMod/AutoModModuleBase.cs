@@ -5,5 +5,5 @@ namespace Advobot.AutoMod;
 
 public abstract class AutoModModuleBase : AdvobotModuleBase
 {
-	public IAutoModDatabase Db { get; set; } = null!;
+	public required IAutoModDatabase Db { get; set; }
 }

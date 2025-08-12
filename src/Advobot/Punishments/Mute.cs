@@ -10,7 +10,8 @@ namespace Advobot.Punishments;
 /// </remarks>
 /// <param name="user"></param>
 /// <param name="isGive"></param>
-public sealed class Mute(IGuildUser user, bool isGive) : GuildUserPunishmentBase(user, isGive, PunishmentType.VoiceMute)
+public sealed class Mute(IGuildUser user, bool isGive)
+	: GuildUserPunishmentBase(user, isGive, PunishmentType.VoiceMute)
 {
 	/// <inheritdoc/>
 	public override Task ExecuteAsync()

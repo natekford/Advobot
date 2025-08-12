@@ -27,7 +27,7 @@ public abstract class AdvobotModuleBase : ModuleBase<AdvobotCommandContext>
 	/// <summary>
 	/// The settings for the bot.
 	/// </summary>
-	public IRuntimeConfig BotConfig { get; set; } = null!;
+	public required IRuntimeConfig BotConfig { get; set; }
 	/// <summary>
 	/// The default time to wait for a user's response.
 	/// </summary>
@@ -36,7 +36,7 @@ public abstract class AdvobotModuleBase : ModuleBase<AdvobotCommandContext>
 	/// <summary>
 	/// The service to use for giving punishments.
 	/// </summary>
-	public IPunishmentService PunishmentService { get; set; } = null!;
+	public required IPunishmentService PunishmentService { get; set; }
 
 	/// <summary>
 	/// Gets a <see cref="RequestOptions"/> that mainly is used for the reason in the audit log.

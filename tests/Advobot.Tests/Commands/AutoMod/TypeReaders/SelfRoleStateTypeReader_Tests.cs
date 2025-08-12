@@ -1,6 +1,5 @@
 ﻿using Advobot.AutoMod.Database;
 using Advobot.AutoMod.Database.Models;
-using Advobot.AutoMod.Models;
 using Advobot.AutoMod.TypeReaders;
 using Advobot.Tests.TestBases;
 

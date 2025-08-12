@@ -337,7 +337,7 @@ public sealed class Users : ModuleBase
 			)
 		);
 
-		public IGuildSettingsService MuteRoleProvider { get; set; } = null!;
+		public required IGuildSettingsService GuildSettings { get; set; }
 
 		[Command]
 		public async Task<RuntimeResult> Command(
@@ -346,7 +346,7 @@ public sealed class Users : ModuleBase
 			ModerationReason reason = default
 		)
 		{
-			var role = await MuteRoleProvider.GetMuteRoleAsync(Context.Guild).ConfigureAwait(false);
+			var role = await GuildSettings.GetMuteRoleAsync(Context.Guild).ConfigureAwait(false);
 			await ConfigureMuteRoleAsync(role).ConfigureAwait(false);
 
 			var isGive = !user.RoleIds.Contains(role.Id);
@@ -421,7 +421,7 @@ public sealed class Users : ModuleBase
 	[RequireGuildPermissions(GuildPermission.ManageMessages)]
 	public sealed class RemoveMessages : AdvobotModuleBase
 	{
-		public ITimeService Time { get; set; } = null!;
+		public required ITimeService Time { get; set; }
 
 		[Command]
 		[RequireChannelPermissions(ManageMessages)]

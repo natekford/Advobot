@@ -27,7 +27,7 @@ public sealed class Notifications : ModuleBase
 	public sealed class ModifyGoodbyeMessage : NotificationModuleBase
 	{
 		private const Notification Event = Notification.Goodbye;
-		public GoodbyeNotificationResetter DefaultSetter { get; set; } = null!;
+		public required GoodbyeNotificationResetter DefaultSetter { get; set; }
 
 		[LocalizedCommand(nameof(Groups.Channel))]
 		[LocalizedAlias(nameof(Aliases.Channel))]
@@ -88,7 +88,7 @@ public sealed class Notifications : ModuleBase
 	public sealed class ModifyWelcomeMessage : NotificationModuleBase
 	{
 		private const Notification Event = Notification.Welcome;
-		public WelcomeNotificationResetter DefaultSetter { get; set; } = null!;
+		public required WelcomeNotificationResetter DefaultSetter { get; set; }
 
 		[LocalizedCommand(nameof(Groups.Channel))]
 		[LocalizedAlias(nameof(Aliases.Channel))]

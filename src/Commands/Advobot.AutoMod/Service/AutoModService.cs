@@ -240,7 +240,7 @@ public sealed class AutoModService(
 		}
 	}
 
-	private Task OnMessageUpdated(Cacheable<IMessage, ulong> cached, IMessage message, ISocketMessageChannel channel)
+	private Task OnMessageUpdated(Cacheable<IMessage, ulong> _, IMessage message, ISocketMessageChannel __)
 		=> OnMessageReceived(message);
 
 	private async Task OnUserJoined(IGuildUser user)

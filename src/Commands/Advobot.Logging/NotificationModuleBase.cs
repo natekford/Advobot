@@ -5,5 +5,5 @@ namespace Advobot.Logging;
 
 public abstract class NotificationModuleBase : AdvobotModuleBase
 {
-	public INotificationDatabase Db { get; set; } = null!;
+	public required INotificationDatabase Db { get; set; }
 }

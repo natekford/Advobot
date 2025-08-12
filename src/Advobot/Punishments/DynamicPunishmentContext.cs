@@ -12,7 +12,8 @@ namespace Advobot.Punishments;
 /// <param name="userId"></param>
 /// <param name="isGive"></param>
 /// <param name="type"></param>
-public sealed class DynamicPunishmentContext(IGuild guild, ulong userId, bool isGive, PunishmentType type) : PunishmentBase(guild, userId, isGive, type)
+public sealed class DynamicPunishmentContext(IGuild guild, ulong userId, bool isGive, PunishmentType type)
+	: PunishmentBase(guild, userId, isGive, type)
 {
 	/// <summary>
 	/// The id of the role.

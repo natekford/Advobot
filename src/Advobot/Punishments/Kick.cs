@@ -9,7 +9,8 @@ namespace Advobot.Punishments;
 /// Creates an instance of <see cref="Kick"/>.
 /// </remarks>
 /// <param name="user"></param>
-public sealed class Kick(IGuildUser user) : GuildUserPunishmentBase(user, true, PunishmentType.Kick)
+public sealed class Kick(IGuildUser user)
+	: GuildUserPunishmentBase(user, true, PunishmentType.Kick)
 {
 	/// <inheritdoc />
 	public override Task ExecuteAsync()
