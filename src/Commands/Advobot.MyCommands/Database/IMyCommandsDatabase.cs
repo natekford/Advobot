@@ -1,4 +1,4 @@
-﻿using Advobot.MyCommands.Models;
+﻿using Advobot.MyCommands.Database.Models;
 
 namespace Advobot.MyCommands.Database;
 

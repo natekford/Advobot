@@ -1,4 +1,4 @@
-﻿namespace Advobot.Logging.Models;
+﻿namespace Advobot.Logging.Database.Models;
 
 public enum Log : long
 {

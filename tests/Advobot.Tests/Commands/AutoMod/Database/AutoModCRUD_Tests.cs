@@ -1,4 +1,5 @@
 ﻿using Advobot.AutoMod.Database;
+using Advobot.AutoMod.Database.Models;
 using Advobot.AutoMod.Models;
 using Advobot.Punishments;
 using Advobot.Tests.Fakes.Database;

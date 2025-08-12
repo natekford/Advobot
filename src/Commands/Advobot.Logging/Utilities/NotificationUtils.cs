@@ -1,4 +1,5 @@
 ﻿using Advobot.Embeds;
+using Advobot.Logging.Database.Models;
 using Advobot.Utilities;
 
 using Discord;
@@ -11,7 +12,7 @@ public static class NotificationUtils
 	public const string USER_STRING = "%USER%";
 	public static AllowedMentions UserMentions { get; } = new(AllowedMentionTypes.Users);
 
-	public static EmbedWrapper BuildWrapper(this Models.CustomEmbed custom)
+	public static EmbedWrapper BuildWrapper(this CustomEmbed custom)
 	{
 		var embed = new EmbedWrapper
 		{
@@ -28,7 +29,7 @@ public static class NotificationUtils
 		return embed;
 	}
 
-	public static bool EmbedEmpty(this Models.CustomEmbed custom)
+	public static bool EmbedEmpty(this CustomEmbed custom)
 	{
 		return custom.AuthorIconUrl is null
 			&& custom.AuthorName is null

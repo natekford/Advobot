@@ -1,6 +1,6 @@
 ﻿using Advobot.SQLite.Relationships;
 
-namespace Advobot.Settings.Models;
+namespace Advobot.Settings.Database.Models;
 
 public sealed record GuildSettings(
 	string? Culture,

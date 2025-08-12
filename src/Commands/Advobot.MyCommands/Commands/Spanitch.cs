@@ -1,6 +1,6 @@
 ﻿using Advobot.Attributes;
 using Advobot.AutoMod;
-using Advobot.AutoMod.Models;
+using Advobot.AutoMod.Database.Models;
 using Advobot.Modules;
 using Advobot.ParameterPreconditions.Discord.Users;
 using Advobot.Preconditions;

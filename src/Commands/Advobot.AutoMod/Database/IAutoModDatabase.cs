@@ -1,4 +1,4 @@
-﻿using Advobot.AutoMod.Models;
+﻿using Advobot.AutoMod.Database.Models;
 
 namespace Advobot.AutoMod.Database;
 

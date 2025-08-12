@@ -1,4 +1,4 @@
-﻿namespace Advobot.Settings.Models;
+﻿namespace Advobot.Settings.Database.Models;
 
 public enum CommandOverrideType
 {

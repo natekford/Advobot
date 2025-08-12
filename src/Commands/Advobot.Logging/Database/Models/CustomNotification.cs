@@ -1,6 +1,6 @@
 ﻿using Advobot.SQLite.Relationships;
 
-namespace Advobot.Logging.Models;
+namespace Advobot.Logging.Database.Models;
 
 public record CustomNotification(
 	ulong ChannelId,

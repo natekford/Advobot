@@ -1,6 +1,6 @@
 ﻿using Advobot.Embeds;
 using Advobot.Logging.Database;
-using Advobot.Logging.Models;
+using Advobot.Logging.Database.Models;
 using Advobot.Logging.Service.Context;
 using Advobot.Logging.Service.Context.Message;
 using Advobot.Logging.Service.Context.Users;

@@ -1,7 +1,7 @@
 ﻿using Advobot.Attributes;
 using Advobot.Services;
 using Advobot.Settings.Database;
-using Advobot.Settings.Models;
+using Advobot.Settings.Database.Models;
 using Advobot.Utilities;
 
 using Discord;

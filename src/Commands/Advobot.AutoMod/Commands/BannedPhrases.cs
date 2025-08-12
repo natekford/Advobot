@@ -1,5 +1,5 @@
 ﻿using Advobot.Attributes;
-using Advobot.AutoMod.Models;
+using Advobot.AutoMod.Database.Models;
 using Advobot.AutoMod.ParameterPreconditions;
 using Advobot.AutoMod.TypeReaders;
 using Advobot.Localization;

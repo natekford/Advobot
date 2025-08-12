@@ -1,4 +1,4 @@
-﻿using Advobot.Levels.Models;
+﻿using Advobot.Levels.Database.Models;
 
 namespace Advobot.Levels.Database;
 

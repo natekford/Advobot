@@ -1,6 +1,6 @@
 ﻿using Discord;
 
-namespace Advobot.Settings.Models;
+namespace Advobot.Settings.Database.Models;
 
 public readonly struct CommandOverrideEntity
 {

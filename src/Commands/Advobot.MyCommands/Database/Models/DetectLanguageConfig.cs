@@ -1,4 +1,4 @@
-﻿namespace Advobot.MyCommands.Models;
+﻿namespace Advobot.MyCommands.Database.Models;
 
 public record DetectLanguageConfig(
 	string? APIKey,

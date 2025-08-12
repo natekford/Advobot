@@ -1,4 +1,4 @@
-﻿using Advobot.Settings.Models;
+﻿using Advobot.Settings.Database.Models;
 using Advobot.SQLite;
 
 using System.Data.SQLite;

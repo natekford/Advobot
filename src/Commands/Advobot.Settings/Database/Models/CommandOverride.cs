@@ -2,7 +2,7 @@
 
 using Discord;
 
-namespace Advobot.Settings.Models;
+namespace Advobot.Settings.Database.Models;
 
 public sealed record CommandOverride(
 	string CommandId,

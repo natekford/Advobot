@@ -1,7 +1,7 @@
 ﻿using Advobot.Levels.Database;
 using Advobot.SQLite.Relationships;
 
-namespace Advobot.Levels.Models;
+namespace Advobot.Levels.Database.Models;
 
 public sealed record User(
 	ulong ChannelId,

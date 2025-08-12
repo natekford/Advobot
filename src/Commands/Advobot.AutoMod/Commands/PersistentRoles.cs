@@ -1,5 +1,5 @@
 ﻿using Advobot.Attributes;
-using Advobot.AutoMod.Models;
+using Advobot.AutoMod.Database.Models;
 using Advobot.Localization;
 using Advobot.Modules;
 using Advobot.ParameterPreconditions.Discord.Roles;

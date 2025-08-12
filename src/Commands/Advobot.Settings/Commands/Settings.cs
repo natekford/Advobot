@@ -3,7 +3,7 @@ using Advobot.Localization;
 using Advobot.Preconditions.Permissions;
 using Advobot.Resources;
 using Advobot.Services.Help;
-using Advobot.Settings.Models;
+using Advobot.Settings.Database.Models;
 
 using Discord.Commands;
 

@@ -1,6 +1,6 @@
 ﻿using Advobot.Attributes;
 using Advobot.Localization;
-using Advobot.Logging.Models;
+using Advobot.Logging.Database.Models;
 using Advobot.Logging.ParameterPreconditions;
 using Advobot.Logging.Preconditions;
 using Advobot.Logging.Resetters;

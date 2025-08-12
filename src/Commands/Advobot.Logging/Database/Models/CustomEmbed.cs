@@ -2,7 +2,7 @@
 
 using Discord.Commands;
 
-namespace Advobot.Logging.Models;
+namespace Advobot.Logging.Database.Models;
 
 //TODO: validate lengths when parsing
 [NamedArgumentType]

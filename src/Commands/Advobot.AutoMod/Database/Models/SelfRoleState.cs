@@ -1,6 +1,6 @@
 ﻿using Discord;
 
-namespace Advobot.AutoMod.Models;
+namespace Advobot.AutoMod.Database.Models;
 
 public sealed class SelfRoleState(int group, IRole role, IReadOnlyList<IRole> conflictingRoles)
 {
