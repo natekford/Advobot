@@ -262,12 +262,11 @@ public sealed class AutoModService(
 		var context = new DynamicPunishmentContext(user.Guild, user.Id, true, punishment.PunishmentType)
 		{
 			RoleId = punishment.RoleId,
-			Options = options,
 		};
 
 		try
 		{
-			await punishmentService.PunishAsync(context).ConfigureAwait(false);
+			await punishmentService.PunishAsync(context, options).ConfigureAwait(false);
 		}
 		catch (Exception e)
 		{

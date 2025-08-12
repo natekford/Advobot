@@ -15,12 +15,12 @@ public sealed class Ban(IGuild guild, ulong userId, bool isGive)
 	: PunishmentBase(guild, userId, isGive, PunishmentType.Ban)
 {
 	/// <inheritdoc/>
-	public override Task ExecuteAsync()
+	public override Task ExecuteAsync(RequestOptions? options = null)
 	{
 		if (IsGive)
 		{
-			return Guild.AddBanAsync(UserId, 1, Options?.AuditLogReason, Options);
+			return Guild.AddBanAsync(UserId, 1, options?.AuditLogReason, options);
 		}
-		return Guild.RemoveBanAsync(UserId, Options);
+		return Guild.RemoveBanAsync(UserId, options);
 	}
 }

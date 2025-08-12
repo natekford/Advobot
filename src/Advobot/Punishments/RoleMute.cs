@@ -19,12 +19,12 @@ public sealed class RoleMute : GuildUserPunishmentBase
 	}
 
 	/// <inheritdoc/>
-	public override Task ExecuteAsync()
+	public override Task ExecuteAsync(RequestOptions? options = null)
 	{
 		if (IsGive)
 		{
-			return User.AddRoleAsync(Role!, Options);
+			return User.AddRoleAsync(Role!, options);
 		}
-		return User.RemoveRoleAsync(Role!, Options);
+		return User.RemoveRoleAsync(Role!, options);
 	}
 }

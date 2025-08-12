@@ -25,7 +25,7 @@ public sealed class DynamicPunishmentContext(IGuild guild, ulong userId, bool is
 	}
 
 	/// <inheritdoc/>
-	public override async Task ExecuteAsync()
+	public override async Task ExecuteAsync(RequestOptions? options = null)
 	{
 		var context = await GetContextAsync().ConfigureAwait(false);
 		if (context is null)
@@ -33,9 +33,8 @@ public sealed class DynamicPunishmentContext(IGuild guild, ulong userId, bool is
 			return;
 		}
 
-		context.Options = Options;
 		context.Duration = Duration;
-		await context.ExecuteAsync().ConfigureAwait(false);
+		await context.ExecuteAsync(options).ConfigureAwait(false);
 	}
 
 	private async Task<PunishmentBase?> GetContextAsync()

@@ -14,6 +14,6 @@ public sealed class Deafen(IGuildUser user, bool isGive)
 	: GuildUserPunishmentBase(user, isGive, PunishmentType.Deafen)
 {
 	/// <inheritdoc/>
-	public override Task ExecuteAsync()
-		=> User.ModifyAsync(x => x.Deaf = IsGive, Options);
+	public override Task ExecuteAsync(RequestOptions? options = null)
+		=> User.ModifyAsync(x => x.Deaf = IsGive, options);
 }

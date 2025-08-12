@@ -13,6 +13,6 @@ public sealed class Kick(IGuildUser user)
 	: GuildUserPunishmentBase(user, true, PunishmentType.Kick)
 {
 	/// <inheritdoc />
-	public override Task ExecuteAsync()
-		=> User.KickAsync(Options?.AuditLogReason, Options);
+	public override Task ExecuteAsync(RequestOptions? options = null)
+		=> User.KickAsync(options?.AuditLogReason, options);
 }

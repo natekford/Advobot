@@ -22,8 +22,6 @@ public abstract class PunishmentBase(IGuild guild, ulong userId, bool isGive, Pu
 	/// <inheritdoc />
 	public bool IsGive { get; protected set; } = isGive;
 	/// <inheritdoc />
-	public RequestOptions? Options { get; set; }
-	/// <inheritdoc />
 	public IRole? Role { get; protected set; }
 	/// <inheritdoc />
 	public PunishmentType Type { get; protected set; } = type;
@@ -31,5 +29,5 @@ public abstract class PunishmentBase(IGuild guild, ulong userId, bool isGive, Pu
 	public ulong UserId { get; protected set; } = userId;
 
 	/// <inheritdoc />
-	public abstract Task ExecuteAsync();
+	public abstract Task ExecuteAsync(RequestOptions? options = null);
 }

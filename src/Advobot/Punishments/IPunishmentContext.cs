@@ -8,6 +8,10 @@ namespace Advobot.Punishments;
 public interface IPunishmentContext
 {
 	/// <summary>
+	/// The amount of time the punishment should last for.
+	/// </summary>
+	public TimeSpan? Duration { get; }
+	/// <summary>
 	/// The guild for the punishment.
 	/// </summary>
 	public IGuild Guild { get; }
@@ -16,17 +20,9 @@ public interface IPunishmentContext
 	/// </summary>
 	public bool IsGive { get; }
 	/// <summary>
-	/// The Discord request options.
-	/// </summary>
-	public RequestOptions? Options { get; }
-	/// <summary>
 	/// The role to give or remove. This will only be used if the punishment involves roles.
 	/// </summary>
 	public IRole? Role { get; }
-	/// <summary>
-	/// The amount of time the punishment should last for.
-	/// </summary>
-	public TimeSpan? Duration { get; }
 	/// <summary>
 	/// The type of the punishment.
 	/// </summary>
@@ -39,6 +35,7 @@ public interface IPunishmentContext
 	/// <summary>
 	/// Punishes the user.
 	/// </summary>
+	/// <param name="options"></param>
 	/// <returns></returns>
-	public Task ExecuteAsync();
+	public Task ExecuteAsync(RequestOptions? options = null);
 }

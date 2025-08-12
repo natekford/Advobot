@@ -20,7 +20,7 @@ public sealed class TimedPunishmentService(
 	ITimeService time
 ) : StartableService, IPunishmentService
 {
-	public async Task PunishAsync(IPunishmentContext context)
+	public async Task PunishAsync(IPunishmentContext context, RequestOptions? options = null)
 	{
 		TimedPunishment ToDbModel(IPunishmentContext context)
 		{
@@ -36,7 +36,7 @@ public sealed class TimedPunishmentService(
 
 		try
 		{
-			await context.ExecuteAsync().ConfigureAwait(false);
+			await context.ExecuteAsync(options).ConfigureAwait(false);
 			if (context.IsGive && context.Duration.HasValue)
 			{
 				await db.AddTimedPunishmentAsync(ToDbModel(context)).ConfigureAwait(false);

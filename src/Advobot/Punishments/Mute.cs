@@ -14,6 +14,6 @@ public sealed class Mute(IGuildUser user, bool isGive)
 	: GuildUserPunishmentBase(user, isGive, PunishmentType.VoiceMute)
 {
 	/// <inheritdoc/>
-	public override Task ExecuteAsync()
-		=> User.ModifyAsync(x => x.Mute = IsGive, Options);
+	public override Task ExecuteAsync(RequestOptions? options = null)
+		=> User.ModifyAsync(x => x.Mute = IsGive, options);
 }
