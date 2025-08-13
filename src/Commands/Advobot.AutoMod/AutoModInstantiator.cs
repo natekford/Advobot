@@ -1,9 +1,9 @@
 ﻿using Advobot.AutoMod.Database;
 using Advobot.AutoMod.Service;
 using Advobot.CommandAssemblies;
-using Advobot.Punishments;
 using Advobot.Serilog;
 using Advobot.Services;
+using Advobot.Services.Punishments;
 using Advobot.SQLite;
 
 using Microsoft.Extensions.DependencyInjection;

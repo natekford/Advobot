@@ -3,6 +3,7 @@ using Advobot.AutoMod.Database.Models;
 using Advobot.AutoMod.Utils;
 using Advobot.Punishments;
 using Advobot.Services;
+using Advobot.Services.Punishments;
 using Advobot.Services.Time;
 using Advobot.Utilities;
 
@@ -277,7 +278,7 @@ public sealed class AutoModService(
 				{
 					Guild = context.Guild.Id,
 					User = context.UserId,
-					Role = context.Role?.Id ?? 0,
+					Role = context.RoleId,
 					PunishmentType = context.Type,
 					IsGive = context.IsGive,
 				}

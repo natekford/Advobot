@@ -2,8 +2,8 @@
 using Advobot.Interactivity.Criterions;
 using Advobot.Interactivity.TryParsers;
 using Advobot.Preconditions;
-using Advobot.Punishments;
 using Advobot.Services.BotConfig;
+using Advobot.Services.Punishments;
 using Advobot.Utilities;
 
 using Discord;

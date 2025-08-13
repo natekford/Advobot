@@ -3,7 +3,7 @@
 namespace Advobot.Punishments;
 
 /// <summary>
-/// Punishes based off of <see cref="IPunishmentContext.Type"/>.
+/// Punishes based off of <see cref="IPunishment.Type"/>.
 /// </summary>
 /// <remarks>
 /// Creates an instance of <see cref="DynamicPunishmentContext"/>.
@@ -15,14 +15,6 @@ namespace Advobot.Punishments;
 public sealed class DynamicPunishmentContext(IGuild guild, ulong userId, bool isGive, PunishmentType type)
 	: PunishmentBase(guild, userId, isGive)
 {
-	/// <summary>
-	/// The id of the role.
-	/// </summary>
-	public ulong RoleId
-	{
-		get => Role?.Id ?? 0;
-		set => Role = Guild.GetRole(value);
-	}
 	/// <inheritdoc />
 	public override PunishmentType Type => type;
 
@@ -41,22 +33,15 @@ public sealed class DynamicPunishmentContext(IGuild guild, ulong userId, bool is
 
 	private async Task<PunishmentBase?> GetContextAsync()
 	{
-		switch (Type)
-		{
-			case PunishmentType.Ban:
-				return new Ban(Guild, UserId, IsGive);
-
-			case PunishmentType.Softban:
-				return IsGive ? new SoftBan(Guild, UserId) : null;
-		}
-
 		var user = await Guild.GetUserAsync(UserId).ConfigureAwait(false);
 		return Type switch
 		{
+			PunishmentType.Ban => new Ban(Guild, UserId, IsGive),
 			PunishmentType.Deafen => new Deafen(user, IsGive),
-			PunishmentType.VoiceMute => new Mute(user, IsGive),
-			PunishmentType.Kick => IsGive ? new Kick(user) : null,
-			PunishmentType.RoleMute when Role != null => new RoleMute(user, IsGive, Role),
+			PunishmentType.Kick => new Kick(user),
+			PunishmentType.RoleMute => new RoleMute(user, Guild.GetRole(RoleId), IsGive),
+			PunishmentType.Softban => new SoftBan(Guild, UserId),
+			PunishmentType.VoiceMute => new VoiceMute(user, IsGive),
 			_ => null,
 		};
 	}

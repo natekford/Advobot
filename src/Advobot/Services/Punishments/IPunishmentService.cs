@@ -1,6 +1,8 @@
-﻿using Discord;
+﻿using Advobot.Punishments;
 
-namespace Advobot.Punishments;
+using Discord;
+
+namespace Advobot.Services.Punishments;
 
 /// <summary>
 /// Add and remove punishments for guild users.
@@ -13,5 +15,5 @@ public interface IPunishmentService
 	/// <param name="context"></param>
 	/// <param name="options"></param>
 	/// <returns></returns>
-	public Task PunishAsync(IPunishmentContext context, RequestOptions? options = null);
+	public Task PunishAsync(IPunishment context, RequestOptions? options = null);
 }

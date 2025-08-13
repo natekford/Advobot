@@ -347,7 +347,7 @@ public sealed class Users : ModuleBase
 			await ConfigureMuteRoleAsync(role).ConfigureAwait(false);
 
 			var isGive = !user.RoleIds.Contains(role.Id);
-			await PunishmentService.PunishAsync(new Punishments.RoleMute(user, isGive, role)
+			await PunishmentService.PunishAsync(new Punishments.RoleMute(user, role, isGive)
 			{
 				Duration = reason.Time,
 			}, GetOptions(reason.Reason)).ConfigureAwait(false);
@@ -551,7 +551,7 @@ public sealed class Users : ModuleBase
 		)
 		{
 			var isGive = !user.IsMuted;
-			await PunishmentService.PunishAsync(new Punishments.Mute(user, isGive)
+			await PunishmentService.PunishAsync(new Punishments.VoiceMute(user, isGive)
 			{
 				Duration = reason.Time,
 			}, GetOptions(reason.Reason)).ConfigureAwait(false);

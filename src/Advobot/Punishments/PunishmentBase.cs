@@ -12,20 +12,20 @@ namespace Advobot.Punishments;
 /// <param name="userId"></param>
 /// <param name="isGive"></param>
 public abstract class PunishmentBase(IGuild guild, ulong userId, bool isGive)
-	: IPunishmentContext
+	: IPunishment
 {
 	/// <inheritdoc />
 	public TimeSpan? Duration { get; set; }
 	/// <inheritdoc />
-	public IGuild Guild { get; protected set; } = guild;
+	public IGuild Guild { get; init; } = guild;
 	/// <inheritdoc />
-	public bool IsGive { get; protected set; } = isGive;
+	public bool IsGive { get; init; } = isGive;
 	/// <inheritdoc />
-	public IRole? Role { get; protected set; }
+	public ulong RoleId { get; init; }
 	/// <inheritdoc />
 	public abstract PunishmentType Type { get; }
 	/// <inheritdoc />
-	public ulong UserId { get; protected set; } = userId;
+	public ulong UserId { get; init; } = userId;
 
 	/// <inheritdoc />
 	public abstract Task ExecuteAsync(RequestOptions? options = null);

@@ -5,9 +5,6 @@ namespace Advobot.Punishments;
 /// <summary>
 /// Bans a user.
 /// </summary>
-/// <remarks>
-/// Creates an instance of <see cref="Deafen"/>.
-/// </remarks>
 /// <param name="guild"></param>
 /// <param name="userId"></param>
 /// <param name="isGive"></param>

@@ -1,10 +1,10 @@
 ﻿using Advobot.CommandAssemblies;
-using Advobot.Punishments;
 using Advobot.Services;
 using Advobot.Services.BotConfig;
 using Advobot.Services.Commands;
 using Advobot.Services.GuildSettings;
 using Advobot.Services.Help;
+using Advobot.Services.Punishments;
 using Advobot.Services.Time;
 using Advobot.Utilities;
 

@@ -2,6 +2,7 @@
 using Advobot.AutoMod.Database.Models;
 using Advobot.Punishments;
 using Advobot.Services;
+using Advobot.Services.Punishments;
 using Advobot.Services.Time;
 
 using Discord;
@@ -20,15 +21,15 @@ public sealed class TimedPunishmentService(
 	ITimeService time
 ) : StartableService, IPunishmentService
 {
-	public async Task PunishAsync(IPunishmentContext context, RequestOptions? options = null)
+	public async Task PunishAsync(IPunishment punishment, RequestOptions? options = null)
 	{
-		TimedPunishment ToDbModel(IPunishmentContext context)
+		TimedPunishment ToDbModel(IPunishment context)
 		{
 			return new()
 			{
 				GuildId = context.Guild.Id,
 				UserId = context.UserId,
-				RoleId = context.Role?.Id ?? 0,
+				RoleId = context.RoleId,
 				PunishmentType = context.Type,
 				EndTimeTicks = (time.UtcNow + context.Duration)?.Ticks ?? -1
 			};
@@ -36,14 +37,14 @@ public sealed class TimedPunishmentService(
 
 		try
 		{
-			await context.ExecuteAsync(options).ConfigureAwait(false);
-			if (context.IsGive && context.Duration.HasValue)
+			await punishment.ExecuteAsync(options).ConfigureAwait(false);
+			if (punishment.IsGive && punishment.Duration.HasValue)
 			{
-				await db.AddTimedPunishmentAsync(ToDbModel(context)).ConfigureAwait(false);
+				await db.AddTimedPunishmentAsync(ToDbModel(punishment)).ConfigureAwait(false);
 			}
-			else if (!context.IsGive)
+			else if (!punishment.IsGive)
 			{
-				await db.DeleteTimedPunishmentAsync(ToDbModel(context)).ConfigureAwait(false);
+				await db.DeleteTimedPunishmentAsync(ToDbModel(punishment)).ConfigureAwait(false);
 			}
 		}
 		catch (Exception e)
@@ -53,11 +54,11 @@ public sealed class TimedPunishmentService(
 				message: "Exception occurred while handling punishment. {@Info}",
 				args: new
 				{
-					Guild = context.Guild.Id,
-					User = context.UserId,
-					Role = context.Role?.Id ?? 0,
-					PunishmentType = context.Type,
-					IsGive = context.IsGive,
+					Guild = punishment.Guild.Id,
+					User = punishment.UserId,
+					Role = punishment.RoleId,
+					PunishmentType = punishment.Type,
+					IsGive = punishment.IsGive,
 				}
 			);
 			throw;

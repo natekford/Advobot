@@ -5,7 +5,7 @@ namespace Advobot.Punishments;
 /// <summary>
 /// Context for a punishment being given or removed.
 /// </summary>
-public interface IPunishmentContext
+public interface IPunishment
 {
 	/// <summary>
 	/// The amount of time the punishment should last for.
@@ -22,7 +22,7 @@ public interface IPunishmentContext
 	/// <summary>
 	/// The role to give or remove. This will only be used if the punishment involves roles.
 	/// </summary>
-	public IRole? Role { get; }
+	public ulong RoleId { get; }
 	/// <summary>
 	/// The type of the punishment.
 	/// </summary>

@@ -5,29 +5,34 @@ namespace Advobot.Punishments;
 /// <summary>
 /// Mutes a user via a role.
 /// </summary>
-public sealed class RoleMute : GuildUserPunishmentBase
+/// <param name="user"></param>
+/// <param name="role"></param>
+/// <param name="isGive"></param>
+public sealed class RoleMute(IGuildUser user, IRole role, bool isGive)
+	: PunishmentBase(user.Guild, user.Id, isGive)
 {
+	/// <inheritdoc cref="IPunishment.RoleId" />
+	public IRole Role
+	{
+		get;
+		init
+		{
+			field = value;
+			RoleId = value?.Id ?? 0;
+		}
+	} = role;
 	/// <inheritdoc />
 	public override PunishmentType Type => PunishmentType.RoleMute;
-
-	/// <summary>
-	/// Creates an instance of <see cref="RoleMute"/>.
-	/// </summary>
-	/// <param name="user"></param>
-	/// <param name="isGive"></param>
-	/// <param name="role"></param>
-	public RoleMute(IGuildUser user, bool isGive, IRole role) : base(user, isGive)
-	{
-		Role = role;
-	}
+	/// <inheritdoc cref="IPunishment.UserId" />
+	public IGuildUser User { get; } = user;
 
 	/// <inheritdoc/>
 	public override Task ExecuteAsync(RequestOptions? options = null)
 	{
 		if (IsGive)
 		{
-			return User.AddRoleAsync(Role!, options);
+			return User.AddRoleAsync(Role, options);
 		}
-		return User.RemoveRoleAsync(Role!, options);
+		return User.RemoveRoleAsync(Role, options);
 	}
 }

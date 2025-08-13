@@ -5,17 +5,22 @@ namespace Advobot.Punishments;
 /// <summary>
 /// Kicks a user.
 /// </summary>
-/// <remarks>
-/// Creates an instance of <see cref="Kick"/>.
-/// </remarks>
 /// <param name="user"></param>
 public sealed class Kick(IGuildUser user)
-	: GuildUserPunishmentBase(user, true)
+	: PunishmentBase(user.Guild, user.Id, true)
 {
 	/// <inheritdoc />
 	public override PunishmentType Type => PunishmentType.Kick;
+	/// <inheritdoc cref="IPunishment.UserId" />
+	public IGuildUser User { get; } = user;
 
 	/// <inheritdoc />
 	public override Task ExecuteAsync(RequestOptions? options = null)
-		=> User.KickAsync(options?.AuditLogReason, options);
+	{
+		if (IsGive)
+		{
+			return User.KickAsync(options?.AuditLogReason, options);
+		}
+		return Task.CompletedTask;
+	}
 }
