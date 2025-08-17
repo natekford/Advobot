@@ -8,9 +8,6 @@ namespace Advobot.Preconditions.Results;
 /// <summary>
 /// Result indicating the user cannot modify the target.
 /// </summary>
-/// <remarks>
-/// Creates an instance of <see cref="InvalidInvokingUser"/>.
-/// </remarks>
 /// <param name="user"></param>
 /// <param name="target"></param>
 public class LackingPermissions(IGuildUser user, ISnowflakeEntity target) : PreconditionResult(CommandError.UnmetPrecondition, $"`{user.Format()}` lacks the ability to modify `{target.Format()}`.")

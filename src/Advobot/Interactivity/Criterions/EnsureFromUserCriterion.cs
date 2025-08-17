@@ -6,9 +6,6 @@ namespace Advobot.Interactivity.Criterions;
 /// <summary>
 /// Determines if a message is from the specified user.
 /// </summary>
-/// <remarks>
-/// Creates an instance of <see cref="EnsureFromUserCriterion"/>.
-/// </remarks>
 /// <param name="userId"></param>
 public sealed class EnsureFromUserCriterion(ulong userId) : ICriterion<IMessage>
 {

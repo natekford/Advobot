@@ -260,7 +260,7 @@ public sealed class AutoModService(
 		Punishment punishment,
 		RequestOptions options)
 	{
-		var context = new DynamicPunishmentContext(user.Guild, user.Id, true, punishment.PunishmentType)
+		var context = new DynamicPunishment(user.Guild, user.Id, true, punishment.PunishmentType)
 		{
 			RoleId = punishment.RoleId,
 		};

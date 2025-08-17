@@ -5,9 +5,6 @@ namespace Advobot.Punishments;
 /// <summary>
 /// Context for a punishment being given or removed.
 /// </summary>
-/// <remarks>
-/// Creates an instance of <see cref="PunishmentBase"/>.
-/// </remarks>
 /// <param name="guild"></param>
 /// <param name="userId"></param>
 /// <param name="isGive"></param>

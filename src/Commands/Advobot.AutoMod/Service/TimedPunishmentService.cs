@@ -114,7 +114,7 @@ public sealed class TimedPunishmentService(
 			return false;
 		}
 
-		var context = new DynamicPunishmentContext(guild, punishment.UserId, false, punishment.PunishmentType)
+		var context = new DynamicPunishment(guild, punishment.UserId, false, punishment.PunishmentType)
 		{
 			RoleId = punishment.RoleId
 		};

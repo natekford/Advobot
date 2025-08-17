@@ -20,7 +20,7 @@ public sealed class Guilds : AdvobotResult
 			.Select(x => x.Id)
 			.Join(Environment.NewLine)
 			.WithBigBlock()
-			.Value;
+			.Current;
 		return Success(new EmbedWrapper
 		{
 			Title = GuildsTitleRegionIds,

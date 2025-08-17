@@ -24,7 +24,7 @@ public sealed class BannedPhrases : AdvobotResult
 		{
 			return Success(VariableNone);
 		}
-		return Success(joined.WithBigBlock().Value);
+		return Success(joined.WithBigBlock().Current);
 	}
 
 	public static AdvobotResult PunishmentChanged(

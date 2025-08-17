@@ -123,9 +123,6 @@ public abstract class MultiUserActionModuleBase : AdvobotModuleBase
 	/// <summary>
 	/// Event arguments for the status of the multi user action.
 	/// </summary>
-	/// <remarks>
-	/// Creates an instance of <see cref="MultiUserActionProgressArgs"/>.
-	/// </remarks>
 	/// <param name="total"></param>
 	/// <param name="current"></param>
 	public sealed class MultiUserActionProgressArgs(int total, int current) : EventArgs

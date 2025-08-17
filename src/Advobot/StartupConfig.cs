@@ -62,12 +62,8 @@ public sealed class StartupConfig : IConfig
 		Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping,
 		IncludeFields = true,
 		WriteIndented = true,
+		Converters = { new JsonStringEnumConverter() }
 	};
-
-	static StartupConfig()
-	{
-		JsonOptions.Converters.Add(new JsonStringEnumConverter());
-	}
 
 	/// <summary>
 	/// Attempts to load the configuration with the supplied instance number otherwise uses the default initialization for config.

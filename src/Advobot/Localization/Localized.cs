@@ -40,9 +40,6 @@ public static class Localized
 /// Holds different instances of <typeparamref name="T"/> based on <see cref="CultureInfo.CurrentUICulture"/>.
 /// </summary>
 /// <typeparam name="T"></typeparam>
-/// <remarks>
-/// Creates an instance of <see cref="Localized{T}"/>.
-/// </remarks>
 /// <param name="valueFactory"></param>
 public sealed class Localized<T>(Func<CultureInfo, T> valueFactory)
 {

@@ -54,7 +54,7 @@ public sealed class Users : AdvobotResult
 			.Select((x, i) => $"{i.ToString().PadRight(padLen)} {x.User.Format()}")
 			.Join(Environment.NewLine)
 			.WithBigBlock()
-			.Value;
+			.Current;
 		return Success(new EmbedWrapper
 		{
 			Title = UsersTitleBans,

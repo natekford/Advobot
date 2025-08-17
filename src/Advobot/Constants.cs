@@ -66,7 +66,10 @@ public static class Constants
 	/// <summary>
 	/// The invite to the Discord server.
 	/// </summary>
-	/// <remarks>Switched from /xd to this invite since no matter what this inv will link to my server and never someone else's server.</remarks>
+	/// <remarks>
+	/// Switched from /xd to this invite since no matter what this invite will
+	/// link to my server and never someone else's server.
+	/// </remarks>
 	public const string INVITE = "https://discord.gg/MBXypxb";
 	/// <summary>
 	/// Placeholder prefix for easy replacement.

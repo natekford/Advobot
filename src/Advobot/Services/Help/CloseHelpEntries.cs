@@ -5,9 +5,6 @@ namespace Advobot.Services.Help;
 /// <summary>
 /// Implementation of <see cref="CloseWords{T}"/> which searches through help entries.
 /// </summary>
-/// <remarks>
-/// Creates an instance of <see cref="CloseHelpEntries"/>.
-/// </remarks>
 /// <param name="source"></param>
 internal sealed class CloseHelpEntries(IReadOnlyList<IHelpModule> source)
 	: CloseWords<IHelpModule>(source, x => x.Name)

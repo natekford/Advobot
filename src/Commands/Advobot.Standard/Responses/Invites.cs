@@ -39,7 +39,7 @@ public sealed class Invites : AdvobotResult
 			.Select(FormatInvite)
 			.Join("\n")
 			.WithBigBlock()
-			.Value;
+			.Current;
 		return Success(new EmbedWrapper
 		{
 			Title = InvitesTitleDisplay,

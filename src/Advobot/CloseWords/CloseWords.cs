@@ -8,9 +8,6 @@ namespace Advobot.CloseWords;
 /// Gathers objects with similar names to the passed in input.
 /// </summary>
 /// <typeparam name="T"></typeparam>
-/// <remarks>
-/// Creates an instance of <see cref="CloseWords{T}"/>.
-/// </remarks>
 /// <param name="source"></param>
 /// <param name="getName"></param>
 public class CloseWords<T>(IReadOnlyList<T> source, Func<T, string> getName)

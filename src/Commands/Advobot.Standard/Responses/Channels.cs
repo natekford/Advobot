@@ -64,7 +64,7 @@ public sealed class Channels : AdvobotResult
 			.Select(x => $"{x.Position:00}. {x.Name}")
 			.Join("\n")
 			.WithBigBlock()
-			.Value;
+			.Current;
 		return Success(new EmbedWrapper
 		{
 			Title = title,
@@ -85,7 +85,7 @@ public sealed class Channels : AdvobotResult
 			.ToDictionary(x => x.Key.ToString(), x => x.Value)
 			.FormatPermissionList()
 			.WithBigBlock()
-			.Value;
+			.Current;
 		return Success(new EmbedWrapper
 		{
 			Title = title,
@@ -106,9 +106,9 @@ public sealed class Channels : AdvobotResult
 			Title = title,
 		};
 
-		var rolesValue = roleNames.Join().WithBigBlock().Value;
+		var rolesValue = roleNames.Join().WithBigBlock().Current;
 		embed.TryAddField(ChannelsTitleAllOverwritesRoles, rolesValue, false, out _);
-		var usersValue = userNames.Join().WithBigBlock().Value;
+		var usersValue = userNames.Join().WithBigBlock().Current;
 		embed.TryAddField(ChannelsTitleAllOverwritesUsers, usersValue, false, out _);
 
 		return Success(embed);

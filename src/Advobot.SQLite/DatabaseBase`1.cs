@@ -11,9 +11,6 @@ namespace Advobot.SQLite;
 /// Base class for a SQL database.
 /// </summary>
 /// <typeparam name="T"></typeparam>
-/// <remarks>
-/// Creates an instance of <see cref="DatabaseBase{T}"/>.
-/// </remarks>
 /// <param name="conn"></param>
 public abstract class DatabaseBase<T>(IConnectionString conn) where T : DbConnection, new()
 {

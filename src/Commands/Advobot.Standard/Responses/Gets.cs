@@ -160,12 +160,12 @@ public sealed class Gets : AdvobotResult
 		};
 		if (roles.Count > 0)
 		{
-			var fieldValue = roles.Join().WithBlock().Value;
+			var fieldValue = roles.Join().WithBlock().Current;
 			embed.TryAddField(GetsTitleRoles, fieldValue, false, out _);
 		}
 		if (users.Count > 0)
 		{
-			var fieldValue = users.Join().WithBlock().Value;
+			var fieldValue = users.Join().WithBlock().Current;
 			embed.TryAddField(GetsTitleUsers, fieldValue, false, out _);
 		}
 		return Success(embed);
@@ -305,7 +305,7 @@ public sealed class Gets : AdvobotResult
 
 			if (!string.IsNullOrWhiteSpace(fieldValue))
 			{
-				fieldValue = fieldValue.WithBlock().Value;
+				fieldValue = fieldValue.WithBlock().Current;
 				embed.TryAddField(GetsTitleFeatures, fieldValue, false, out _);
 			}
 		}
@@ -393,7 +393,7 @@ public sealed class Gets : AdvobotResult
 		};
 		if (permissions.Length > 0)
 		{
-			var fieldValue = permissions.Join().WithBlock().Value;
+			var fieldValue = permissions.Join().WithBlock().Current;
 			embed.TryAddField(GetsTitlePermissions, fieldValue, false, out _);
 		}
 		return Success(embed);
@@ -499,18 +499,18 @@ public sealed class Gets : AdvobotResult
 
 		if (roles.Count > 0)
 		{
-			var fieldValue = roles.Select(x => x.Name).Join().WithBigBlock().Value;
+			var fieldValue = roles.Select(x => x.Name).Join().WithBigBlock().Current;
 			embed.TryAddField(GetsTitleRoles, fieldValue, false, out _);
 			embed.Color = roles.LastOrDefault(x => x.Color.RawValue != 0)?.Color;
 		}
 		if (textChannels.Count > 0)
 		{
-			var fieldValue = textChannels.Select(x => x.Name).Join().WithBigBlock().Value;
+			var fieldValue = textChannels.Select(x => x.Name).Join().WithBigBlock().Current;
 			embed.TryAddField(GetsTitleTextChannels, fieldValue, false, out _);
 		}
 		if (voiceChannels.Count > 0)
 		{
-			var fieldValue = voiceChannels.Select(x => x.Name).Join().WithBigBlock().Value;
+			var fieldValue = voiceChannels.Select(x => x.Name).Join().WithBigBlock().Current;
 			embed.TryAddField(GetsTitleVoiceChannels, fieldValue, false, out _);
 		}
 		if (guildUser.VoiceChannel is IVoiceChannel vc)

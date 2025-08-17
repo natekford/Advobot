@@ -25,7 +25,7 @@ public sealed class Webhooks : AdvobotResult
 			.Select(x => x.Format())
 			.Join(Environment.NewLine)
 			.WithBigBlock()
-			.Value;
+			.Current;
 		return Success(new EmbedWrapper
 		{
 			Title = title,

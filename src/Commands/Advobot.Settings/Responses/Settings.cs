@@ -15,7 +15,7 @@ public sealed class Settings : AdvobotResult
 	public static AdvobotResult ClearedCommands(IEnumerable<IHelpModule> entries)
 	{
 		return Success(SettingsClearedCommands.Format(
-			entries.Select(x => x.Name.WithBlock().Value).Join().WithNoMarkdown()
+			entries.Select(x => x.Name.WithBlock().Current).Join().WithNoMarkdown()
 		));
 	}
 
@@ -27,7 +27,7 @@ public sealed class Settings : AdvobotResult
 		var format = enabled ? SettingsEnabledCommands : SettingsDisabledCommands;
 		return Success(format.Format(
 			priority.ToString().WithBlock(),
-			entries.Select(x => x.Name.WithBlock().Value).Join().WithNoMarkdown()
+			entries.Select(x => x.Name.WithBlock().Current).Join().WithNoMarkdown()
 		));
 	}
 }

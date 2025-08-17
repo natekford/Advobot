@@ -9,9 +9,6 @@ namespace Advobot.ParameterPreconditions.Strings;
 /// <summary>
 /// Certain objects in Discord have minimum and maximum lengths for the names that can be set for them. This attribute verifies those lengths and provides errors stating the min/max if under/over.
 /// </summary>
-/// <remarks>
-/// Creates an instance of <see cref="StringLengthParameterPrecondition"/>.
-/// </remarks>
 /// <param name="min"></param>
 /// <param name="max"></param>
 [AttributeUsage(AttributeTargets.Parameter, AllowMultiple = false, Inherited = true)]

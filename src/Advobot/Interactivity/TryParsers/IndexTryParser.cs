@@ -5,9 +5,6 @@ namespace Advobot.Interactivity.TryParsers;
 /// <summary>
 /// Attempts to parse an index from a message.
 /// </summary>
-/// <remarks>
-/// Creates an instance of <see cref="IndexTryParser"/>.
-/// </remarks>
 /// <param name="minVal"></param>
 /// <param name="maxVal"></param>
 public sealed class IndexTryParser(int minVal, int maxVal) : IMessageTryParser<int>

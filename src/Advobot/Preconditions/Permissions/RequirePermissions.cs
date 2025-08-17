@@ -11,9 +11,6 @@ namespace Advobot.Preconditions.Permissions;
 /// <summary>
 /// For verifying <see cref="SocketGuildUser"/> permissions.
 /// </summary>
-/// <remarks>
-/// Creates an instance of <see cref="RequirePermissions"/>.
-/// </remarks>
 /// <param name="permissions"></param>
 [AttributeUsage(AttributeTargets.Class | AttributeTargets.Method, AllowMultiple = false, Inherited = true)]
 public abstract class RequirePermissions(IEnumerable<Enum> permissions)

@@ -241,7 +241,7 @@ public static class FormattingUtils
 	/// <returns></returns>
 	public static string Format(this string format, params MarkdownString[] args)
 	{
-		var casted = Array.ConvertAll(args, x => x.Value);
+		var casted = Array.ConvertAll(args, x => x.Current);
 		return string.Format(format, casted);
 	}
 
@@ -410,24 +410,12 @@ public static class FormattingUtils
 	/// <summary>
 	/// Contains the original value and a newly formatted value.
 	/// </summary>
-	/// <remarks>
-	/// Creates an instance of <see cref="MarkdownString"/>.
-	/// </remarks>
-	/// <param name="original"></param>
-	/// <param name="current"></param>
-	public readonly struct MarkdownString(string original, string current)
+	/// <param name="Original">The original value.</param>
+	/// <param name="Current">The newly created value.</param>
+	public readonly record struct MarkdownString(string Original, string Current)
 	{
-		/// <summary>
-		/// The original value.
-		/// </summary>
-		public string Original { get; } = original;
-		/// <summary>
-		/// The newly created value.
-		/// </summary>
-		public string Value { get; } = current;
-
 		/// <inheritdoc />
 		public override string ToString()
-			=> Value;
+			=> Current;
 	}
 }

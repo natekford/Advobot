@@ -5,9 +5,6 @@ namespace Advobot.Preconditions.Results;
 /// <summary>
 /// Result indicating an invalid type was passed in. (Generic attributes would be helpful)
 /// </summary>
-/// <remarks>
-/// Creates an instance of <see cref="NotSupported"/>.
-/// </remarks>
 /// <param name="value"></param>
 /// <param name="supportedType"></param>
 public class NotSupported(object value, Type supportedType) : PreconditionResult(CommandError.ParseFailed, GenerateReason(value, supportedType))

@@ -41,7 +41,7 @@ public sealed class Roles : AdvobotResult
 			.Select(x => $"{x.Position:00}. {x.Name}")
 			.Join(Environment.NewLine)
 			.WithBigBlock()
-			.Value;
+			.Current;
 		return Success(new EmbedWrapper
 		{
 			Title = RolesTitleDisplay,
@@ -61,7 +61,7 @@ public sealed class Roles : AdvobotResult
 			)
 			.FormatPermissionList()
 			.WithBigBlock()
-			.Value;
+			.Current;
 		return Success(new EmbedWrapper
 		{
 			Title = title,

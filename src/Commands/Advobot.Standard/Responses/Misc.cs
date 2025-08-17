@@ -33,7 +33,7 @@ public sealed class Misc : AdvobotResult
 			.Select(x => x.Name)
 			.Join()
 			.WithBigBlock()
-			.Value;
+			.Current;
 		return Success(new EmbedWrapper
 		{
 			Title = title,
@@ -117,7 +117,7 @@ public sealed class Misc : AdvobotResult
 				.Select((x, i) => $"{i + 1}. {x.Name}")
 				.Join("\n")
 				.WithBigBlock()
-				.Value;
+				.Current;
 			info.CreateCollection().Add(MiscTitleSubmodules, submodules);
 		}
 
@@ -128,7 +128,7 @@ public sealed class Misc : AdvobotResult
 				var parameters = x.Parameters.Select(FormatParameter).Join();
 				var name = string.IsNullOrWhiteSpace(x.Name) ? "" : x.Name + " ";
 				return $"{i + 1}. {name}({parameters})";
-			}).Join("\n").WithBigBlock().Value;
+			}).Join("\n").WithBigBlock().Current;
 			info.CreateCollection().Add(MiscTitleCommands, commands);
 		}
 
@@ -150,7 +150,7 @@ public sealed class Misc : AdvobotResult
 
 		var info = new InfoMatrix();
 		var top = info.CreateCollection();
-		top.Add(MiscTitleAliases, command.Aliases.Select(x => x.WithBlock().Value).Join());
+		top.Add(MiscTitleAliases, command.Aliases.Select(x => x.WithBlock().Current).Join());
 		top.Add(MiscTitleBasePermissions, FormatPreconditions(command.Preconditions));
 		var description = info.CreateCollection();
 		description.Add(MiscTitleDescription, command.Summary);
