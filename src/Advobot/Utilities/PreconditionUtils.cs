@@ -51,19 +51,6 @@ public static class PreconditionUtils
 		=> InvalidInvokingUser.Instance;
 
 	/// <summary>
-	/// Creates a <see cref="NotSupported"/>.
-	/// </summary>
-	/// <param name="_"></param>
-	/// <param name="value"></param>
-	/// <param name="type"></param>
-	/// <returns></returns>
-	public static PreconditionResult FromOnlySupports(
-		this Attribute _,
-		object value,
-		Type type)
-		=> new NotSupported(value, type);
-
-	/// <summary>
 	/// Returns <see cref="SuccessInstance"/>.
 	/// </summary>
 	/// <param name="_"></param>

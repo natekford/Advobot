@@ -44,7 +44,14 @@ public abstract class AdvobotModuleBase : ModuleBase<AdvobotCommandContext>
 	/// <param name="reason"></param>
 	/// <returns></returns>
 	public RequestOptions GetOptions(string? reason = null)
-		=> Context.GenerateRequestOptions(reason);
+	{
+		var r = Context.User.Format();
+		if (reason != null)
+		{
+			r += $": {reason.TrimEnd()}.";
+		}
+		return DiscordUtils.GenerateRequestOptions(r);
+	}
 
 	/// <summary>
 	/// Gets the next valid index supplied by the user. This is blocking.

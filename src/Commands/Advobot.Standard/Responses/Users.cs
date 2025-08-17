@@ -23,8 +23,8 @@ public sealed class Users : AdvobotResult
 		));
 	}
 
-	public static AdvobotResult Banned(bool punished, IUser user, TimeSpan? time)
-		=> Punished(punished, VariableBanned, VariableUnbanned, Format(user), time);
+	public static AdvobotResult Banned(ulong userId, TimeSpan? time)
+		=> Punished(true, VariableBanned, VariableUnbanned, Format(userId), time);
 
 	public static AdvobotResult BannedMany(IEnumerable<IUser> users, TimeSpan? time)
 		=> Punished(true, VariableBanned, VariableUnbanned, Format(users), time);
@@ -126,8 +126,11 @@ public sealed class Users : AdvobotResult
 		));
 	}
 
-	public static AdvobotResult SoftBanned(IUser user)
-		=> Punished(true, VariableSoftBanned, string.Empty, Format(user), null);
+	public static AdvobotResult SoftBanned(ulong userId)
+		=> Punished(true, VariableSoftBanned, string.Empty, Format(userId), null);
+
+	public static AdvobotResult Unbanned(IUser user)
+		=> Punished(false, VariableBanned, VariableUnbanned, Format(user), null);
 
 	public static AdvobotResult VoiceMuted(bool punished, IUser user, TimeSpan? time)
 		=> Punished(punished, VariableVoiceMuted, VariableUnvoiceMuted, Format(user), time);
@@ -137,6 +140,9 @@ public sealed class Users : AdvobotResult
 
 	private static MarkdownString Format(IUser user)
 		=> user.Format().WithBlock();
+
+	private static MarkdownString Format(ulong userId)
+		=> userId.ToString().WithBlock();
 
 	private static AdvobotResult Punished(
 		bool punished,

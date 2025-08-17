@@ -180,21 +180,22 @@ public sealed class Gets : ModuleBase
 		[Command]
 		public Task<RuntimeResult> Command([Positive] int position)
 		{
-			var users = Context.Guild.Users.OrderByJoinDate();
-			var newPos = Math.Min(position, users.Count);
-			return Responses.Gets.UserJoinPosition(users[newPos - 1], newPos);
-		}
-	}
+			var users = Context.Guild.Users
+				.Where(x => x.JoinedAt.HasValue)
+				.OrderBy(x => x.JoinedAt.GetValueOrDefault().Ticks);
 
-	[LocalizedGroup(nameof(Groups.GetUserJoinList))]
-	[LocalizedAlias(nameof(Aliases.GetUserJoinList))]
-	[LocalizedSummary(nameof(Summaries.GetUserJoinList))]
-	[Meta("7ceac749-15ea-4f7f-9c7a-f531b1288d98", IsEnabled = true)]
-	[RequireGenericGuildPermissions]
-	public sealed class GetUserJoinList : AdvobotModuleBase
-	{
-		[Command]
-		public Task<RuntimeResult> Command()
-			=> Responses.Gets.UserJoin(Context.Guild.Users.OrderByJoinDate());
+			var i = 0;
+			var requestedUser = users.First();
+			foreach (var user in users)
+			{
+				requestedUser = user;
+				if (++i == position)
+				{
+					break;
+				}
+			}
+
+			return Responses.Gets.UserJoinPosition(requestedUser, i + 1);
+		}
 	}
 }

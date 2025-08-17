@@ -8,6 +8,9 @@ using Advobot.Utilities;
 
 using Discord.Commands;
 
+using System.Diagnostics;
+using System.Reflection;
+
 namespace Advobot.Standard.Commands;
 
 [Category(nameof(Client))]
@@ -51,7 +54,16 @@ public sealed class Client : ModuleBase
 	public sealed class RestartBot : AdvobotModuleBase
 	{
 		[Command(RunMode = RunMode.Async)]
-		public Task Command()
-			=> Context.Client.RestartBotAsync(BotConfig);
+		public async Task Command()
+		{
+			await Context.Client.StopAsync().ConfigureAwait(false);
+			// For some reason Process.Start("dotnet", loc); doesn't work the same as what's currently used.
+			Process.Start(new ProcessStartInfo
+			{
+				FileName = "dotnet",
+				Arguments = $@"""{Assembly.GetEntryAssembly()!.Location}"" {BotConfig.RestartArguments}"
+			});
+			Process.GetCurrentProcess().Kill();
+		}
 	}
 }

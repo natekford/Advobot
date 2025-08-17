@@ -1,4 +1,5 @@
-﻿using Advobot.Services.Help;
+﻿using Advobot.Preconditions.Results;
+using Advobot.Services.Help;
 using Advobot.Utilities;
 
 using Discord;
@@ -50,7 +51,7 @@ public abstract class AdvobotParameterPrecondition<T>
 		{
 			return CheckPermissionsAsync(context, parameter, invoker!, enumerable, services);
 		}
-		return this.FromOnlySupports(value, typeof(T)).AsTask();
+		return new NotSupported(value, typeof(T)).AsTask();
 	}
 
 	/// <summary>

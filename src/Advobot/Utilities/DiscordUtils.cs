@@ -35,35 +35,6 @@ public static class DiscordUtils
 	}
 
 	/// <summary>
-	/// Generates a default request options explaining who invoked the command for the audit log.
-	/// </summary>
-	/// <param name="context"></param>
-	/// <param name="reason"></param>
-	/// <returns></returns>
-	public static RequestOptions GenerateRequestOptions(
-		this ICommandContext context,
-		string? reason = null)
-		=> context.User.GenerateRequestOptions(reason);
-
-	/// <summary>
-	/// Generates a default request options explaining who invoked the command for the audit log.
-	/// </summary>
-	/// <param name="user"></param>
-	/// <param name="reason"></param>
-	/// <returns></returns>
-	public static RequestOptions GenerateRequestOptions(
-		this IUser user,
-		string? reason = null)
-	{
-		var r = user.Format();
-		if (reason != null)
-		{
-			r += $": {reason.TrimEnd()}.";
-		}
-		return GenerateRequestOptions(r);
-	}
-
-	/// <summary>
 	/// Returns request options, with <paramref name="reason"/> as the audit log reason.
 	/// </summary>
 	/// <param name="reason"></param>
@@ -87,17 +58,9 @@ public static class DiscordUtils
 		return [.. user.RoleIds
 			.Select(x => user.Guild.GetRole(x))
 			.Where(x => x.Id != user.Guild.EveryoneRole.Id)
-			.OrderBy(x => x.Position)];
+			.OrderBy(x => x.Position)
+		];
 	}
-
-	/// <summary>
-	/// Gets a user from the cache if available.
-	/// </summary>
-	/// <param name="client"></param>
-	/// <param name="id"></param>
-	/// <returns></returns>
-	public static async Task<IUser?> GetUserAsync(this BaseSocketClient client, ulong id)
-		=> (IUser)client.GetUser(id) ?? await client.Rest.GetUserAsync(id).ConfigureAwait(false);
 
 	/// <summary>
 	/// Changes the role's position and says the supplied reason in the audit log.
@@ -203,34 +166,5 @@ public static class DiscordUtils
 		}
 
 		return guild.ModifyAsync(x => x.SystemChannelFlags = newValue, options);
-	}
-
-	/// <summary>
-	/// Returns every user that has a non null join time in order from least to greatest.
-	/// </summary>
-	/// <param name="users"></param>
-	/// <returns></returns>
-	public static IReadOnlyList<T> OrderByJoinDate<T>(this IEnumerable<T> users) where T : IGuildUser
-	{
-		return [.. users
-			.Where(x => x.JoinedAt.HasValue)
-			.OrderBy(x => x.JoinedAt.GetValueOrDefault().Ticks)];
-	}
-
-	/// <summary>
-	/// Restarts the application correctly if it's a .Net Core application.
-	/// </summary>
-	/// <param name="client"></param>
-	/// <param name="restartArgs"></param>
-	public static async Task RestartBotAsync(this IDiscordClient client, IConfig restartArgs)
-	{
-		await client.StopAsync().ConfigureAwait(false);
-		// For some reason Process.Start("dotnet", loc); doesn't work the same as what's currently used.
-		Process.Start(new ProcessStartInfo
-		{
-			FileName = "dotnet",
-			Arguments = $@"""{Assembly.GetEntryAssembly()!.Location}"" {restartArgs.RestartArguments}"
-		});
-		Process.GetCurrentProcess().Kill();
 	}
 }

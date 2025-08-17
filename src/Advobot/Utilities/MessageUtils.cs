@@ -282,7 +282,7 @@ public static class MessageUtils
 /// <summary>
 /// Arguments used for deleting a message.
 /// </summary>
-public sealed class DeleteMessageArgs
+public sealed record DeleteMessageArgs
 {
 	/// <summary>
 	/// The amount of messages to delete.
@@ -310,7 +310,7 @@ public sealed class DeleteMessageArgs
 /// <summary>
 /// Arguments used for sending a message.
 /// </summary>
-public sealed class SendMessageArgs
+public sealed record SendMessageArgs
 {
 	/// <summary>
 	/// The allowed mentions of the message. By default this is None.

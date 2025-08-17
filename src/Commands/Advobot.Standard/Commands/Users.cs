@@ -50,12 +50,11 @@ public sealed class Users : ModuleBase
 			ModerationReason reason = default
 		)
 		{
-			var user = await Context.Client.GetUserAsync(userId).ConfigureAwait(false);
 			await PunishmentService.PunishAsync(new Punishments.Ban(Context.Guild, userId, true)
 			{
 				Duration = reason.Time,
 			}, GetOptions(reason.Reason)).ConfigureAwait(false);
-			return Responses.Users.Banned(true, user!, reason.Time);
+			return Responses.Users.Banned(userId, reason.Time);
 		}
 	}
 
@@ -505,12 +504,11 @@ public sealed class Users : ModuleBase
 			ModerationReason reason = default
 		)
 		{
-			var user = await Context.Client.GetUserAsync(userId).ConfigureAwait(false);
 			await PunishmentService.PunishAsync(new Punishments.Ban(Context.Guild, userId, true)
 			{
 				Duration = reason.Time,
 			}, GetOptions(reason.Reason)).ConfigureAwait(false);
-			return Responses.Users.Banned(true, user!, reason.Time);
+			return Responses.Users.Banned(userId, reason.Time);
 		}
 	}
 
@@ -532,7 +530,7 @@ public sealed class Users : ModuleBase
 			{
 				Duration = reason.Time,
 			}, GetOptions(reason.Reason)).ConfigureAwait(false);
-			return Responses.Users.Banned(false, ban.User, reason.Time);
+			return Responses.Users.Unbanned(ban.User);
 		}
 	}
 
