@@ -315,7 +315,7 @@ public sealed record SendMessageArgs
 	/// <summary>
 	/// The allowed mentions of the message. By default this is None.
 	/// </summary>
-	public AllowedMentions? AllowedMentions { get; set; } = AllowedMentions.None;
+	public AllowedMentions AllowedMentions { get; set; } = AllowedMentions.None;
 	/// <summary>
 	/// Whether or not to allow null channels.
 	/// If true, a null message will be returned.

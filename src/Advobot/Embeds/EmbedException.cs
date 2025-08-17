@@ -49,11 +49,11 @@ public class EmbedException : Exception
 		string message,
 		string propertyPath,
 		object? value,
-		Exception? innerException)
-		: this(
-			message: $"{propertyPath}: '{value?.ToString() ?? "null"}' is invalid. Reason: {message}",
-			innerException: innerException
-		)
+		Exception? innerException
+	) : this(
+		message: $"{propertyPath}: '{value?.ToString() ?? "null"}' is invalid. Reason: {message}",
+		innerException: innerException
+	)
 	{
 		PropertyPath = propertyPath;
 		Value = value;

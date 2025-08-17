@@ -19,19 +19,19 @@ public class AdvobotResult : RuntimeResult
 	/// <summary>
 	/// The embed to post with the message.
 	/// </summary>
-	public EmbedWrapper? Embed { get; private set; }
+	public EmbedWrapper? Embed { get; set; }
 	/// <summary>
 	/// The file to post with the message.
 	/// </summary>
-	public FileAttachment? File { get; private set; }
+	public FileAttachment? File { get; set; }
 	/// <summary>
 	/// Where to send this result to. If this is null, the default context channel will be used instead.
 	/// </summary>
-	public ulong? OverrideDestinationChannelId { get; private set; }
+	public ulong? OverrideDestinationChannelId { get; set; }
 	/// <summary>
 	/// How long to let this message stay up for.
 	/// </summary>
-	public TimeSpan? Time { get; private set; }
+	public TimeSpan? Time { get; set; }
 
 	/// <summary>
 	/// Creates an instance of <see cref="AdvobotResult"/>.
@@ -39,6 +39,11 @@ public class AdvobotResult : RuntimeResult
 	/// <param name="error"></param>
 	/// <param name="reason"></param>
 	protected AdvobotResult(CommandError? error, string? reason) : base(error, reason) { }
+
+	/// <summary>
+	/// Creates an instance of <see cref="AdvobotResult"/>.
+	/// </summary>
+	protected AdvobotResult() : base(null, "") { }
 
 	/// <summary>
 	/// Creates an error result from an exception.
@@ -91,7 +96,11 @@ public class AdvobotResult : RuntimeResult
 	/// <param name="embed"></param>
 	/// <returns></returns>
 	public static AdvobotResult Success(EmbedWrapper embed)
-		=> Success(Constants.ZERO_WIDTH_SPACE).WithEmbed(embed);
+	{
+		var response = Success(Constants.ZERO_WIDTH_SPACE);
+		response.Embed = embed;
+		return response;
+	}
 
 	/// <summary>
 	/// Creates a successful result.
@@ -99,7 +108,11 @@ public class AdvobotResult : RuntimeResult
 	/// <param name="file"></param>
 	/// <returns></returns>
 	public static AdvobotResult Success(FileAttachment file)
-		=> Success(Constants.ZERO_WIDTH_SPACE).WithFile(file);
+	{
+		var response = Success(Constants.ZERO_WIDTH_SPACE);
+		response.File = file;
+		return response;
+	}
 
 	/// <summary>
 	/// Sends this result to the specified context.
@@ -134,48 +147,4 @@ public class AdvobotResult : RuntimeResult
 	/// <returns></returns>
 	public override string ToString()
 		=> Reason;
-
-	/// <summary>
-	/// Sets the embed in this result.
-	/// </summary>
-	/// <param name="embed"></param>
-	/// <returns></returns>
-	public AdvobotResult WithEmbed(EmbedWrapper? embed)
-	{
-		Embed = embed;
-		return this;
-	}
-
-	/// <summary>
-	/// Sets the file in this result.
-	/// </summary>
-	/// <param name="file"></param>
-	/// <returns></returns>
-	public AdvobotResult WithFile(FileAttachment? file)
-	{
-		File = file;
-		return this;
-	}
-
-	/// <summary>
-	/// Sets the override destination channel in this result.
-	/// </summary>
-	/// <param name="id"></param>
-	/// <returns></returns>
-	public AdvobotResult WithOverrideDestinationChannelId(ulong? id)
-	{
-		OverrideDestinationChannelId = id;
-		return this;
-	}
-
-	/// <summary>
-	/// Sets the time in this result.
-	/// </summary>
-	/// <param name="time"></param>
-	/// <returns></returns>
-	public AdvobotResult WithTime(TimeSpan? time)
-	{
-		Time = time;
-		return this;
-	}
 }

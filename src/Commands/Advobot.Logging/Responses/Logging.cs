@@ -10,10 +10,6 @@ namespace Advobot.Logging.Responses;
 
 public sealed class Logging : AdvobotResult
 {
-	private Logging() : base(null, "")
-	{
-	}
-
 	public static AdvobotResult DefaultLogActions()
 		=> Success(LoggingDefaultLogActions);
 

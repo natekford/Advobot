@@ -12,10 +12,6 @@ namespace Advobot.AutoMod.Responses;
 
 public sealed class PersistentRoles : AdvobotResult
 {
-	private PersistentRoles() : base(null, "")
-	{
-	}
-
 	public static AdvobotResult DisplayPersistentRoles(
 		IEnumerable<IGrouping<string, IRole>> roles)
 	{

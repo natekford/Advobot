@@ -27,12 +27,13 @@ public static class OverwriteUtils
 		this IGuildChannel channel,
 		ISnowflakeEntity obj,
 		OverwritePermissions permissions,
-		RequestOptions options) => obj switch
-		{
-			IRole r => channel.AddPermissionOverwriteAsync(r, permissions, options),
-			IUser u => channel.AddPermissionOverwriteAsync(u, permissions, options),
-			_ => throw new ArgumentException("Not a role or user.", nameof(obj)),
-		};
+		RequestOptions options
+	) => obj switch
+	{
+		IRole r => channel.AddPermissionOverwriteAsync(r, permissions, options),
+		IUser u => channel.AddPermissionOverwriteAsync(u, permissions, options),
+		_ => throw new ArgumentException("Not a role or user.", nameof(obj)),
+	};
 
 	/// <summary>
 	/// Removes every overwrite and returns the amount of removed overwrites.
@@ -99,12 +100,13 @@ public static class OverwriteUtils
 	/// <exception cref="ArgumentOutOfRangeException"></exception>
 	public static async Task<ISnowflakeEntity> GetEntityAsync(
 		this IGuild guild,
-		Overwrite overwrite) => overwrite.TargetType switch
-		{
-			PermissionTarget.Role => guild.GetRole(overwrite.TargetId),
-			PermissionTarget.User => await guild.GetUserAsync(overwrite.TargetId).ConfigureAwait(false),
-			_ => throw new ArgumentException("Not targetting a role or user.", nameof(overwrite)),
-		};
+		Overwrite overwrite
+	) => overwrite.TargetType switch
+	{
+		PermissionTarget.Role => guild.GetRole(overwrite.TargetId),
+		PermissionTarget.User => await guild.GetUserAsync(overwrite.TargetId).ConfigureAwait(false),
+		_ => throw new ArgumentException("Not targetting a role or user.", nameof(overwrite)),
+	};
 
 	/// <summary>
 	/// Returns either all of the overwrites if the id is null, otherwise returns the overwrites where the ids match.
@@ -135,7 +137,15 @@ public static class OverwriteUtils
 	{
 		var allow = overwrite.Permissions.AllowValue;
 		var deny = overwrite.Permissions.DenyValue;
-		return GetPermissions(channel).ToDictionary(
+		var permissions = channel switch
+		{
+			IVoiceChannel _ => _Voice,
+			ITextChannel _ => _Text,
+			ICategoryChannel _ => _Category,
+			_ => throw new ArgumentException("Invalid channel type.", nameof(channel)),
+		};
+
+		return permissions.ToDictionary(
 			x => x,
 			x =>
 			{
@@ -165,12 +175,13 @@ public static class OverwriteUtils
 	/// <exception cref="ArgumentException"></exception>
 	public static OverwritePermissions? GetPermissionOverwrite(
 		this IGuildChannel channel,
-		ISnowflakeEntity obj) => obj switch
-		{
-			IRole role => channel.GetPermissionOverwrite(role),
-			IUser user => channel.GetPermissionOverwrite(user),
-			_ => throw new ArgumentException("Not a role or user.", nameof(obj)),
-		};
+		ISnowflakeEntity obj
+	) => obj switch
+	{
+		IRole role => channel.GetPermissionOverwrite(role),
+		IUser user => channel.GetPermissionOverwrite(user),
+		_ => throw new ArgumentException("Not a role or user.", nameof(obj)),
+	};
 
 	/// <summary>
 	/// Creates a new <see cref="OverwritePermissions"/> and modifies the specified values.
@@ -229,12 +240,4 @@ public static class OverwriteUtils
 		var entity = await channel.Guild.GetEntityAsync(overwrite).ConfigureAwait(false);
 		await channel.AddPermissionOverwriteAsync(entity, newPerms, options).ConfigureAwait(false);
 	}
-
-	private static IReadOnlyList<ChannelPermission> GetPermissions(IGuildChannel channel) => channel switch
-	{
-		IVoiceChannel _ => _Voice,
-		ITextChannel _ => _Text,
-		ICategoryChannel _ => _Category,
-		_ => throw new ArgumentException("Invalid channel type.", nameof(channel)),
-	};
 }

@@ -59,7 +59,7 @@ public sealed class Rank_Tests
 		var data = await SeedDataAsync(db).ConfigureAwait(false);
 
 		var picked = data[0];
-		var index = data.OrderByDescending(x => x.Experience).ToList().IndexOf(picked);
+		var index = data.OrderByDescending(x => x.Experience).ToArray().IndexOf(picked);
 		var expected = new Rank(picked.UserId, picked.Experience, index + 1, data.Count);
 
 		var args = new SearchArgs(picked.UserId, picked.GuildId, picked.ChannelId);

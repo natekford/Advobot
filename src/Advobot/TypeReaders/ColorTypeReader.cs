@@ -20,6 +20,8 @@ public sealed class ColorTypeReader : TypeReader
 		.Where(x => x.FieldType == typeof(Color))
 		.ToDictionary(x => x.Name, x => (Color)x.GetValue(null)!, StringComparer.OrdinalIgnoreCase)
 		.ToImmutableDictionary();
+	private static readonly char[] _SplitChars = ['/', '-', ','];
+	private static readonly char[] _TrimChars = ['&', 'h', '#', 'x'];
 
 	/// <summary>
 	/// Attempts to parse a color from the input. If unable to parse, returns null.
@@ -34,26 +36,27 @@ public sealed class ColorTypeReader : TypeReader
 			result = default;
 			return true;
 		}
-		//By name
+		// By name
 		if (_Colors.TryGetValue(input, out result))
 		{
 			return true;
 		}
-		//By hex (trimming characters that are sometimes at the beginning of hex numbers)
-		var trimmed = input.Replace("0x", "").TrimStart('&', 'h', '#', 'x');
+		// By hex (trimming characters that are sometimes at the beginning of hex numbers)
+		var trimmed = input.Replace("0x", "").TrimStart(_TrimChars);
 		if (uint.TryParse(trimmed, NumberStyles.HexNumber, null, out var hex))
 		{
 			result = new(hex);
 			return true;
 		}
-		//By RGB
-		foreach (var c in new[] { '/', '-', ',' })
+		// By RGB
+		foreach (var c in _SplitChars)
 		{
 			var split = input.Split(c);
 			if (split.Length != 3)
 			{
 				continue;
 			}
+
 			var rgb = split
 				.Select(x => (Valid: byte.TryParse(x, out var val), Value: val))
 				.Where(x => x.Valid)

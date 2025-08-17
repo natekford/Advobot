@@ -38,16 +38,13 @@ public sealed class FakeAutoModDatabase : IAutoModDatabase
 	public Task<int> DeleteSelfRolesGroupAsync(ulong guildId, int group)
 	{
 		var count = 0;
-		foreach (var key in _SelfRoles.Keys.ToList())
+		foreach (var (key, value) in _SelfRoles)
 		{
-			var value = _SelfRoles[key];
-			if (value.GuildId != guildId || value.GroupId != group)
+			if (value.GuildId == guildId && value.GroupId == group)
 			{
-				continue;
+				_SelfRoles.Remove(key, out _);
+				++count;
 			}
-
-			_SelfRoles.Remove(key, out _);
-			++count;
 		}
 		return Task.FromResult(count);
 	}
@@ -63,7 +60,7 @@ public sealed class FakeAutoModDatabase : IAutoModDatabase
 		var list = _BannedPhrases
 			.Where(x => x.Key.GuildId == guildId)
 			.Select(x => x.Value)
-			.ToList();
+			.ToArray();
 		return Task.FromResult<IReadOnlyList<BannedPhrase>>(list);
 	}
 
@@ -93,7 +90,7 @@ public sealed class FakeAutoModDatabase : IAutoModDatabase
 		var list = _SelfRoles
 			.Select(x => x.Value)
 			.Where(x => x.GuildId == guildId)
-			.ToList();
+			.ToArray();
 		return Task.FromResult<IReadOnlyList<SelfRole>>(list);
 	}
 
@@ -102,7 +99,7 @@ public sealed class FakeAutoModDatabase : IAutoModDatabase
 		var list = _SelfRoles
 			.Select(x => x.Value)
 			.Where(x => x.GuildId == guildId && x.GroupId == group)
-			.ToList();
+			.ToArray();
 		return Task.FromResult<IReadOnlyList<SelfRole>>(list);
 	}
 

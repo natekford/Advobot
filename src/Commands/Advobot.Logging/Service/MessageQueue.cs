@@ -87,7 +87,7 @@ public sealed class MessageQueue(
 							args: new
 							{
 								Channel = channelId,
-								Messages = messages.Select(x => x.Id).ToList(),
+								Messages = messages.Select(x => x.Id).ToArray(),
 							}
 						);
 					}
@@ -101,18 +101,18 @@ public sealed class MessageQueue(
 
 	private void QueueDeletedMessages(IMessageChannel channel, IEnumerable<IMessage> messages)
 	{
-		var ordered = messages.OrderBy(x => x.Id).ToList();
+		var ordered = messages.OrderBy(x => x.Id).ToArray();
 
 		logger.LogInformation(
 			message: "Printing {Count} deleted messages {@Info}",
-			args: [ordered.Count, new
+			args: [ordered.Length, new
 			{
 				Channel = channel.Id,
 			}]
 		);
 
 		// Needs to not be a lot of messages to fit in an embed
-		var inEmbed = ordered.Count < 10;
+		var inEmbed = ordered.Length < 10;
 		var sb = new StringBuilder();
 
 		var lineCount = 0;
@@ -157,7 +157,7 @@ public sealed class MessageQueue(
 				Files =
 				[
 					MessageUtils.CreateTextFile(
-						fileName: $"{ordered.Count}_Deleted_Messages",
+						fileName: $"{ordered.Length}_Deleted_Messages",
 						content: sb.ToString()
 					),
 				],

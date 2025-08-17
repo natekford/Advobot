@@ -12,10 +12,6 @@ namespace Advobot.Standard.Responses;
 
 public sealed class Emotes : AdvobotResult
 {
-	private Emotes() : base(null, "")
-	{
-	}
-
 	public static AdvobotResult AddedRequiredRoles(IEmote emote, IEnumerable<IRole> roles)
 	{
 		return Success(EmotesAddedRequiredRoles.Format(

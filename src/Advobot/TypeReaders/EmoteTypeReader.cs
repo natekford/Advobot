@@ -36,7 +36,9 @@ public sealed class EmoteTypeReader : TypeReader
 			}
 		}
 
-		var matches = context.Guild.Emotes.Where(x => x.Name.CaseInsEquals(input)).ToArray();
+		var matches = context.Guild.Emotes
+			.Where(x => x.Name.CaseInsEquals(input))
+			.ToArray();
 		return TypeReaderUtils.SingleValidResult(matches, "emotes", input).AsTask();
 	}
 }

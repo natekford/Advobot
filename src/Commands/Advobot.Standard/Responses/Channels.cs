@@ -12,10 +12,6 @@ namespace Advobot.Standard.Responses;
 
 public sealed class Channels : AdvobotResult
 {
-	private Channels() : base(null, "")
-	{
-	}
-
 	public static AdvobotResult ClearedOverwrites(IGuildChannel channel, int count)
 	{
 		return Success(ChannelsClearedOverwrites.Format(

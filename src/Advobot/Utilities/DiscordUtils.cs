@@ -1,9 +1,4 @@
 ﻿using Discord;
-using Discord.Commands;
-using Discord.WebSocket;
-
-using System.Diagnostics;
-using System.Reflection;
 
 namespace Advobot.Utilities;
 

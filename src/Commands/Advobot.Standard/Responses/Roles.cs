@@ -10,11 +10,8 @@ namespace Advobot.Standard.Responses;
 
 public sealed class Roles : AdvobotResult
 {
-	private static readonly List<GuildPermission> _AllPerms = GuildPermissions.All.ToList();
-
-	private Roles() : base(null, "")
-	{
-	}
+	private static readonly IReadOnlyList<GuildPermission> _AllPerms
+		= GuildPermissions.All.ToList();
 
 	public static AdvobotResult ClearedPermissions(IRole role)
 	{

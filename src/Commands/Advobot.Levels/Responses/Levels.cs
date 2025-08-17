@@ -12,10 +12,6 @@ namespace Advobot.Levels.Responses;
 
 public sealed class Levels : AdvobotResult
 {
-	private Levels() : base(null, "")
-	{
-	}
-
 	public static AdvobotResult Level(SearchArgs args, IRank rank, int level, IUser? user)
 	{
 		var title = LevelsLevelTitle.Format(

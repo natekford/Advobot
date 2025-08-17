@@ -10,4 +10,10 @@ public interface IConnectionString<in T> : IConnectionString
 	/// The database this connection string belongs to.
 	/// </summary>
 	public Type Database { get; }
+
+	/// <summary>
+	/// Ensures the database is ready to be modified.
+	/// </summary>
+	/// <returns></returns>
+	Task EnsureCreatedAsync();
 }

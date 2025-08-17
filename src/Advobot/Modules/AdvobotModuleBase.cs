@@ -180,7 +180,7 @@ public abstract class AdvobotModuleBase : ModuleBase<AdvobotCommandContext>
 			IsTTS = isTTS,
 			Embeds = embeds,
 			Options = options,
-			AllowedMentions = allowedMentions,
+			AllowedMentions = allowedMentions ?? AllowedMentions.None,
 		});
 	}
 }

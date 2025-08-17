@@ -10,10 +10,6 @@ namespace Advobot.Standard.Responses;
 
 public sealed class Webhooks : AdvobotResult
 {
-	private Webhooks() : base(null, "")
-	{
-	}
-
 	public static AdvobotResult DisplayWebhooks(
 		ISnowflakeEntity source,
 		IReadOnlyCollection<IWebhook> webhooks)

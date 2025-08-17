@@ -17,26 +17,26 @@ public sealed class AdditionalBoolTypeReader : TypeReader
 	/// </summary>
 	public static readonly ImmutableHashSet<string> FalseVals = new[]
 	{
-			"false",
-			"no",
-			"remove",
-			"disable",
-			"unset",
-			"negative"
-		}.ToImmutableHashSet(StringComparer.OrdinalIgnoreCase);
+		"false",
+		"no",
+		"remove",
+		"disable",
+		"unset",
+		"negative"
+	}.ToImmutableHashSet(StringComparer.OrdinalIgnoreCase);
 
 	/// <summary>
 	/// Values that will set the stored bool to true.
 	/// </summary>
 	public static readonly ImmutableHashSet<string> TrueVals = new[]
 	{
-			"true",
-			"yes",
-			"add",
-			"enable",
-			"set",
-			"positive"
-		}.ToImmutableHashSet(StringComparer.OrdinalIgnoreCase);
+		"true",
+		"yes",
+		"add",
+		"enable",
+		"set",
+		"positive"
+	}.ToImmutableHashSet(StringComparer.OrdinalIgnoreCase);
 
 	/// <summary>
 	/// Converts a string into a true bool if it has a match in <see cref="TrueVals"/>,

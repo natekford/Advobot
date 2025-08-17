@@ -9,10 +9,4 @@ public interface IConnectionString
 	/// A SQLite connection string.
 	/// </summary>
 	string ConnectionString { get; }
-
-	/// <summary>
-	/// Ensures the database is ready to be modified.
-	/// </summary>
-	/// <returns></returns>
-	Task EnsureCreatedAsync();
 }

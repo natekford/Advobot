@@ -10,17 +10,6 @@ namespace Advobot.Standard.Responses;
 
 public sealed class Invites : AdvobotResult
 {
-	private Invites() : base(null, "")
-	{
-	}
-
-	public static AdvobotResult DeletedMultipleInvites(IReadOnlyCollection<IInviteMetadata> invites)
-	{
-		return Success(InvitesDeletedMultipleInvites.Format(
-			invites.Count.ToString().WithBlock()
-		));
-	}
-
 	public static AdvobotResult DisplayInvites(IReadOnlyList<IInviteMetadata> invites)
 	{
 		var codeLen = -1;
@@ -46,7 +35,4 @@ public sealed class Invites : AdvobotResult
 			Description = description,
 		});
 	}
-
-	public static AdvobotResult NoInviteMatches()
-		=> Failure(InvitesNoInviteMatches);
 }

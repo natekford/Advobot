@@ -10,10 +10,6 @@ namespace Advobot.AutoMod.Responses;
 
 public sealed class BannedPhrases : AdvobotResult
 {
-	private BannedPhrases() : base(null, "")
-	{
-	}
-
 	public static AdvobotResult Added(string type, string phrase)
 		=> Modified(type, true, phrase);
 

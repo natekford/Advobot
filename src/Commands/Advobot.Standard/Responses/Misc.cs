@@ -18,10 +18,6 @@ public sealed class Misc : AdvobotResult
 	private static readonly Type _Commands = typeof(Commands.Misc.Commands);
 	private static readonly Type _Help = typeof(Commands.Misc.Help);
 
-	private Misc() : base(null, "")
-	{
-	}
-
 	public static AdvobotResult CategoryCommands(
 		IEnumerable<IHelpModule> entries,
 		string category)
@@ -167,13 +163,6 @@ public sealed class Misc : AdvobotResult
 			embed.TryAddField(FormatParameter(parameter), paramInfo.ToString(), true, out _);
 		}
 		return Success(embed);
-	}
-
-	public static AdvobotResult Remind(TimeSpan time)
-	{
-		return Success(MiscRemind.Format(
-			time.ToString("00:00:00").WithBlock()
-		));
 	}
 
 	private static EmbedWrapper CreateHelpEmbed(string name, string entry)

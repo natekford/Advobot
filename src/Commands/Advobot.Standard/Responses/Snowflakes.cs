@@ -9,10 +9,6 @@ namespace Advobot.Standard.Responses;
 
 public sealed class Snowflakes : AdvobotResult
 {
-	private Snowflakes() : base(null, "")
-	{
-	}
-
 	public static AdvobotResult Created<T>(IEntity<T> snowflake)
 		where T : IEquatable<T>
 	{
@@ -29,15 +25,6 @@ public sealed class Snowflakes : AdvobotResult
 		));
 	}
 
-	public static AdvobotResult EnqueuedIcon<T>(IEntity<T> snowflake, int position)
-		where T : IEquatable<T>
-	{
-		return Success(SnowflakesEnqueuedIcon.Format(
-			snowflake.Format().WithBlock(),
-			position.ToString().WithBlock()
-		));
-	}
-
 	public static AdvobotResult ModifiedName<T>(IEntity<T> snowflake, string name)
 								where T : IEquatable<T>
 	{
@@ -47,16 +34,8 @@ public sealed class Snowflakes : AdvobotResult
 		));
 	}
 
-	public static AdvobotResult RemovedIcon<T>(IEntity<T> snowflake)
-		where T : IEquatable<T>
-	{
-		return Success(SnowflakesRemovedIcon.Format(
-			snowflake.Format().WithBlock()
-		));
-	}
-
 	public static AdvobotResult SoftDeleted<T>(IEntity<T> snowflake)
-				where T : IEquatable<T>
+		where T : IEquatable<T>
 	{
 		return Success(SnowflakesSoftDeleted.Format(
 			snowflake.Format().WithBlock()

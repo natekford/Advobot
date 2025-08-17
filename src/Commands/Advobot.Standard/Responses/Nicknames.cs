@@ -9,10 +9,6 @@ namespace Advobot.Standard.Responses;
 
 public sealed class Nicknames : AdvobotResult
 {
-	private Nicknames() : base(null, "")
-	{
-	}
-
 	public static AdvobotResult ModifiedNickname(IGuildUser user, string name)
 	{
 		return Success(NicknamesModifiedNickname.Format(

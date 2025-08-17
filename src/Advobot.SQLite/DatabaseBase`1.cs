@@ -11,13 +11,14 @@ namespace Advobot.SQLite;
 /// Base class for a SQL database.
 /// </summary>
 /// <typeparam name="T"></typeparam>
-/// <param name="conn"></param>
-public abstract class DatabaseBase<T>(IConnectionString conn) where T : DbConnection, new()
+/// <param name="connection"></param>
+public abstract class DatabaseBase<T>(IConnectionString connection)
+	where T : DbConnection, new()
 {
 	/// <summary>
 	/// Starts the database.
 	/// </summary>
-	protected IConnectionString Connection { get; } = conn;
+	protected IConnectionString Connection { get; } = connection;
 
 	static DatabaseBase()
 	{

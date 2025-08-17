@@ -6,7 +6,6 @@ using Advobot.ParameterPreconditions.Numbers;
 using Advobot.Preconditions;
 using Advobot.Preconditions.Permissions;
 using Advobot.Resources;
-using Advobot.Utilities;
 
 using Discord;
 using Discord.Commands;

@@ -508,7 +508,7 @@ public sealed class Users : ModuleBase
 			{
 				Duration = reason.Time,
 			}, GetOptions(reason.Reason)).ConfigureAwait(false);
-			return Responses.Users.Banned(userId, reason.Time);
+			return Responses.Users.SoftBanned(userId);
 		}
 	}
 
@@ -553,7 +553,7 @@ public sealed class Users : ModuleBase
 			{
 				Duration = reason.Time,
 			}, GetOptions(reason.Reason)).ConfigureAwait(false);
-			return Responses.Users.Deafened(isGive, user, reason.Time);
+			return Responses.Users.VoiceMuted(isGive, user, reason.Time);
 		}
 	}
 }

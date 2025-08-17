@@ -10,10 +10,6 @@ namespace Advobot.Standard.Responses;
 
 public sealed class Guilds : AdvobotResult
 {
-	private Guilds() : base(null, "")
-	{
-	}
-
 	public static AdvobotResult DisplayRegions(IReadOnlyCollection<IVoiceRegion> regions)
 	{
 		var description = regions
@@ -26,13 +22,6 @@ public sealed class Guilds : AdvobotResult
 			Title = GuildsTitleRegionIds,
 			Description = description,
 		});
-	}
-
-	public static AdvobotResult EnqueuedSplash(int position)
-	{
-		return Success(GuildsEnqueuedSplash.Format(
-			position.ToString().WithBlock()
-		));
 	}
 
 	public static AdvobotResult LeftGuild(IGuild guild)
@@ -111,7 +100,4 @@ public sealed class Guilds : AdvobotResult
 			enable.ToString().WithBlock()
 		));
 	}
-
-	public static AdvobotResult RemovedSplash()
-		=> Success(GuildsRemovedSplash);
 }

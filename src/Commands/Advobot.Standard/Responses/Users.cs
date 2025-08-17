@@ -11,10 +11,6 @@ namespace Advobot.Standard.Responses;
 
 public sealed class Users : AdvobotResult
 {
-	private Users() : base(null, "")
-	{
-	}
-
 	public static AdvobotResult AlreadyInChannel(IUser user, IVoiceChannel channel)
 	{
 		return Success(UsersAlreadyInChannel.Format(
@@ -25,9 +21,6 @@ public sealed class Users : AdvobotResult
 
 	public static AdvobotResult Banned(ulong userId, TimeSpan? time)
 		=> Punished(true, VariableBanned, VariableUnbanned, Format(userId), time);
-
-	public static AdvobotResult BannedMany(IEnumerable<IUser> users, TimeSpan? time)
-		=> Punished(true, VariableBanned, VariableUnbanned, Format(users), time);
 
 	public static AdvobotResult CannotGiveGatheredRole()
 		=> Failure(UsersCannotGiveRoleBeingGathered);
@@ -134,9 +127,6 @@ public sealed class Users : AdvobotResult
 
 	public static AdvobotResult VoiceMuted(bool punished, IUser user, TimeSpan? time)
 		=> Punished(punished, VariableVoiceMuted, VariableUnvoiceMuted, Format(user), time);
-
-	private static MarkdownString Format(IEnumerable<IUser> users)
-		=> users.Select(x => x.Format()).Join().WithBlock();
 
 	private static MarkdownString Format(IUser user)
 		=> user.Format().WithBlock();

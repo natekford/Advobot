@@ -211,7 +211,7 @@ public sealed class AutoModService(
 				{
 					Guild = context.Guild.Id,
 					User = context.User.Id,
-					Roles = roles.Select(x => x.Id).ToList(),
+					Roles = roles.Select(x => x.Id).ToArray(),
 				}
 			);
 		}

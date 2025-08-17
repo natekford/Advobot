@@ -11,10 +11,6 @@ namespace Advobot.AutoMod.Responses;
 
 public sealed class SelfRoles : AdvobotResult
 {
-	private SelfRoles() : base(null, "")
-	{
-	}
-
 	public static AdvobotResult AddedRole(IRole role)
 	{
 		return Success(SelfRolesAdded.Format(

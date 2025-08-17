@@ -8,10 +8,6 @@ namespace Advobot.Settings.Responses;
 
 public sealed class Settings : AdvobotResult
 {
-	public Settings() : base(null, "")
-	{
-	}
-
 	public static AdvobotResult ClearedCommands(IEnumerable<IHelpModule> entries)
 	{
 		return Success(SettingsClearedCommands.Format(

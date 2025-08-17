@@ -18,16 +18,10 @@ public sealed class Gets : AdvobotResult
 {
 	private static readonly IReadOnlyList<ActivityType> _Activities
 		= Enum.GetValues<ActivityType>();
-
 	private static readonly IReadOnlyList<GuildPermission> _Permissions
 		= Enum.GetValues<GuildPermission>();
-
 	private static readonly IReadOnlyList<UserStatus> _Statuses
 		= Enum.GetValues<UserStatus>();
-
-	private Gets() : base(null, "")
-	{
-	}
 
 	public static async Task<RuntimeResult> AllGuildUsers(IGuild guild)
 	{
@@ -370,8 +364,12 @@ public sealed class Gets : AdvobotResult
 
 	public static async Task<RuntimeResult> Role(IRole role)
 	{
-		var userCount = (await role.Guild.GetUsersAsync().ConfigureAwait(false)).Count(x => x.RoleIds.Contains(role.Id));
-		var permissions = _Permissions.Where(x => role.Permissions.Has(x)).Select(x => x.ToString()).ToArray();
+		var userCount = (await role.Guild.GetUsersAsync().ConfigureAwait(false))
+			.Count(x => x.RoleIds.Contains(role.Id));
+		var permissions = _Permissions
+			.Where(x => role.Permissions.Has(x))
+			.Select(x => x.ToString("F"))
+			.ToArray();
 
 		var info = new InfoMatrix();
 		info.AddTimeCreatedCollection(role);

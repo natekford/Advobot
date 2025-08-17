@@ -1,6 +1,5 @@
 ﻿using Advobot.Attributes;
 using Advobot.Localization;
-using Advobot.Modules;
 using Advobot.Preconditions.Permissions;
 using Advobot.Resources;
 using Advobot.Services.Help;

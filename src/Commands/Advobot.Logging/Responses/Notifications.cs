@@ -11,10 +11,6 @@ namespace Advobot.Logging.Responses;
 
 public sealed class Notifications : AdvobotResult
 {
-	private Notifications() : base(null, "")
-	{
-	}
-
 	public static AdvobotResult Default(Notification notif)
 	{
 		return Success(NotificationDefault.Format(
@@ -52,7 +48,7 @@ public sealed class Notifications : AdvobotResult
 		));
 		if (embed?.EmbedEmpty() == false)
 		{
-			response.WithEmbed(embed.BuildWrapper());
+			response.Embed = embed.BuildWrapper();
 		}
 		return response;
 	}
@@ -74,11 +70,11 @@ public sealed class Notifications : AdvobotResult
 			));
 		}
 
-		var response = Success(notification.Content ?? Constants.ZERO_WIDTH_SPACE)
-			.WithOverrideDestinationChannelId(notification.ChannelId);
+		var response = Success(notification.Content ?? Constants.ZERO_WIDTH_SPACE);
+		response.OverrideDestinationChannelId = notification.ChannelId;
 		if (!notification.EmbedEmpty())
 		{
-			response.WithEmbed(notification.BuildWrapper());
+			response.Embed = notification.BuildWrapper();
 		}
 		return response;
 	}

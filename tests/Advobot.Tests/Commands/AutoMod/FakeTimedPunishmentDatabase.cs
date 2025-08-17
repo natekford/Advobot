@@ -44,7 +44,7 @@ public sealed class FakeTimedPunishmentDatabase : ITimedPunishmentDatabase
 	{
 		var list = Punishments.Values
 			.Where(x => x.EndTime.Ticks < ticks)
-			.ToList();
+			.ToArray();
 		return Task.FromResult<IReadOnlyList<TimedPunishment>>(list);
 	}
 
