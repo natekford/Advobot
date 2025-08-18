@@ -3,7 +3,7 @@ using Advobot.Logging.Database.Models;
 
 namespace Advobot.Logging.Resetters;
 
-public sealed class GoodbyeNotificationResetter(INotificationDatabase db) : NotificationResetter(db)
+public sealed class GoodbyeNotificationResetter(NotificationDatabase db) : NotificationResetter(db)
 {
 	protected override Notification Event => Notification.Goodbye;
 }

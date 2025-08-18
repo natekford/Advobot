@@ -1,28 +1,19 @@
 ﻿using Advobot.Services.Time;
-using Advobot.SQLite;
-using Advobot.Tests.Fakes.Database;
+using Advobot.Tests.Utilities;
 
 using Microsoft.Extensions.DependencyInjection;
 
 namespace Advobot.Tests.TestBases;
 
-public abstract class Database_Tests<TDb, TConn> : TestsBase where TDb : class
+public abstract class Database_Tests<TDb> : TestsBase where TDb : class
 {
-	protected async Task<TDb> GetDatabaseAsync()
-	{
-		var starter = Services.Value.GetRequiredService<IConnectionString<TDb>>();
-		await starter.EnsureCreatedAsync().ConfigureAwait(false);
-		starter.MigrateUp();
-
-		return Services.Value.GetRequiredService<TDb>();
-	}
+	protected Task<TDb> GetDatabaseAsync()
+		=> Services.Value.GetDatabaseAsync<TDb>();
 
 	protected override void ModifyServices(IServiceCollection services)
 	{
-		var connectionString = new FakeSQLiteConnectionString(typeof(TDb));
 		services
-			.AddSingleton<TDb>()
-			.AddSingleton<IConnectionString<TDb>>(connectionString)
+			.AddFakeDatabase<TDb>()
 			.AddSingleton<ITimeService, NaiveTimeService>();
 	}
 }

@@ -15,12 +15,9 @@ public sealed class AutoModInstantiator : CommandAssemblyInstantiator
 	public override Task AddServicesAsync(IServiceCollection services)
 	{
 		services
-			.AddSingleton<IAutoModDatabase, AutoModDatabase>()
-			.AddSQLiteFileDatabaseConnectionString<AutoModDatabase>("AutoMod.db")
-			.AddSingleton<AutoModService>()
-			.AddLogger<AutoModService>("Automod")
-			.AddSingleton<ITimedPunishmentDatabase, TimedPunishmentDatabase>()
-			.AddSQLiteFileDatabaseConnectionString<TimedPunishmentDatabase>("TimedPunishments.db")
+			.AddSQLiteDatabase<AutoModDatabase>("AutoMod")
+			.AddSingletonWithLogger<AutoModService>("AutoMod")
+			.AddSQLiteDatabase<TimedPunishmentDatabase>("TimedPunishments")
 			.ReplaceAllWithSingleton<IPunishmentService, TimedPunishmentService>()
 			.AddLogger<TimedPunishmentService>("TimedPunishments");
 

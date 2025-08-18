@@ -26,4 +26,7 @@ public abstract class TestsBase
 	protected virtual void ModifyServices(IServiceCollection services)
 	{
 	}
+
+	protected virtual Task SetupAsync()
+		=> Task.CompletedTask;
 }

@@ -27,7 +27,7 @@ namespace Advobot.Logging.Service;
 
 public sealed partial class LoggingService(
 	ILogger<LoggingService> logger,
-	ILoggingDatabase db,
+	LoggingDatabase db,
 	BaseSocketClient client,
 	NaiveCommandService commands,
 	IRuntimeConfig botConfig,

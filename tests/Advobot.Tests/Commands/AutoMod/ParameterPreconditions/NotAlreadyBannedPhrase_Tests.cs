@@ -3,6 +3,7 @@ using Advobot.AutoMod.Database.Models;
 using Advobot.AutoMod.ParameterPreconditions;
 using Advobot.Punishments;
 using Advobot.Tests.TestBases;
+using Advobot.Tests.Utilities;
 
 using Microsoft.Extensions.DependencyInjection;
 
@@ -11,8 +12,6 @@ namespace Advobot.Tests.Commands.AutoMod.ParameterPreconditions;
 public abstract class NotAlreadyBannedPhrase_Tests<T> : ParameterPrecondition_Tests<T>
 	where T : NotAlreadyBannedPhraseParameterPrecondition
 {
-	private readonly FakeAutoModDatabase _Db = new();
-
 	protected abstract bool IsName { get; }
 	protected abstract bool IsRegex { get; }
 	protected abstract bool IsString { get; }
@@ -22,7 +21,8 @@ public abstract class NotAlreadyBannedPhrase_Tests<T> : ParameterPrecondition_Te
 	{
 		const string PHRASE = "hi";
 
-		await _Db.UpsertBannedPhraseAsync(new BannedPhrase
+		var db = await GetDatabaseAsync().ConfigureAwait(false);
+		await db.UpsertBannedPhraseAsync(new BannedPhrase
 		(
 			GuildId: Context.Guild.Id,
 			IsContains: IsName || IsString,
@@ -37,14 +37,19 @@ public abstract class NotAlreadyBannedPhrase_Tests<T> : ParameterPrecondition_Te
 
 	[TestMethod]
 	public async Task NotExisting_Test()
-		=> await AssertSuccessAsync("not existing").ConfigureAwait(false);
+	{
+		await SetupAsync().ConfigureAwait(false);
+
+		await AssertSuccessAsync("not existing").ConfigureAwait(false);
+	}
 
 	[TestMethod]
 	public async Task NotExistingButOtherTypeExists_Test()
 	{
 		const string PHRASE = "hi";
 
-		await _Db.UpsertBannedPhraseAsync(new BannedPhrase
+		var db = await GetDatabaseAsync().ConfigureAwait(false);
+		await db.UpsertBannedPhraseAsync(new BannedPhrase
 		(
 			GuildId: Context.Guild.Id,
 			IsContains: !(IsName || IsString),
@@ -57,9 +62,12 @@ public abstract class NotAlreadyBannedPhrase_Tests<T> : ParameterPrecondition_Te
 		await AssertSuccessAsync(PHRASE).ConfigureAwait(false);
 	}
 
+	protected Task<AutoModDatabase> GetDatabaseAsync()
+		=> Services.Value.GetDatabaseAsync<AutoModDatabase>();
+
 	protected override void ModifyServices(IServiceCollection services)
-	{
-		services
-			.AddSingleton<IAutoModDatabase>(_Db);
-	}
+		=> services.AddFakeDatabase<AutoModDatabase>();
+
+	protected override Task SetupAsync()
+		=> GetDatabaseAsync();
 }

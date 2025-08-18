@@ -1,8 +1,8 @@
 ﻿using Advobot.Logging.Database;
 using Advobot.Logging.Database.Models;
 using Advobot.Logging.ParameterPreconditions;
-using Advobot.Tests.Fakes.Services.Logging;
 using Advobot.Tests.TestBases;
+using Advobot.Tests.Utilities;
 
 using Microsoft.Extensions.DependencyInjection;
 
@@ -11,14 +11,13 @@ namespace Advobot.Tests.Commands.Logging.ParameterPreconditions;
 [TestClass]
 public sealed class NotModLog_Tests : ParameterPrecondition_Tests<NotModLog>
 {
-	private readonly FakeLoggingDatabase _Db = new();
-
 	protected override NotModLog Instance { get; } = new();
 
 	[TestMethod]
 	public async Task LogExisting_Test()
 	{
-		await _Db.UpsertLogChannelAsync(Log.Mod, Context.Guild.Id, Context.Channel.Id).ConfigureAwait(false);
+		var db = await GetDatabaseAsync().ConfigureAwait(false);
+		await db.UpsertLogChannelAsync(Log.Mod, Context.Guild.Id, Context.Channel.Id).ConfigureAwait(false);
 
 		await AssertFailureAsync(Context.Channel).ConfigureAwait(false);
 	}
@@ -28,8 +27,11 @@ public sealed class NotModLog_Tests : ParameterPrecondition_Tests<NotModLog>
 		=> await AssertSuccessAsync(Context.Channel).ConfigureAwait(false);
 
 	protected override void ModifyServices(IServiceCollection services)
-	{
-		services
-			.AddSingleton<ILoggingDatabase>(_Db);
-	}
+		=> services.AddFakeDatabase<LoggingDatabase>();
+
+	protected override Task SetupAsync()
+		=> GetDatabaseAsync();
+
+	private Task<LoggingDatabase> GetDatabaseAsync()
+		=> Services.Value.GetDatabaseAsync<LoggingDatabase>();
 }

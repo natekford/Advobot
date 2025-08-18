@@ -6,6 +6,6 @@ namespace Advobot.Levels;
 
 public abstract class LevelModuleBase : AdvobotModuleBase
 {
-	public required ILevelDatabase Db { get; set; }
+	public required LevelDatabase Db { get; set; }
 	public required LevelService Service { get; set; }
 }

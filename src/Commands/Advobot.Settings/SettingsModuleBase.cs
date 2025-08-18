@@ -5,5 +5,5 @@ namespace Advobot.Settings;
 
 public abstract class SettingsModuleBase : AdvobotModuleBase
 {
-	public required ISettingsDatabase Db { get; set; }
+	public required SettingsDatabase Db { get; set; }
 }

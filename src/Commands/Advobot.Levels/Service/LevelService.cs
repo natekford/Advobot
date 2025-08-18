@@ -17,7 +17,7 @@ namespace Advobot.Levels.Service;
 public sealed class LevelService(
 	ILogger<LevelService> logger,
 	LevelServiceConfig config,
-	ILevelDatabase db,
+	LevelDatabase db,
 	BaseSocketClient client,
 	ITimeService time
 ) : StartableService

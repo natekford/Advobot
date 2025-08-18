@@ -5,7 +5,8 @@ using System.Data.SQLite;
 
 namespace Advobot.AutoMod.Database;
 
-public sealed class TimedPunishmentDatabase(IConnectionString<TimedPunishmentDatabase> conn) : DatabaseBase<SQLiteConnection>(conn), ITimedPunishmentDatabase
+public sealed class TimedPunishmentDatabase(IConnectionString<TimedPunishmentDatabase> connection)
+	: DatabaseBase<SQLiteConnection>(connection)
 {
 	private const string DELETE_REMOVABLE_PUNISHMENT_SQL = @"
 		DELETE FROM TimedPunishment

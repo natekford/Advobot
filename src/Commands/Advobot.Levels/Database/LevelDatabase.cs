@@ -9,7 +9,8 @@ using System.Text;
 
 namespace Advobot.Levels.Database;
 
-public sealed class LevelDatabase(IConnectionString<LevelDatabase> conn) : DatabaseBase<SQLiteConnection>(conn), ILevelDatabase
+public sealed class LevelDatabase(IConnectionString<LevelDatabase> connection)
+	: DatabaseBase<SQLiteConnection>(connection)
 {
 	public async Task<int> AddIgnoredChannelsAsync(ulong guildId, IEnumerable<ulong> channels)
 	{

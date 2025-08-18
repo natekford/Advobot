@@ -16,7 +16,7 @@ namespace Advobot.AutoMod.Service;
 
 public sealed class TimedPunishmentService(
 	ILogger<TimedPunishmentService> logger,
-	ITimedPunishmentDatabase db,
+	TimedPunishmentDatabase db,
 	IDiscordClient client,
 	ITimeService time
 ) : StartableService, IPunishmentService
@@ -102,12 +102,6 @@ public sealed class TimedPunishmentService(
 
 	private async Task<bool> RemovePunishmentAsync(TimedPunishment punishment)
 	{
-		// Older than a week should be ignored and removed
-		if (time.UtcNow - punishment.EndTime > TimeSpan.FromDays(7))
-		{
-			return true;
-		}
-
 		var guild = await client.GetGuildAsync(punishment.GuildId).ConfigureAwait(false);
 		if (guild is null)
 		{

@@ -11,6 +11,7 @@ public abstract class TypeReader_Tests<T> : TestsBase
 	[TestMethod]
 	public async Task NotExisting_Test()
 	{
+		await SetupAsync().ConfigureAwait(false);
 		if (NotExisting is null)
 		{
 			return;

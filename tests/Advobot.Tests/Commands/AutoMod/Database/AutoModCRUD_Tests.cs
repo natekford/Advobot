@@ -1,14 +1,12 @@
 ﻿using Advobot.AutoMod.Database;
 using Advobot.AutoMod.Database.Models;
 using Advobot.Punishments;
-using Advobot.Tests.Fakes.Database;
 using Advobot.Tests.TestBases;
 
 namespace Advobot.Tests.Commands.AutoMod.Database;
 
 [TestClass]
-public sealed class AutoModCRUD_Tests
-	: Database_Tests<AutoModDatabase, FakeSQLiteConnectionString>
+public sealed class AutoModCRUD_Tests : Database_Tests<AutoModDatabase>
 {
 	private const ulong GUILD_ID = 73;
 	private const ulong ROLE_ID = 1337;

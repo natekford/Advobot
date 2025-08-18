@@ -11,7 +11,7 @@ public class MessageContext(IMessage message) : ILogContext
 	public IUserMessage Message { get; } = (message as IUserMessage)!;
 	public IGuildUser User { get; } = (message?.Author as IGuildUser)!;
 
-	public virtual async Task<bool> IsValidAsync(ILoggingDatabase db)
+	public virtual async Task<bool> IsValidAsync(LoggingDatabase db)
 	{
 		if (Guild is null || Channel is null || Message is null
 			|| User?.IsBot != false || User.IsWebhook)

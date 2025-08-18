@@ -6,7 +6,7 @@ using Discord.Commands;
 
 namespace Advobot.Logging.Resetters;
 
-public sealed class LogActionsResetter(ILoggingDatabase db) : IResetter
+public sealed class LogActionsResetter(LoggingDatabase db) : IResetter
 {
 	public static IReadOnlyList<LogAction> All { get; }
 		= Enum.GetValues<LogAction>();

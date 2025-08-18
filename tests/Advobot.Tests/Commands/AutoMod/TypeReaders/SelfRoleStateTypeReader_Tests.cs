@@ -2,6 +2,7 @@
 using Advobot.AutoMod.Database.Models;
 using Advobot.AutoMod.TypeReaders;
 using Advobot.Tests.TestBases;
+using Advobot.Tests.Utilities;
 
 using Discord;
 
@@ -13,12 +14,13 @@ namespace Advobot.Tests.Commands.AutoMod.TypeReaders;
 public sealed class SelfRoleStateTypeReader_Tests
 	: TypeReader_Tests<SelfRoleStateTypeReader>
 {
-	private readonly FakeAutoModDatabase _Db = new();
 	protected override SelfRoleStateTypeReader Instance { get; } = new();
 
 	[TestMethod]
 	public async Task Valid_Test()
 	{
+		var db = await GetDatabaseAsync().ConfigureAwait(false);
+
 		var roles = new List<IRole>();
 		foreach (var name in new[] { "joe", "bob", "tom" })
 		{
@@ -31,10 +33,10 @@ public sealed class SelfRoleStateTypeReader_Tests
 			RoleId = x.Id,
 			GroupId = 2,
 		});
-		await _Db.UpsertSelfRolesAsync(selfRoles).ConfigureAwait(false);
+		await db.UpsertSelfRolesAsync(selfRoles).ConfigureAwait(false);
 
 		{
-			var retrieved = await _Db.GetSelfRolesAsync(Context.Guild.Id).ConfigureAwait(false);
+			var retrieved = await db.GetSelfRolesAsync(Context.Guild.Id).ConfigureAwait(false);
 			Assert.AreEqual(roles.Count, retrieved.Count);
 		}
 
@@ -53,7 +55,7 @@ public sealed class SelfRoleStateTypeReader_Tests
 		await roles[^1].DeleteAsync().ConfigureAwait(false);
 
 		{
-			var retrieved = await _Db.GetSelfRolesAsync(Context.Guild.Id).ConfigureAwait(false);
+			var retrieved = await db.GetSelfRolesAsync(Context.Guild.Id).ConfigureAwait(false);
 			Assert.AreEqual(roles.Count, retrieved.Count);
 		}
 
@@ -70,14 +72,17 @@ public sealed class SelfRoleStateTypeReader_Tests
 		}
 
 		{
-			var retrieved = await _Db.GetSelfRolesAsync(Context.Guild.Id).ConfigureAwait(false);
+			var retrieved = await db.GetSelfRolesAsync(Context.Guild.Id).ConfigureAwait(false);
 			Assert.AreEqual(roles.Count - 1, retrieved.Count);
 		}
 	}
 
 	protected override void ModifyServices(IServiceCollection services)
-	{
-		services
-			.AddSingleton<IAutoModDatabase>(_Db);
-	}
+		=> services.AddFakeDatabase<AutoModDatabase>();
+
+	protected override Task SetupAsync()
+		=> GetDatabaseAsync();
+
+	private Task<AutoModDatabase> GetDatabaseAsync()
+		=> Services.Value.GetDatabaseAsync<AutoModDatabase>();
 }

@@ -19,7 +19,7 @@ namespace Advobot.AutoMod.Service;
 public sealed class AutoModService(
 	ILogger<AutoModService> logger,
 	BaseSocketClient client,
-	IAutoModDatabase db,
+	AutoModDatabase db,
 	ITimeService time,
 	IPunishmentService punishmentService
 ) : StartableService

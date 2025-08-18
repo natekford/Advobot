@@ -1,13 +1,11 @@
 ﻿using Advobot.Logging.Database;
 using Advobot.Logging.Database.Models;
-using Advobot.Tests.Fakes.Database;
 using Advobot.Tests.TestBases;
 
 namespace Advobot.Tests.Commands.Logging.Database;
 
 [TestClass]
-public sealed class LoggingCRUD_Tests
-	: Database_Tests<LoggingDatabase, FakeSQLiteConnectionString>
+public sealed class LoggingCRUD_Tests : Database_Tests<LoggingDatabase>
 {
 	private const ulong GUILD_ID = ulong.MaxValue;
 	private const ulong IMAGE_LOG_ID = 73;

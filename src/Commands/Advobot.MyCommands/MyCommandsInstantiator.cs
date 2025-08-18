@@ -12,8 +12,7 @@ public sealed class MyCommandsInstantiator : CommandAssemblyInstantiator
 	public override Task AddServicesAsync(IServiceCollection services)
 	{
 		services
-			.AddSingleton<IMyCommandsDatabase, MyCommandsDatabase>()
-			.AddSQLiteFileDatabaseConnectionString<MyCommandsDatabase>("MyCommands.db")
+			.AddSQLiteDatabase<MyCommandsDatabase>("MyCommands")
 			.AddSingleton<TurkHandler>()
 			.AddSingleton<Ashman99ReactionHandler>();
 

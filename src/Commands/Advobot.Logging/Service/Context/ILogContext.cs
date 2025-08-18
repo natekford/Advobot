@@ -8,5 +8,5 @@ public interface ILogContext
 {
 	IGuild Guild { get; }
 
-	Task<bool> IsValidAsync(ILoggingDatabase db);
+	Task<bool> IsValidAsync(LoggingDatabase db);
 }

@@ -25,7 +25,7 @@ public sealed class SelfRoleStateTypeReader : RoleTypeReader<IRole>
 		}
 		var role = (IRole)result.BestMatch;
 
-		var db = services.GetRequiredService<IAutoModDatabase>();
+		var db = services.GetRequiredService<AutoModDatabase>();
 		var selfRole = await db.GetSelfRoleAsync(role.Id).ConfigureAwait(false);
 		if (selfRole is null)
 		{
@@ -44,7 +44,7 @@ public sealed class SelfRoleStateTypeReader : RoleTypeReader<IRole>
 	}
 
 	private async Task<List<IRole>> GetConflictingRoles(
-		IAutoModDatabase db,
+		AutoModDatabase db,
 		ICommandContext context,
 		SelfRole item)
 	{

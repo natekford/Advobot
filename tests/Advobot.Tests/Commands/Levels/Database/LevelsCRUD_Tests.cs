@@ -1,14 +1,12 @@
 ﻿using Advobot.Levels.Database;
 using Advobot.Levels.Database.Models;
 using Advobot.Levels.Utilities;
-using Advobot.Tests.Fakes.Database;
 using Advobot.Tests.TestBases;
 
 namespace Advobot.Tests.Commands.Levels.Database;
 
 [TestClass]
-public sealed class LevelsCRUD_Tests
-	: Database_Tests<LevelDatabase, FakeSQLiteConnectionString>
+public sealed class LevelsCRUD_Tests : Database_Tests<LevelDatabase>
 {
 	[TestMethod]
 	public async Task UserCRUD_Test()

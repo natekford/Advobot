@@ -5,7 +5,8 @@ using System.Data.SQLite;
 
 namespace Advobot.Logging.Database;
 
-public sealed class NotificationDatabase(IConnectionString<NotificationDatabase> conn) : DatabaseBase<SQLiteConnection>(conn), INotificationDatabase
+public sealed class NotificationDatabase(IConnectionString<NotificationDatabase> connection)
+	: DatabaseBase<SQLiteConnection>(connection)
 {
 	public async Task<CustomNotification?> GetAsync(
 		Notification notification,

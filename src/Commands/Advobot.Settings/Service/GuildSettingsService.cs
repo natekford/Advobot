@@ -9,7 +9,10 @@ using System.Globalization;
 
 namespace Advobot.Settings.Service;
 
-public class GuildSettingsProvider(ISettingsDatabase db, IRuntimeConfig settings) : IGuildSettingsService
+public class GuildSettingsService(
+	SettingsDatabase db,
+	IRuntimeConfig config
+) : IGuildSettingsService
 {
 	private const string NAME = "Advobot_Mute";
 
@@ -18,12 +21,9 @@ public class GuildSettingsProvider(ISettingsDatabase db, IRuntimeConfig settings
 		AuditLogReason = "Role not found or is higher than my highest role.",
 	};
 
-	private readonly ISettingsDatabase _Db = db;
-	private readonly IRuntimeConfig _Settings = settings;
-
 	public async Task<CultureInfo> GetCultureAsync(IGuild guild)
 	{
-		var settings = await _Db.GetGuildSettingsAsync(guild.Id).ConfigureAwait(false);
+		var settings = await db.GetGuildSettingsAsync(guild.Id).ConfigureAwait(false);
 		if (settings.Culture != null)
 		{
 			return CultureInfo.GetCultureInfo(settings.Culture);
@@ -33,7 +33,7 @@ public class GuildSettingsProvider(ISettingsDatabase db, IRuntimeConfig settings
 
 	public async Task<IRole> GetMuteRoleAsync(IGuild guild)
 	{
-		var settings = await _Db.GetGuildSettingsAsync(guild.Id).ConfigureAwait(false);
+		var settings = await db.GetGuildSettingsAsync(guild.Id).ConfigureAwait(false);
 		if (settings.MuteRoleId != 0)
 		{
 			foreach (var role in guild.Roles)
@@ -46,7 +46,7 @@ public class GuildSettingsProvider(ISettingsDatabase db, IRuntimeConfig settings
 		}
 
 		var newRole = await guild.CreateEmptyRoleAsync(NAME, _RoleCreation);
-		await _Db.UpsertGuildSettingsAsync(settings with
+		await db.UpsertGuildSettingsAsync(settings with
 		{
 			MuteRoleId = newRole.Id,
 		}).ConfigureAwait(false);
@@ -55,7 +55,7 @@ public class GuildSettingsProvider(ISettingsDatabase db, IRuntimeConfig settings
 
 	public async Task<string> GetPrefixAsync(IGuild guild)
 	{
-		var settings = await _Db.GetGuildSettingsAsync(guild.Id).ConfigureAwait(false);
-		return settings.Prefix ?? _Settings.Prefix;
+		var settings = await db.GetGuildSettingsAsync(guild.Id).ConfigureAwait(false);
+		return settings.Prefix ?? config.Prefix;
 	}
 }

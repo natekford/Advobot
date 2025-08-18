@@ -1,13 +1,11 @@
 ﻿using Advobot.Settings.Database;
 using Advobot.Settings.Database.Models;
-using Advobot.Tests.Fakes.Database;
 using Advobot.Tests.TestBases;
 
 namespace Advobot.Tests.Commands.Settings.Database;
 
 [TestClass]
-public sealed class SettingsCRUD_Tests
-	: Database_Tests<SettingsDatabase, FakeSQLiteConnectionString>
+public sealed class SettingsCRUD_Tests : Database_Tests<SettingsDatabase>
 {
 	[TestMethod]
 	public async Task CommandOverridesCRUD_Test()

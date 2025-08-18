@@ -5,5 +5,5 @@ namespace Advobot.Logging;
 
 public abstract class LoggingModuleBase : AdvobotModuleBase
 {
-	public required ILoggingDatabase Db { get; set; }
+	public required LoggingDatabase Db { get; set; }
 }

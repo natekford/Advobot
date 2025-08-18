@@ -5,7 +5,8 @@ using System.Data.SQLite;
 
 namespace Advobot.Settings.Database;
 
-public sealed class SettingsDatabase(IConnectionString<SettingsDatabase> conn) : DatabaseBase<SQLiteConnection>(conn), ISettingsDatabase
+public sealed class SettingsDatabase(IConnectionString<SettingsDatabase> connection)
+	: DatabaseBase<SQLiteConnection>(connection)
 {
 	public Task<int> DeleteCommandOverridesAsync(IEnumerable<CommandOverride> overrides)
 	{

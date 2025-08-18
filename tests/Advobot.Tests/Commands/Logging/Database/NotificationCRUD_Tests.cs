@@ -1,13 +1,11 @@
 ﻿using Advobot.Logging.Database;
 using Advobot.Logging.Database.Models;
-using Advobot.Tests.Fakes.Database;
 using Advobot.Tests.TestBases;
 
 namespace Advobot.Tests.Commands.Logging.Database;
 
 [TestClass]
-public sealed class NotificationCRUD_Tests
-	: Database_Tests<NotificationDatabase, FakeSQLiteConnectionString>
+public sealed class NotificationCRUD_Tests : Database_Tests<NotificationDatabase>
 {
 	private const ulong CHANNEL_ID = 73;
 	private const string? CONTENT = "uh oh stinky";

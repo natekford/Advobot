@@ -1,12 +1,10 @@
 ﻿using Advobot.Levels.Database;
-using Advobot.Tests.Fakes.Database;
 using Advobot.Tests.TestBases;
 
 namespace Advobot.Tests.Commands.Levels.Database;
 
 [TestClass]
-public sealed class IgnoredChannels_Tests
-	: Database_Tests<LevelDatabase, FakeSQLiteConnectionString>
+public sealed class IgnoredChannels_Tests : Database_Tests<LevelDatabase>
 {
 	private const ulong GUILD_ID = ulong.MaxValue;
 

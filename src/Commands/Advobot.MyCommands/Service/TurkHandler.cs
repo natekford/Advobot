@@ -12,12 +12,12 @@ namespace Advobot.MyCommands.Service;
 public sealed class TurkHandler
 {
 	private static readonly TimeSpan _DontBanIfOlderThan = TimeSpan.FromDays(7);
-	private readonly IMyCommandsDatabase _Db;
+	private readonly MyCommandsDatabase _Db;
 	private readonly HashSet<ulong> _Ids = [];
 	private string? _APIKey;
 	private DetectLanguageClient? _DetectLanguage;
 
-	public TurkHandler(BaseSocketClient client, IMyCommandsDatabase db)
+	public TurkHandler(BaseSocketClient client, MyCommandsDatabase db)
 	{
 		_Db = db;
 

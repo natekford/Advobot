@@ -9,7 +9,7 @@ public class UserUpdatedContext(IGuild guild, IUser before, IUser after)
 {
 	public IUser Before { get; } = before;
 
-	public override Task<bool> IsValidAsync(ILoggingDatabase db)
+	public override Task<bool> IsValidAsync(LoggingDatabase db)
 	{
 		if (User.IsBot || User.IsWebhook)
 		{

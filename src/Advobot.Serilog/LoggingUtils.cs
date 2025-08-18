@@ -54,6 +54,23 @@ public static class LoggingUtils
 		});
 	}
 
+	/// <summary>
+	/// Adds a singleton of <typeparamref name="T"/> and a logger for it to services.
+	/// </summary>
+	/// <typeparam name="T"></typeparam>
+	/// <param name="services"></param>
+	/// <param name="name"></param>
+	/// <returns></returns>
+	public static IServiceCollection AddSingletonWithLogger<T>(
+		this IServiceCollection services,
+		string name)
+		where T : class
+	{
+		return services
+			.AddSingleton<T>()
+			.AddLogger<T>(name);
+	}
+
 	private sealed class DiscordObjectDestructuringPolicy : IDestructuringPolicy
 	{
 		public static DiscordObjectDestructuringPolicy Instance { get; } = new();

@@ -14,7 +14,7 @@ namespace Advobot.Logging.Service;
 
 public sealed class NotificationService(
 	ILogger<NotificationService> logger,
-	INotificationDatabase db,
+	NotificationDatabase db,
 	BaseSocketClient client,
 	MessageQueue queue
 ) : StartableService

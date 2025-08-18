@@ -14,10 +14,9 @@ public sealed class SettingsInstantiator : CommandAssemblyInstantiator
 	public override Task AddServicesAsync(IServiceCollection services)
 	{
 		services
-			.AddSingleton<ISettingsDatabase, SettingsDatabase>()
-			.AddSQLiteFileDatabaseConnectionString<SettingsDatabase>("GuildSettings.db")
-			.AddSingleton<ICommandValidator, CommandValidator>()
-			.ReplaceAllWithSingleton<IGuildSettingsService, GuildSettingsProvider>();
+			.AddSQLiteDatabase<SettingsDatabase>("GuildSettings")
+			.ReplaceAllWithSingleton<IGuildSettingsService, GuildSettingsService>()
+			.AddSingleton<ICommandValidator, CommandValidator>();
 
 		return Task.CompletedTask;
 	}

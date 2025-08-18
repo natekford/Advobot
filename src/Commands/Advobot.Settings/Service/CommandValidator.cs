@@ -9,10 +9,8 @@ using Discord.Commands;
 
 namespace Advobot.Settings.Service;
 
-public class CommandValidator(ISettingsDatabase db) : ICommandValidator
+public class CommandValidator(SettingsDatabase db) : ICommandValidator
 {
-	private readonly ISettingsDatabase _Db = db;
-
 	public async Task<PreconditionResult> CanInvokeAsync(
 		ICommandContext context,
 		CommandInfo command)
@@ -41,7 +39,7 @@ public class CommandValidator(ISettingsDatabase db) : ICommandValidator
 		}
 
 		var id = meta.Guid.ToString();
-		var overrides = await _Db.GetCommandOverridesAsync(context.Guild.Id, id).ConfigureAwait(false);
+		var overrides = await db.GetCommandOverridesAsync(context.Guild.Id, id).ConfigureAwait(false);
 		foreach (var @override in overrides)
 		{
 			var entity = GetEntity(context, @override);

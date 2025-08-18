@@ -9,7 +9,7 @@ public class UserContext(IGuild guild, IUser user) : ILogContext
 	public IGuild Guild { get; } = guild;
 	public IUser User { get; } = user;
 
-	public virtual async Task<bool> IsValidAsync(ILoggingDatabase db)
+	public virtual async Task<bool> IsValidAsync(LoggingDatabase db)
 	{
 		if (Guild is null || User is null)
 		{

@@ -1,14 +1,12 @@
 ﻿using Advobot.Levels.Database;
 using Advobot.Levels.Database.Models;
 using Advobot.Levels.Utilities;
-using Advobot.Tests.Fakes.Database;
 using Advobot.Tests.TestBases;
 
 namespace Advobot.Tests.Commands.Levels.Database;
 
 [TestClass]
-public sealed class Rank_Tests
-	: Database_Tests<LevelDatabase, FakeSQLiteConnectionString>
+public sealed class Rank_Tests : Database_Tests<LevelDatabase>
 {
 	private const ulong CHANNEL_ID = 2;
 	private const ulong GUILD_ID = 1;

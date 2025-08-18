@@ -9,12 +9,16 @@ public abstract class ParameterPrecondition_Tests<T> : TestsBase
 
 	[TestMethod]
 	public async Task InvalidType_Test()
-		=> await AssertFailureAsync(new object()).ConfigureAwait(false);
+	{
+		await SetupAsync().ConfigureAwait(false);
+		await AssertFailureAsync(new object()).ConfigureAwait(false);
+	}
 
 	protected async Task<PreconditionResult> AssertFailureAsync(
 		object value,
 		ParameterInfo? parameter = null)
 	{
+		await SetupAsync().ConfigureAwait(false);
 		var result = await Instance.CheckPermissionsAsync(
 			Context, parameter, value, Services.Value).ConfigureAwait(false);
 		Assert.IsFalse(result.IsSuccess);
@@ -25,6 +29,7 @@ public abstract class ParameterPrecondition_Tests<T> : TestsBase
 		object value,
 		ParameterInfo? parameter = null)
 	{
+		await SetupAsync().ConfigureAwait(false);
 		var result = await Instance.CheckPermissionsAsync(
 			Context, parameter, value, Services.Value).ConfigureAwait(false);
 		Assert.IsTrue(result.IsSuccess);

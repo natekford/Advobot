@@ -32,6 +32,23 @@ public static class SQLiteUtils
 	}
 
 	/// <summary>
+	/// Adds a database and a SQLite connection string for it.
+	/// </summary>
+	/// <typeparam name="T"></typeparam>
+	/// <param name="services"></param>
+	/// <param name="name"></param>
+	/// <returns></returns>
+	public static IServiceCollection AddSQLiteDatabase<T>(
+		this IServiceCollection services,
+		string name)
+		where T : class
+	{
+		return services
+			.AddSingleton<T>()
+			.AddSQLiteFileDatabaseConnectionString<T>($"{name}.db");
+	}
+
+	/// <summary>
 	/// Adds a SQLite connection string for the specified database.
 	/// </summary>
 	/// <typeparam name="T"></typeparam>

@@ -14,14 +14,10 @@ public sealed class LoggingInstantiator : CommandAssemblyInstantiator
 	public override Task AddServicesAsync(IServiceCollection services)
 	{
 		services
-			.AddSingleton<ILoggingDatabase, LoggingDatabase>()
-			.AddSQLiteFileDatabaseConnectionString<LoggingDatabase>("Logging.db")
-			.AddSingleton<LoggingService>()
-			.AddLogger<LoggingService>("Logging")
-			.AddSingleton<INotificationDatabase, NotificationDatabase>()
-			.AddSQLiteFileDatabaseConnectionString<NotificationDatabase>("Notification.db")
-			.AddSingleton<NotificationService>()
-			.AddLogger<NotificationService>("Notification")
+			.AddSQLiteDatabase<LoggingDatabase>("Logging")
+			.AddSingletonWithLogger<LoggingService>("Logging")
+			.AddSQLiteDatabase<NotificationDatabase>("Notification")
+			.AddSingletonWithLogger<NotificationService>("Notification")
 			.AddSingleton<MessageQueue>()
 			.AddDefaultOptionsSetter<LogActionsResetter>()
 			.AddDefaultOptionsSetter<WelcomeNotificationResetter>()

@@ -13,11 +13,9 @@ public sealed class LevelInstantiator : CommandAssemblyInstantiator
 	public override Task AddServicesAsync(IServiceCollection services)
 	{
 		services
-			.AddSingleton<LevelServiceConfig>()
-			.AddSingleton<ILevelDatabase, LevelDatabase>()
-			.AddSQLiteFileDatabaseConnectionString<LevelDatabase>("Levels.db")
-			.AddSingleton<LevelService>()
-			.AddLogger<LevelService>("Levels");
+			.AddSQLiteDatabase<LevelDatabase>("Levels")
+			.AddSingletonWithLogger<LevelService>("Levels")
+			.AddSingleton<LevelServiceConfig>();
 
 		return Task.CompletedTask;
 	}

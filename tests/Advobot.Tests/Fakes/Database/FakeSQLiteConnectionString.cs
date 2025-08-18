@@ -13,7 +13,7 @@ public sealed class FakeSQLiteConnectionString : IConnectionString<object>
 	{
 		Database = database;
 		Id = Guid.NewGuid().ToString();
-		Location = Path.Combine(Environment.CurrentDirectory, "TestDatabases", $"{Id}.db");
+		Location = Path.Combine(Environment.CurrentDirectory, "TestDatabases", $"DELETE_ME_{Id}.db");
 		ConnectionString = $"Data Source={Location}";
 	}
 
@@ -21,7 +21,10 @@ public sealed class FakeSQLiteConnectionString : IConnectionString<object>
 	public Task EnsureCreatedAsync()
 	{
 		Directory.CreateDirectory(Path.GetDirectoryName(Location)!);
-		File.Create(Location).Dispose();
+		if (!File.Exists(Location))
+		{
+			File.Create(Location).Dispose();
+		}
 		return Task.CompletedTask;
 	}
 }

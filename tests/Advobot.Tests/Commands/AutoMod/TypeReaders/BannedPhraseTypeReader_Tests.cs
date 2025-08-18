@@ -3,6 +3,7 @@ using Advobot.AutoMod.Database.Models;
 using Advobot.AutoMod.TypeReaders;
 using Advobot.Punishments;
 using Advobot.Tests.TestBases;
+using Advobot.Tests.Utilities;
 
 using Microsoft.Extensions.DependencyInjection;
 
@@ -12,8 +13,6 @@ namespace Advobot.Tests.Commands.AutoMod.TypeReaders;
 public abstract class BannedPhraseTypeReader_Tests<T> : TypeReader_Tests<T>
 	where T : BannedPhraseTypeReaderBase
 {
-	private readonly FakeAutoModDatabase _Db = new();
-
 	protected abstract bool IsName { get; }
 	protected abstract bool IsRegex { get; }
 	protected abstract bool IsString { get; }
@@ -23,7 +22,8 @@ public abstract class BannedPhraseTypeReader_Tests<T> : TypeReader_Tests<T>
 	{
 		const string PHRASE = "asdf";
 
-		await _Db.UpsertBannedPhraseAsync(new BannedPhrase
+		var db = await GetDatabaseAsync().ConfigureAwait(false);
+		await db.UpsertBannedPhraseAsync(new BannedPhrase
 		(
 			GuildId: Context.Guild.Id,
 			IsContains: IsName || IsString,
@@ -43,7 +43,8 @@ public abstract class BannedPhraseTypeReader_Tests<T> : TypeReader_Tests<T>
 	{
 		const string PHRASE = "asdf";
 
-		await _Db.UpsertBannedPhraseAsync(new BannedPhrase
+		var db = await GetDatabaseAsync().ConfigureAwait(false);
+		await db.UpsertBannedPhraseAsync(new BannedPhrase
 		(
 			GuildId: Context.Guild.Id,
 			IsContains: !(IsName || IsString),
@@ -57,9 +58,12 @@ public abstract class BannedPhraseTypeReader_Tests<T> : TypeReader_Tests<T>
 		Assert.IsFalse(result.IsSuccess);
 	}
 
+	protected Task<AutoModDatabase> GetDatabaseAsync()
+		=> Services.Value.GetDatabaseAsync<AutoModDatabase>();
+
 	protected override void ModifyServices(IServiceCollection services)
-	{
-		services
-			.AddSingleton<IAutoModDatabase>(_Db);
-	}
+		=> services.AddFakeDatabase<AutoModDatabase>();
+
+	protected override Task SetupAsync()
+		=> GetDatabaseAsync();
 }

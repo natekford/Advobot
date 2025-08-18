@@ -34,7 +34,7 @@ public abstract class LogParameterPrecondition : AdvobotParameterPrecondition<IT
 		ITextChannel value,
 		IServiceProvider services)
 	{
-		var service = services.GetRequiredService<ILoggingDatabase>();
+		var service = services.GetRequiredService<LoggingDatabase>();
 		var channels = await service.GetLogChannelsAsync(context.Guild.Id).ConfigureAwait(false);
 		if (GetId(channels) != value.Id)
 		{

@@ -34,7 +34,7 @@ public abstract class NotAlreadyBannedPhraseParameterPrecondition
 		string value,
 		IServiceProvider services)
 	{
-		var db = services.GetRequiredService<IAutoModDatabase>();
+		var db = services.GetRequiredService<AutoModDatabase>();
 		var phrases = await db.GetBannedPhrasesAsync(context.Guild.Id).ConfigureAwait(false);
 		if (phrases.Any(x => IsMatch(x, value)))
 		{

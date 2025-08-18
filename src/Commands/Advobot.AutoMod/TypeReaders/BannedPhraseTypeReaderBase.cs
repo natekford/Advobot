@@ -26,7 +26,7 @@ public abstract class BannedPhraseTypeReaderBase : TypeReader
 		string input,
 		IServiceProvider services)
 	{
-		var db = services.GetRequiredService<IAutoModDatabase>();
+		var db = services.GetRequiredService<AutoModDatabase>();
 		var phrases = await db.GetBannedPhrasesAsync(context.Guild.Id).ConfigureAwait(false);
 		var matches = phrases.Where(x => IsValid(x, input)).ToArray();
 

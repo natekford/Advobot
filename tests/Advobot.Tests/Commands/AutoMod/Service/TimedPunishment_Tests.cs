@@ -6,6 +6,7 @@ using Advobot.Services.Time;
 using Advobot.Tests.Fakes.Services;
 using Advobot.Tests.Fakes.Services.Time;
 using Advobot.Tests.TestBases;
+using Advobot.Tests.Utilities;
 
 using Discord;
 
@@ -16,97 +17,71 @@ namespace Advobot.Tests.Commands.AutoMod.Service;
 [TestClass]
 public sealed class TimedPunishment_Tests : TestsBase
 {
-	private readonly FakeTimedPunishmentDatabase _Db = new();
 	private readonly MutableTime _Time = new();
-	private readonly TimedPunishmentService _TimedPunishmentService;
-
-	public TimedPunishment_Tests()
-	{
-		_TimedPunishmentService = Services.Value.GetRequiredService<TimedPunishmentService>();
-	}
 
 	[TestMethod]
 	public async Task BansGetAdded_Test()
 	{
-		await AddBansAsync(5).ConfigureAwait(false);
+		var db = await GetDatabaseAsync().ConfigureAwait(false);
+		var service = Services.Value.GetRequiredService<TimedPunishmentService>();
+		await AddBansAsync(service, 5).ConfigureAwait(false);
 
-		var retrieved = await _Db.GetExpiredPunishmentsAsync(DateTime.MaxValue.Ticks).ConfigureAwait(false);
+		var retrieved = await db.GetExpiredPunishmentsAsync(DateTime.MaxValue.Ticks).ConfigureAwait(false);
 		Assert.HasCount(5, retrieved);
-	}
-
-	[TestMethod]
-	public async Task OldTimedPunishmentsGetIgnored_Test()
-	{
-		await AddBansAsync(5).ConfigureAwait(false);
-
-		_Time.UtcNow += TimeSpan.FromDays(10);
-		{
-			var retrieved = await _Db.GetExpiredPunishmentsAsync(_Time.UtcNow.Ticks).ConfigureAwait(false);
-			Assert.HasCount(5, retrieved);
-		}
-
-		var tcs = new TaskCompletionSource<int>();
-		_Db.PunishmentsModified += (added, punishments) =>
-		{
-			Assert.IsFalse(added);
-			tcs.SetResult(punishments.Count());
-		};
-		await _TimedPunishmentService.StartAsync().ConfigureAwait(false);
-
-		var value = await tcs.Task.ConfigureAwait(false);
-		Assert.AreEqual(5, value);
-		Assert.IsEmpty(_Db.Punishments);
+		Assert.HasCount(5, Context.Guild.FakeBans);
 	}
 
 	[TestMethod]
 	public async Task TimedPunishmentsGetProcessed_Test()
 	{
-		await AddBansAsync(5).ConfigureAwait(false);
+		var db = await GetDatabaseAsync().ConfigureAwait(false);
+		var service = Services.Value.GetRequiredService<TimedPunishmentService>();
+		await AddBansAsync(service, 5).ConfigureAwait(false);
 
 		_Time.UtcNow += TimeSpan.FromDays(3);
 		{
-			var retrieved = await _Db.GetExpiredPunishmentsAsync(_Time.UtcNow.Ticks).ConfigureAwait(false);
+			var retrieved = await db.GetExpiredPunishmentsAsync(_Time.UtcNow.Ticks).ConfigureAwait(false);
 			Assert.HasCount(5, retrieved);
+			Assert.HasCount(5, Context.Guild.FakeBans);
 		}
 
-		var count = 0;
-		var tcs = new TaskCompletionSource<int>();
-		_Db.PunishmentsModified += (added, _) =>
+		await service.StartAsync().ConfigureAwait(false);
+		while (Context.Guild.FakeBans.Count > 0)
 		{
-			Assert.IsFalse(added);
-			++count;
+			await Task.Delay(100, CancellationToken.None).ConfigureAwait(false);
+		}
 
-			if (_Db.Punishments.IsEmpty)
-			{
-				tcs.SetResult(count);
-			}
-		};
-		await _TimedPunishmentService.StartAsync().ConfigureAwait(false);
-
-		var value = await tcs.Task.ConfigureAwait(false);
-		Assert.AreEqual(5, value);
-		Assert.IsEmpty(_Db.Punishments);
+		{
+			var retrieved = await db.GetExpiredPunishmentsAsync(_Time.UtcNow.Ticks).ConfigureAwait(false);
+			Assert.IsEmpty(retrieved);
+			Assert.IsEmpty(Context.Guild.FakeBans);
+		}
 	}
 
 	protected override void ModifyServices(IServiceCollection services)
 	{
 		services
-			.AddSingleton<ITimedPunishmentDatabase>(_Db)
+			.AddFakeDatabase<TimedPunishmentDatabase>()
 			.AddSingleton<IDiscordClient>(Context.Client)
-			.AddSingleton<TimedPunishmentService>()
+			.AddSingletonWithLogger<TimedPunishmentService>("TEMP")
 			.AddSingleton<ITimeService>(_Time)
-			.AddSingleton<IConfig>(FakeConfig.Singleton)
-			.AddLogger<TimedPunishmentService>("TEMP");
+			.AddSingleton<IConfig>(FakeConfig.Singleton);
 	}
 
-	private async Task AddBansAsync(ulong count)
+	protected override Task SetupAsync()
+		=> GetDatabaseAsync();
+
+	private async Task AddBansAsync(TimedPunishmentService service, ulong count)
 	{
 		for (ulong i = 1; i <= count; ++i)
 		{
-			await _TimedPunishmentService.PunishAsync(new Ban(Context.Guild, i, true)
+			await service.PunishAsync(new Ban(Context.Guild, i, true)
 			{
 				Duration = TimeSpan.FromDays(1),
 			}).ConfigureAwait(false);
 		}
 	}
+
+	private Task<TimedPunishmentDatabase> GetDatabaseAsync()
+		=> Services.Value.GetDatabaseAsync<TimedPunishmentDatabase>();
 }
