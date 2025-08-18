@@ -1,6 +1,4 @@
-﻿using System.Collections.Concurrent;
-
-namespace Advobot.Console;
+﻿namespace Advobot.Console;
 
 /// <summary>
 /// Starting point for Advobot in a console.

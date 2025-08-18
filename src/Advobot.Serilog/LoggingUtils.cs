@@ -11,7 +11,6 @@ using Serilog.Formatting.Json;
 using Serilog.Sinks.SystemConsole.Themes;
 
 using System.Diagnostics.CodeAnalysis;
-using System.IO;
 
 namespace Advobot.Serilog;
 
