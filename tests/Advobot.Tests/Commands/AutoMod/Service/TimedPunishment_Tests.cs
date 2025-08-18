@@ -17,13 +17,11 @@ namespace Advobot.Tests.Commands.AutoMod.Service;
 [TestClass]
 public sealed class TimedPunishment_Tests : TestsBase
 {
-	private readonly MutableTime _Time = new();
-
 	[TestMethod]
 	public async Task BansGetAdded_Test()
 	{
 		var db = await GetDatabaseAsync().ConfigureAwait(false);
-		var service = Services.Value.GetRequiredService<TimedPunishmentService>();
+		var service = Services.GetRequiredService<TimedPunishmentService>();
 		await AddBansAsync(service, 5).ConfigureAwait(false);
 
 		var retrieved = await db.GetExpiredPunishmentsAsync(DateTime.MaxValue.Ticks).ConfigureAwait(false);
@@ -35,12 +33,12 @@ public sealed class TimedPunishment_Tests : TestsBase
 	public async Task TimedPunishmentsGetProcessed_Test()
 	{
 		var db = await GetDatabaseAsync().ConfigureAwait(false);
-		var service = Services.Value.GetRequiredService<TimedPunishmentService>();
+		var service = Services.GetRequiredService<TimedPunishmentService>();
 		await AddBansAsync(service, 5).ConfigureAwait(false);
 
-		_Time.UtcNow += TimeSpan.FromDays(3);
+		Time.UtcNow += TimeSpan.FromDays(3);
 		{
-			var retrieved = await db.GetExpiredPunishmentsAsync(_Time.UtcNow.Ticks).ConfigureAwait(false);
+			var retrieved = await db.GetExpiredPunishmentsAsync(Time.UtcNow.Ticks).ConfigureAwait(false);
 			Assert.HasCount(5, retrieved);
 			Assert.HasCount(5, Context.Guild.FakeBans);
 		}
@@ -52,20 +50,10 @@ public sealed class TimedPunishment_Tests : TestsBase
 		}
 
 		{
-			var retrieved = await db.GetExpiredPunishmentsAsync(_Time.UtcNow.Ticks).ConfigureAwait(false);
+			var retrieved = await db.GetExpiredPunishmentsAsync(Time.UtcNow.Ticks).ConfigureAwait(false);
 			Assert.IsEmpty(retrieved);
 			Assert.IsEmpty(Context.Guild.FakeBans);
 		}
-	}
-
-	protected override void ModifyServices(IServiceCollection services)
-	{
-		services
-			.AddFakeDatabase<TimedPunishmentDatabase>()
-			.AddSingleton<IDiscordClient>(Context.Client)
-			.AddSingletonWithLogger<TimedPunishmentService>("TEMP")
-			.AddSingleton<ITimeService>(_Time)
-			.AddSingleton<IConfig>(FakeConfig.Singleton);
 	}
 
 	protected override Task SetupAsync()
@@ -83,5 +71,5 @@ public sealed class TimedPunishment_Tests : TestsBase
 	}
 
 	private Task<TimedPunishmentDatabase> GetDatabaseAsync()
-		=> Services.Value.GetDatabaseAsync<TimedPunishmentDatabase>();
+		=> Services.GetDatabaseAsync<TimedPunishmentDatabase>();
 }

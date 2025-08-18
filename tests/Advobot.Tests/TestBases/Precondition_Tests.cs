@@ -8,5 +8,5 @@ public abstract class Precondition_Tests<T> : TestsBase
 	protected abstract T Instance { get; }
 
 	protected Task<PreconditionResult> CheckPermissionsAsync(CommandInfo? command = null)
-		=> Instance.CheckPermissionsAsync(Context, command, Services.Value);
+		=> Instance.CheckPermissionsAsync(Context, command, Services);
 }

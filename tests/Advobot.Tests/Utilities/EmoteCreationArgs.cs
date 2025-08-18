@@ -4,7 +4,7 @@ using System.Reflection;
 
 namespace Advobot.Tests.Utilities;
 
-public sealed class EmoteCreationArgs
+public sealed record EmoteCreationArgs
 {
 	private static readonly ConstructorInfo _Constructor = typeof(GuildEmote)
 		.GetConstructors(BindingFlags.Instance | BindingFlags.NonPublic)

@@ -2,7 +2,7 @@
 
 namespace Advobot.Tests.Fakes.Services.HelpEntries;
 
-public sealed class FakeHelpEntry : IHelpModule
+public sealed record FakeHelpEntry : IHelpModule
 {
 	public bool AbleToBeToggled { get; set; }
 	public IReadOnlyList<string> Aliases { get; set; } = [];

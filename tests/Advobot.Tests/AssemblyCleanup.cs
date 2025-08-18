@@ -1,15 +1,18 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace Advobot.Tests;
+﻿namespace Advobot.Tests;
 
 [TestClass]
 public static class AssemblyCleanup
 {
 	[AssemblyCleanup]
 	public static void Cleanup()
-		=> Directory.Delete(Path.Combine(Environment.CurrentDirectory, "TestDatabases"), true);
+	{
+		try
+		{
+			var directory = Path.Combine(Environment.CurrentDirectory, "TestDatabases");
+			Directory.Delete(path: directory, recursive: true);
+		}
+		catch
+		{
+		}
+	}
 }

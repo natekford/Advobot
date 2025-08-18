@@ -15,23 +15,21 @@ public sealed class NotificationCRUD_Tests : Database_Tests<NotificationDatabase
 	[TestMethod]
 	public async Task NotificationCRUD_Test()
 	{
-		var db = await GetDatabaseAsync().ConfigureAwait(false);
-
 		{
-			var retrieved = await db.GetAsync(EVENT, GUILD_ID).ConfigureAwait(false);
+			var retrieved = await Db.GetAsync(EVENT, GUILD_ID).ConfigureAwait(false);
 			Assert.IsNull(retrieved);
 		}
 
-		await db.UpsertNotificationChannelAsync(EVENT, GUILD_ID, CHANNEL_ID).ConfigureAwait(false);
+		await Db.UpsertNotificationChannelAsync(EVENT, GUILD_ID, CHANNEL_ID).ConfigureAwait(false);
 		{
-			var retrieved = await db.GetAsync(EVENT, GUILD_ID).ConfigureAwait(false);
+			var retrieved = await Db.GetAsync(EVENT, GUILD_ID).ConfigureAwait(false);
 			Assert.IsNotNull(retrieved);
 			Assert.AreEqual(CHANNEL_ID, retrieved!.ChannelId);
 		}
 
-		await db.UpsertNotificationContentAsync(EVENT, GUILD_ID, CONTENT).ConfigureAwait(false);
+		await Db.UpsertNotificationContentAsync(EVENT, GUILD_ID, CONTENT).ConfigureAwait(false);
 		{
-			var retrieved = await db.GetAsync(EVENT, GUILD_ID).ConfigureAwait(false);
+			var retrieved = await Db.GetAsync(EVENT, GUILD_ID).ConfigureAwait(false);
 			Assert.IsNotNull(retrieved);
 			Assert.AreEqual(CHANNEL_ID, retrieved!.ChannelId);
 			Assert.AreEqual(CONTENT, retrieved.Content);
@@ -51,9 +49,9 @@ public sealed class NotificationCRUD_Tests : Database_Tests<NotificationDatabase
 			Title = "title is me",
 			Url = "https://www.website.com",
 		};
-		await db.UpsertNotificationEmbedAsync(EVENT, GUILD_ID, embed).ConfigureAwait(false);
+		await Db.UpsertNotificationEmbedAsync(EVENT, GUILD_ID, embed).ConfigureAwait(false);
 		{
-			var retrieved = await db.GetAsync(EVENT, GUILD_ID).ConfigureAwait(false);
+			var retrieved = await Db.GetAsync(EVENT, GUILD_ID).ConfigureAwait(false);
 			Assert.IsNotNull(retrieved);
 			Assert.AreEqual(CHANNEL_ID, retrieved!.ChannelId);
 			Assert.AreEqual(CONTENT, retrieved.Content);
@@ -70,9 +68,9 @@ public sealed class NotificationCRUD_Tests : Database_Tests<NotificationDatabase
 			Assert.AreEqual(embed.Url, retrieved.Url);
 		}
 
-		await db.UpsertNotificationChannelAsync(EVENT, GUILD_ID, null).ConfigureAwait(false);
+		await Db.UpsertNotificationChannelAsync(EVENT, GUILD_ID, null).ConfigureAwait(false);
 		{
-			var retrieved = await db.GetAsync(EVENT, GUILD_ID).ConfigureAwait(false);
+			var retrieved = await Db.GetAsync(EVENT, GUILD_ID).ConfigureAwait(false);
 			Assert.IsNotNull(retrieved);
 			Assert.AreEqual(0UL, retrieved!.ChannelId);
 			Assert.AreEqual(CONTENT, retrieved.Content);

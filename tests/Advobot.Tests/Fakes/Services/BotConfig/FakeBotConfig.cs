@@ -4,10 +4,10 @@ using Discord;
 
 namespace Advobot.Tests.Fakes.Services.BotConfig;
 
-public sealed class FakeBotConfig : IRuntimeConfig
+public sealed record FakeBotConfig : IRuntimeConfig
 {
 	public bool AlwaysDownloadUsers { get; set; } = true;
-	public DirectoryInfo BaseBotDirectory => throw new NotImplementedException();
+	public DirectoryInfo BaseBotDirectory { get; set; } = new(Environment.CurrentDirectory);
 	public string? Game { get; set; }
 	public LogSeverity LogLevel { get; set; } = LogSeverity.Debug;
 	public int MaxBannedNames { get; set; }
@@ -23,17 +23,8 @@ public sealed class FakeBotConfig : IRuntimeConfig
 	public int MessageCacheSize { get; set; }
 	public bool Pause { get; set; }
 	public string Prefix { get; set; } = "&&";
-	public string RestartArguments => throw new NotImplementedException();
+	public string RestartArguments { get; set; } = "";
 	public string? Stream { get; set; }
 	public IList<ulong> UsersIgnoredFromCommands { get; set; } = [];
 	public IList<ulong> UsersUnableToDmOwner { get; set; } = [];
-
-	public IReadOnlyCollection<string> GetSettingNames()
-		=> throw new NotImplementedException();
-
-	public void ResetSetting(string name)
-		=> throw new NotImplementedException();
-
-	public void Save()
-		=> throw new NotImplementedException();
 }

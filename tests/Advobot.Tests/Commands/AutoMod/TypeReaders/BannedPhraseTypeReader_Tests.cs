@@ -59,10 +59,7 @@ public abstract class BannedPhraseTypeReader_Tests<T> : TypeReader_Tests<T>
 	}
 
 	protected Task<AutoModDatabase> GetDatabaseAsync()
-		=> Services.Value.GetDatabaseAsync<AutoModDatabase>();
-
-	protected override void ModifyServices(IServiceCollection services)
-		=> services.AddFakeDatabase<AutoModDatabase>();
+		=> Services.GetDatabaseAsync<AutoModDatabase>();
 
 	protected override Task SetupAsync()
 		=> GetDatabaseAsync();

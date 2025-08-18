@@ -14,8 +14,7 @@ public sealed class Rank_Tests : Database_Tests<LevelDatabase>
 	[TestMethod]
 	public async Task RankPage_Test()
 	{
-		var db = await GetDatabaseAsync().ConfigureAwait(false);
-		var data = await SeedDataAsync(db).ConfigureAwait(false);
+		var data = await SeedDataAsync(Db).ConfigureAwait(false);
 
 		const int START = 1;
 		const int LENGTH = 3;
@@ -26,7 +25,7 @@ public sealed class Rank_Tests : Database_Tests<LevelDatabase>
 		//the same later on
 		var last = ordered[^1];
 		var otherServer = new User(new SearchArgs(last.UserId, CHANNEL_ID + 1, GUILD_ID + 1)).AddXp(3);
-		await db.UpsertUserAsync(otherServer).ConfigureAwait(false);
+		await Db.UpsertUserAsync(otherServer).ConfigureAwait(false);
 
 		var expected = ordered
 			.Skip(START)
@@ -35,7 +34,7 @@ public sealed class Rank_Tests : Database_Tests<LevelDatabase>
 			.ToArray();
 
 		var args = new SearchArgs(null, GUILD_ID, CHANNEL_ID);
-		var retrieved = await db.GetRanksAsync(args, START, LENGTH).ConfigureAwait(false);
+		var retrieved = await Db.GetRanksAsync(args, START, LENGTH).ConfigureAwait(false);
 		Assert.AreEqual(expected.Length, retrieved.Count);
 
 		for (var i = 0; i < expected.Length; ++i)
@@ -53,15 +52,14 @@ public sealed class Rank_Tests : Database_Tests<LevelDatabase>
 	[TestMethod]
 	public async Task SingleRank_Test()
 	{
-		var db = await GetDatabaseAsync().ConfigureAwait(false);
-		var data = await SeedDataAsync(db).ConfigureAwait(false);
+		var data = await SeedDataAsync(Db).ConfigureAwait(false);
 
 		var picked = data[0];
 		var index = data.OrderByDescending(x => x.Experience).ToArray().IndexOf(picked);
 		var expected = new Rank(picked.UserId, picked.Experience, index + 1, data.Count);
 
 		var args = new SearchArgs(picked.UserId, picked.GuildId, picked.ChannelId);
-		var retrieved = await db.GetRankAsync(args).ConfigureAwait(false);
+		var retrieved = await Db.GetRankAsync(args).ConfigureAwait(false);
 		Assert.IsNotNull(retrieved);
 		Assert.AreEqual(expected.Experience, retrieved.Experience);
 		Assert.AreEqual(expected.Position, retrieved.Position);

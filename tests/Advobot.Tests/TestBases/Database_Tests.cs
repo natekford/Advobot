@@ -5,15 +5,11 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace Advobot.Tests.TestBases;
 
-public abstract class Database_Tests<TDb> : TestsBase where TDb : class
+public abstract class Database_Tests<T> : TestsBase
+	where T : class
 {
-	protected Task<TDb> GetDatabaseAsync()
-		=> Services.Value.GetDatabaseAsync<TDb>();
+	protected T Db { get; set; }
 
-	protected override void ModifyServices(IServiceCollection services)
-	{
-		services
-			.AddFakeDatabase<TDb>()
-			.AddSingleton<ITimeService, NaiveTimeService>();
-	}
+	protected override async Task SetupAsync()
+		=> Db = await Services.GetDatabaseAsync<T>().ConfigureAwait(false);
 }

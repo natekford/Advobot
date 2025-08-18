@@ -11,7 +11,6 @@ namespace Advobot.Tests.Core.Preconditions;
 public sealed class RequireAllowedToDmBotOwner_Tests
 	: Precondition_Tests<RequireAllowedToDmBotOwner>
 {
-	private readonly FakeBotConfig _BotConfig = new();
 	protected override RequireAllowedToDmBotOwner Instance { get; } = new();
 
 	[TestMethod]
@@ -24,15 +23,9 @@ public sealed class RequireAllowedToDmBotOwner_Tests
 	[TestMethod]
 	public async Task CannotDmBotOwner_Test()
 	{
-		_BotConfig.UsersUnableToDmOwner.Add(Context.User.Id);
+		Config.UsersUnableToDmOwner.Add(Context.User.Id);
 
 		var result = await CheckPermissionsAsync().ConfigureAwait(false);
 		Assert.IsFalse(result.IsSuccess);
-	}
-
-	protected override void ModifyServices(IServiceCollection services)
-	{
-		services
-			.AddSingleton<IRuntimeConfig>(_BotConfig);
 	}
 }

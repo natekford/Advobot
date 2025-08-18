@@ -11,10 +11,8 @@ public sealed class IgnoredChannels_Tests : Database_Tests<LevelDatabase>
 	[TestMethod]
 	public async Task IgnoredLogChannelsInsertionAndRetrieval_Test()
 	{
-		var db = await GetDatabaseAsync().ConfigureAwait(false);
-
 		{
-			var retrieved = await db.GetIgnoredChannelsAsync(GUILD_ID).ConfigureAwait(false);
+			var retrieved = await Db.GetIgnoredChannelsAsync(GUILD_ID).ConfigureAwait(false);
 			Assert.IsEmpty(retrieved);
 		}
 
@@ -26,9 +24,9 @@ public sealed class IgnoredChannels_Tests : Database_Tests<LevelDatabase>
 			1337,
 		};
 		{
-			await db.AddIgnoredChannelsAsync(GUILD_ID, toInsert).ConfigureAwait(false);
+			await Db.AddIgnoredChannelsAsync(GUILD_ID, toInsert).ConfigureAwait(false);
 
-			var retrieved = await db.GetIgnoredChannelsAsync(GUILD_ID).ConfigureAwait(false);
+			var retrieved = await Db.GetIgnoredChannelsAsync(GUILD_ID).ConfigureAwait(false);
 			Assert.AreEqual(toInsert.Length, retrieved.Count);
 			Assert.AreEqual(toInsert.Length, toInsert.Intersect(retrieved).Count());
 		}
@@ -39,9 +37,9 @@ public sealed class IgnoredChannels_Tests : Database_Tests<LevelDatabase>
 			69,
 		};
 		{
-			await db.DeleteIgnoredChannelsAsync(GUILD_ID, toRemove).ConfigureAwait(false);
+			await Db.DeleteIgnoredChannelsAsync(GUILD_ID, toRemove).ConfigureAwait(false);
 
-			var retrieved = await db.GetIgnoredChannelsAsync(GUILD_ID).ConfigureAwait(false);
+			var retrieved = await Db.GetIgnoredChannelsAsync(GUILD_ID).ConfigureAwait(false);
 			Assert.AreEqual(toInsert.Length - toRemove.Length, retrieved.Count);
 			Assert.AreEqual(0, toRemove.Intersect(retrieved).Count());
 		}

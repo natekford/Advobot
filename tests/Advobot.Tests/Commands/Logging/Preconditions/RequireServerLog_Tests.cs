@@ -33,12 +33,9 @@ public sealed class RequireServerLog_Tests : Precondition_Tests<RequireServerLog
 		Assert.IsTrue(result.IsSuccess);
 	}
 
-	protected override void ModifyServices(IServiceCollection services)
-		=> services.AddFakeDatabase<LoggingDatabase>();
-
 	protected override Task SetupAsync()
 		=> GetDatabaseAsync();
 
 	private Task<LoggingDatabase> GetDatabaseAsync()
-		=> Services.Value.GetDatabaseAsync<LoggingDatabase>();
+		=> Services.GetDatabaseAsync<LoggingDatabase>();
 }

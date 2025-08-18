@@ -4,7 +4,7 @@ using System.Reflection;
 
 namespace Advobot.Tests.Utilities;
 
-public sealed class GuildFeaturesCreationArgs
+public sealed record GuildFeaturesCreationArgs
 {
 	private static readonly ConstructorInfo _Constructor = typeof(GuildFeatures)
 		.GetConstructors(BindingFlags.Instance | BindingFlags.NonPublic)
@@ -17,7 +17,7 @@ public sealed class GuildFeaturesCreationArgs
 	{
 		return (GuildFeatures)_Constructor.Invoke(
 		[
-				Value,
+			Value,
 			Experimental
 		]);
 	}

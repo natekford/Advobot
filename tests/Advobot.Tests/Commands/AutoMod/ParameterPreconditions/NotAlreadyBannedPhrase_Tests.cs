@@ -37,11 +37,7 @@ public abstract class NotAlreadyBannedPhrase_Tests<T> : ParameterPrecondition_Te
 
 	[TestMethod]
 	public async Task NotExisting_Test()
-	{
-		await SetupAsync().ConfigureAwait(false);
-
-		await AssertSuccessAsync("not existing").ConfigureAwait(false);
-	}
+		=> await AssertSuccessAsync("not existing").ConfigureAwait(false);
 
 	[TestMethod]
 	public async Task NotExistingButOtherTypeExists_Test()
@@ -63,10 +59,7 @@ public abstract class NotAlreadyBannedPhrase_Tests<T> : ParameterPrecondition_Te
 	}
 
 	protected Task<AutoModDatabase> GetDatabaseAsync()
-		=> Services.Value.GetDatabaseAsync<AutoModDatabase>();
-
-	protected override void ModifyServices(IServiceCollection services)
-		=> services.AddFakeDatabase<AutoModDatabase>();
+		=> Services.GetDatabaseAsync<AutoModDatabase>();
 
 	protected override Task SetupAsync()
 		=> GetDatabaseAsync();

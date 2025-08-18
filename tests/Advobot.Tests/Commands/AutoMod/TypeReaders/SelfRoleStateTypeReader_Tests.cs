@@ -77,12 +77,9 @@ public sealed class SelfRoleStateTypeReader_Tests
 		}
 	}
 
-	protected override void ModifyServices(IServiceCollection services)
-		=> services.AddFakeDatabase<AutoModDatabase>();
-
 	protected override Task SetupAsync()
 		=> GetDatabaseAsync();
 
 	private Task<AutoModDatabase> GetDatabaseAsync()
-		=> Services.Value.GetDatabaseAsync<AutoModDatabase>();
+		=> Services.GetDatabaseAsync<AutoModDatabase>();
 }

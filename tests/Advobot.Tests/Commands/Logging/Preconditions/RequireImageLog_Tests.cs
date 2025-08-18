@@ -33,12 +33,9 @@ public sealed class RequireImageLog_Tests : Precondition_Tests<RequireImageLog>
 		Assert.IsTrue(result.IsSuccess);
 	}
 
-	protected override void ModifyServices(IServiceCollection services)
-		=> services.AddFakeDatabase<LoggingDatabase>();
-
 	protected override Task SetupAsync()
 		=> GetDatabaseAsync();
 
 	private Task<LoggingDatabase> GetDatabaseAsync()
-		=> Services.Value.GetDatabaseAsync<LoggingDatabase>();
+		=> Services.GetDatabaseAsync<LoggingDatabase>();
 }

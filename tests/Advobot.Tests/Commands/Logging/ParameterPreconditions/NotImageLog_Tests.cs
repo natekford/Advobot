@@ -26,12 +26,9 @@ public sealed class NotImageLog_Tests : ParameterPrecondition_Tests<NotImageLog>
 	public async Task LogNotExisting_Test()
 		=> await AssertSuccessAsync(Context.Channel).ConfigureAwait(false);
 
-	protected override void ModifyServices(IServiceCollection services)
-		=> services.AddFakeDatabase<LoggingDatabase>();
-
 	protected override Task SetupAsync()
 		=> GetDatabaseAsync();
 
 	private Task<LoggingDatabase> GetDatabaseAsync()
-		=> Services.Value.GetDatabaseAsync<LoggingDatabase>();
+		=> Services.GetDatabaseAsync<LoggingDatabase>();
 }

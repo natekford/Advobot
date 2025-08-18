@@ -10,7 +10,6 @@ namespace Advobot.Tests.Core.TypeReaders;
 [TestClass]
 public sealed class HelpEntryTypeReader_Tests : TypeReader_Tests<HelpEntryTypeReader>
 {
-	private readonly NaiveHelpService _HelpEntries = new();
 	protected override HelpEntryTypeReader Instance { get; } = new();
 
 	[TestMethod]
@@ -18,25 +17,19 @@ public sealed class HelpEntryTypeReader_Tests : TypeReader_Tests<HelpEntryTypeRe
 	{
 		foreach (var name in new[]
 		{
-				"dog",
-				"bog",
-				"pneumonoultramicroscopicsilicovolcanoconiosis"
-			})
+			"dog",
+			"bog",
+			"pneumonoultramicroscopicsilicovolcanoconiosis"
+		})
 		{
-			_HelpEntries.Add(new FakeHelpEntry
+			Help.Add(new FakeHelpEntry
 			{
 				Name = name,
 			});
 		}
 
-		var result = await ReadAsync(_HelpEntries.GetHelpModules().First().Name).ConfigureAwait(false);
+		var result = await ReadAsync(Help.GetHelpModules().First().Name).ConfigureAwait(false);
 		Assert.IsTrue(result.IsSuccess);
 		Assert.IsInstanceOfType(result.BestMatch, typeof(IHelpModule));
-	}
-
-	protected override void ModifyServices(IServiceCollection services)
-	{
-		services
-			.AddSingleton<IHelpService>(_HelpEntries);
 	}
 }

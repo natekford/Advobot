@@ -11,26 +11,24 @@ public sealed class LevelsCRUD_Tests : Database_Tests<LevelDatabase>
 	[TestMethod]
 	public async Task UserCRUD_Test()
 	{
-		var db = await GetDatabaseAsync().ConfigureAwait(false);
-
 		var args = new SearchArgs(1, 2, 3);
 		var user = new User(args);
-		await AssertRetrievedUserAsync(db, args, user).ConfigureAwait(false);
 
-		var modified = user.AddXp(5);
-		await AssertRetrievedUserAsync(db, args, modified).ConfigureAwait(false);
-	}
+		async Task AssertEqualAsync()
+		{
+			await Db.UpsertUserAsync(user).ConfigureAwait(false);
 
-	private async Task AssertRetrievedUserAsync(LevelDatabase db, SearchArgs args, User expected)
-	{
-		await db.UpsertUserAsync(expected).ConfigureAwait(false);
+			var retrieved = await Db.GetUserAsync(args).ConfigureAwait(false);
+			Assert.IsNotNull(retrieved);
+			Assert.AreEqual(user.ChannelId, retrieved.ChannelId);
+			Assert.AreEqual(user.Experience, retrieved.Experience);
+			Assert.AreEqual(user.GuildId, retrieved.GuildId);
+			Assert.AreEqual(user.MessageCount, retrieved.MessageCount);
+			Assert.AreEqual(user.UserId, retrieved.UserId);
+		}
+		await AssertEqualAsync().ConfigureAwait(false);
 
-		var retrieved = await db.GetUserAsync(args).ConfigureAwait(false);
-		Assert.IsNotNull(retrieved);
-		Assert.AreEqual(expected.ChannelId, retrieved.ChannelId);
-		Assert.AreEqual(expected.Experience, retrieved.Experience);
-		Assert.AreEqual(expected.GuildId, retrieved.GuildId);
-		Assert.AreEqual(expected.MessageCount, retrieved.MessageCount);
-		Assert.AreEqual(expected.UserId, retrieved.UserId);
+		user = user.AddXp(5);
+		await AssertEqualAsync().ConfigureAwait(false);
 	}
 }

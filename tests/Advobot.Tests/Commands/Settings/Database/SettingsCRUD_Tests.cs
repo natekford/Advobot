@@ -12,71 +12,47 @@ public sealed class SettingsCRUD_Tests : Database_Tests<SettingsDatabase>
 	{
 		const string COMMAND_ID = "joe";
 
-		var db = await GetDatabaseAsync().ConfigureAwait(false);
-
 		var overrides = new[]
 		{
-				new CommandOverride(Context.Guild)
-				{
-					CommandId = COMMAND_ID,
-					Enabled = true,
-					Priority = 7,
-				},
-				new CommandOverride(Context.User)
-				{
-					CommandId = COMMAND_ID,
-					Enabled = true,
-					Priority = 7,
-				},
-				new CommandOverride(Context.Guild)
-				{
-					CommandId = COMMAND_ID + "ba",
-					Enabled = true,
-					Priority = 6,
-				},
-			};
+			new CommandOverride(Context.Guild)
+			{
+				CommandId = COMMAND_ID,
+				Enabled = true,
+				Priority = 7,
+			},
+			new CommandOverride(Context.User)
+			{
+				CommandId = COMMAND_ID,
+				Enabled = true,
+				Priority = 7,
+			},
+			new CommandOverride(Context.Guild)
+			{
+				CommandId = COMMAND_ID + "ba",
+				Enabled = true,
+				Priority = 6,
+			},
+		};
 
-		await db.UpsertCommandOverridesAsync(overrides).ConfigureAwait(false);
+		await Db.UpsertCommandOverridesAsync(overrides).ConfigureAwait(false);
 
 		{
-			var retrieved = await db.GetCommandOverridesAsync(Context.Guild.Id).ConfigureAwait(false);
+			var retrieved = await Db.GetCommandOverridesAsync(Context.Guild.Id).ConfigureAwait(false);
 			var expected = overrides
 				.OrderBy(x => x.CommandId)
 				.ThenByDescending(x => x.Priority)
-				.ThenBy(x => x.TargetType)
-				.ToArray();
-			Assert.AreEqual(expected.Length, retrieved.Count);
-			for (var i = 0; i < expected.Length; ++i)
-			{
-				CommandOverride e = expected[i], r = retrieved[i];
-				Assert.AreEqual(e.CommandId, r.CommandId);
-				Assert.AreEqual(e.Enabled, r.Enabled);
-				Assert.AreEqual(e.GuildId, r.GuildId);
-				Assert.AreEqual(e.Priority, r.Priority);
-				Assert.AreEqual(e.TargetId, r.TargetId);
-				Assert.AreEqual(e.TargetType, r.TargetType);
-			}
+				.ThenBy(x => x.TargetType);
+			CollectionAssert.AreEqual(expected.ToArray(), retrieved.ToArray());
 		}
 
 		{
-			var retrieved = await db.GetCommandOverridesAsync(Context.Guild.Id, COMMAND_ID).ConfigureAwait(false);
+			var retrieved = await Db.GetCommandOverridesAsync(Context.Guild.Id, COMMAND_ID).ConfigureAwait(false);
 			var expected = overrides
 				.Where(x => x.CommandId == COMMAND_ID)
 				.OrderBy(x => x.CommandId)
 				.ThenByDescending(x => x.Priority)
-				.ThenBy(x => x.TargetType)
-				.ToArray();
-			Assert.AreEqual(expected.Length, retrieved.Count);
-			for (var i = 0; i < expected.Length; ++i)
-			{
-				CommandOverride e = expected[i], r = retrieved[i];
-				Assert.AreEqual(e.CommandId, r.CommandId);
-				Assert.AreEqual(e.Enabled, r.Enabled);
-				Assert.AreEqual(e.GuildId, r.GuildId);
-				Assert.AreEqual(e.Priority, r.Priority);
-				Assert.AreEqual(e.TargetId, r.TargetId);
-				Assert.AreEqual(e.TargetType, r.TargetType);
-			}
+				.ThenBy(x => x.TargetType);
+			CollectionAssert.AreEqual(expected.ToArray(), retrieved.ToArray());
 		}
 
 		for (var i = 0; i < overrides.Length; ++i)
@@ -86,50 +62,28 @@ public sealed class SettingsCRUD_Tests : Database_Tests<SettingsDatabase>
 				Enabled = false,
 			};
 		}
-		await db.UpsertCommandOverridesAsync(overrides).ConfigureAwait(false);
+		await Db.UpsertCommandOverridesAsync(overrides).ConfigureAwait(false);
 
 		{
-			var retrieved = await db.GetCommandOverridesAsync(Context.Guild.Id).ConfigureAwait(false);
+			var retrieved = await Db.GetCommandOverridesAsync(Context.Guild.Id).ConfigureAwait(false);
 			var expected = overrides
 				.OrderBy(x => x.CommandId)
 				.ThenByDescending(x => x.Priority)
-				.ThenBy(x => x.TargetType)
-				.ToArray();
-			Assert.AreEqual(expected.Length, retrieved.Count);
-			for (var i = 0; i < expected.Length; ++i)
-			{
-				CommandOverride e = expected[i], r = retrieved[i];
-				Assert.AreEqual(e.CommandId, r.CommandId);
-				Assert.AreEqual(e.Enabled, r.Enabled);
-				Assert.AreEqual(e.GuildId, r.GuildId);
-				Assert.AreEqual(e.Priority, r.Priority);
-				Assert.AreEqual(e.TargetId, r.TargetId);
-				Assert.AreEqual(e.TargetType, r.TargetType);
-			}
+				.ThenBy(x => x.TargetType);
+			CollectionAssert.AreEqual(expected.ToArray(), retrieved.ToArray());
 		}
 
 		var toDelete = overrides.Where(x => x.CommandId != COMMAND_ID);
-		await db.DeleteCommandOverridesAsync(toDelete).ConfigureAwait(false);
+		await Db.DeleteCommandOverridesAsync(toDelete).ConfigureAwait(false);
 
 		{
-			var retrieved = await db.GetCommandOverridesAsync(Context.Guild.Id).ConfigureAwait(false);
+			var retrieved = await Db.GetCommandOverridesAsync(Context.Guild.Id).ConfigureAwait(false);
 			var expected = overrides
 				.Where(x => x.CommandId == COMMAND_ID)
 				.OrderBy(x => x.CommandId)
 				.ThenByDescending(x => x.Priority)
-				.ThenBy(x => x.TargetType)
-				.ToArray();
-			Assert.AreEqual(expected.Length, retrieved.Count);
-			for (var i = 0; i < expected.Length; ++i)
-			{
-				CommandOverride e = expected[i], r = retrieved[i];
-				Assert.AreEqual(e.CommandId, r.CommandId);
-				Assert.AreEqual(e.Enabled, r.Enabled);
-				Assert.AreEqual(e.GuildId, r.GuildId);
-				Assert.AreEqual(e.Priority, r.Priority);
-				Assert.AreEqual(e.TargetId, r.TargetId);
-				Assert.AreEqual(e.TargetType, r.TargetType);
-			}
+				.ThenBy(x => x.TargetType);
+			CollectionAssert.AreEqual(expected.ToArray(), retrieved.ToArray());
 		}
 	}
 }
