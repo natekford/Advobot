@@ -99,33 +99,32 @@ public sealed class NaiveCommandService
 	/// <exception cref="InvalidCastException"></exception>
 	public async Task AddCommandsAsync(IEnumerable<CommandAssembly> assemblies)
 	{
-		var cultures = assemblies.SelectMany(x => x.SupportedCultures).ToHashSet();
-		var typeReaders = new List<(TypeReader, IReadOnlyList<Type>)>();
-		foreach (var assembly in assemblies.Select(x => x.Assembly).Prepend(Assembly.GetExecutingAssembly()))
+		var commandServices = assemblies
+			.SelectMany(x => x.SupportedCultures)
+			.ToHashSet()
+			.Select(_CommandService.Get)
+			.ToArray();
+		var types = assemblies
+			.Select(x => x.Assembly)
+			.Prepend(Assembly.GetExecutingAssembly())
+			.SelectMany(x => x.GetTypes());
+		foreach (var type in types)
 		{
-			foreach (var type in assembly.GetTypes())
+			var attr = type.GetCustomAttribute<TypeReaderTargetTypeAttribute>();
+			if (attr is null)
 			{
-				var attr = type.GetCustomAttribute<TypeReaderTargetTypeAttribute>();
-				if (attr is null)
-				{
-					continue;
-				}
-				if (Activator.CreateInstance(type) is not TypeReader instance)
-				{
-					throw new InvalidCastException($"{type} is not a {nameof(TypeReader)}.");
-				}
-				typeReaders.Add((instance, attr.TargetTypes));
+				continue;
 			}
-		}
-
-		foreach (var culture in cultures)
-		{
-			var commandService = _CommandService.Get(culture);
-			foreach (var (typeReader, targetTypes) in typeReaders)
+			if (Activator.CreateInstance(type) is not TypeReader instance)
 			{
-				foreach (var type in targetTypes)
+				throw new InvalidCastException($"{type} is not a {nameof(TypeReader)}.");
+			}
+
+			foreach (var commandService in commandServices)
+			{
+				foreach (var targetType in attr.TargetTypes)
 				{
-					commandService.AddTypeReader(type, typeReader, true);
+					commandService.AddTypeReader(targetType, instance, replaceDefault: true);
 				}
 			}
 		}
@@ -185,7 +184,7 @@ public sealed class NaiveCommandService
 
 		int commandCount = 0, helpEntryCount = 0;
 		var ids = new Dictionary<Guid, ModuleInfo>();
-		var newCategories = new HashSet<string>();
+		var categories = new HashSet<string>();
 		foreach (var module in modules.SelectMany(GetAllModules))
 		{
 			var meta = module.Attributes.OfType<MetaAttribute>().FirstOrDefault();
@@ -201,7 +200,7 @@ public sealed class NaiveCommandService
 				++helpEntryCount;
 
 				var category = module.Attributes.OfType<CategoryAttribute>().First();
-				newCategories.Add(category.Category);
+				categories.Add(category.Category);
 				_Help.Add(new HelpModule(module, meta, category));
 			}
 		}
@@ -209,7 +208,7 @@ public sealed class NaiveCommandService
 		await OnLog(new(
 			severity: LogSeverity.Info,
 			source: nameof(AddCommandsAsync),
-			message: $"Successfully loaded {newCategories.Count} categories " +
+			message: $"Successfully loaded {categories.Count} categories " +
 				$"containing {commandCount} commands " +
 				$"({helpEntryCount} were given help entries) " +
 				$"from {assembly.GetName().Name} in the {culture} culture."

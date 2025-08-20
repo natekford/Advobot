@@ -37,7 +37,7 @@ public sealed class GuildEmoteTypeReader_Tests : TypeReader_Tests<GuildEmoteType
 
 		var result = await ReadAsync(_Emote.Id.ToString()).ConfigureAwait(false);
 		Assert.IsTrue(result.IsSuccess);
-		Assert.IsInstanceOfType(result.BestMatch, typeof(Emote));
+		Assert.IsInstanceOfType<Emote>(result.BestMatch);
 	}
 
 	[TestMethod]
@@ -47,6 +47,6 @@ public sealed class GuildEmoteTypeReader_Tests : TypeReader_Tests<GuildEmoteType
 
 		var result = await ReadAsync(_Emote.Name).ConfigureAwait(false);
 		Assert.IsTrue(result.IsSuccess);
-		Assert.IsInstanceOfType(result.BestMatch, typeof(Emote));
+		Assert.IsInstanceOfType<Emote>(result.BestMatch);
 	}
 }

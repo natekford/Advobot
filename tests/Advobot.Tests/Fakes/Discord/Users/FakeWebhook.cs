@@ -31,8 +31,8 @@ public sealed class FakeWebhook(FakeTextChannel channel, FakeUser user) : FakeSn
 		var args = new WebhookProperties();
 		func(args);
 
-		FakeChannel = (FakeTextChannel)args.Channel.GetValueOrDefault();
-		Name = args.Name.GetValueOrDefault();
+		FakeChannel = (FakeTextChannel)args.Channel.GetValueOrDefault(FakeChannel);
+		Name = args.Name.GetValueOrDefault(Name);
 
 		return Task.CompletedTask;
 	}

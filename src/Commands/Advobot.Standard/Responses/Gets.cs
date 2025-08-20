@@ -95,23 +95,31 @@ public sealed class Gets : AdvobotResult
 		return Success(embed);
 	}
 
-	public static AdvobotResult Bot(DiscordShardedClient client)
+	public static AdvobotResult Bot(IDiscordClient client)
 	{
 		var startTime = Constants.START.ToReadable();
 		var runDuration = DateTime.UtcNow - Constants.START;
-		var embed = new EmbedWrapper
+		var description = $"**Online Since:** `{startTime}` (`{runDuration:g}`)";
+		if (client is BaseSocketClient socketClient)
 		{
-			Description = $"**Online Since:** `{startTime}` (`{runDuration:g}`)\n" +
-				$"**Latency:** `{client.Latency}`\n" +
-				$"**Shard Count:** `{client.Shards.Count}`",
+			description += $"\n**Latency:** `{socketClient.Latency}`";
+		}
+		if (client is DiscordShardedClient shardedClient)
+		{
+			description += $"**Shard Count:** `{shardedClient.Shards.Count}`";
+		}
+
+		return Success(new EmbedWrapper
+		{
+			Description = description,
 			Author = client.CurrentUser.CreateAuthor(),
 			Footer = new()
 			{
-				Text = $"Versions [Bot: {Constants.BOT_VERSION}] [Discord.Net: {Constants.DISCORD_NET_VERSION}]",
+				Text =
+					$"Versions [Bot: {Constants.BOT_VERSION}] " +
+					$"[Discord.Net: {Constants.DISCORD_NET_VERSION}]",
 			},
-		};
-
-		return Success(embed);
+		});
 	}
 
 	public static async Task<RuntimeResult> Channel(IGuildChannel channel)

@@ -42,25 +42,25 @@ public class FakeGuildUser : FakeUser, IGuildUser
 	}
 
 	public Task AddRoleAsync(IRole role, RequestOptions? options = null)
+		=> AddRoleAsync(role.Id, options);
+
+	public Task AddRoleAsync(ulong roleId, RequestOptions? options = null)
 	{
-		_RoleIds.Add(role.Id);
+		_RoleIds.Add(roleId);
 		return Task.CompletedTask;
 	}
 
-	public Task AddRoleAsync(ulong roleId, RequestOptions? options = null)
-		=> throw new NotImplementedException();
-
 	public Task AddRolesAsync(IEnumerable<IRole> roles, RequestOptions? options = null)
+		=> AddRolesAsync(roles.Select(x => x.Id), options);
+
+	public Task AddRolesAsync(IEnumerable<ulong> roleIds, RequestOptions? options = null)
 	{
-		foreach (var role in roles)
+		foreach (var roleId in roleIds)
 		{
-			_RoleIds.Add(role.Id);
+			_RoleIds.Add(roleId);
 		}
 		return Task.CompletedTask;
 	}
-
-	public Task AddRolesAsync(IEnumerable<ulong> roleIds, RequestOptions? options = null)
-		=> throw new NotImplementedException();
 
 	public string GetGuildAvatarUrl(ImageFormat format = ImageFormat.Auto, ushort size = 128)
 		=> throw new NotImplementedException();
@@ -81,22 +81,22 @@ public class FakeGuildUser : FakeUser, IGuildUser
 		=> throw new NotImplementedException();
 
 	public Task RemoveRoleAsync(IRole role, RequestOptions? options = null)
-	{
-		_RoleIds.Remove(role.Id);
-		return Task.CompletedTask;
-	}
+		=> RemoveRoleAsync(role.Id, options);
 
 	public Task RemoveRoleAsync(ulong roleId, RequestOptions? options = null)
-		=> throw new NotImplementedException();
-
-	public Task RemoveRolesAsync(IEnumerable<IRole> roles, RequestOptions? options = null)
 	{
-		_RoleIds.RemoveWhere(r => roles.Select(x => x.Id).Contains(r));
+		_RoleIds.Remove(roleId);
 		return Task.CompletedTask;
 	}
 
+	public Task RemoveRolesAsync(IEnumerable<IRole> roles, RequestOptions? options = null)
+		=> RemoveRolesAsync(roles.Select(x => x.Id), options);
+
 	public Task RemoveRolesAsync(IEnumerable<ulong> roleIds, RequestOptions? options = null)
-		=> throw new NotImplementedException();
+	{
+		_RoleIds.ExceptWith(roleIds);
+		return Task.CompletedTask;
+	}
 
 	public Task RemoveTimeOutAsync(RequestOptions options = null)
 		=> throw new NotImplementedException();

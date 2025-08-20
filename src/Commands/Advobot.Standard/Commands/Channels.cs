@@ -29,7 +29,7 @@ public sealed class Channels : ModuleBase
 		[Command]
 		public async Task<RuntimeResult> Command(
 			[CanModifyChannel(ManageChannels | ManageRoles)]
-				IGuildChannel channel
+			IGuildChannel channel
 		)
 		{
 			var count = await channel.ClearOverwritesAsync(null, GetOptions()).ConfigureAwait(false);

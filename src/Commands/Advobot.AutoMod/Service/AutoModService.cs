@@ -1,6 +1,6 @@
 ﻿using Advobot.AutoMod.Database;
 using Advobot.AutoMod.Database.Models;
-using Advobot.AutoMod.Utils;
+using Advobot.AutoMod.Utilities;
 using Advobot.Punishments;
 using Advobot.Services;
 using Advobot.Services.Punishments;

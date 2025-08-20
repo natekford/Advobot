@@ -13,6 +13,6 @@ public sealed class UriTypeReader_Tests : TypeReader_Tests<UriTypeReader>
 	{
 		var result = await ReadAsync("https://www.google.com").ConfigureAwait(false);
 		Assert.IsTrue(result.IsSuccess);
-		Assert.IsInstanceOfType(result.BestMatch, typeof(Uri));
+		Assert.IsInstanceOfType<Uri>(result.BestMatch);
 	}
 }

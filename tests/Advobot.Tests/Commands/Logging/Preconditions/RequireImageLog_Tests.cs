@@ -4,8 +4,6 @@ using Advobot.Logging.Preconditions;
 using Advobot.Tests.TestBases;
 using Advobot.Tests.Utilities;
 
-using Microsoft.Extensions.DependencyInjection;
-
 namespace Advobot.Tests.Commands.Logging.Preconditions;
 
 [TestClass]

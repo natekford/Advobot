@@ -4,6 +4,8 @@ namespace Advobot.Tests.Fakes.Discord.Channels;
 
 public class FakeMessageChannel : FakeChannel, IMessageChannel
 {
+	public List<FakeMessage> FakeMessages { get; } = [];
+
 	public Task DeleteMessageAsync(ulong messageId, RequestOptions? options = null)
 		=> throw new NotImplementedException();
 

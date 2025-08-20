@@ -5,7 +5,7 @@ using Discord;
 
 using System.Text.RegularExpressions;
 
-namespace Advobot.AutoMod.Utils;
+namespace Advobot.AutoMod.Utilities;
 
 public static class AutoModUtils
 {

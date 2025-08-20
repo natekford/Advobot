@@ -1,9 +1,5 @@
 ﻿using Advobot.Preconditions;
-using Advobot.Services.BotConfig;
-using Advobot.Tests.Fakes.Services.BotConfig;
 using Advobot.Tests.TestBases;
-
-using Microsoft.Extensions.DependencyInjection;
 
 namespace Advobot.Tests.Core.Preconditions;
 

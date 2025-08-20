@@ -3,7 +3,6 @@
 using Discord;
 using Discord.Net;
 using Discord.Rest;
-using Discord.WebSocket;
 
 using System.Text.Encodings.Web;
 using System.Text.Json;
@@ -18,9 +17,6 @@ public sealed class StartupConfig : IConfig
 {
 	[JsonIgnore]
 	private readonly DiscordRestClient _TestClient = new();
-	[JsonInclude]
-	[JsonPropertyName("BotKey")]
-	private string? _BotKey;
 	[JsonIgnore]
 	private bool _IsKeyValidated;
 	[JsonIgnore]
@@ -35,6 +31,12 @@ public sealed class StartupConfig : IConfig
 	/// </summary>
 	[JsonIgnore]
 	public ulong BotId { get; private set; }
+	/// <summary>
+	/// The key to login to the bot with.
+	/// </summary>
+	[JsonInclude]
+	[JsonPropertyName("BotKey")]
+	public string? BotKey { get; private set; }
 	/// <summary>
 	/// The instance number of the bot at launch. This is used to find the correct config.
 	/// </summary>
@@ -54,7 +56,7 @@ public sealed class StartupConfig : IConfig
 	/// The path leading to the bot's directory.
 	/// </summary>
 	[JsonInclude]
-	[JsonPropertyName(nameof(SavePath))]
+	[JsonPropertyName("SavePath")]
 	public string? SavePath { get; private set; }
 
 	internal static JsonSerializerOptions JsonOptions { get; } = new()
@@ -114,35 +116,6 @@ public sealed class StartupConfig : IConfig
 	}
 
 	/// <summary>
-	/// Logs in and starts the client.
-	/// </summary>
-	/// <param name="client"></param>
-	/// <returns></returns>
-	public async Task StartAsync(BaseSocketClient client)
-	{
-		if (!_IsPathValidated)
-		{
-			throw new InvalidOperationException("Path not validated.");
-		}
-		if (!_IsKeyValidated)
-		{
-			throw new InvalidOperationException("Key not validated.");
-		}
-
-		// Remove the bot key from being easily accessible via reflection
-		client.LoggedIn += () =>
-		{
-			_BotKey = null;
-			return Task.CompletedTask;
-		};
-
-		await client.LoginAsync(TokenType.Bot, _BotKey).ConfigureAwait(false);
-		Console.WriteLine("Connecting to Discord...");
-		await client.StartAsync().ConfigureAwait(false);
-		Console.WriteLine("Successfully connected to Discord.");
-	}
-
-	/// <summary>
 	/// Prompts the user to enter a valid bot key.
 	/// </summary>
 	public async Task ValidateBotKey()
@@ -151,11 +124,11 @@ public sealed class StartupConfig : IConfig
 		{
 			return;
 		}
-		else if (!string.IsNullOrWhiteSpace(_BotKey))
+		else if (!string.IsNullOrWhiteSpace(BotKey))
 		{
 			try
 			{
-				await _TestClient.LoginAsync(TokenType.Bot, _BotKey).ConfigureAwait(false);
+				await _TestClient.LoginAsync(TokenType.Bot, BotKey).ConfigureAwait(false);
 				BotId = _TestClient.CurrentUser.Id;
 				_IsKeyValidated = true;
 				return;
@@ -176,7 +149,7 @@ public sealed class StartupConfig : IConfig
 			try
 			{
 				await _TestClient.LoginAsync(TokenType.Bot, key).ConfigureAwait(false);
-				_BotKey = key;
+				BotKey = key;
 				Save();
 				BotId = _TestClient.CurrentUser.Id;
 				_IsKeyValidated = true;

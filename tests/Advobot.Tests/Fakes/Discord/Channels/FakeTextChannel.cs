@@ -83,12 +83,11 @@ public sealed class FakeTextChannel(FakeGuild guild) : FakeGuildChannel(guild), 
 		var args = new TextChannelProperties();
 		func(args);
 
-		ProtectedCategoryId = args.CategoryId.GetValueOrDefault();
-		Name = args.Name.GetValueOrDefault();
-		Position = args.Position.GetValueOrDefault();
-		IsNsfw = args.IsNsfw.GetValueOrDefault();
-		SlowModeInterval = args.SlowModeInterval.GetValueOrDefault();
-		Topic = args.Topic.GetValueOrDefault();
+		ProtectedCategoryId = args.CategoryId.GetValueOrDefault(ProtectedCategoryId);
+		Position = args.Position.GetValueOrDefault(Position);
+		IsNsfw = args.IsNsfw.GetValueOrDefault(IsNsfw);
+		SlowModeInterval = args.SlowModeInterval.GetValueOrDefault(SlowModeInterval);
+		Topic = args.Topic.GetValueOrDefault(Topic);
 
 		return Task.CompletedTask;
 	}

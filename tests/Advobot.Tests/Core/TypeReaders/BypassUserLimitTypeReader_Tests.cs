@@ -15,7 +15,7 @@ public sealed class BypassUserLimitTypeReader_Tests
 	{
 		var result = await ReadAsync("asdf").ConfigureAwait(false);
 		Assert.IsTrue(result.IsSuccess);
-		Assert.IsInstanceOfType(result.BestMatch, typeof(bool));
+		Assert.IsInstanceOfType<bool>(result.BestMatch);
 		Assert.IsFalse((bool)result.BestMatch);
 	}
 
@@ -24,7 +24,7 @@ public sealed class BypassUserLimitTypeReader_Tests
 	{
 		var result = await ReadAsync(BypassUserLimitTypeReader.BYPASS_STRING).ConfigureAwait(false);
 		Assert.IsTrue(result.IsSuccess);
-		Assert.IsInstanceOfType(result.BestMatch, typeof(bool));
+		Assert.IsInstanceOfType<bool>(result.BestMatch);
 		Assert.IsTrue((bool)result.BestMatch);
 	}
 }

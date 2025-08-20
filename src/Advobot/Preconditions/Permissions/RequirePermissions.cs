@@ -2,14 +2,13 @@
 
 using Discord;
 using Discord.Commands;
-using Discord.WebSocket;
 
 using System.Collections.Immutable;
 
 namespace Advobot.Preconditions.Permissions;
 
 /// <summary>
-/// For verifying <see cref="SocketGuildUser"/> permissions.
+/// For verifying a user's permissions.
 /// </summary>
 /// <param name="permissions"></param>
 [AttributeUsage(AttributeTargets.Class | AttributeTargets.Method, AllowMultiple = false, Inherited = true)]

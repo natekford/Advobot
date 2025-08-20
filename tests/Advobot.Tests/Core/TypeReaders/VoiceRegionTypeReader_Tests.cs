@@ -22,6 +22,6 @@ public sealed class VoiceRegionTypeReader_Tests : TypeReader_Tests<VoiceRegionTy
 
 		var result = await ReadAsync(region.Name).ConfigureAwait(false);
 		Assert.IsTrue(result.IsSuccess);
-		Assert.IsInstanceOfType(result.BestMatch, typeof(IVoiceRegion));
+		Assert.IsInstanceOfType<IVoiceRegion>(result.BestMatch);
 	}
 }

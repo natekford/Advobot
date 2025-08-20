@@ -15,7 +15,6 @@ internal sealed class NaiveGuildSettingsService(IRuntimeConfig settings) : IGuil
 	{
 		AuditLogReason = "Role not found or is higher than my highest role.",
 	};
-	private readonly IRuntimeConfig _Settings = settings;
 
 	public Task<CultureInfo> GetCultureAsync(IGuild guild)
 		=> Task.FromResult(guild.PreferredCulture);
@@ -34,5 +33,5 @@ internal sealed class NaiveGuildSettingsService(IRuntimeConfig settings) : IGuil
 	}
 
 	public Task<string> GetPrefixAsync(IGuild guild)
-		=> Task.FromResult(_Settings.Prefix);
+		=> Task.FromResult(settings.Prefix);
 }

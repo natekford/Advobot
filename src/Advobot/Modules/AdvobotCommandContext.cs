@@ -8,7 +8,7 @@ namespace Advobot.Modules;
 /// <summary>
 /// A <see cref="ShardedCommandContext"/> which contains settings and the service provider.
 /// </summary>
-public class AdvobotCommandContext : ShardedCommandContext
+public class AdvobotCommandContext : ShardedCommandContext, IElapsed
 {
 	private readonly Stopwatch _Stopwatch = new();
 

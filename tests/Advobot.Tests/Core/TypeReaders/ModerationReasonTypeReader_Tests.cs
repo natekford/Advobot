@@ -16,7 +16,7 @@ public sealed class ModerationReasonTypeReader_Tests
 	{
 		var result = await ReadAsync("asdf").ConfigureAwait(false);
 		Assert.IsTrue(result.IsSuccess);
-		Assert.IsInstanceOfType(result.BestMatch, typeof(ModerationReason));
+		Assert.IsInstanceOfType<ModerationReason>(result.BestMatch);
 	}
 
 	[TestMethod]
@@ -24,7 +24,7 @@ public sealed class ModerationReasonTypeReader_Tests
 	{
 		var result = await ReadAsync("asdf time:5 kapow").ConfigureAwait(false);
 		Assert.IsTrue(result.IsSuccess);
-		Assert.IsInstanceOfType(result.BestMatch, typeof(ModerationReason));
+		Assert.IsInstanceOfType<ModerationReason>(result.BestMatch);
 		var cast = (ModerationReason)result.BestMatch;
 		Assert.AreEqual(TimeSpan.FromMinutes(5), cast.Time);
 	}

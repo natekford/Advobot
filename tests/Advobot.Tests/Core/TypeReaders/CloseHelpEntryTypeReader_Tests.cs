@@ -3,8 +3,6 @@ using Advobot.Tests.Fakes.Services.HelpEntries;
 using Advobot.Tests.TestBases;
 using Advobot.TypeReaders;
 
-using Microsoft.Extensions.DependencyInjection;
-
 namespace Advobot.Tests.Core.TypeReaders;
 
 [TestClass]
@@ -31,6 +29,6 @@ public sealed class CloseHelpEntryTypeReader_Tests
 
 		var result = await ReadAsync(Help.GetHelpModules().First().Name).ConfigureAwait(false);
 		Assert.IsTrue(result.IsSuccess);
-		Assert.IsInstanceOfType(result.BestMatch, typeof(IEnumerable<IHelpModule>));
+		Assert.IsInstanceOfType<IEnumerable<IHelpModule>>(result.BestMatch);
 	}
 }

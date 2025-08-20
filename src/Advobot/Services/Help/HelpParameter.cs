@@ -10,8 +10,10 @@ internal sealed class HelpParameter(Discord.Commands.ParameterInfo parameter) : 
 {
 	public bool IsOptional { get; } = parameter.IsOptional;
 	public string Name { get; } = parameter.Name;
-	public IReadOnlyList<string> NamedArguments { get; } = GetNamedArgumentNames(parameter.Type);
-	public IReadOnlyList<IHelpParameterPrecondition> Preconditions { get; } = [.. parameter.Preconditions.OfType<IHelpParameterPrecondition>()];
+	public IReadOnlyList<string> NamedArguments { get; }
+		= GetNamedArgumentNames(parameter.Type);
+	public IReadOnlyList<IHelpParameterPrecondition> Preconditions { get; }
+		= [.. parameter.Preconditions.OfType<IHelpParameterPrecondition>()];
 	public string Summary { get; } = parameter.Summary;
 	public Type Type { get; } = parameter.Type;
 	private string DebuggerDisplay => $"{Name} ({Type.Name})";
@@ -26,6 +28,7 @@ internal sealed class HelpParameter(Discord.Commands.ParameterInfo parameter) : 
 
 		return [.. info.DeclaredProperties
 			.Where(x => x.SetMethod?.IsPublic == true && !x.SetMethod.IsStatic)
-			.Select(x => x.Name)];
+			.Select(x => x.Name)
+		];
 	}
 }

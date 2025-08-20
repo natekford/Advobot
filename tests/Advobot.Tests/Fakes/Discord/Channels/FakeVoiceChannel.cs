@@ -87,8 +87,8 @@ public sealed class FakeVoiceChannel(FakeGuild guild)
 		var args = new VoiceChannelProperties();
 		func(args);
 
-		Bitrate = args.Bitrate.GetValueOrDefault();
-		UserLimit = args.UserLimit.GetValueOrDefault();
+		Bitrate = args.Bitrate.GetValueOrDefault(Bitrate);
+		UserLimit = args.UserLimit.GetValueOrDefault(UserLimit);
 
 		return Task.CompletedTask;
 	}

@@ -15,7 +15,7 @@ public sealed class ColorTypeReader_Tests : TypeReader_Tests<ColorTypeReader>
 	{
 		var result = await ReadAsync(null).ConfigureAwait(false);
 		Assert.IsTrue(result.IsSuccess);
-		Assert.IsInstanceOfType(result.BestMatch, typeof(Color));
+		Assert.IsInstanceOfType<Color>(result.BestMatch);
 	}
 
 	[TestMethod]
@@ -23,7 +23,7 @@ public sealed class ColorTypeReader_Tests : TypeReader_Tests<ColorTypeReader>
 	{
 		var result = await ReadAsync(Color.Red.RawValue.ToString("X6")).ConfigureAwait(false);
 		Assert.IsTrue(result.IsSuccess);
-		Assert.IsInstanceOfType(result.BestMatch, typeof(Color));
+		Assert.IsInstanceOfType<Color>(result.BestMatch);
 	}
 
 	[TestMethod]
@@ -31,7 +31,7 @@ public sealed class ColorTypeReader_Tests : TypeReader_Tests<ColorTypeReader>
 	{
 		var result = await ReadAsync("Red").ConfigureAwait(false);
 		Assert.IsTrue(result.IsSuccess);
-		Assert.IsInstanceOfType(result.BestMatch, typeof(Color));
+		Assert.IsInstanceOfType<Color>(result.BestMatch);
 	}
 
 	[TestMethod]
@@ -39,6 +39,6 @@ public sealed class ColorTypeReader_Tests : TypeReader_Tests<ColorTypeReader>
 	{
 		var result = await ReadAsync("100/100/100").ConfigureAwait(false);
 		Assert.IsTrue(result.IsSuccess);
-		Assert.IsInstanceOfType(result.BestMatch, typeof(Color));
+		Assert.IsInstanceOfType<Color>(result.BestMatch);
 	}
 }

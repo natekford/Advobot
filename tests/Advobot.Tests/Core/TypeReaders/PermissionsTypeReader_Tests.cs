@@ -32,7 +32,7 @@ public sealed class PermissionsTypeReader_Tests
 			};
 		var result = await ReadAsync(perms.Select(x => x.ToString()).Join()).ConfigureAwait(false);
 		Assert.IsTrue(result.IsSuccess);
-		Assert.IsInstanceOfType(result.BestMatch, typeof(ChannelPermission));
+		Assert.IsInstanceOfType<ChannelPermission>(result.BestMatch);
 	}
 
 	[TestMethod]
@@ -40,6 +40,6 @@ public sealed class PermissionsTypeReader_Tests
 	{
 		var result = await ReadAsync("123456789").ConfigureAwait(false);
 		Assert.IsTrue(result.IsSuccess);
-		Assert.IsInstanceOfType(result.BestMatch, typeof(ChannelPermission));
+		Assert.IsInstanceOfType<ChannelPermission>(result.BestMatch);
 	}
 }

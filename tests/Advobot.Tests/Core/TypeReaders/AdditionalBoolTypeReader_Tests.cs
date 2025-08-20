@@ -16,7 +16,7 @@ public sealed class AdditionalBoolTypeReader_Tests
 		{
 			var result = await ReadAsync(value).ConfigureAwait(false);
 			Assert.IsTrue(result.IsSuccess);
-			Assert.IsInstanceOfType(result.BestMatch, typeof(bool));
+			Assert.IsInstanceOfType<bool>(result.BestMatch);
 			Assert.IsFalse((bool)result.BestMatch);
 		}
 	}
@@ -28,7 +28,7 @@ public sealed class AdditionalBoolTypeReader_Tests
 		{
 			var result = await ReadAsync(value).ConfigureAwait(false);
 			Assert.IsTrue(result.IsSuccess);
-			Assert.IsInstanceOfType(result.BestMatch, typeof(bool));
+			Assert.IsInstanceOfType<bool>(result.BestMatch);
 			Assert.IsTrue((bool)result.BestMatch);
 		}
 	}

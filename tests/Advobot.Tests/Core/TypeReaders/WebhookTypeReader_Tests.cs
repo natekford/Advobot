@@ -16,7 +16,7 @@ public sealed class WebhookTypeReader_Tests : TypeReader_Tests<WebhookTypeReader
 		var wh = await Context.Channel.CreateWebhookAsync("testo").ConfigureAwait(false);
 		var result = await ReadAsync(wh.Id.ToString()).ConfigureAwait(false);
 		Assert.IsTrue(result.IsSuccess);
-		Assert.IsInstanceOfType(result.BestMatch, typeof(IWebhook));
+		Assert.IsInstanceOfType<IWebhook>(result.BestMatch);
 	}
 
 	[TestMethod]
@@ -25,6 +25,6 @@ public sealed class WebhookTypeReader_Tests : TypeReader_Tests<WebhookTypeReader
 		var wh = await Context.Channel.CreateWebhookAsync("testo").ConfigureAwait(false);
 		var result = await ReadAsync(wh.Name).ConfigureAwait(false);
 		Assert.IsTrue(result.IsSuccess);
-		Assert.IsInstanceOfType(result.BestMatch, typeof(IWebhook));
+		Assert.IsInstanceOfType<IWebhook>(result.BestMatch);
 	}
 }

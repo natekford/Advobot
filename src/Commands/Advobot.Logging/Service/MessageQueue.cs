@@ -4,7 +4,6 @@ using Advobot.Services;
 using Advobot.Utilities;
 
 using Discord;
-using Discord.WebSocket;
 
 using Microsoft.Extensions.Logging;
 
@@ -15,7 +14,7 @@ namespace Advobot.Logging.Service;
 
 public sealed class MessageQueue(
 	ILogger<LoggingService> logger,
-	BaseSocketClient client
+	IDiscordClient client
 ) : StartableService, IConfigurableService
 {
 	private readonly ConcurrentQueue<(IMessageChannel, SendMessageArgs)> _ToSend = new();
@@ -65,7 +64,8 @@ public sealed class MessageQueue(
 				{
 					try
 					{
-						if (client.GetChannel(channelId) is not IMessageChannel channel)
+						var channel = await client.GetChannelAsync(channelId).ConfigureAwait(false);
+						if (channel is not IMessageChannel messageChannel)
 						{
 							logger.LogWarning(
 								message: "Channel was null while queuing deleted message. {@Info}",
@@ -77,7 +77,7 @@ public sealed class MessageQueue(
 							continue;
 						}
 
-						QueueDeletedMessages(channel, messages);
+						QueueDeletedMessages(messageChannel, messages);
 					}
 					catch (Exception e)
 					{

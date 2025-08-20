@@ -1,14 +1,8 @@
 ﻿using Advobot.AutoMod.Database;
 using Advobot.AutoMod.Service;
 using Advobot.Punishments;
-using Advobot.Serilog;
-using Advobot.Services.Time;
-using Advobot.Tests.Fakes.Services;
-using Advobot.Tests.Fakes.Services.Time;
 using Advobot.Tests.TestBases;
 using Advobot.Tests.Utilities;
-
-using Discord;
 
 using Microsoft.Extensions.DependencyInjection;
 

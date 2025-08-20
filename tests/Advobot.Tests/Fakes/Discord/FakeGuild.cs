@@ -95,7 +95,7 @@ public sealed class FakeGuild : FakeSnowflake, IGuild
 	{
 		FakeClient = client;
 		FakeClient.FakeGuilds.Add(this);
-		//This has to go before the two created users so they can get it.
+		// The role to go before the two created users so they can get it.
 		FakeEveryoneRole = new(this)
 		{
 			Id = Id,
@@ -219,7 +219,6 @@ public sealed class FakeGuild : FakeSnowflake, IGuild
 		{
 			await channel.ModifyAsync(func, options).ConfigureAwait(false);
 		}
-		FakeChannels.Add(channel);
 		return channel;
 	}
 

@@ -43,7 +43,7 @@ public sealed class BanTypeReader_Tests : TypeReader_Tests<BanTypeReader>
 
 		var result = await ReadAsync(user.Id.ToString()).ConfigureAwait(false);
 		Assert.IsTrue(result.IsSuccess);
-		Assert.IsInstanceOfType(result.BestMatch, typeof(IBan));
+		Assert.IsInstanceOfType<IBan>(result.BestMatch);
 		var ban = (IBan)result.BestMatch;
 		Assert.AreEqual(user.Id, ban.User.Id);
 	}
@@ -56,7 +56,7 @@ public sealed class BanTypeReader_Tests : TypeReader_Tests<BanTypeReader>
 
 		var result = await ReadAsync(user.Mention).ConfigureAwait(false);
 		Assert.IsTrue(result.IsSuccess);
-		Assert.IsInstanceOfType(result.BestMatch, typeof(IBan));
+		Assert.IsInstanceOfType<IBan>(result.BestMatch);
 		var ban = (IBan)result.BestMatch;
 		Assert.AreEqual(user.Id, ban.User.Id);
 	}

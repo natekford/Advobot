@@ -42,12 +42,12 @@ public sealed class FakeRole : FakeSnowflake, IRole
 		var args = new RoleProperties();
 		func(args);
 
-		Color = args.Color.GetValueOrDefault();
-		IsHoisted = args.Hoist.GetValueOrDefault();
-		IsMentionable = args.Mentionable.GetValueOrDefault();
-		Name = args.Name.GetValueOrDefault();
-		Permissions = args.Permissions.GetValueOrDefault();
-		Position = args.Position.GetValueOrDefault();
+		Color = args.Color.GetValueOrDefault(Color);
+		IsHoisted = args.Hoist.GetValueOrDefault(IsHoisted);
+		IsMentionable = args.Mentionable.GetValueOrDefault(IsMentionable);
+		Name = args.Name.GetValueOrDefault(Name);
+		Permissions = args.Permissions.GetValueOrDefault(Permissions);
+		Position = args.Position.GetValueOrDefault(Position);
 
 		return Task.CompletedTask;
 	}

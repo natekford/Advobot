@@ -8,8 +8,7 @@ using static Discord.MentionUtils;
 
 namespace Advobot.Tests.Fakes.Discord;
 
-public class FakeMessage(FakeMessageChannel channel, FakeUser author, string content)
-	: FakeSnowflake, IMessage
+public class FakeMessage : FakeSnowflake, IMessage
 {
 	public MessageActivity Activity => throw new NotImplementedException();
 	public MessageApplication Application => throw new NotImplementedException();
@@ -17,11 +16,11 @@ public class FakeMessage(FakeMessageChannel channel, FakeUser author, string con
 	public MessageCallData? CallData => throw new NotImplementedException();
 	public string CleanContent => throw new NotImplementedException();
 	public IReadOnlyCollection<IMessageComponent> Components => throw new NotImplementedException();
-	public string Content { get; set; } = content;
+	public string Content { get; set; }
 	public DateTimeOffset? EditedTimestamp => throw new NotImplementedException();
 	public IReadOnlyCollection<IEmbed> Embeds => throw new NotImplementedException();
-	public FakeUser FakeAuthor { get; } = author;
-	public FakeMessageChannel FakeChannel { get; } = channel;
+	public FakeUser FakeAuthor { get; }
+	public FakeMessageChannel FakeChannel { get; }
 	public MessageFlags? Flags { get; set; }
 	public IMessageInteraction Interaction => throw new NotImplementedException();
 	public bool IsPinned => throw new NotImplementedException();
@@ -43,6 +42,14 @@ public class FakeMessage(FakeMessageChannel channel, FakeUser author, string con
 	public MessageType Type => throw new NotImplementedException();
 	IUser IMessage.Author => FakeAuthor;
 	IMessageChannel IMessage.Channel => FakeChannel;
+
+	public FakeMessage(FakeMessageChannel channel, FakeUser author, string content)
+	{
+		FakeChannel = channel;
+		FakeChannel.FakeMessages.Add(this);
+		FakeAuthor = author;
+		Content = content;
+	}
 
 	public Task AddReactionAsync(IEmote emote, RequestOptions? options = null)
 		=> throw new NotImplementedException();

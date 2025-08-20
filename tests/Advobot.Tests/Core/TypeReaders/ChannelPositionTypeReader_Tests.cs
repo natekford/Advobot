@@ -46,7 +46,7 @@ public sealed class ChannelPositionTypeReader_Tests
 
 		var result = await ReadAsync(POSITION.ToString()).ConfigureAwait(false);
 		Assert.IsTrue(result.IsSuccess);
-		Assert.IsInstanceOfType(result.BestMatch, typeof(IGuildChannel));
+		Assert.IsInstanceOfType<IGuildChannel>(result.BestMatch);
 		var parsed = (IGuildChannel)result.BestMatch;
 		Assert.AreEqual(channel.Id, parsed.Id);
 	}

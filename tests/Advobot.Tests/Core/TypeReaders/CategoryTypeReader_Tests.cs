@@ -1,9 +1,6 @@
-﻿using Advobot.Services.Help;
-using Advobot.Tests.Fakes.Services.HelpEntries;
+﻿using Advobot.Tests.Fakes.Services.HelpEntries;
 using Advobot.Tests.TestBases;
 using Advobot.TypeReaders;
-
-using Microsoft.Extensions.DependencyInjection;
 
 namespace Advobot.Tests.Core.TypeReaders;
 

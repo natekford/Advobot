@@ -5,8 +5,6 @@ using Advobot.Punishments;
 using Advobot.Tests.TestBases;
 using Advobot.Tests.Utilities;
 
-using Microsoft.Extensions.DependencyInjection;
-
 namespace Advobot.Tests.Commands.AutoMod.TypeReaders;
 
 [TestClass]
@@ -35,7 +33,7 @@ public abstract class BannedPhraseTypeReader_Tests<T> : TypeReader_Tests<T>
 
 		var result = await ReadAsync(PHRASE).ConfigureAwait(false);
 		Assert.IsTrue(result.IsSuccess);
-		Assert.IsInstanceOfType(result.BestMatch, typeof(BannedPhrase));
+		Assert.IsInstanceOfType<BannedPhrase>(result.BestMatch);
 	}
 
 	[TestMethod]

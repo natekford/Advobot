@@ -17,6 +17,6 @@ public sealed class InviteTypeReader_Tests : TypeReader_Tests<InviteTypeReader>
 
 		var result = await ReadAsync(invite.Code).ConfigureAwait(false);
 		Assert.IsTrue(result.IsSuccess);
-		Assert.IsInstanceOfType(result.BestMatch, typeof(IInviteMetadata));
+		Assert.IsInstanceOfType<IInviteMetadata>(result.BestMatch);
 	}
 }

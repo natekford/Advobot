@@ -6,8 +6,6 @@ using Advobot.Tests.Utilities;
 
 using Discord;
 
-using Microsoft.Extensions.DependencyInjection;
-
 namespace Advobot.Tests.Commands.AutoMod.TypeReaders;
 
 [TestClass]
@@ -43,7 +41,7 @@ public sealed class SelfRoleStateTypeReader_Tests
 		{
 			var result = await ReadAsync(roles[0].Name).ConfigureAwait(false);
 			Assert.IsTrue(result.IsSuccess);
-			Assert.IsInstanceOfType(result.BestMatch, typeof(SelfRoleState));
+			Assert.IsInstanceOfType<SelfRoleState>(result.BestMatch);
 
 			var cast = (SelfRoleState)result.BestMatch;
 			Assert.IsNotNull(cast.ConflictingRoles);
@@ -62,7 +60,7 @@ public sealed class SelfRoleStateTypeReader_Tests
 		{
 			var result = await ReadAsync(roles[0].Name).ConfigureAwait(false);
 			Assert.IsTrue(result.IsSuccess);
-			Assert.IsInstanceOfType(result.BestMatch, typeof(SelfRoleState));
+			Assert.IsInstanceOfType<SelfRoleState>(result.BestMatch);
 
 			var cast = (SelfRoleState)result.BestMatch;
 			Assert.IsNotNull(cast.ConflictingRoles);

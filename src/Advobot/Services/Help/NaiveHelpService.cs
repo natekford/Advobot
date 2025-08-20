@@ -15,25 +15,15 @@ internal sealed class NaiveHelpService : IHelpService
 	/// <inheritdoc />
 	public IReadOnlyList<IHelpModule> FindCloseHelpModules(string input)
 	{
-		var matches = new CloseHelpEntries(_Help.Get()).FindMatches(input);
-		var array = new IHelpModule[matches.Count];
-		for (var i = 0; i < matches.Count; ++i)
-		{
-			array[i] = matches[i].Value;
-		}
-		return array;
+		return [.. new CloseHelpEntries(_Help.Get())
+			.FindMatches(input)
+			.Select(x => x.Value)
+		];
 	}
 
 	/// <inheritdoc />
 	public IReadOnlyCollection<string> GetCategories()
-	{
-		var set = new HashSet<string>();
-		foreach (var entry in _Help.Get())
-		{
-			set.Add(entry.Category);
-		}
-		return set;
-	}
+		=> _Help.Get().Select(x => x.Category).ToHashSet();
 
 	/// <inheritdoc />
 	public IEnumerable<IHelpModule> GetHelpModules(string? category = null)

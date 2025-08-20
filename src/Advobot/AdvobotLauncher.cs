@@ -60,7 +60,11 @@ public sealed class AdvobotLauncher
 
 		var services = await CreateServicesAsync(config).ConfigureAwait(false);
 		var client = services.GetRequiredService<BaseSocketClient>();
-		await config.StartAsync(client).ConfigureAwait(false);
+
+		Console.WriteLine("Connecting to Discord...");
+		await client.LoginAsync(TokenType.Bot, config.BotKey).ConfigureAwait(false);
+		await client.StartAsync().ConfigureAwait(false);
+		Console.WriteLine("Successfully connected to Discord.");
 
 		return services;
 	}

@@ -15,7 +15,7 @@ public sealed class GuildTypeReader_Tests : TypeReader_Tests<GuildTypeReader>
 	{
 		var result = await ReadAsync(Context.Guild.Id.ToString()).ConfigureAwait(false);
 		Assert.IsTrue(result.IsSuccess);
-		Assert.IsInstanceOfType(result.BestMatch, typeof(IGuild));
+		Assert.IsInstanceOfType<IGuild>(result.BestMatch);
 	}
 
 	[TestMethod]
@@ -23,6 +23,6 @@ public sealed class GuildTypeReader_Tests : TypeReader_Tests<GuildTypeReader>
 	{
 		var result = await ReadAsync(Context.Guild.Name).ConfigureAwait(false);
 		Assert.IsTrue(result.IsSuccess);
-		Assert.IsInstanceOfType(result.BestMatch, typeof(IGuild));
+		Assert.IsInstanceOfType<IGuild>(result.BestMatch);
 	}
 }
