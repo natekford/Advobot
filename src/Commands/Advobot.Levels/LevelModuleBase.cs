@@ -2,6 +2,9 @@
 using Advobot.Levels.Service;
 using Advobot.Modules;
 
+using Discord;
+using Discord.WebSocket;
+
 namespace Advobot.Levels;
 
 public abstract class LevelModuleBase : AdvobotModuleBase

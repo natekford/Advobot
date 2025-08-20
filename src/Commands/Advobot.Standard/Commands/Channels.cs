@@ -12,6 +12,8 @@ using Advobot.Utilities;
 using Discord;
 using Discord.Commands;
 
+using System.Runtime.CompilerServices;
+
 using static Discord.ChannelPermission;
 
 namespace Advobot.Standard.Commands;
@@ -90,7 +92,7 @@ public sealed class Channels : ModuleBase
 		[LocalizedCommand(nameof(Groups.Category))]
 		[LocalizedAlias(nameof(Groups.Category))]
 		public Task<RuntimeResult> Category([Remainder, ChannelName] string name)
-			=> CommandRunner(name, Context.Guild.CreateCategoryChannelAsync);
+			=> CommandRunner(name, Context.Guild.CreateCategoryAsync);
 
 		[LocalizedCommand(nameof(Groups.Text))]
 		[LocalizedAlias(nameof(Groups.Text))]
@@ -159,17 +161,26 @@ public sealed class Channels : ModuleBase
 	public sealed class DisplayChannelPerms : AdvobotModuleBase
 	{
 		[Command]
-		public Task<RuntimeResult> Command(
+		public async Task<RuntimeResult> Command(
 			[CanModifyChannel(ManageChannels | ManageRoles)]
 			IGuildChannel channel
 		)
 		{
-			var roles = channel.PermissionOverwrites
-				.Where(x => x.TargetType == PermissionTarget.Role)
-				.Select(x => Context.Guild.GetRole(x.TargetId).Name);
-			var users = channel.PermissionOverwrites
-				.Where(x => x.TargetType == PermissionTarget.User)
-				.Select(x => Context.Guild.GetUser(x.TargetId).Username);
+			var roles = new List<string>();
+			var users = new List<string>();
+			foreach (var overwrite in channel.PermissionOverwrites)
+			{
+				if (overwrite.TargetType == PermissionTarget.Role)
+				{
+					var role = Context.Guild.GetRole(overwrite.TargetId);
+					roles.Add(role.Name);
+				}
+				else if (overwrite.TargetType == PermissionTarget.User)
+				{
+					var user = await Context.Guild.GetUserAsync(overwrite.TargetId).ConfigureAwait(false);
+					users.Add(user.Username);
+				}
+			}
 			return Responses.Channels.DisplayOverwrites(channel, roles, users);
 		}
 
@@ -210,17 +221,25 @@ public sealed class Channels : ModuleBase
 		[LocalizedCommand(nameof(Groups.Category))]
 		[LocalizedAlias(nameof(Groups.Category))]
 		public Task<RuntimeResult> Category()
-			=> Responses.Channels.Display(Context.Guild.CategoryChannels);
+			=> CommandRunner<ICategoryChannel>();
 
 		[LocalizedCommand(nameof(Groups.Text))]
 		[LocalizedAlias(nameof(Groups.Text))]
 		public Task<RuntimeResult> Text()
-			=> Responses.Channels.Display(Context.Guild.TextChannels);
+			=> CommandRunner<ITextChannel>();
 
 		[LocalizedCommand(nameof(Groups.Voice))]
 		[LocalizedAlias(nameof(Groups.Voice))]
 		public Task<RuntimeResult> Voice()
-			=> Responses.Channels.Display(Context.Guild.VoiceChannels);
+			=> CommandRunner<IVoiceChannel>();
+
+		private async Task<RuntimeResult> CommandRunner<T>(
+			[CallerMemberName] string caller = "")
+			where T : IGuildChannel
+		{
+			var channels = await Context.Guild.GetChannelsAsync().ConfigureAwait(false);
+			return Responses.Channels.Display(channels.Where(x => x is T), caller);
+		}
 	}
 
 	[LocalizedGroup(nameof(Groups.ModifyChannelBitRate))]

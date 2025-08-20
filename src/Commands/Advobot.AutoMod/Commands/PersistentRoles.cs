@@ -28,25 +28,28 @@ public sealed class PersistentRoles : ModuleBase
 		public async Task<RuntimeResult> Command()
 		{
 			var roles = await Db.GetPersistentRolesAsync(Context.Guild.Id).ConfigureAwait(false);
-			return Display(roles);
+			return await DisplayAsync(roles).ConfigureAwait(false);
 		}
 
 		[Command]
 		public async Task<RuntimeResult> Command(IGuildUser user)
 		{
 			var roles = await Db.GetPersistentRolesAsync(Context.Guild.Id, user.Id).ConfigureAwait(false);
-			return Display(roles);
+			return await DisplayAsync(roles).ConfigureAwait(false);
 		}
 
-		private AdvobotResult Display(IEnumerable<PersistentRole> roles)
+		private async Task<AdvobotResult> DisplayAsync(IEnumerable<PersistentRole> persistentRoles)
 		{
-			var grouped = roles
-				.Select(x =>
-				{
-					var user = Context.Guild.GetUser(x.UserId).Format() ?? x.UserId.ToString();
-					var role = Context.Guild.GetRole(x.RoleId);
-					return (User: user, Role: role);
-				})
+			var retrieved = new List<(string User, IRole Role)>();
+			foreach (var persistentRole in persistentRoles)
+			{
+				var user = (await GetUserAsync(persistentRole.UserId).ConfigureAwait(false))
+					?.Format() ?? persistentRole.UserId.ToString();
+				var role = Context.Guild.GetRole(persistentRole.RoleId);
+				retrieved.Add((user, role));
+			}
+
+			var grouped = retrieved
 				.Where(x => x.Role != null)
 				.GroupBy(x => x.User, x => x.Role);
 			return DisplayPersistentRoles(grouped);

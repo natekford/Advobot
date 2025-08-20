@@ -1,5 +1,6 @@
 ﻿using Advobot.Attributes;
 using Advobot.Levels.Database;
+using Advobot.Levels.Database.Models;
 using Advobot.Localization;
 using Advobot.ParameterPreconditions.Numbers;
 using Advobot.Resources;
@@ -38,8 +39,7 @@ public sealed class Levels : ModuleBase
 		public async Task<RuntimeResult> Command(SearchArgs args)
 		{
 			var rank = await Db.GetRankAsync(args).ConfigureAwait(false);
-			var user = Context.Client.GetUser(rank.UserId)
-				?? (IUser)await Context.Client.Rest.GetUserAsync(rank.UserId).ConfigureAwait(false);
+			var user = await GetUserAsync(rank.UserId).ConfigureAwait(false);
 			if (rank.Experience == 0)
 			{
 				return NoXp(args, rank, user);
@@ -77,12 +77,15 @@ public sealed class Levels : ModuleBase
 		{
 			var offset = PAGE_LENGTH * (page - 1);
 			var ranks = await Db.GetRanksAsync(args, offset, PAGE_LENGTH).ConfigureAwait(false);
-			return Responses.Levels.Top(args, ranks, x =>
+			var rankDescriptions = new List<(IRank, int, IUser?)>(ranks.Count);
+			foreach (var rank in ranks)
 			{
-				var level = Service.CalculateLevel(x.Experience);
-				var user = Context.Client.GetUser(x.UserId);
-				return (level, user);
-			});
+				var level = Service.CalculateLevel(rank.Experience);
+				var user = await GetUserAsync(rank.UserId).ConfigureAwait(false);
+				rankDescriptions.Add((rank, level, user));
+			}
+
+			return Responses.Levels.Top(args, rankDescriptions);
 		}
 	}
 }

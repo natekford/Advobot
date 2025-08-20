@@ -3,6 +3,7 @@ using Advobot.Interactivity.Criterions;
 using Advobot.Interactivity.TryParsers;
 using Advobot.Preconditions;
 using Advobot.Services.BotConfig;
+using Advobot.Services.Events;
 using Advobot.Services.Punishments;
 using Advobot.Utilities;
 
@@ -34,6 +35,10 @@ public abstract class AdvobotModuleBase : ModuleBase<AdvobotCommandContext>
 	[DontInject]
 	public TimeSpan DefaultInteractivityTime { get; set; } = TimeSpan.FromSeconds(5);
 	/// <summary>
+	/// The service to provide events with.
+	/// </summary>
+	public required EventProvider EventProvider { get; set; }
+	/// <summary>
 	/// The service to use for giving punishments.
 	/// </summary>
 	public required IPunishmentService PunishmentService { get; set; }
@@ -52,6 +57,14 @@ public abstract class AdvobotModuleBase : ModuleBase<AdvobotCommandContext>
 		}
 		return DiscordUtils.GenerateRequestOptions(r);
 	}
+
+	/// <summary>
+	/// Gets a user to display.
+	/// </summary>
+	/// <param name="userId"></param>
+	/// <returns></returns>
+	public Task<IUser?> GetUserAsync(ulong userId)
+		=> Context.Client.GetUserAsync(userId);
 
 	/// <summary>
 	/// Gets the next valid index supplied by the user. This is blocking.
@@ -130,12 +143,12 @@ public abstract class AdvobotModuleBase : ModuleBase<AdvobotCommandContext>
 			}
 		}
 
-		Context.Client.MessageReceived += Handler;
+		EventProvider.MessageReceived.Add(Handler);
 		var @event = eventTrigger.Task;
 		var cancel = cancelTrigger.Task;
 		var delay = Task.Delay(timeout);
 		var task = await Task.WhenAny(@event, delay, cancel).ConfigureAwait(false);
-		Context.Client.MessageReceived -= Handler;
+		EventProvider.MessageReceived.Remove(Handler);
 
 		if (task == cancel)
 		{

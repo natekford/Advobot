@@ -3,12 +3,12 @@ using Advobot.AutoMod.Database.Models;
 using Advobot.AutoMod.Utilities;
 using Advobot.Punishments;
 using Advobot.Services;
+using Advobot.Services.Events;
 using Advobot.Services.Punishments;
 using Advobot.Services.Time;
 using Advobot.Utilities;
 
 using Discord;
-using Discord.WebSocket;
 
 using Microsoft.Extensions.Logging;
 
@@ -18,7 +18,8 @@ namespace Advobot.AutoMod.Service;
 
 public sealed class AutoModService(
 	ILogger<AutoModService> logger,
-	BaseSocketClient client,
+	IDiscordClient client,
+	EventProvider eventProvider,
 	AutoModDatabase db,
 	ITimeService time,
 	IPunishmentService punishmentService
@@ -43,9 +44,9 @@ public sealed class AutoModService(
 
 	protected override Task StartAsyncImpl()
 	{
-		client.MessageReceived += OnMessageReceived;
-		client.MessageUpdated += OnMessageUpdated;
-		client.UserJoined += OnUserJoined;
+		eventProvider.MessageReceived.Add(OnMessageReceived);
+		eventProvider.MessageUpdated.Add(OnMessageUpdated);
+		eventProvider.UserJoined.Add(OnUserJoined);
 
 		_ = Task.Run(async () =>
 		{
@@ -55,7 +56,8 @@ public sealed class AutoModService(
 				{
 					try
 					{
-						if (client.GetChannel(channelId) is not ITextChannel channel)
+						var channel = await client.GetChannelAsync(channelId).ConfigureAwait(false);
+						if (channel is not ITextChannel textChannel)
 						{
 							logger.LogWarning(
 								message: "Channel was null while deleting messages. {@Info}",
@@ -67,7 +69,7 @@ public sealed class AutoModService(
 							continue;
 						}
 
-						await channel.DeleteMessagesAsync(messageIds, _AutoMod).ConfigureAwait(false);
+						await textChannel.DeleteMessagesAsync(messageIds, _AutoMod).ConfigureAwait(false);
 					}
 					catch (Exception e)
 					{
@@ -91,11 +93,11 @@ public sealed class AutoModService(
 
 	protected override Task StopAsyncImpl()
 	{
-		client.MessageReceived -= OnMessageReceived;
-		client.MessageUpdated -= OnMessageUpdated;
-		client.UserJoined -= OnUserJoined;
+		eventProvider.MessageReceived.Remove(OnMessageReceived);
+		eventProvider.MessageUpdated.Remove(OnMessageUpdated);
+		eventProvider.UserJoined.Remove(OnUserJoined);
 
-		return Task.CompletedTask;
+		return base.StopAsyncImpl();
 	}
 
 	private async Task<bool> HandleBannedNamesAsync(AutoModContext context)
@@ -241,7 +243,7 @@ public sealed class AutoModService(
 		}
 	}
 
-	private Task OnMessageUpdated(Cacheable<IMessage, ulong> _, IMessage message, ISocketMessageChannel __)
+	private Task OnMessageUpdated(Cacheable<IMessage, ulong> _, IMessage message, IMessageChannel __)
 		=> OnMessageReceived(message);
 
 	private async Task OnUserJoined(IGuildUser user)

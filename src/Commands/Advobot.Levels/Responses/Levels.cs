@@ -44,19 +44,18 @@ public sealed class Levels : AdvobotResult
 
 	public static AdvobotResult Top(
 		SearchArgs args,
-		IReadOnlyList<IRank> ranks,
-		Func<IRank, (int Level, IUser? User)> getInfo)
+		IEnumerable<(IRank Rank, int Level, IUser? User)> ranks)
 	{
 		var title = LevelsTopTitle.Format(
 			GetSearchType(args).WithTitleCase()
 		);
 		var description = ranks.Select(x =>
 		{
-			var (level, user) = getInfo(x);
+			var (rank, level, user) = x;
 			return LevelsTopDescription.Format(
-				(x.Position + 1).ToString().WithBlock(),
-				FormatUser(x, user).WithBlock(),
-				x.Experience.ToString().WithNoMarkdown(),
+				(rank.Position + 1).ToString().WithBlock(),
+				FormatUser(rank, user).WithBlock(),
+				rank.Experience.ToString().WithNoMarkdown(),
 				level.ToString().WithNoMarkdown()
 			);
 		}).Join(Environment.NewLine);

@@ -12,6 +12,7 @@ using Advobot.Punishments;
 using Advobot.Resources;
 using Advobot.Services.GuildSettings;
 using Advobot.Services.Time;
+using Advobot.Standard.Responses;
 using Advobot.TypeReaders;
 using Advobot.Utilities;
 
@@ -360,23 +361,21 @@ public sealed class Users : ModuleBase
 				await role.ModifyAsync(x => x.Permissions = new GuildPermissions(0)).ConfigureAwait(false);
 			}
 
-			static async Task ConfigureChannelsAsync(
-				IRole role,
-				IReadOnlyCollection<IGuildChannel> channels,
-				OverwritePermissions perms)
+			var channels = await Context.Guild.GetChannelsAsync().ConfigureAwait(false);
+			foreach (var channel in channels)
 			{
-				foreach (var c in channels)
+				var perms = channel switch
 				{
-					if (c.GetPermissionOverwrite(role)?.DenyValue != perms.DenyValue)
-					{
-						await c.AddPermissionOverwriteAsync(role, perms).ConfigureAwait(false);
-					}
+					ICategoryChannel _ => CategoryPerms,
+					IVoiceChannel _ => VoicePerms,
+					ITextChannel _ => TextPerms,
+					_ => throw new InvalidOperationException("Invalid channel while configuring mute role."),
+				};
+				if (channel.GetPermissionOverwrite(role)?.DenyValue != perms.DenyValue)
+				{
+					await channel.AddPermissionOverwriteAsync(role, perms).ConfigureAwait(false);
 				}
 			}
-
-			await ConfigureChannelsAsync(role, Context.Guild.CategoryChannels, CategoryPerms).ConfigureAwait(false);
-			await ConfigureChannelsAsync(role, Context.Guild.TextChannels, TextPerms).ConfigureAwait(false);
-			await ConfigureChannelsAsync(role, Context.Guild.VoiceChannels, VoicePerms).ConfigureAwait(false);
 		}
 	}
 

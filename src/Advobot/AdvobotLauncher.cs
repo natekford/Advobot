@@ -2,6 +2,7 @@
 using Advobot.Services;
 using Advobot.Services.BotConfig;
 using Advobot.Services.Commands;
+using Advobot.Services.Events;
 using Advobot.Services.GuildSettings;
 using Advobot.Services.Help;
 using Advobot.Services.Punishments;
@@ -86,6 +87,7 @@ public sealed class AdvobotLauncher
 			LogGatewayIntentWarnings = false,
 			GatewayIntents = GatewayIntents.All,
 		});
+		var eventProvider = new ShardedClientEventProvider(discordClient);
 		var httpClient = new HttpClient(new HttpClientHandler
 		{
 			AllowAutoRedirect = true,
@@ -102,6 +104,7 @@ public sealed class AdvobotLauncher
 			.AddSingleton<IDiscordClient>(discordClient)
 			.AddSingleton<IRuntimeConfig>(botConfig)
 			.AddSingleton<IConfig>(botConfig)
+			.AddSingleton<EventProvider>(eventProvider)
 			.AddSingleton<NaiveCommandService>()
 			.AddSingleton<ITimeService, NaiveTimeService>()
 			.AddSingleton<IHelpService, NaiveHelpService>()
@@ -148,6 +151,19 @@ public sealed class AdvobotLauncher
 		// Add in commands
 		var commandHandler = services.GetRequiredService<NaiveCommandService>();
 		await commandHandler.AddCommandsAsync(commandAssemblies).ConfigureAwait(false);
+
+		eventProvider.Ready.Add(async _ =>
+		{
+			var game = botConfig.Game;
+			var stream = botConfig.Stream;
+			var activityType = ActivityType.Playing;
+			if (!string.IsNullOrWhiteSpace(stream))
+			{
+				stream = $"https://www.twitch.tv/{stream[(stream.LastIndexOf('/') + 1)..]}";
+				activityType = ActivityType.Streaming;
+			}
+			await discordClient.SetGameAsync(game, stream, activityType).ConfigureAwait(false);
+		});
 
 		return services;
 	}

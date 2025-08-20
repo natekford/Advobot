@@ -9,6 +9,7 @@ using Advobot.Resources;
 
 using Discord;
 using Discord.Commands;
+using Discord.WebSocket;
 
 namespace Advobot.Standard.Commands;
 
@@ -23,8 +24,11 @@ public sealed class Gets : ModuleBase
 	public sealed class GetGuilds : AdvobotModuleBase
 	{
 		[Command]
-		public Task<RuntimeResult> Command()
-			=> Responses.Gets.Guilds(Context.Client.Guilds);
+		public async Task<RuntimeResult> Command()
+		{
+			var guilds = await Context.Client.GetGuildsAsync().ConfigureAwait(false);
+			return Responses.Gets.Guilds(guilds);
+		}
 	}
 
 	[LocalizedGroup(nameof(Groups.GetInfo))]
@@ -109,7 +113,13 @@ public sealed class Gets : ModuleBase
 		[LocalizedAlias(nameof(Aliases.Shards))]
 		[Priority(1)]
 		public Task<RuntimeResult> Shards()
-			=> Responses.Gets.Shards(Context.Client);
+		{
+			if (Context.Client is DiscordShardedClient shardedClient)
+			{
+				return Responses.Gets.Shards(shardedClient);
+			}
+			return Responses.Gets.Bot(Context.Client);
+		}
 
 		[LocalizedCommand(nameof(Groups.User))]
 		[LocalizedAlias(nameof(Aliases.User))]
@@ -177,9 +187,9 @@ public sealed class Gets : ModuleBase
 	public sealed class GetUserJoinedAt : AdvobotModuleBase
 	{
 		[Command]
-		public Task<RuntimeResult> Command([Positive] int position)
+		public async Task<RuntimeResult> Command([Positive] int position)
 		{
-			var users = Context.Guild.Users
+			var users = (await Context.Guild.GetUsersAsync().ConfigureAwait(false))
 				.Where(x => x.JoinedAt.HasValue)
 				.OrderBy(x => x.JoinedAt.GetValueOrDefault().Ticks);
 

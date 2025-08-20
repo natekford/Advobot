@@ -1,40 +1,26 @@
-﻿using Discord.Commands;
-using Discord.WebSocket;
+﻿using Discord;
+using Discord.Commands;
 
 using System.Diagnostics;
 
 namespace Advobot.Modules;
 
 /// <summary>
-/// A <see cref="ShardedCommandContext"/> which contains settings and the service provider.
+/// A command context which contains the elapsed time.
 /// </summary>
-public class AdvobotCommandContext : ShardedCommandContext, IElapsed
+/// <param name="client"></param>
+/// <param name="msg"></param>
+public class AdvobotCommandContext(IDiscordClient client, IUserMessage msg)
+	: CommandContext(client, msg), IElapsed
 {
-	private readonly Stopwatch _Stopwatch = new();
+	private readonly Stopwatch _Stopwatch = Stopwatch.StartNew();
 
-	/// <summary>
-	/// The channel this command is executing from.
-	/// </summary>
-	public new SocketTextChannel Channel { get; }
+	/// <inheritdoc cref="ICommandContext.Channel" />
+	public new ITextChannel Channel { get; } = (msg.Channel as ITextChannel)!;
 	/// <summary>
 	/// The time since starting the command.
 	/// </summary>
 	public TimeSpan Elapsed => _Stopwatch.Elapsed;
-	/// <summary>
-	/// The user this command is executing from.
-	/// </summary>
-	public new SocketGuildUser User { get; }
-
-	/// <summary>
-	/// Creates an instance of <see cref="AdvobotCommandContext"/>.
-	/// </summary>
-	/// <param name="client"></param>
-	/// <param name="msg"></param>
-	public AdvobotCommandContext(DiscordShardedClient client, SocketUserMessage msg)
-		: base(client, msg)
-	{
-		_Stopwatch.Start();
-		User = (SocketGuildUser)msg.Author;
-		Channel = (SocketTextChannel)msg.Channel;
-	}
+	/// <inheritdoc cref="ICommandContext.User" />
+	public new IGuildUser User { get; } = (msg.Author as IGuildUser)!;
 }

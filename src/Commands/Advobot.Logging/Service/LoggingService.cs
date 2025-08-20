@@ -8,7 +8,7 @@ using Advobot.Logging.Utilities;
 using Advobot.Modules;
 using Advobot.Services;
 using Advobot.Services.BotConfig;
-using Advobot.Services.Commands;
+using Advobot.Services.Events;
 using Advobot.Services.Time;
 using Advobot.Utilities;
 
@@ -28,8 +28,8 @@ namespace Advobot.Logging.Service;
 public sealed partial class LoggingService(
 	ILogger<LoggingService> logger,
 	LoggingDatabase db,
-	BaseSocketClient client,
-	NaiveCommandService commands,
+	IDiscordClient client,
+	EventProvider eventProvider,
 	IRuntimeConfig botConfig,
 	MessageQueue messageQueue,
 	ITimeService time
@@ -40,24 +40,23 @@ public sealed partial class LoggingService(
 
 	protected override Task StartAsyncImpl()
 	{
-		commands.CommandInvoked += OnCommandInvoked;
-		commands.Log += OnLog;
-		commands.Ready += OnReady;
+		eventProvider.CommandExecuted.Add(OnCommandExecuted);
+		eventProvider.Log.Add(OnLog);
+		eventProvider.Ready.Add(OnReady);
 
-		client.GuildAvailable += OnGuildAvailable;
-		client.GuildUnavailable += OnGuildUnavailable;
-		client.JoinedGuild += OnJoinedGuild;
-		client.LeftGuild += OnLeftGuild;
-		client.Log += OnLog;
+		eventProvider.GuildAvailable.Add(OnGuildAvailable);
+		eventProvider.GuildUnavailable.Add(OnGuildUnavailable);
+		eventProvider.GuildJoined.Add(OnGuildJoined);
+		eventProvider.GuildLeft.Add(OnGuildLeft);
 
-		client.MessageDeleted += OnMessageDeleted;
-		client.MessagesBulkDeleted += OnMessagesBulkDeleted;
-		client.MessageReceived += OnMessageReceived;
-		client.MessageUpdated += OnMessageUpdated;
+		eventProvider.MessageDeleted.Add(OnMessageDeleted);
+		eventProvider.MessagesBulkDeleted.Add(OnMessagesBulkDeleted);
+		eventProvider.MessageReceived.Add(OnMessageReceived);
+		eventProvider.MessageUpdated.Add(OnMessageUpdated);
 
-		client.UserJoined += OnUserJoined;
-		client.UserLeft += OnUserLeft;
-		client.UserUpdated += OnUserUpdated;
+		eventProvider.UserJoined.Add(OnUserJoined);
+		eventProvider.UserLeft.Add(OnUserLeft);
+		eventProvider.UserUpdated.Add(OnUserUpdated);
 
 		_ = Task.Run(async () =>
 		{
@@ -88,24 +87,23 @@ public sealed partial class LoggingService(
 
 	protected override Task StopAsyncImpl()
 	{
-		commands.CommandInvoked -= OnCommandInvoked;
-		commands.Log -= OnLog;
-		commands.Ready -= OnReady;
+		eventProvider.CommandExecuted.Remove(OnCommandExecuted);
+		eventProvider.Log.Remove(OnLog);
+		eventProvider.Ready.Remove(OnReady);
 
-		client.GuildAvailable -= OnGuildAvailable;
-		client.GuildUnavailable -= OnGuildUnavailable;
-		client.JoinedGuild -= OnJoinedGuild;
-		client.LeftGuild -= OnLeftGuild;
-		client.Log -= OnLog;
+		eventProvider.GuildAvailable.Remove(OnGuildAvailable);
+		eventProvider.GuildUnavailable.Remove(OnGuildUnavailable);
+		eventProvider.GuildJoined.Remove(OnGuildJoined);
+		eventProvider.GuildLeft.Remove(OnGuildLeft);
 
-		client.MessageDeleted -= OnMessageDeleted;
-		client.MessagesBulkDeleted -= OnMessagesBulkDeleted;
-		client.MessageReceived -= OnMessageReceived;
-		client.MessageUpdated -= OnMessageUpdated;
+		eventProvider.MessageDeleted.Remove(OnMessageDeleted);
+		eventProvider.MessagesBulkDeleted.Remove(OnMessagesBulkDeleted);
+		eventProvider.MessageReceived.Remove(OnMessageReceived);
+		eventProvider.MessageUpdated.Remove(OnMessageUpdated);
 
-		client.UserJoined -= OnUserJoined;
-		client.UserLeft -= OnUserLeft;
-		client.UserUpdated -= OnUserUpdated;
+		eventProvider.UserJoined.Remove(OnUserJoined);
+		eventProvider.UserLeft.Remove(OnUserLeft);
+		eventProvider.UserUpdated.Remove(OnUserUpdated);
 
 		return Task.CompletedTask;
 	}
@@ -163,16 +161,16 @@ public sealed partial class LoggingService(
 /// </summary>
 partial class LoggingService
 {
-	public async Task OnCommandInvoked(CommandInfo command, ICommandContext context, IResult result)
+	public async Task OnCommandExecuted(Optional<CommandInfo> command, ICommandContext context, IResult result)
 	{
-		static bool CanBeIgnored(ICommandContext context, IResult result)
+		static bool CanBeIgnored(IResult result)
 		{
 			return result is null
 				|| result.Error == CommandError.UnknownCommand
 				|| (!result.IsSuccess && result.ErrorReason is null)
-				|| (result is PreconditionGroupResult g && g.PreconditionResults.All(x => CanBeIgnored(context, x)));
+				|| (result is PreconditionGroupResult g && g.PreconditionResults.All(CanBeIgnored));
 		}
-		if (CanBeIgnored(context, result))
+		if (!command.IsSpecified || CanBeIgnored(result))
 		{
 			return;
 		}
@@ -184,7 +182,7 @@ partial class LoggingService
 				Guild = context.Guild.Id,
 				Channel = context.Channel.Id,
 				User = context.User.Id,
-				Command = command.Aliases[0],
+				Command = command.Value.Aliases[0],
 				// probably shouldn't put user content into logs? idk
 				//Content = context.Message.Content,
 				Elapsed = context is IElapsed elapsed
@@ -226,57 +224,39 @@ partial class LoggingService
 		}.ToMessageArgs()).ConfigureAwait(false);
 	}
 
-	public Task OnGuildAvailable(SocketGuild guild)
+	public Task OnGuildAvailable(IGuild guild)
 	{
 		var shard = client is DiscordShardedClient s ? s.GetShardIdFor(guild) : 0;
+		var count = guild is SocketGuild g ? g.MemberCount : 0;
 		logger.LogInformation(
 			message: "Guild is now online {Guild} ({Shard}, {MemberCount})",
-			args: [guild.Id, shard, guild.MemberCount]
+			args: [guild.Id, shard, count]
 		);
 		return Task.CompletedTask;
 	}
 
-	public Task OnGuildUnavailable(SocketGuild guild)
-	{
-		logger.LogInformation(
-			message: "Guild is now offline {Guild}",
-			args: guild.Id
-		);
-		return Task.CompletedTask;
-	}
-
-	public Task OnJoinedGuild(SocketGuild guild)
+	public Task OnGuildJoined(IGuild guild)
 	{
 		logger.LogInformation(
 			message: "Joined guild {Guild}",
 			args: guild.Id
 		);
-
-		//Determine what percentage of bot users to leave at and leave if too many bots
-		var allowedPercentage = guild.MemberCount switch
-		{
-			int users when users < 9 => .7,
-			int users when users < 26 => .5,
-			int users when users < 41 => .4,
-			int users when users < 121 => .3,
-			_ => .2,
-		};
-		var botPercentage = (double)guild.Users.Count(x => x.IsBot) / guild.MemberCount;
-		if (botPercentage > allowedPercentage)
-		{
-			logger.LogInformation(
-				message: "Too many bots in guild {Guild} ({Percentage}%)",
-				args: [guild.Id, botPercentage]
-			);
-			return guild.LeaveAsync();
-		}
 		return Task.CompletedTask;
 	}
 
-	public Task OnLeftGuild(SocketGuild guild)
+	public Task OnGuildLeft(IGuild guild)
 	{
 		logger.LogInformation(
 			message: "Left guild {Guild}",
+			args: guild.Id
+		);
+		return Task.CompletedTask;
+	}
+
+	public Task OnGuildUnavailable(IGuild guild)
+	{
+		logger.LogInformation(
+			message: "Guild is now offline {Guild}",
 			args: guild.Id
 		);
 		return Task.CompletedTask;
@@ -319,7 +299,7 @@ partial class LoggingService
 		return Task.CompletedTask;
 	}
 
-	public Task OnReady()
+	public Task OnReady(IDiscordClient _)
 	{
 		var launchDuration = DateTime.UtcNow - Constants.START;
 		Console.WriteLine($"Bot: '{client.CurrentUser.Username}'; " +
@@ -345,7 +325,7 @@ partial class LoggingService
 		handlers: HandleMessageDeletedLogging
 	);
 
-	public Task OnMessageReceived(SocketMessage message) => HandleAsync(
+	public Task OnMessageReceived(IMessage message) => HandleAsync(
 		action: LogAction.MessageReceived,
 		context: new MessageContext(message),
 		handlers: HandleImageLoggingAsync
@@ -362,8 +342,8 @@ partial class LoggingService
 
 	public Task OnMessageUpdated(
 		Cacheable<IMessage, ulong> cached,
-		SocketMessage message,
-		ISocketMessageChannel _
+		IMessage message,
+		IMessageChannel _
 	) => HandleAsync(
 		action: LogAction.MessageUpdated,
 		context: new MessageEditedContext(cached, message),
@@ -577,28 +557,30 @@ partial class LoggingService
 /// </summary>
 partial class LoggingService
 {
-	public Task OnUserJoined(SocketGuildUser user) => HandleAsync(
+	public Task OnUserJoined(IGuildUser user) => HandleAsync(
 		action: LogAction.UserJoined,
 		context: new UserContext(user.Guild, user),
 		handlers: HandleJoinLogging
 	);
 
-	public Task OnUserLeft(SocketGuild guild, SocketUser user) => HandleAsync(
+	public Task OnUserLeft(IGuild guild, IUser user) => HandleAsync(
 		action: LogAction.UserLeft,
 		context: new UserContext(guild, user),
 		handlers: HandleLeftLogging
 	);
 
-	public async Task OnUserUpdated(SocketUser before, SocketUser after)
+	public async Task OnUserUpdated(IUser before, IUser after)
 	{
 		if (before.Username == after.Username)
 		{
 			return;
 		}
 
-		foreach (var guild in client.Guilds)
+		var guilds = await client.GetGuildsAsync().ConfigureAwait(false);
+		foreach (var guild in guilds)
 		{
-			if (guild.GetUser(before.Id) is null)
+			var user = await guild.GetUserAsync(before.Id).ConfigureAwait(false);
+			if (user is null)
 			{
 				continue;
 			}

@@ -27,7 +27,7 @@ public sealed class SelfRoles : ModuleBase
 		[Command]
 		public async Task<RuntimeResult> Command(SelfRoleState role)
 		{
-			if (Context.User.Roles.Any(x => x.Id == role.Role.Id))
+			if (Context.User.RoleIds.Any(x => x == role.Role.Id))
 			{
 				await Context.User.RemoveRoleAsync(role.Role, GetOptions("self role removal")).ConfigureAwait(false);
 				return RemovedRole(role.Role);
@@ -35,7 +35,7 @@ public sealed class SelfRoles : ModuleBase
 
 			// Remove roles the user already has from the group if they're targeting an exclusive group
 			var conflicting = role.ConflictingRoles
-				.Where(x => Context.User.Roles.Any(y => y.Id == x.Id));
+				.Where(x => Context.User.RoleIds.Any(y => y == x.Id));
 			if (!conflicting.Any())
 			{
 				await Context.User.AddRoleAsync(role.Role, GetOptions("self role giving")).ConfigureAwait(false);

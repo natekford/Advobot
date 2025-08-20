@@ -22,16 +22,17 @@ public abstract class MultiUserActionModuleBase : AdvobotModuleBase
 	/// <param name="formatProgress"></param>
 	/// <param name="options"></param>
 	/// <returns></returns>
-	protected Task<int> ProcessAsync(
+	protected async Task<int> ProcessAsync(
 		bool getUnlimitedUsers,
 		Func<IGuildUser, bool> userPredicate,
 		Func<IGuildUser, RequestOptions, Task> updateUser,
 		Func<MultiUserActionProgressArgs, string>? formatProgress,
 		RequestOptions options)
 	{
-		var users = Context.Guild.Users
-			.Where(x => Context.User.CanModify(x) && Context.Guild.CurrentUser.CanModify(x));
-		return ProcessAsync(users, getUnlimitedUsers, userPredicate, updateUser, formatProgress, options);
+		var bot = await Context.Guild.GetCurrentUserAsync().ConfigureAwait(false);
+		var users = await Context.Guild.GetUsersAsync().ConfigureAwait(false);
+		var modifiable = users.Where(x => Context.User.CanModify(x) && bot.CanModify(x));
+		return await ProcessAsync(modifiable, getUnlimitedUsers, userPredicate, updateUser, formatProgress, options).ConfigureAwait(false);
 	}
 
 	/// <summary>
