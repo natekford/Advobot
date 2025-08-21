@@ -95,7 +95,10 @@ public abstract class Command_Tests : TestsBase
 			isHoisted: false,
 			options: null
 		).ConfigureAwait(false);
+		var bot = await Context.Guild.GetCurrentUserAsync().ConfigureAwait(false);
+
 		await Context.User.AddRoleAsync(adminRole).ConfigureAwait(false);
+		await bot.AddRoleAsync(adminRole).ConfigureAwait(false);
 
 		Context.Channel.Name = CHANNEL;
 

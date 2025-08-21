@@ -219,7 +219,7 @@ public sealed class NaiveCommandService(
 		CultureInfo.CurrentUICulture = culture;
 		CultureInfo.CurrentCulture = culture;
 		var commands = _CommandService.Get(culture);
-		var context = new AdvobotCommandContext(client, msg);
+		var context = new GuildCommandContext(client, msg);
 		await commands.ExecuteAsync(context, argPos, services).ConfigureAwait(false);
 	}
 }

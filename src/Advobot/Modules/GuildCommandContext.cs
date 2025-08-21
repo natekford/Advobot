@@ -10,8 +10,8 @@ namespace Advobot.Modules;
 /// </summary>
 /// <param name="client"></param>
 /// <param name="msg"></param>
-public class AdvobotCommandContext(IDiscordClient client, IUserMessage msg)
-	: CommandContext(client, msg), IElapsed
+public class GuildCommandContext(IDiscordClient client, IUserMessage msg)
+	: CommandContext(client, msg), IGuildCommandContext, IElapsed
 {
 	private readonly Stopwatch _Stopwatch = Stopwatch.StartNew();
 

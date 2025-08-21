@@ -17,7 +17,7 @@ namespace Advobot.Modules;
 /// </summary>
 [ExtendableCommandValidation]
 [RequireContext(ContextType.Guild, Group = nameof(RequireContextAttribute))]
-public abstract class AdvobotModuleBase : ModuleBase<AdvobotCommandContext>
+public abstract class AdvobotModuleBase : ModuleBase<IGuildCommandContext>
 {
 	private static readonly ICriterion<IMessage>[] _NextIndexCriteria =
 	[
