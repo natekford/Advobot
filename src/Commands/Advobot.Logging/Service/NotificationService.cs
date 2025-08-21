@@ -2,9 +2,10 @@
 using Advobot.Logging.Database.Models;
 using Advobot.Logging.Utilities;
 using Advobot.Services;
+using Advobot.Services.Events;
 using Advobot.Utilities;
 
-using Discord.WebSocket;
+using Discord;
 
 using Microsoft.Extensions.Logging;
 
@@ -15,27 +16,27 @@ namespace Advobot.Logging.Service;
 public sealed class NotificationService(
 	ILogger<NotificationService> logger,
 	NotificationDatabase db,
-	BaseSocketClient client,
+	EventProvider eventProvider,
 	MessageQueue queue
 ) : StartableService
 {
 	protected override Task StartAsyncImpl()
 	{
-		client.UserJoined += OnUserJoined;
-		client.UserLeft += OnUserLeft;
+		eventProvider.UserJoined.Add(OnUserJoined);
+		eventProvider.UserLeft.Add(OnUserLeft);
 
 		return Task.CompletedTask;
 	}
 
 	protected override Task StopAsyncImpl()
 	{
-		client.UserJoined -= OnUserJoined;
-		client.UserLeft -= OnUserLeft;
+		eventProvider.UserJoined.Remove(OnUserJoined);
+		eventProvider.UserLeft.Remove(OnUserLeft);
 
-		return Task.CompletedTask;
+		return base.StopAsyncImpl();
 	}
 
-	private async Task OnEvent(Notification notifType, SocketGuild guild, SocketUser user)
+	private async Task OnEvent(Notification notifType, IGuild guild, IUser user)
 	{
 		var notification = await db.GetAsync(notifType, guild.Id).ConfigureAwait(false);
 		if (notification is null || notification.GuildId == 0)
@@ -43,7 +44,7 @@ public sealed class NotificationService(
 			return;
 		}
 
-		var channel = guild.GetTextChannel(notification.ChannelId);
+		var channel = await guild.GetTextChannelAsync(notification.ChannelId).ConfigureAwait(false);
 		if (channel is null)
 		{
 			return;
@@ -71,9 +72,9 @@ public sealed class NotificationService(
 		});
 	}
 
-	private Task OnUserJoined(SocketGuildUser user)
+	private Task OnUserJoined(IGuildUser user)
 		=> OnEvent(Notification.Welcome, user.Guild, user);
 
-	private Task OnUserLeft(SocketGuild guild, SocketUser user)
+	private Task OnUserLeft(IGuild guild, IUser user)
 		=> OnEvent(Notification.Goodbye, guild, user);
 }

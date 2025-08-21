@@ -13,12 +13,13 @@ public abstract class EventProvider : StartableService
 	public AsyncEvent<Func<IGuild, Task>> GuildAvailable { get; } = new();
 	public AsyncEvent<Func<IGuild, Task>> GuildJoined { get; } = new();
 	public AsyncEvent<Func<IGuild, Task>> GuildLeft { get; } = new();
+	public AsyncEvent<Func<IGuildUser?, IGuildUser, Task>> GuildMemberUpdated { get; } = new();
 	public AsyncEvent<Func<IGuild, Task>> GuildUnavailable { get; } = new();
 	public AsyncEvent<Func<LogMessage, Task>> Log { get; } = new();
-	public AsyncEvent<Func<Cacheable<IMessage, ulong>, Cacheable<IMessageChannel, ulong>, Task>> MessageDeleted { get; } = new();
+	public AsyncEvent<Func<(IMessage? Message, ulong Id), Task>> MessageDeleted { get; } = new();
 	public AsyncEvent<Func<IMessage, Task>> MessageReceived { get; } = new();
-	public AsyncEvent<Func<IReadOnlyCollection<Cacheable<IMessage, ulong>>, Cacheable<IMessageChannel, ulong>, Task>> MessagesBulkDeleted { get; } = new();
-	public AsyncEvent<Func<Cacheable<IMessage, ulong>, IMessage, IMessageChannel, Task>> MessageUpdated { get; } = new();
+	public AsyncEvent<Func<IReadOnlyCollection<(IMessage? Message, ulong Id)>, Task>> MessagesBulkDeleted { get; } = new();
+	public AsyncEvent<Func<IMessage?, IMessage, IMessageChannel, Task>> MessageUpdated { get; } = new();
 	public AsyncEvent<Func<IDiscordClient, Task>> Ready { get; } = new();
 	public AsyncEvent<Func<IGuildUser, Task>> UserJoined { get; } = new();
 	public AsyncEvent<Func<IGuild, IUser, Task>> UserLeft { get; } = new();

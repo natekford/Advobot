@@ -4,7 +4,7 @@ using Discord;
 
 namespace Advobot.Logging.Service.Context.Message;
 
-public class MessageContext(IMessage message) : ILogContext
+public class MessageContext(IMessage? message) : ILogContext
 {
 	public ITextChannel Channel { get; } = (message?.Channel as ITextChannel)!;
 	public IGuild Guild => User?.Guild!;

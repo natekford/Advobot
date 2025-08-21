@@ -12,7 +12,6 @@ using Advobot.Punishments;
 using Advobot.Resources;
 using Advobot.Services.GuildSettings;
 using Advobot.Services.Time;
-using Advobot.Standard.Responses;
 using Advobot.TypeReaders;
 using Advobot.Utilities;
 

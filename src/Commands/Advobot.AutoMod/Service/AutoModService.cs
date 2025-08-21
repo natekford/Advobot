@@ -243,7 +243,7 @@ public sealed class AutoModService(
 		}
 	}
 
-	private Task OnMessageUpdated(Cacheable<IMessage, ulong> _, IMessage message, IMessageChannel __)
+	private Task OnMessageUpdated(IMessage? _, IMessage message, IMessageChannel __)
 		=> OnMessageReceived(message);
 
 	private async Task OnUserJoined(IGuildUser user)

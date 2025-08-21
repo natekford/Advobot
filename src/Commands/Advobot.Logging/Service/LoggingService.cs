@@ -105,7 +105,7 @@ public sealed partial class LoggingService(
 		eventProvider.UserLeft.Remove(OnUserLeft);
 		eventProvider.UserUpdated.Remove(OnUserUpdated);
 
-		return Task.CompletedTask;
+		return base.StopAsyncImpl();
 	}
 
 	private async Task HandleAsync<T>(
@@ -316,12 +316,9 @@ partial class LoggingService
 /// </summary>
 partial class LoggingService
 {
-	public Task OnMessageDeleted(
-		Cacheable<IMessage, ulong> cached,
-		Cacheable<IMessageChannel, ulong> _
-	) => HandleAsync(
+	public Task OnMessageDeleted((IMessage? Message, ulong Id) message) => HandleAsync(
 		action: LogAction.MessageDeleted,
-		context: new MessageContext(cached.Value),
+		context: new MessageContext(message.Message),
 		handlers: HandleMessageDeletedLogging
 	);
 
@@ -332,21 +329,20 @@ partial class LoggingService
 	);
 
 	public Task OnMessagesBulkDeleted(
-		IReadOnlyCollection<Cacheable<IMessage, ulong>> cached,
-		Cacheable<IMessageChannel, ulong> _
+		IReadOnlyCollection<(IMessage? Message, ulong Id)> messages
 	) => HandleAsync(
 		action: LogAction.MessageDeleted,
-		context: new MessagesBulkDeletedContext(cached),
+		context: new MessagesBulkDeletedContext(messages),
 		handlers: HandleMessagesBulkDeletedLogging
 	);
 
 	public Task OnMessageUpdated(
-		Cacheable<IMessage, ulong> cached,
-		IMessage message,
+		IMessage? before,
+		IMessage after,
 		IMessageChannel _
 	) => HandleAsync(
 		action: LogAction.MessageUpdated,
-		context: new MessageEditedContext(cached, message),
+		context: new MessageEditedContext(before, after),
 		handlers: [HandleMessageEditedLoggingAsync, HandleMessageEditedImageLoggingAsync]
 	);
 

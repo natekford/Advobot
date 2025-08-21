@@ -2,8 +2,8 @@
 
 namespace Advobot.Logging.Service.Context.Message;
 
-public class MessageEditedContext(Cacheable<IMessage, ulong> before, IMessage message)
+public class MessageEditedContext(IMessage? before, IMessage message)
 	: MessageContext(message)
 {
-	public IMessage? Before { get; set; } = before.Value;
+	public IMessage? Before { get; set; } = before;
 }

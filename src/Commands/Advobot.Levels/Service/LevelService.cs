@@ -1,10 +1,10 @@
 ﻿using Advobot.Levels.Database;
 using Advobot.Levels.Utilities;
 using Advobot.Services;
+using Advobot.Services.Events;
 using Advobot.Services.Time;
 
 using Discord;
-using Discord.WebSocket;
 
 using Microsoft.Extensions.Logging;
 
@@ -18,7 +18,7 @@ public sealed class LevelService(
 	ILogger<LevelService> logger,
 	LevelServiceConfig config,
 	LevelDatabase db,
-	BaseSocketClient client,
+	EventProvider eventProvider,
 	ITimeService time
 ) : StartableService
 {
@@ -35,18 +35,18 @@ public sealed class LevelService(
 
 	protected override Task StartAsyncImpl()
 	{
-		client.MessageReceived += AddExperienceAsync;
-		client.MessageDeleted += RemoveExperienceAsync;
+		eventProvider.MessageReceived.Add(AddExperienceAsync);
+		eventProvider.MessageDeleted.Add(RemoveExperienceAsync);
 
 		return Task.CompletedTask;
 	}
 
 	protected override Task StopAsyncImpl()
 	{
-		client.MessageReceived -= AddExperienceAsync;
-		client.MessageDeleted -= RemoveExperienceAsync;
+		eventProvider.MessageReceived.Remove(AddExperienceAsync);
+		eventProvider.MessageDeleted.Remove(RemoveExperienceAsync);
 
-		return Task.CompletedTask;
+		return base.StopAsyncImpl();
 	}
 
 	private async Task AddExperienceAsync(IMessage message)
@@ -136,7 +136,7 @@ public sealed class LevelService(
 		return (int)Math.Round(xp * modifier);
 	}
 
-	private async Task<XpContext?> CreateXpContextAsync(IMessage message)
+	private async Task<XpContext?> CreateXpContextAsync(IMessage? message)
 	{
 		if (message is not IUserMessage msg
 			|| msg.Author.IsBot || msg.Author.IsWebhook
@@ -156,11 +156,9 @@ public sealed class LevelService(
 		return new(channel, guild, msg, user);
 	}
 
-	private async Task RemoveExperienceAsync(
-		Cacheable<IMessage, ulong> cached,
-		Cacheable<IMessageChannel, ulong> _)
+	private async Task RemoveExperienceAsync((IMessage? Message, ulong Id) message)
 	{
-		var context = await CreateXpContextAsync(cached.Value).ConfigureAwait(false);
+		var context = await CreateXpContextAsync(message.Message).ConfigureAwait(false);
 		if (context is null || !_Hashes.TryGetValue(context.Key, out var hashes))
 		{
 			return;

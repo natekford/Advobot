@@ -1,32 +1,45 @@
 ﻿using Advobot.MyCommands.Database;
+using Advobot.Services;
+using Advobot.Services.Events;
+using Advobot.Services.Time;
 
 using DetectLanguage;
 
 using Discord;
-using Discord.WebSocket;
+
+using Microsoft.Extensions.Logging;
 
 using System.Net;
 
 namespace Advobot.MyCommands.Service;
 
-public sealed class TurkHandler
+public sealed class SpammerHandler(
+	ILogger<SpammerHandler> logger,
+	MyCommandsDatabase db,
+	EventProvider eventProvider,
+	ITimeService time
+) : StartableService
 {
 	private static readonly TimeSpan _DontBanIfOlderThan = TimeSpan.FromDays(7);
-	private readonly MyCommandsDatabase _Db;
 	private readonly HashSet<ulong> _Ids = [];
 	private string? _APIKey;
 	private DetectLanguageClient? _DetectLanguage;
 
-	public TurkHandler(BaseSocketClient client, MyCommandsDatabase db)
+	protected override Task StartAsyncImpl()
 	{
-		_Db = db;
+		eventProvider.GuildMemberUpdated.Add(OnGuildMemberUpdated);
 
-		client.GuildMemberUpdated += OnGuildMemberUpdated;
+		return Task.CompletedTask;
 	}
 
-	private async Task OnGuildMemberUpdated(
-		Cacheable<SocketGuildUser, ulong> _,
-		SocketGuildUser user)
+	protected override Task StopAsyncImpl()
+	{
+		eventProvider.GuildMemberUpdated.Remove(OnGuildMemberUpdated);
+
+		return base.StopAsyncImpl();
+	}
+
+	private async Task OnGuildMemberUpdated(IGuildUser? _, IGuildUser user)
 	{
 		if (user.Guild.Id != 199339772118827008
 			|| user.Activities.OfType<CustomStatusGame>().SingleOrDefault()
@@ -39,9 +52,9 @@ public sealed class TurkHandler
 			return;
 		}
 
-		var config = await _Db.GetDetectLanguageConfigAsync().ConfigureAwait(false);
+		var config = await db.GetDetectLanguageConfigAsync().ConfigureAwait(false);
 		if (config.APIKey is null
-			|| config.CooldownStart?.Day == DateTime.UtcNow.Day)
+			|| config.CooldownStart?.Day == time.UtcNow.Day)
 		{
 			// If no API key set, nothing we can do
 			// If rate limited, wait until next day
@@ -60,18 +73,26 @@ public sealed class TurkHandler
 		{
 			languages = await _DetectLanguage!.DetectAsync(status.State).ConfigureAwait(false);
 		}
+		// Ratelimit
 		catch (DetectLanguageException dle) when (dle.StatusCode == HttpStatusCode.PaymentRequired)
 		{
-			// Ratelimit
-			await _Db.UpsertDetectLanguageConfigAsync(config with
+			await db.UpsertDetectLanguageConfigAsync(config with
 			{
-				CooldownStartTicks = DateTime.UtcNow.Ticks,
+				CooldownStartTicks = time.UtcNow.Ticks,
 			}).ConfigureAwait(false);
+
+			logger.LogWarning(
+				message: "DetectLanguage rate limit reached."
+			);
 			return;
 		}
-		catch
+		// Some other error, nothing we can do
+		catch (Exception e)
 		{
-			// Some other error, probably a 500. Nothing we can do, so leave
+			logger.LogWarning(
+				exception: e,
+				message: "Exception occurred while using DetectLanguage."
+			);
 			return;
 		}
 
@@ -80,6 +101,11 @@ public sealed class TurkHandler
 		{
 			var reason = @$"turkish activity so probable spammer (""{status.State}"").";
 			await user.BanAsync(reason: reason).ConfigureAwait(false);
+
+			logger.LogInformation(
+				message: "Banned probable spammer {User}.",
+				args: [user.Id]
+			);
 		}
 	}
 }

@@ -1,6 +1,7 @@
 ﻿using Advobot.CommandAssemblies;
 using Advobot.MyCommands.Database;
 using Advobot.MyCommands.Service;
+using Advobot.Serilog;
 using Advobot.SQLite;
 
 using Microsoft.Extensions.DependencyInjection;
@@ -13,8 +14,7 @@ public sealed class MyCommandsInstantiator : CommandAssemblyInstantiator
 	{
 		services
 			.AddSQLiteDatabase<MyCommandsDatabase>("MyCommands")
-			.AddSingleton<TurkHandler>()
-			.AddSingleton<Ashman99ReactionHandler>();
+			.AddSingletonWithLogger<SpammerHandler>("SpammerHandler");
 
 		return Task.CompletedTask;
 	}
