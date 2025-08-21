@@ -1,19 +1,15 @@
 ﻿using Advobot.AutoMod.Database;
-using Advobot.AutoMod.Service;
 using Advobot.Levels.Database;
-using Advobot.Levels.Service;
 using Advobot.Logging.Database;
-using Advobot.Logging.Service;
 using Advobot.MyCommands.Database;
-using Advobot.Serilog;
 using Advobot.Services.BotConfig;
+using Advobot.Services.Events;
 using Advobot.Services.Help;
-using Advobot.Services.Punishments;
 using Advobot.Services.Time;
 using Advobot.Settings.Database;
-using Advobot.Settings.Service;
 using Advobot.Tests.Fakes.Discord;
 using Advobot.Tests.Fakes.Services.BotConfig;
+using Advobot.Tests.Fakes.Services.Events;
 using Advobot.Tests.Fakes.Services.Time;
 using Advobot.Tests.Utilities;
 
@@ -28,6 +24,7 @@ public abstract class TestsBase
 	internal virtual NaiveHelpService Help { get; } = new();
 	protected virtual FakeBotConfig Config { get; } = new();
 	protected virtual FakeCommandContext Context { get; } = FakeUtils.CreateContext();
+	protected virtual FakeEventProvider EventProvider { get; set; } = new();
 	protected virtual Random Rng { get; } = new();
 	protected virtual IServiceProvider Services { get; set; }
 	protected virtual MutableTime Time { get; } = new();
@@ -42,21 +39,16 @@ public abstract class TestsBase
 			.AddSingleton<IConfig>(Config)
 			.AddSingleton<IRuntimeConfig>(Config)
 			.AddSingleton<IHelpService>(Help)
+			.AddSingleton<EventProvider>(EventProvider)
+
 			.AddFakeDatabase<AutoModDatabase>()
-			.AddSingletonWithLogger<AutoModService>("DELETE_ME1")
 			.AddFakeDatabase<TimedPunishmentDatabase>()
-			.AddSingletonWithLogger<TimedPunishmentService>("DELETE_ME2")
-			.AddSingleton<IPunishmentService>(x => x.GetRequiredService<TimedPunishmentService>())
 			.AddFakeDatabase<LoggingDatabase>()
-			.AddSingletonWithLogger<LoggingService>("DELETE_ME3")
 			.AddFakeDatabase<LevelDatabase>()
-			.AddSingleton<LevelServiceConfig>()
-			.AddSingletonWithLogger<LevelService>("DELETE_ME4")
 			.AddFakeDatabase<NotificationDatabase>()
-			.AddSingletonWithLogger<NotificationService>("DELETE_ME5")
 			.AddFakeDatabase<MyCommandsDatabase>()
-			.AddFakeDatabase<SettingsDatabase>()
-			.AddSingletonWithLogger<GuildSettingsService>("DELETE_ME6");
+			.AddFakeDatabase<SettingsDatabase>();
+
 		ModifyServices(services);
 		Services = services.BuildServiceProvider();
 

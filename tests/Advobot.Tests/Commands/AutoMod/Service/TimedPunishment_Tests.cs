@@ -50,6 +50,9 @@ public sealed class TimedPunishment_Tests : TestsBase
 		}
 	}
 
+	protected override void ModifyServices(IServiceCollection services)
+		=> services.AddSingletonWithFakeLogger<TimedPunishmentService>();
+
 	protected override Task SetupAsync()
 		=> GetDatabaseAsync();
 

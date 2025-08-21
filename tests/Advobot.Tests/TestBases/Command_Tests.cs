@@ -1,4 +1,12 @@
-﻿using Advobot.Services.Punishments;
+﻿using Advobot.AutoMod.Service;
+using Advobot.Levels.Service;
+using Advobot.Logging.Resetters;
+using Advobot.Logging.Service;
+using Advobot.Services.GuildSettings;
+using Advobot.Services.Punishments;
+using Advobot.Settings.Service;
+using Advobot.SQLite;
+using Advobot.Tests.Utilities;
 using Advobot.TypeReaders;
 
 using Discord;
@@ -7,6 +15,7 @@ using Discord.Commands;
 using Microsoft.Extensions.DependencyInjection;
 
 using System.Reflection;
+using System.Threading.Channels;
 
 namespace Advobot.Tests.TestBases;
 
@@ -24,14 +33,14 @@ public abstract class Command_Tests : TestsBase
 		typeof(AdvobotLauncher).Assembly,
 	];
 
-	protected virtual TaskCompletionSource<IResult> CommandExecuted { get; set; }
-		= new(TaskCreationOptions.RunContinuationsAsynchronously);
 	protected virtual CommandService CommandService { get; set; } = new(new()
 	{
 		CaseSensitiveCommands = false,
 		ThrowOnError = false,
 		LogLevel = LogSeverity.Info,
 	});
+	protected virtual Channel<IResult> ExecutedCommands { get; set; }
+		= Channel.CreateUnbounded<IResult>();
 
 	protected virtual Task ExecuteAsync(string input)
 	{
@@ -41,17 +50,28 @@ public abstract class Command_Tests : TestsBase
 
 	protected override void ModifyServices(IServiceCollection services)
 	{
-		services.AddSingleton(CommandService)
-			.AddSingleton<IPunishmentService, NaivePunishmentService>();
+		services
+			.AddSingleton(CommandService)
+			.AddSingleton<IGuildSettingsService, NaiveGuildSettingsService>()
+			.AddSingleton<IPunishmentService>(x => x.GetRequiredService<TimedPunishmentService>())
+			.AddSingleton<LevelServiceConfig>()
+
+			.AddSingletonWithFakeLogger<AutoModService>()
+			.AddSingletonWithFakeLogger<TimedPunishmentService>()
+			.AddSingletonWithFakeLogger<LoggingService>()
+			.AddSingletonWithFakeLogger<LevelService>()
+			.AddSingletonWithFakeLogger<NotificationService>()
+			.AddSingletonWithFakeLogger<GuildSettingsService>()
+
+			.AddDefaultOptionsSetter<LogActionsResetter>()
+			.AddDefaultOptionsSetter<WelcomeNotificationResetter>()
+			.AddDefaultOptionsSetter<GoodbyeNotificationResetter>();
 	}
 
 	protected override async Task SetupAsync()
 	{
-		CommandService.CommandExecuted += (_, __, result) =>
-		{
-			CommandExecuted.SetResult(result);
-			return Task.CompletedTask;
-		};
+		CommandService.CommandExecuted += async (_, __, result)
+			=> await ExecutedCommands.Writer.WriteAsync(result).ConfigureAwait(false);
 		foreach (var type in CommandAssemblies.SelectMany(x => x.GetTypes()))
 		{
 			var attr = type.GetCustomAttribute<TypeReaderTargetTypeAttribute>();
@@ -81,4 +101,7 @@ public abstract class Command_Tests : TestsBase
 
 		await base.SetupAsync().ConfigureAwait(false);
 	}
+
+	protected virtual async Task<IResult> WaitForResultAsync()
+		=> await ExecutedCommands.Reader.ReadAsync(CancellationToken.None).ConfigureAwait(false);
 }

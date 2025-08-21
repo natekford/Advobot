@@ -1,4 +1,5 @@
-﻿using Advobot.SQLite;
+﻿using Advobot.Serilog;
+using Advobot.SQLite;
 using Advobot.Tests.Fakes.Database;
 using Advobot.Tests.Fakes.Discord;
 using Advobot.Tests.Fakes.Discord.Channels;
@@ -18,6 +19,11 @@ public static class FakeUtils
 			.AddSingleton<TDb>()
 			.AddSingleton<IConnectionString<TDb>>(new FakeSQLiteConnectionString(typeof(TDb)));
 	}
+
+	public static IServiceCollection AddSingletonWithFakeLogger<T>(
+		this IServiceCollection services)
+		where T : class
+		=> services.AddSingletonWithLogger<T>(Guid.NewGuid().ToString());
 
 	public static FakeCommandContext CreateContext()
 	{
