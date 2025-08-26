@@ -1,7 +1,5 @@
 ﻿using Discord;
 
-using System.Threading.Tasks;
-
 namespace Advobot.Tests.Fakes.Discord.Channels;
 
 public class FakeGuildChannel : FakeMessageChannel, IGuildChannel

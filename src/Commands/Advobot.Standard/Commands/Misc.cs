@@ -1,16 +1,12 @@
 ﻿using Advobot.Attributes;
 using Advobot.Localization;
 using Advobot.Modules;
-using Advobot.ParameterPreconditions.Discord.Roles;
 using Advobot.ParameterPreconditions.Numbers;
 using Advobot.Preconditions;
-using Advobot.Preconditions.Permissions;
 using Advobot.Resources;
 using Advobot.Services.GuildSettings;
 using Advobot.Services.Help;
-using Advobot.Utilities;
 
-using Discord;
 using Discord.Commands;
 
 using static Advobot.Standard.Responses.Misc;

@@ -3,10 +3,8 @@ using Advobot.Localization;
 using Advobot.Modules;
 using Advobot.ParameterPreconditions.Discord.Roles;
 using Advobot.ParameterPreconditions.Numbers;
-using Advobot.ParameterPreconditions.Strings;
 using Advobot.Preconditions.Permissions;
 using Advobot.Resources;
-using Advobot.TypeReaders;
 using Advobot.Utilities;
 
 using Discord;

@@ -1,5 +1,4 @@
-﻿using Advobot.Embeds;
-using Advobot.Modules;
+﻿using Advobot.Modules;
 using Advobot.Utilities;
 
 using Discord;

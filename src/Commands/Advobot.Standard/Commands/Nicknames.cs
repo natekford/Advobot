@@ -1,12 +1,8 @@
 ﻿using Advobot.Attributes;
 using Advobot.Localization;
 using Advobot.Modules;
-using Advobot.ParameterPreconditions.Discord.Users;
-using Advobot.ParameterPreconditions.Strings;
 using Advobot.Preconditions.Permissions;
 using Advobot.Resources;
-using Advobot.TypeReaders;
-using Advobot.Utilities;
 
 using Discord;
 using Discord.Commands;
