@@ -26,7 +26,7 @@ public sealed class Snowflakes : AdvobotResult
 	}
 
 	public static AdvobotResult ModifiedName<T>(IEntity<T> snowflake, string name)
-								where T : IEquatable<T>
+		where T : IEquatable<T>
 	{
 		return Success(SnowflakesModifiedName.Format(
 			snowflake.Format().WithBlock(),

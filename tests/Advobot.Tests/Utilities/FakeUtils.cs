@@ -29,7 +29,10 @@ public static class FakeUtils
 	{
 		var client = new FakeClient();
 		var guild = new FakeGuild(client);
-		var channel = new FakeTextChannel(guild);
+		var channel = new FakeTextChannel(guild)
+		{
+			Name = "General"
+		};
 		var user = new FakeGuildUser(guild);
 		var message = new FakeUserMessage(channel, user, "nothing");
 		return new(client, message);

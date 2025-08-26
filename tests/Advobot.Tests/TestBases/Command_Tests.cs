@@ -6,6 +6,8 @@ using Advobot.Services.GuildSettings;
 using Advobot.Services.Punishments;
 using Advobot.Settings.Service;
 using Advobot.SQLite;
+using Advobot.Tests.Fakes.Discord;
+using Advobot.Tests.Fakes.Discord.Channels;
 using Advobot.Tests.Utilities;
 using Advobot.TypeReaders;
 
@@ -21,8 +23,7 @@ namespace Advobot.Tests.TestBases;
 
 public abstract class Command_Tests : TestsBase
 {
-	public const string CHANNEL = "General";
-
+	protected virtual FakeRole AdminRole { get; set; }
 	protected virtual List<Assembly> CommandAssemblies { get; set; } = [
 		typeof(AutoMod.AutoModInstantiator).Assembly,
 		typeof(Levels.LevelInstantiator).Assembly,
@@ -32,7 +33,6 @@ public abstract class Command_Tests : TestsBase
 		typeof(Standard.Commands.Channels).Assembly,
 		typeof(AdvobotLauncher).Assembly,
 	];
-
 	protected virtual CommandService CommandService { get; set; } = new(new()
 	{
 		CaseSensitiveCommands = false,
@@ -41,11 +41,20 @@ public abstract class Command_Tests : TestsBase
 	});
 	protected virtual Channel<IResult> ExecutedCommands { get; set; }
 		= Channel.CreateUnbounded<IResult>();
+	protected virtual FakeTextChannel OtherTextChannel { get; set; }
+	protected virtual FakeVoiceChannel VoiceChannel { get; set; }
 
-	protected virtual Task ExecuteAsync(string input)
+	protected virtual async Task ExecuteAsync(string input)
 	{
 		Context.Message.Content = input;
-		return CommandService.ExecuteAsync(Context, 0, Services);
+
+		await CommandService.ExecuteAsync(Context, 0, Services).ConfigureAwait(false);
+	}
+
+	protected virtual async Task<IResult> ExecuteWithResultAsync(string input)
+	{
+		await ExecuteAsync(input).ConfigureAwait(false);
+		return await ExecutedCommands.Reader.ReadAsync(CancellationToken.None).ConfigureAwait(false);
 	}
 
 	protected override void ModifyServices(IServiceCollection services)
@@ -88,23 +97,27 @@ public abstract class Command_Tests : TestsBase
 			await CommandService.AddModulesAsync(assembly, Services).ConfigureAwait(false);
 		}
 
-		var adminRole = await Context.Guild.CreateRoleAsync(
+		OtherTextChannel = new(Context.Guild)
+		{
+			Name = "Other",
+		};
+		VoiceChannel = new(Context.Guild)
+		{
+			Name = "VC",
+		};
+		Context.Channel.Name = "General";
+
+		AdminRole = (FakeRole)await Context.Guild.CreateRoleAsync(
 			name: "Admin",
 			permissions: GuildPermissions.All,
 			color: null,
 			isHoisted: false,
 			options: null
 		).ConfigureAwait(false);
-		var bot = await Context.Guild.GetCurrentUserAsync().ConfigureAwait(false);
 
-		await Context.User.AddRoleAsync(adminRole).ConfigureAwait(false);
-		await bot.AddRoleAsync(adminRole).ConfigureAwait(false);
-
-		Context.Channel.Name = CHANNEL;
+		await Context.User.AddRoleAsync(AdminRole).ConfigureAwait(false);
+		await Context.Bot.AddRoleAsync(AdminRole).ConfigureAwait(false);
 
 		await base.SetupAsync().ConfigureAwait(false);
 	}
-
-	protected virtual async Task<IResult> WaitForResultAsync()
-		=> await ExecutedCommands.Reader.ReadAsync(CancellationToken.None).ConfigureAwait(false);
 }

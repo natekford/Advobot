@@ -12,8 +12,6 @@ using Advobot.Utilities;
 using Discord;
 using Discord.Commands;
 
-using static Advobot.Standard.Responses.Roles;
-
 namespace Advobot.Standard.Commands;
 
 [Category(nameof(Roles))]
@@ -31,7 +29,7 @@ public sealed class Roles : ModuleBase
 		{
 			var immovable = role.Permissions.RawValue & ~Context.User.GuildPermissions.RawValue;
 			await role.ModifyAsync(x => x.Permissions = new GuildPermissions(immovable), GetOptions()).ConfigureAwait(false);
-			return ClearedPermissions(role);
+			return Responses.Roles.ClearedPermissions(role);
 		}
 	}
 
@@ -55,193 +53,11 @@ public sealed class Roles : ModuleBase
 			var permissions = immovable | copyable;
 
 			await output.ModifyAsync(x => x.Permissions = new GuildPermissions(permissions), GetOptions()).ConfigureAwait(false);
-			return CopiedPermissions(input, output, (GuildPermission)copyable);
+			return Responses.Roles.CopiedPermissions(input, output, (GuildPermission)copyable);
 		}
 	}
 
-	[LocalizedGroup(nameof(Groups.CreateRole))]
-	[LocalizedAlias(nameof(Aliases.CreateRole))]
-	[LocalizedSummary(nameof(Summaries.CreateRole))]
-	[Meta("15f6ac1f-8975-42c4-ba19-8fc8e6a5e4cb", IsEnabled = true)]
-	[RequireGuildPermissions(GuildPermission.ManageRoles)]
-	public sealed class CreateRole : AdvobotModuleBase
-	{
-		[Command]
-		public async Task<RuntimeResult> Command([RoleName] string name)
-		{
-			var role = await Context.Guild.CreateEmptyRoleAsync(name, GetOptions()).ConfigureAwait(false);
-			return Responses.Snowflakes.Created(role);
-		}
-	}
-
-	[LocalizedGroup(nameof(Groups.DeleteRole))]
-	[LocalizedAlias(nameof(Aliases.DeleteRole))]
-	[LocalizedSummary(nameof(Summaries.DeleteRole))]
-	[Meta("280c2d19-d045-4b01-a1a1-2749e183b4b4", IsEnabled = true)]
-	[RequireGuildPermissions(GuildPermission.ManageRoles)]
-	public sealed class DeleteRole : AdvobotModuleBase
-	{
-		[Command]
-		public async Task<RuntimeResult> Command(
-			[CanModifyRole, NotManaged, NotEveryone]
-			IRole role)
-		{
-			await role.DeleteAsync(GetOptions()).ConfigureAwait(false);
-			return Responses.Snowflakes.Deleted(role);
-		}
-	}
-
-	[LocalizedGroup(nameof(Groups.DisplayRolePerms))]
-	[LocalizedAlias(nameof(Aliases.DisplayRolePerms))]
-	[LocalizedSummary(nameof(Summaries.DisplayRolePerms))]
-	[Meta("429c4817-9b92-4b6e-8525-f0b94690fb6f", IsEnabled = true)]
-	[RequireGuildPermissions(GuildPermission.ManageRoles)]
-	public sealed class DisplayRolePerms : AdvobotModuleBase
-	{
-		[Command]
-		public Task<RuntimeResult> Command(IRole role)
-			=> DisplayPermissions(role);
-	}
-
-	[LocalizedGroup(nameof(Groups.DisplayRolePositions))]
-	[LocalizedAlias(nameof(Aliases.DisplayRolePositions))]
-	[LocalizedSummary(nameof(Summaries.DisplayRolePositions))]
-	[Meta("f27c560c-6814-42a1-90aa-3dcdc1db0855", IsEnabled = true)]
-	[RequireGuildPermissions(GuildPermission.ManageRoles)]
-	public sealed class DisplayRolePositions : AdvobotModuleBase
-	{
-		[Command]
-		public Task<RuntimeResult> Command()
-			=> Display(Context.Guild.Roles.OrderByDescending(x => x.Position));
-	}
-
-	[LocalizedGroup(nameof(Groups.GiveRole))]
-	[LocalizedAlias(nameof(Aliases.GiveRole))]
-	[LocalizedSummary(nameof(Summaries.GiveRole))]
-	[Meta("3920cfd0-e4cd-474a-b2b6-aa65b1f52804", IsEnabled = true)]
-	[RequireGuildPermissions(GuildPermission.ManageRoles)]
-	public sealed class GiveRole : AdvobotModuleBase
-	{
-		[Command]
-		public async Task<RuntimeResult> Command(
-			IGuildUser user,
-			[CanModifyRole, NotManaged, NotEveryone]
-			params IRole[] roles)
-		{
-			await user.ModifyRolesAsync(
-				rolesToAdd: roles,
-				rolesToRemove: [],
-				GetOptions()
-			).ConfigureAwait(false);
-			return Gave(roles, user);
-		}
-	}
-
-	[LocalizedGroup(nameof(Groups.ModifyRoleColor))]
-	[LocalizedAlias(nameof(Aliases.ModifyRoleColor))]
-	[LocalizedSummary(nameof(Summaries.ModifyRoleColor))]
-	[Meta("41f8a8df-ac9f-48af-aec2-b82b242dcd9b", IsEnabled = true)]
-	[RequireGuildPermissions(GuildPermission.ManageRoles)]
-	public sealed class ModifyRoleColor : AdvobotModuleBase
-	{
-		[Command]
-		public async Task<RuntimeResult> Command(
-			[CanModifyRole]
-			IRole role,
-			Color color = default)
-		{
-			await role.ModifyAsync(x => x.Color = color, GetOptions()).ConfigureAwait(false);
-			return ModifiedColor(role, color);
-		}
-	}
-
-	[LocalizedGroup(nameof(Groups.ModifyRoleHoist))]
-	[LocalizedAlias(nameof(Aliases.ModifyRoleHoist))]
-	[LocalizedSummary(nameof(Summaries.ModifyRoleHoist))]
-	[Meta("7bf99434-abb9-443b-a420-5b91bf73834e", IsEnabled = true)]
-	[RequireGuildPermissions(GuildPermission.ManageRoles)]
-	public sealed class ModifyRoleHoist : AdvobotModuleBase
-	{
-		[Command]
-		public async Task<RuntimeResult> Command([CanModifyRole] IRole role)
-		{
-			var hoisted = !role.IsHoisted;
-			await role.ModifyAsync(x => x.Hoist = !role.IsHoisted, GetOptions()).ConfigureAwait(false);
-			return ModifiedHoistStatus(role, hoisted);
-		}
-	}
-
-	[LocalizedGroup(nameof(Groups.ModifyRoleMentionability))]
-	[LocalizedAlias(nameof(Aliases.ModifyRoleMentionability))]
-	[LocalizedSummary(nameof(Summaries.ModifyRoleMentionability))]
-	[Meta("847e8d15-df9c-41a7-87d0-4f5570044a3d", IsEnabled = true)]
-	[RequireGuildPermissions(GuildPermission.ManageRoles)]
-	public sealed class ModifyRoleMentionability : AdvobotModuleBase
-	{
-		[Command]
-		public async Task<RuntimeResult> Command([CanModifyRole] IRole role)
-		{
-			var mentionability = !role.IsMentionable;
-			await role.ModifyAsync(x => x.Mentionable = !role.IsMentionable, GetOptions()).ConfigureAwait(false);
-			return ModifiedMentionability(role, mentionability);
-		}
-	}
-
-	[LocalizedGroup(nameof(Groups.ModifyRoleName))]
-	[LocalizedAlias(nameof(Aliases.ModifyRoleName))]
-	[LocalizedSummary(nameof(Summaries.ModifyRoleName))]
-	[Meta("c1b6a365-c66c-4485-bbae-e9d75f507440", IsEnabled = true)]
-	[RequireGuildPermissions(GuildPermission.ManageRoles)]
-	public sealed class ModifyRoleName : AdvobotModuleBase
-	{
-		[Command, Priority(1)]
-		public async Task<RuntimeResult> Command(
-			[CanModifyRole]
-			IRole role,
-			[Remainder, RoleName]
-			string name)
-		{
-			await role.ModifyAsync(x => x.Name = name, GetOptions()).ConfigureAwait(false);
-			return Responses.Snowflakes.ModifiedName(role, name);
-		}
-
-		[LocalizedCommand(nameof(Groups.Position))]
-		public Task<RuntimeResult> Position(
-			[CanModifyRole, OverrideTypeReader(typeof(RolePositionTypeReader))]
-			IRole role,
-			[Remainder, RoleName]
-			string name)
-			=> Command(role, name);
-	}
-
-	[LocalizedGroup(nameof(Groups.ModifyRolePerms))]
-	[LocalizedAlias(nameof(Aliases.ModifyRolePerms))]
-	[LocalizedSummary(nameof(Summaries.ModifyRolePerms))]
-	[Meta("dcfbf444-9e48-4f72-b137-be1e5e25a934", IsEnabled = true)]
-	[RequireGuildPermissions(GuildPermission.ManageRoles)]
-	public sealed class ModifyRolePerms : AdvobotModuleBase
-	{
-		[Command]
-		public async Task<RuntimeResult> Command(
-			[CanModifyRole]
-			IRole role,
-			bool allow,
-			[Remainder]
-			[OverrideTypeReader(typeof(PermissionsTypeReader<GuildPermission>))]
-			ulong permissions
-		)
-		{
-			//Only modify permissions the user has the ability to
-			permissions &= Context.User.GuildPermissions.RawValue;
-
-			var rolePermissions = allow
-				? role.Permissions.RawValue | permissions
-				: role.Permissions.RawValue & ~permissions;
-			await role.ModifyAsync(x => x.Permissions = new GuildPermissions(rolePermissions), GetOptions()).ConfigureAwait(false);
-			return ModifiedPermissions(role, (GuildPermission)permissions, allow);
-		}
-	}
-
+	// Moving roles on mobile sucks
 	[LocalizedGroup(nameof(Groups.ModifyRolePosition))]
 	[LocalizedAlias(nameof(Aliases.ModifyRolePosition))]
 	[LocalizedSummary(nameof(Summaries.ModifyRolePosition))]
@@ -257,7 +73,7 @@ public sealed class Roles : ModuleBase
 			int position)
 		{
 			var pos = await role.ModifyRolePositionAsync(position, GetOptions()).ConfigureAwait(false);
-			return Moved(role, pos);
+			return Responses.Roles.Moved(role, pos);
 		}
 	}
 
@@ -284,28 +100,6 @@ public sealed class Roles : ModuleBase
 			).ConfigureAwait(false);
 			await copy.ModifyRolePositionAsync(role.Position, GetOptions()).ConfigureAwait(false);
 			return Responses.Snowflakes.SoftDeleted(role);
-		}
-	}
-
-	[LocalizedGroup(nameof(Groups.TakeRole))]
-	[LocalizedAlias(nameof(Aliases.TakeRole))]
-	[LocalizedSummary(nameof(Summaries.TakeRole))]
-	[Meta("ab678dd2-4108-49b2-8b6f-7e21c6cb8fda", IsEnabled = true)]
-	[RequireGuildPermissions(GuildPermission.ManageRoles)]
-	public sealed class TakeRole : AdvobotModuleBase
-	{
-		[Command]
-		public async Task<RuntimeResult> Command(
-			IGuildUser user,
-			[CanModifyRole, NotManaged, NotEveryone]
-			params IRole[] roles)
-		{
-			await user.ModifyRolesAsync(
-				rolesToAdd: [],
-				rolesToRemove: roles,
-				GetOptions()
-			).ConfigureAwait(false);
-			return Took(roles, user);
 		}
 	}
 }

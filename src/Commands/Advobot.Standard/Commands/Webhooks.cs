@@ -41,91 +41,6 @@ public sealed class Webhooks : ModuleBase
 		}
 	}
 
-	[LocalizedGroup(nameof(Groups.DeleteWebhook))]
-	[LocalizedAlias(nameof(Aliases.DeleteWebhook))]
-	[LocalizedSummary(nameof(Summaries.DeleteWebhook))]
-	[Meta("8fb67520-b0b2-4d77-8588-0b9924b767c0", IsEnabled = true)]
-	[RequireGuildPermissions(GuildPermission.ManageWebhooks)]
-	public sealed class DeleteWebhook : AdvobotModuleBase
-	{
-		[Command]
-		public async Task<RuntimeResult> Command(
-			[LocalizedSummary(nameof(Summaries.DeleteWebhookWebhook))]
-				IWebhook webhook
-		)
-		{
-			await webhook.DeleteAsync(GetOptions()).ConfigureAwait(false);
-			return Responses.Snowflakes.Deleted(webhook);
-		}
-	}
-
-	[LocalizedGroup(nameof(Groups.DisplayWebhooks))]
-	[LocalizedAlias(nameof(Aliases.DisplayWebhooks))]
-	[LocalizedSummary(nameof(Summaries.DisplayWebhooks))]
-	[Meta("b8e90320-b827-4b61-81ea-92d43ea1ba6e", IsEnabled = true)]
-	[RequireGuildPermissions(GuildPermission.ManageWebhooks)]
-	public sealed class DisplayWebhooks : AdvobotModuleBase
-	{
-		[Command]
-		public async Task<RuntimeResult> Command()
-		{
-			var webhooks = await Context.Guild.GetWebhooksAsync().ConfigureAwait(false);
-			return Responses.Webhooks.DisplayWebhooks(Context.Guild, webhooks);
-		}
-
-		[Command]
-		public async Task<RuntimeResult> Command(
-			[LocalizedSummary(nameof(Summaries.DisplayWebhooksChannel))]
-				ITextChannel channel
-		)
-		{
-			var webhooks = await channel.GetWebhooksAsync().ConfigureAwait(false);
-			return Responses.Webhooks.DisplayWebhooks(channel, webhooks);
-		}
-	}
-
-	[LocalizedGroup(nameof(Groups.ModifyWebhookChannel))]
-	[LocalizedAlias(nameof(Aliases.ModifyWebhookChannel))]
-	[LocalizedSummary(nameof(Summaries.ModifyWebhookChannel))]
-	[Meta("082ca529-66b7-4c39-ade2-3f2501778070", IsEnabled = true)]
-	[RequireGuildPermissions(GuildPermission.ManageWebhooks)]
-	public sealed class ModifyWebhookChannel : AdvobotModuleBase
-	{
-		[Command]
-		public async Task<RuntimeResult> Command(
-			[LocalizedSummary(nameof(Summaries.ModifyWebhookChannelWebhook))]
-			IWebhook webhook,
-			[CanModifyChannel(ManageWebhooks)]
-			[LocalizedSummary(nameof(Summaries.ModifyWebhookChannelChannel))]
-			ITextChannel channel
-		)
-		{
-			await webhook.ModifyAsync(x => x.Channel = Optional.Create(channel), GetOptions()).ConfigureAwait(false);
-			return Responses.Webhooks.ModifiedChannel(webhook, channel);
-		}
-	}
-
-	[LocalizedGroup(nameof(Groups.ModifyWebhookName))]
-	[LocalizedAlias(nameof(Aliases.ModifyWebhookName))]
-	[LocalizedSummary(nameof(Summaries.ModifyWebhookName))]
-	[Meta("953dd979-c51a-4a1b-b4ba-05576faf11c2", IsEnabled = true)]
-	[RequireGuildPermissions(GuildPermission.ManageWebhooks)]
-	public sealed class ModifyWebhookName : AdvobotModuleBase
-	{
-		[Command]
-		public async Task<RuntimeResult> Command(
-			[LocalizedSummary(nameof(Summaries.ModifyWebhookNameWebhook))]
-			IWebhook webhook,
-			[Remainder, Username]
-			[LocalizedSummary(nameof(Summaries.ModifyWebhookNameName))]
-			string name
-		)
-		{
-			await webhook.ModifyAsync(x => x.Name = name, GetOptions()).ConfigureAwait(false);
-			return Responses.Snowflakes.ModifiedName(webhook, name);
-		}
-	}
-
 	[LocalizedGroup(nameof(Groups.SpeakThroughWebhook))]
 	[LocalizedAlias(nameof(Aliases.SpeakThroughWebhook))]
 	[LocalizedSummary(nameof(Summaries.SpeakThroughWebhook))]
@@ -134,7 +49,6 @@ public sealed class Webhooks : ModuleBase
 	public sealed class SpeakThroughWebhook : AdvobotModuleBase
 	{
 		private static readonly ConcurrentDictionary<ulong, DiscordWebhookClient> _Clients = new();
-		private static readonly ConcurrentDictionary<ulong, ulong> _GuildsToWebhooks = new();
 
 		[Command(RunMode = RunMode.Async)]
 		public Task Command(
@@ -145,17 +59,8 @@ public sealed class Webhooks : ModuleBase
 			string text
 		)
 		{
-			var webhookId = _GuildsToWebhooks.AddOrUpdate(Context.Guild.Id, webhook.Id, (_, v) =>
-			{
-				//If the most recently used webhook does not match the id of the supplied one, remove that client
-				if (v != webhook.Id && _Clients.TryRemove(v, out var removed))
-				{
-					removed.Dispose();
-				}
-				return webhook.Id;
-			});
-			//If the client already exists, use that, otherwise create a new client
-			return _Clients.GetOrAdd(webhookId, _ => new DiscordWebhookClient(webhook)).SendMessageAsync(text);
+			var client = _Clients.GetOrAdd(webhook.Id, _ => new(webhook));
+			return client.SendMessageAsync(text);
 		}
 	}
 }

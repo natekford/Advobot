@@ -68,6 +68,10 @@ public sealed class Gets : ModuleBase
 			=> Responses.Gets.AllGuildUsers(Context.Guild);
 
 		[Command]
+		public Task<RuntimeResult> Implicit(IBan ban)
+			=> Responses.Gets.Ban(ban);
+
+		[Command]
 		public Task<RuntimeResult> Implicit(IGuildChannel channel)
 			=> Responses.Gets.Channel(channel);
 

@@ -9,11 +9,6 @@ public interface IConfig
 	/// Where all the files of the bot are stored.
 	/// </summary>
 	DirectoryInfo BaseBotDirectory { get; }
-
-	/// <summary>
-	/// Arguments to use when the bot is restart.
-	/// </summary>
-	string RestartArguments { get; }
 }
 
 /// <summary>

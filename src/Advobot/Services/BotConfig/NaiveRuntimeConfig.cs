@@ -29,8 +29,6 @@ internal sealed class NaiveRuntimeConfig : IRuntimeConfig
 	public int MessageCacheSize { get; set; } = 1000;
 	public bool Pause { get; set; }
 	public string Prefix { get; set; } = "&&";
-	[JsonIgnore]
-	public string RestartArguments { get; private set; } = "";
 	public string? Stream { get; set; }
 	public IList<ulong> UsersIgnoredFromCommands { get; set; } = [];
 	public IList<ulong> UsersUnableToDmOwner { get; set; } = [];
@@ -55,7 +53,6 @@ internal sealed class NaiveRuntimeConfig : IRuntimeConfig
 		}
 
 		runtimeConfig.BaseBotDirectory = config.BaseBotDirectory;
-		runtimeConfig.RestartArguments = config.RestartArguments;
 
 		// File doesn't exist, save the original config so the user can edit it
 		if (!path.Exists)

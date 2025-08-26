@@ -2,14 +2,12 @@
 
 namespace Advobot.Tests.Fakes.Discord.Channels;
 
-public class FakeChannel : FakeSnowflake, IChannel
+public abstract class FakeChannel : FakeSnowflake, IChannel
 {
 	public ChannelType ChannelType => throw new NotImplementedException();
 	public string Name { get; set; } = "Fake Channel";
 
-	public Task<IUser> GetUserAsync(ulong id, CacheMode mode = CacheMode.AllowDownload, RequestOptions? options = null)
-		=> throw new NotImplementedException();
+	public abstract Task<IUser?> GetUserAsync(ulong id, CacheMode mode = CacheMode.AllowDownload, RequestOptions? options = null);
 
-	public IAsyncEnumerable<IReadOnlyCollection<IUser>> GetUsersAsync(CacheMode mode = CacheMode.AllowDownload, RequestOptions? options = null)
-		=> throw new NotImplementedException();
+	public abstract IAsyncEnumerable<IReadOnlyCollection<IUser>> GetUsersAsync(CacheMode mode = CacheMode.AllowDownload, RequestOptions? options = null);
 }

@@ -287,7 +287,7 @@ public sealed class FakeGuild : FakeSnowflake, IGuild
 		=> throw new NotImplementedException();
 
 	public Task<IGuildChannel> GetChannelAsync(ulong id, CacheMode mode = CacheMode.AllowDownload, RequestOptions? options = null)
-		=> throw new NotImplementedException();
+		=> Task.FromResult<IGuildChannel>(FakeChannels.SingleOrDefault(x => x.Id == id)!);
 
 	public Task<IReadOnlyCollection<IGuildChannel>> GetChannelsAsync(CacheMode mode = CacheMode.AllowDownload, RequestOptions? options = null)
 		=> Task.FromResult<IReadOnlyCollection<IGuildChannel>>(FakeChannels);

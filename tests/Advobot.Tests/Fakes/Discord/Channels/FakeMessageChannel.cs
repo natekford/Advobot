@@ -2,7 +2,7 @@
 
 namespace Advobot.Tests.Fakes.Discord.Channels;
 
-public class FakeMessageChannel : FakeChannel, IMessageChannel
+public abstract class FakeMessageChannel : FakeChannel, IMessageChannel
 {
 	public List<FakeMessage> FakeMessages { get; } = [];
 

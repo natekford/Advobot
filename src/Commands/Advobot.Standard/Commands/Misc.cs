@@ -98,44 +98,6 @@ public sealed class Misc : ModuleBase
 		}
 	}
 
-	[LocalizedGroup(nameof(Groups.MessageBotOwner))]
-	[LocalizedAlias(nameof(Aliases.MessageBotOwner))]
-	[LocalizedSummary(nameof(Summaries.MessageBotOwner))]
-	[Meta("3562f937-4d3c-46aa-afda-70e04040be53", IsEnabled = false)]
-	[RequireGenericGuildPermissions]
-	[RequireAllowedToDmBotOwner]
-	public sealed class MessageBotOwner : AdvobotModuleBase
-	{
-		[Command]
-		public async Task Command([Remainder] string message)
-		{
-			var owner = (await Context.Client.GetApplicationInfoAsync().ConfigureAwait(false)).Owner;
-			var cut = message[..Math.Min(message.Length, 250)];
-			var text = $"`{Context.User.Format()}` - `{Context.Guild.Format()}`:\n```\n{cut}```";
-			await owner.SendMessageAsync(text).ConfigureAwait(false);
-		}
-	}
-
-	[LocalizedGroup(nameof(Groups.MessageRole))]
-	[LocalizedAlias(nameof(Aliases.MessageRole))]
-	[LocalizedSummary(nameof(Summaries.MessageRole))]
-	[Meta("db524980-4a8e-4933-aa9b-527094d60165", IsEnabled = false)]
-	[RequireGenericGuildPermissions]
-	public sealed class MessageRole : AdvobotModuleBase
-	{
-		[Command]
-		public async Task Command(
-			[CanModifyRole, NotEveryone, NotMentionable] IRole role,
-			[Remainder] string message)
-		{
-			var cut = message[..Math.Min(message.Length, 250)];
-			var text = $"From `{Context.User.Format()}`, {role.Mention}: {cut}";
-			await role.ModifyAsync(x => x.Mentionable = true, GetOptions()).ConfigureAwait(false);
-			await ReplyAsync(text).ConfigureAwait(false);
-			await role.ModifyAsync(x => x.Mentionable = false, GetOptions()).ConfigureAwait(false);
-		}
-	}
-
 	[LocalizedGroup(nameof(Groups.Test))]
 	[LocalizedAlias(nameof(Aliases.Test))]
 	[LocalizedSummary(nameof(Summaries.Test))]

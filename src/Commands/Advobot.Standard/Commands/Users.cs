@@ -81,25 +81,6 @@ public sealed class Users : ModuleBase
 		}
 	}
 
-	[LocalizedGroup(nameof(Groups.DisplayCurrentBanList))]
-	[LocalizedAlias(nameof(Aliases.DisplayCurrentBanList))]
-	[LocalizedSummary(nameof(Summaries.DisplayCurrentBanList))]
-	[Meta("419c1846-b232-475e-aa19-45cb282dc9e0", IsEnabled = true)]
-	[RequireGuildPermissions(GuildPermission.BanMembers)]
-	public sealed class DisplayCurrentBanList : AdvobotModuleBase
-	{
-		[Command]
-		public async Task<RuntimeResult> Command()
-		{
-			var bans = new List<IBan>();
-			await foreach (var list in Context.Guild.GetBansAsync(int.MaxValue))
-			{
-				bans.AddRange(list);
-			}
-			return Responses.Users.DisplayBans(bans);
-		}
-	}
-
 	[LocalizedGroup(nameof(Groups.ForAllWithRole))]
 	[LocalizedAlias(nameof(Aliases.ForAllWithRole))]
 	[LocalizedSummary(nameof(Summaries.ForAllWithRole))]
@@ -111,11 +92,10 @@ public sealed class Users : ModuleBase
 		[LocalizedAlias(nameof(Aliases.ClearNickname))]
 		public Task<RuntimeResult> ClearNickname(
 			IRole target,
-			[OverrideTypeReader(typeof(BypassUserLimitTypeReader))]
-			bool bypass = false
+			bool getUnlimitedUsers = false
 		)
 		{
-			return CommandRunner(target, bypass, (user, options) =>
+			return CommandRunner(target, getUnlimitedUsers, (user, options) =>
 			{
 				if (user.Nickname != null)
 				{
@@ -131,11 +111,10 @@ public sealed class Users : ModuleBase
 			IRole target,
 			[Nickname]
 			string nickname,
-			[OverrideTypeReader(typeof(BypassUserLimitTypeReader))]
-			bool bypass = false
+			bool getUnlimitedUsers = false
 		)
 		{
-			return CommandRunner(target, bypass, (user, options) =>
+			return CommandRunner(target, getUnlimitedUsers, (user, options) =>
 			{
 				if (user.Nickname != nickname)
 				{
@@ -151,8 +130,7 @@ public sealed class Users : ModuleBase
 			IRole target,
 			[CanModifyRole, NotEveryone, NotManaged]
 			IRole give,
-			[OverrideTypeReader(typeof(BypassUserLimitTypeReader))]
-			bool bypass = false
+			bool getUnlimitedUsers = false
 		)
 		{
 			if (target.Id == give.Id)
@@ -160,7 +138,7 @@ public sealed class Users : ModuleBase
 				return Responses.Users.CannotGiveGatheredRole();
 			}
 
-			return CommandRunner(target, bypass, (user, options) =>
+			return CommandRunner(target, getUnlimitedUsers, (user, options) =>
 			{
 				if (!user.RoleIds.Contains(give.Id))
 				{
@@ -176,11 +154,10 @@ public sealed class Users : ModuleBase
 			IRole target,
 			[CanModifyRole, NotEveryone, NotManaged]
 			IRole take,
-			[OverrideTypeReader(typeof(BypassUserLimitTypeReader))]
-			bool bypass = false
+			bool getUnlimitedUsers = false
 		)
 		{
-			return CommandRunner(target, bypass, (user, options) =>
+			return CommandRunner(target, getUnlimitedUsers, (user, options) =>
 			{
 				if (user.RoleIds.Contains(take.Id))
 				{
@@ -192,11 +169,11 @@ public sealed class Users : ModuleBase
 
 		private async Task<RuntimeResult> CommandRunner(
 			IRole role,
-			bool bypass,
+			bool getUnlimitedUsers,
 			Func<IGuildUser, RequestOptions, Task> update)
 		{
 			var amountChanged = await ProcessAsync(
-				bypass,
+				getUnlimitedUsers,
 				u => u.RoleIds.Contains(role.Id),
 				update,
 				i => Responses.Users.MultiUserActionProgress(i.AmountLeft).Reason,
@@ -204,18 +181,6 @@ public sealed class Users : ModuleBase
 			).ConfigureAwait(false);
 			return Responses.Users.MultiUserActionSuccess(amountChanged);
 		}
-	}
-
-	[LocalizedGroup(nameof(Groups.GetBanReason))]
-	[LocalizedAlias(nameof(Aliases.GetBanReason))]
-	[LocalizedSummary(nameof(Summaries.GetBanReason))]
-	[Meta("5ba658c2-c689-4b3a-b7f1-77329dd6e971", IsEnabled = true)]
-	[RequireGuildPermissions(GuildPermission.BanMembers)]
-	public sealed class GetBanReason : AdvobotModuleBase
-	{
-		[Command]
-		public Task<RuntimeResult> Command(IBan ban)
-			=> Responses.Users.DisplayBanReason(ban);
 	}
 
 	[LocalizedGroup(nameof(Groups.Kick))]
@@ -261,7 +226,7 @@ public sealed class Users : ModuleBase
 				return Responses.Users.AlreadyInChannel(user, channel);
 			}
 
-			await user.ModifyAsync(x => x.Channel = Optional.Create(channel), GetOptions()).ConfigureAwait(false);
+			await user.ModifyAsync(x => x.Channel = new(channel), GetOptions()).ConfigureAwait(false);
 			return Responses.Users.Moved(user, channel);
 		}
 	}
@@ -279,16 +244,15 @@ public sealed class Users : ModuleBase
 			IVoiceChannel input,
 			[CanModifyChannel(MoveMembers)]
 			IVoiceChannel output,
-			[OverrideTypeReader(typeof(BypassUserLimitTypeReader))]
-			bool bypass
+			bool getUnlimitedUsers = false
 		)
 		{
 			var users = await input.GetUsersAsync().FlattenAsync().ConfigureAwait(false);
 			var amountChanged = await ProcessAsync(
 				users,
-				bypass,
+				getUnlimitedUsers,
 				_ => true,
-				(u, o) => u.ModifyAsync(x => x.Channel = Optional.Create(output), o),
+				(u, o) => u.ModifyAsync(x => x.Channel = new(output), o),
 				i => Responses.Users.MultiUserActionProgress(i.AmountLeft).Reason,
 				GetOptions()
 			).ConfigureAwait(false);
@@ -375,35 +339,6 @@ public sealed class Users : ModuleBase
 					await channel.AddPermissionOverwriteAsync(role, perms).ConfigureAwait(false);
 				}
 			}
-		}
-	}
-
-	[LocalizedGroup(nameof(Groups.PruneUsers))]
-	[LocalizedAlias(nameof(Aliases.PruneUsers))]
-	[LocalizedSummary(nameof(Summaries.PruneUsers))]
-	[Meta("89abd319-c597-4e1a-9397-4f7d079f4e0e", IsEnabled = true)]
-	[RequireGuildPermissions]
-	public sealed class PruneUsers : AdvobotModuleBase
-	{
-		[LocalizedCommand(nameof(Groups.Fake))]
-		[LocalizedAlias(nameof(Aliases.Fake))]
-		public async Task<RuntimeResult> Fake(
-			[PruneDays]
-			int days
-		)
-		{
-			var amt = await Context.Guild.PruneUsersAsync(days, simulate: true, GetOptions()).ConfigureAwait(false);
-			return Responses.Users.FakePruned(days, amt);
-		}
-
-		[LocalizedCommand(nameof(Groups.Real))]
-		public async Task<RuntimeResult> Real(
-			[PruneDays]
-			int days
-		)
-		{
-			var amt = await Context.Guild.PruneUsersAsync(days, simulate: false, GetOptions()).ConfigureAwait(false);
-			return Responses.Users.Pruned(days, amt);
 		}
 	}
 

@@ -1,5 +1,7 @@
 ﻿using Discord;
 
+using System.Threading.Tasks;
+
 namespace Advobot.Tests.Fakes.Discord.Channels;
 
 public class FakeGuildChannel : FakeMessageChannel, IGuildChannel
@@ -39,6 +41,16 @@ public class FakeGuildChannel : FakeMessageChannel, IGuildChannel
 
 	public OverwritePermissions? GetPermissionOverwrite(IUser user)
 		=> GetPermissionOverwrite(user.Id);
+
+	// These should probably account for permissions to see the channels, but idc
+	public override async Task<IUser?> GetUserAsync(ulong id, CacheMode mode = CacheMode.AllowDownload, RequestOptions? options = null)
+		=> await FakeGuild.GetUserAsync(id, mode, options).ConfigureAwait(false);
+
+	// These should probably account for permissions to see the channels, but idc
+	public override async IAsyncEnumerable<IReadOnlyCollection<IUser>> GetUsersAsync(CacheMode mode = CacheMode.AllowDownload, RequestOptions? options = null)
+	{
+		yield return await FakeGuild.GetUsersAsync(mode, options).ConfigureAwait(false);
+	}
 
 	public Task ModifyAsync(Action<GuildChannelProperties> func, RequestOptions options)
 	{

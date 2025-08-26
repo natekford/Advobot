@@ -28,41 +28,6 @@ public sealed class Users : AdvobotResult
 	public static AdvobotResult Deafened(bool punished, IUser user, TimeSpan? time)
 		=> Punished(punished, VariableDeafened, VariableUndeafened, Format(user), time);
 
-	public static AdvobotResult DisplayBanReason(IBan ban)
-	{
-		var title = UsersTitleBanReason.Format(
-			ban.User.Format().WithNoMarkdown()
-		);
-		return Success(new EmbedWrapper
-		{
-			Title = title,
-			Description = ban.Reason ?? UsersNoBanReason,
-		});
-	}
-
-	public static AdvobotResult DisplayBans(IReadOnlyCollection<IBan> bans)
-	{
-		var padLen = bans.Count.ToString().Length;
-		var description = bans
-			.Select((x, i) => $"{i.ToString().PadRight(padLen)} {x.User.Format()}")
-			.Join(Environment.NewLine)
-			.WithBigBlock()
-			.Current;
-		return Success(new EmbedWrapper
-		{
-			Title = UsersTitleBans,
-			Description = description,
-		});
-	}
-
-	public static AdvobotResult FakePruned(int days, int amount)
-	{
-		return Success(UsersFakePrune.Format(
-			amount.ToString().WithBlock(),
-			days.ToString().WithBlock()
-		));
-	}
-
 	public static AdvobotResult Kicked(IUser user)
 		=> Punished(true, VariableKicked, string.Empty, Format(user), null);
 
@@ -91,14 +56,6 @@ public sealed class Users : AdvobotResult
 
 	public static AdvobotResult Muted(bool punished, IUser user, TimeSpan? time)
 		=> Punished(punished, VariableMuted, VariableUnmuted, Format(user), time);
-
-	public static AdvobotResult Pruned(int days, int amount)
-	{
-		return Success(UsersRealPrune.Format(
-			amount.ToString().WithBlock(),
-			days.ToString().WithBlock()
-		));
-	}
 
 	public static AdvobotResult RemovedMessages(
 		ITextChannel channel,

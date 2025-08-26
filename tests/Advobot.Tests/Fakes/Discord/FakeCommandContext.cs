@@ -9,6 +9,7 @@ namespace Advobot.Tests.Fakes.Discord;
 
 public class FakeCommandContext : IGuildCommandContext
 {
+	public FakeGuildUser Bot => Guild.FakeCurrentUser;
 	public FakeTextChannel Channel { get; }
 	public FakeClient Client { get; }
 	public FakeGuild Guild { get; }

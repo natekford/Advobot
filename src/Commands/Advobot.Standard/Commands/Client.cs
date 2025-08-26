@@ -7,9 +7,6 @@ using Advobot.Resources;
 
 using Discord.Commands;
 
-using System.Diagnostics;
-using System.Reflection;
-
 namespace Advobot.Standard.Commands;
 
 [Category(nameof(Client))]
@@ -42,27 +39,6 @@ public sealed class Client : ModuleBase
 		{
 			await Context.Client.CurrentUser.ModifyAsync(x => x.Username = name).ConfigureAwait(false);
 			return Responses.Snowflakes.ModifiedName(Context.Client.CurrentUser, name);
-		}
-	}
-
-	[LocalizedGroup(nameof(Groups.RestartBot))]
-	[LocalizedAlias(nameof(Aliases.RestartBot))]
-	[LocalizedSummary(nameof(Summaries.RestartBot))]
-	[Meta("ca7caf70-9f40-4931-a99a-96f667edda16", IsEnabled = true)]
-	[RequireBotOwner]
-	public sealed class RestartBot : AdvobotModuleBase
-	{
-		[Command(RunMode = RunMode.Async)]
-		public async Task Command()
-		{
-			await Context.Client.StopAsync().ConfigureAwait(false);
-			// For some reason Process.Start("dotnet", loc); doesn't work the same as what's currently used.
-			Process.Start(new ProcessStartInfo
-			{
-				FileName = "dotnet",
-				Arguments = $@"""{Assembly.GetEntryAssembly()!.Location}"" {BotConfig.RestartArguments}"
-			});
-			Process.GetCurrentProcess().Kill();
 		}
 	}
 }

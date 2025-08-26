@@ -95,6 +95,18 @@ public sealed class Gets : AdvobotResult
 		return Success(embed);
 	}
 
+	public static AdvobotResult Ban(IBan ban)
+	{
+		var title = UsersTitleBanReason.Format(
+			ban.User.Format().WithNoMarkdown()
+		);
+		return Success(new EmbedWrapper
+		{
+			Title = title,
+			Description = ban.Reason ?? UsersNoBanReason,
+		});
+	}
+
 	public static AdvobotResult Bot(IDiscordClient client)
 	{
 		var startTime = Constants.START.ToReadable();
