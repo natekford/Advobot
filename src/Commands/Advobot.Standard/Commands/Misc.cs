@@ -7,9 +7,9 @@ using Advobot.Resources;
 using Advobot.Services.GuildSettings;
 using Advobot.Services.Help;
 
+using Discord;
 using Discord.Commands;
-
-using static Advobot.Standard.Responses.Misc;
+using Discord.WebSocket;
 
 namespace Advobot.Standard.Commands;
 
@@ -29,15 +29,133 @@ public sealed class Misc : ModuleBase
 		public async Task<RuntimeResult> Command()
 		{
 			var prefix = await GuildSettings.GetPrefixAsync(Context.Guild).ConfigureAwait(false);
-			return GeneralCommandInfo(HelpEntries.GetCategories(), prefix);
+			return Responses.Misc.CommandsGeneral(HelpEntries.GetCategories(), prefix);
 		}
 
 		[Command]
 		public Task<RuntimeResult> Command(Category category)
 		{
 			var entries = HelpEntries.GetHelpModules(category.Name);
-			return CategoryCommands(entries, category.Name);
+			return Responses.Misc.CommandsCategory(entries, category.Name);
 		}
+	}
+
+	[LocalizedGroup(nameof(Groups.GetInfo))]
+	[LocalizedAlias(nameof(Aliases.GetInfo))]
+	[LocalizedSummary(nameof(Summaries.GetInfo))]
+	[Meta("99dcd5e7-6bb2-49cf-b8b7-66b8e063fd18", IsEnabled = true)]
+	public sealed class GetInfo : AdvobotModuleBase
+	{
+		[LocalizedCommand(nameof(Groups.Ban))]
+		[LocalizedAlias(nameof(Aliases.Ban))]
+		[Priority(1)]
+		public Task<RuntimeResult> Ban(IBan ban)
+			=> Responses.Misc.InfoBan(ban);
+
+		[Command]
+		public Task<RuntimeResult> BanImplicit(IBan ban)
+			=> Responses.Misc.InfoBan(ban);
+
+		[LocalizedCommand(nameof(Groups.Bot))]
+		[LocalizedAlias(nameof(Aliases.Bot))]
+		[Priority(1)]
+		public Task<RuntimeResult> Bot()
+			=> Responses.Misc.InfoBot(Context.Client);
+
+		[LocalizedCommand(nameof(Groups.Channel))]
+		[LocalizedAlias(nameof(Aliases.Channel))]
+		[Priority(1)]
+		public Task<RuntimeResult> Channel(IGuildChannel channel)
+			=> Responses.Misc.InfoChannel(channel);
+
+		[Command]
+		public Task<RuntimeResult> ChannelImplicit(IGuildChannel channel)
+			=> Responses.Misc.InfoChannel(channel);
+
+		[LocalizedCommand(nameof(Groups.Emote))]
+		[LocalizedAlias(nameof(Aliases.Emote))]
+		[Priority(1)]
+		public Task<RuntimeResult> Emote(Emote emote)
+			=> Responses.Misc.InfoEmote(emote);
+
+		[Command]
+		public Task<RuntimeResult> EmoteImplicit(Emote emote)
+			=> Responses.Misc.InfoEmote(emote);
+
+		[LocalizedCommand(nameof(Groups.Guild))]
+		[LocalizedAlias(nameof(Aliases.Guild))]
+		[Priority(1)]
+		public Task<RuntimeResult> Guild()
+			=> Responses.Misc.InfoGuild(Context.Guild);
+
+		[LocalizedCommand(nameof(Groups.GuildUsers))]
+		[LocalizedAlias(nameof(Aliases.GuildUsers))]
+		[Priority(1)]
+		public Task<RuntimeResult> GuildUsers()
+			=> Responses.Misc.InfoGuildUsers(Context.Guild);
+
+		[LocalizedCommand(nameof(Groups.Invite))]
+		[LocalizedAlias(nameof(Aliases.Invite))]
+		[Priority(1)]
+		public Task<RuntimeResult> Invite(IInviteMetadata invite)
+			=> Responses.Misc.InfoInvite(invite);
+
+		[Command]
+		public Task<RuntimeResult> InviteImplicit(IInviteMetadata invite)
+			=> Responses.Misc.InfoInvite(invite);
+
+		[LocalizedCommand(nameof(Groups.Role))]
+		[LocalizedAlias(nameof(Aliases.Role))]
+		[Priority(1)]
+		public Task<RuntimeResult> Role(IRole role)
+			=> Responses.Misc.InfoRole(role);
+
+		[Command]
+		public Task<RuntimeResult> RoleImplicit(IRole role)
+			=> Responses.Misc.InfoRole(role);
+
+		[LocalizedCommand(nameof(Groups.Shards))]
+		[LocalizedAlias(nameof(Aliases.Shards))]
+		[Priority(1)]
+		public Task<RuntimeResult> Shards()
+		{
+			if (Context.Client is DiscordShardedClient shardedClient)
+			{
+				return Responses.Misc.InfoShards(shardedClient);
+			}
+			return Responses.Misc.InfoBot(Context.Client);
+		}
+
+		[LocalizedCommand(nameof(Groups.User))]
+		[LocalizedAlias(nameof(Aliases.User))]
+		[Priority(1)]
+		public Task<RuntimeResult> User(IUser? user = null)
+			=> Responses.Misc.InfoUser(user ?? Context.User);
+
+		[Command]
+		public Task<RuntimeResult> UserImplicit(IUser user)
+			=> Responses.Misc.InfoUser(user);
+
+		[LocalizedCommand(nameof(Groups.Webhook))]
+		[LocalizedAlias(nameof(Aliases.Webhook))]
+		[Priority(1)]
+		public Task<RuntimeResult> Webhook(IWebhook webhook)
+			=> Responses.Misc.InfoWebhook(webhook);
+
+		[Command]
+		public Task<RuntimeResult> WebhookImplicit(IWebhook webhook)
+			=> Responses.Misc.InfoWebhook(webhook);
+	}
+
+	[LocalizedGroup(nameof(Groups.GetUserAvatar))]
+	[LocalizedAlias(nameof(Aliases.GetUserAvatar))]
+	[LocalizedSummary(nameof(Summaries.GetUserAvatar))]
+	[Meta("9978b327-b1bb-46af-9e9f-b43ff411902d", IsEnabled = true)]
+	public sealed class GetUserAvatar : AdvobotModuleBase
+	{
+		[Command]
+		public Task Command(IUser? user = null)
+			=> Context.Channel.SendMessageAsync((user ?? Context.User).GetAvatarUrl());
 	}
 
 	[LocalizedGroup(nameof(Groups.Help))]
@@ -53,7 +171,7 @@ public sealed class Misc : ModuleBase
 		public async Task<RuntimeResult> Command()
 		{
 			var prefix = await GuildSettings.GetPrefixAsync(Context.Guild).ConfigureAwait(false);
-			return GeneralHelp(prefix);
+			return Responses.Misc.HelpGeneral(prefix);
 		}
 
 		[Command, Priority(1)]
