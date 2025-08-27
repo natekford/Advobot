@@ -19,11 +19,13 @@ public sealed class Client : ModuleBase
 	[RequireBotOwner]
 	public sealed class DisconnectBot : AdvobotModuleBase
 	{
+		public required ShutdownApplication Exit { get; set; }
+
 		[Command(RunMode = RunMode.Async)]
 		public async Task Command()
 		{
 			await Context.Client.StopAsync().ConfigureAwait(false);
-			Environment.Exit(0);
+			Exit.Invoke(0);
 		}
 	}
 

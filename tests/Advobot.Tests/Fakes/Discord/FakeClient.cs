@@ -6,12 +6,13 @@ namespace Advobot.Tests.Fakes.Discord;
 
 public sealed class FakeClient : IDiscordClient
 {
-	public ConnectionState ConnectionState => throw new NotImplementedException();
+	public ConnectionState ConnectionState { get; set; } = ConnectionState.Connected;
 	public ISelfUser CurrentUser { get; set; } = new FakeSelfUser();
 	public FakeApplication FakeApplication { get; set; } = new();
 	public List<FakeGuild> FakeGuilds { get; set; } = [];
+	public bool FakeIsActive { get; private set; }
 	public List<FakeVoiceRegion> FakeVoiceRegions { get; set; } = [];
-	public TokenType TokenType => throw new NotImplementedException();
+	public TokenType TokenType => TokenType.Bot;
 
 	public Task<IReadOnlyCollection<IApplicationCommand>> BulkOverwriteGlobalApplicationCommand(ApplicationCommandProperties[] properties, RequestOptions options = null)
 		=> throw new NotImplementedException();
@@ -137,8 +138,14 @@ public sealed class FakeClient : IDiscordClient
 		=> throw new NotImplementedException();
 
 	public Task StartAsync()
-		=> throw new NotImplementedException();
+	{
+		FakeIsActive = true;
+		return Task.CompletedTask;
+	}
 
 	public Task StopAsync()
-		=> throw new NotImplementedException();
+	{
+		FakeIsActive = false;
+		return Task.CompletedTask;
+	}
 }

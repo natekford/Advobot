@@ -97,6 +97,7 @@ public sealed class AdvobotLauncher
 		});
 
 		var collection = new ServiceCollection()
+			.AddSingleton<ShutdownApplication>(Environment.Exit)
 			.AddSingleton(commandConfig)
 			.AddSingleton(httpClient)
 			.AddSingleton(discordClient)
@@ -168,3 +169,9 @@ public sealed class AdvobotLauncher
 		return services;
 	}
 }
+
+/// <summary>
+/// Shuts down the application.
+/// </summary>
+/// <param name="exitCode"></param>
+public delegate void ShutdownApplication(int exitCode);

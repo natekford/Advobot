@@ -41,6 +41,7 @@ public abstract class Command_Tests : TestsBase
 	});
 	protected virtual Channel<IResult> ExecutedCommands { get; set; }
 		= Channel.CreateUnbounded<IResult>();
+	protected virtual bool HasBeenShutdown { get; set; }
 	protected virtual FakeTextChannel OtherTextChannel { get; set; }
 	protected virtual FakeVoiceChannel VoiceChannel { get; set; }
 
@@ -60,6 +61,7 @@ public abstract class Command_Tests : TestsBase
 	protected override void ModifyServices(IServiceCollection services)
 	{
 		services
+			.AddSingleton<ShutdownApplication>(_ => HasBeenShutdown = true)
 			.AddSingleton(CommandService)
 			.AddSingleton<IGuildSettingsService, NaiveGuildSettingsService>()
 			.AddSingleton<IPunishmentService>(x => x.GetRequiredService<TimedPunishmentService>())
@@ -79,6 +81,8 @@ public abstract class Command_Tests : TestsBase
 
 	protected override async Task SetupAsync()
 	{
+		await Context.Client.StartAsync().ConfigureAwait(false);
+
 		CommandService.CommandExecuted += async (_, __, result)
 			=> await ExecutedCommands.Writer.WriteAsync(result).ConfigureAwait(false);
 		foreach (var type in CommandAssemblies.SelectMany(x => x.GetTypes()))

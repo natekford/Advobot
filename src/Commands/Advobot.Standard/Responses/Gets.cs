@@ -326,15 +326,6 @@ public sealed class Gets : AdvobotResult
 		return Success(embed);
 	}
 
-	public static AdvobotResult Guilds(IReadOnlyCollection<IGuild> guilds)
-	{
-		var text = guilds.Select(x => GetsUserJoins.Format(
-			x.Format().WithNoMarkdown(),
-			x.OwnerId.ToString().WithNoMarkdown()
-		)).FormatNumberedList();
-		return Success(MessageUtils.CreateTextFile(GetsTitleGuilds, text));
-	}
-
 	public static AdvobotResult Invite(IInviteMetadata invite)
 	{
 		var info = new InfoMatrix();
@@ -359,27 +350,6 @@ public sealed class Gets : AdvobotResult
 				IconUrl = invite.Guild.IconUrl,
 			},
 		});
-	}
-
-	public static AdvobotResult Messages(
-		IMessageChannel channel,
-		IReadOnlyCollection<IMessage> messages,
-		int maxSize)
-	{
-		var formattedMessagesBuilder = new StringBuilder();
-		foreach (var message in messages)
-		{
-			var text = message.Format(withMentions: false).Sanitize(keepMarkdown: false);
-			if (formattedMessagesBuilder.Length + text.Length >= maxSize)
-			{
-				break;
-			}
-			formattedMessagesBuilder.AppendLine(text);
-		}
-
-		var fileName = GetsFileMessages.Format(channel.Name.WithNoMarkdown());
-		var content = formattedMessagesBuilder.ToString();
-		return Success(MessageUtils.CreateTextFile(fileName, content));
 	}
 
 	public static async Task<RuntimeResult> Role(IRole role)
@@ -441,14 +411,6 @@ public sealed class Gets : AdvobotResult
 				IconUrl = client.CurrentUser.GetAvatarUrl(),
 			},
 		});
-	}
-
-	public static AdvobotResult ShowEnumNames<T>(ulong value) where T : struct, Enum
-	{
-		return Success(GetsShowEnumNames.Format(
-			value.ToString().WithBlock(),
-			((T)(object)value).ToString("F").WithBlock()
-		));
 	}
 
 	public static async Task<RuntimeResult> User(IUser user)
@@ -557,16 +519,6 @@ public sealed class Gets : AdvobotResult
 			);
 		}).FormatNumberedList();
 		return Success(MessageUtils.CreateTextFile(GetsFileUserJoins, text));
-	}
-
-	public static AdvobotResult UserJoinPosition(IGuildUser user, int position)
-	{
-		var joined = user.JoinedAt ?? DateTimeOffset.UtcNow;
-		return Success(GetsUserJoinPosition.Format(
-			user.Format().WithBlock(),
-			position.ToString().WithBlock(),
-			joined.UtcDateTime.ToReadable().WithBlock()
-		));
 	}
 
 	public static AdvobotResult UsersWithReason(IEnumerable<IGuildUser> users)

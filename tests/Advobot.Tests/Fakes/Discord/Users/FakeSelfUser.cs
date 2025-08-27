@@ -12,5 +12,16 @@ public sealed class FakeSelfUser : FakeUser, ISelfUser
 	public PremiumType PremiumType { get; set; }
 
 	public Task ModifyAsync(Action<SelfUserProperties> func, RequestOptions? options = null)
-		=> throw new NotImplementedException();
+	{
+		var args = new SelfUserProperties();
+		func(args);
+
+		Username = args.Username.GetValueOrDefault(Username);
+		if (args.Avatar.IsSpecified || args.Banner.IsSpecified)
+		{
+			throw new NotImplementedException();
+		}
+
+		return Task.CompletedTask;
+	}
 }
