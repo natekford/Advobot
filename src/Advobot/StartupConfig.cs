@@ -188,8 +188,7 @@ public sealed class StartupConfig : IConfig
 			var path = Console.ReadLine();
 			if (path.CaseInsEquals("appdata"))
 			{
-				var appdata = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
-				path = Path.Combine(appdata, "Advobot");
+				path = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
 				Directory.CreateDirectory(path);
 			}
 			if (Directory.Exists(path))
@@ -215,7 +214,10 @@ public sealed class StartupConfig : IConfig
 
 	private void Save()
 	{
-		using var stream = GetPath(Instance).OpenWrite();
+		var path = GetPath(Instance);
+		Directory.CreateDirectory(path.DirectoryName!);
+
+		using var stream = path.OpenWrite();
 		JsonSerializer.Serialize(stream, this, JsonOptions);
 	}
 }

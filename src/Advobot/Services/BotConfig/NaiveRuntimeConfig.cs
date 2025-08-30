@@ -65,7 +65,10 @@ internal sealed class NaiveRuntimeConfig : IRuntimeConfig
 	/// <inheritdoc />
 	public void Save()
 	{
-		using var stream = GetPath(this).OpenWrite();
+		var path = GetPath(this);
+		Directory.CreateDirectory(path.DirectoryName!);
+
+		using var stream = path.OpenWrite();
 		JsonSerializer.Serialize(stream, this, StartupConfig.JsonOptions);
 	}
 
