@@ -8,6 +8,7 @@ using Discord.Commands;
 using Discord.WebSocket;
 
 using System.Reflection;
+using System.Text;
 
 using static Advobot.Resources.Responses;
 using static Advobot.Utilities.FormattingUtils;
@@ -55,23 +56,14 @@ public sealed partial class Misc : AdvobotResult
 
 	public static AdvobotResult Help(IHelpModule module)
 	{
-		var info = new List<List<(string, string)>>()
-		{
-			new()
-			{
-				(MiscTitleAliases, module.Aliases.Join()),
-				(MiscTitleBasePermissions, FormatPreconditions(module.Preconditions)),
-			},
-			new()
-			{
-				(MiscTitleDescription, module.Summary),
-			},
-			new()
-			{
-				(MiscTitleEnabledByDefault, module.EnabledByDefault.ToString()),
-				(MiscTitleAbleToBeToggled, module.AbleToBeToggled.ToString()),
-			},
-		};
+		var sb = new StringBuilder()
+			.AppendHeaderAndValue(MiscTitleAliases, module.Aliases.Join())
+			.AppendHeaderAndValue(MiscTitleBasePermissions, FormatPreconditions(module.Preconditions))
+			.AppendCategorySeparator()
+			.AppendHeaderAndValue(MiscTitleDescription, module.Summary)
+			.AppendCategorySeparator()
+			.AppendHeaderAndValue(MiscTitleEnabledByDefault, module.EnabledByDefault)
+			.AppendHeaderAndValue(MiscTitleAbleToBeToggled, module.AbleToBeToggled);
 
 		if (module.Submodules.Count != 0)
 		{
@@ -80,7 +72,8 @@ public sealed partial class Misc : AdvobotResult
 				.Join("\n")
 				.WithBigBlock()
 				.Current;
-			info.Add([(MiscTitleSubmodules, submodules)]);
+			sb.AppendCategorySeparator()
+				.AppendHeaderAndValue(MiscTitleSubmodules, submodules);
 		}
 
 		if (module.Commands.Count != 0)
@@ -91,10 +84,11 @@ public sealed partial class Misc : AdvobotResult
 				var name = string.IsNullOrWhiteSpace(x.Name) ? "" : x.Name + " ";
 				return $"{i + 1}. {name}({parameters})";
 			}).Join("\n").WithBigBlock().Current;
-			info.Add([(MiscTitleCommands, commands)]);
+			sb.AppendCategorySeparator()
+				.AppendHeaderAndValue(MiscTitleCommands, commands);
 		}
 
-		return Success(CreateHelpEmbed(module.Aliases[0], Format(info)));
+		return Success(CreateHelpEmbed(module.Aliases[0], sb.ToString()));
 	}
 
 	public static AdvobotResult Help(IHelpModule module, int position)
@@ -108,30 +102,21 @@ public sealed partial class Misc : AdvobotResult
 		}
 		var command = module.Commands[position - 1];
 
-		var info = new List<List<(string, string)>>()
-		{
-			new()
-			{
-				(MiscTitleAliases, command.Aliases.Select(x => x.WithBlock().Current).Join()),
-				(MiscTitleBasePermissions, FormatPreconditions(command.Preconditions)),
-			},
-			new()
-			{
-				(MiscTitleDescription, command.Summary),
-			},
-		};
+		var sb = new StringBuilder()
+			.AppendHeaderAndValue(MiscTitleAliases, command.Aliases.Select(x => x.WithBlock().Current).Join())
+			.AppendHeaderAndValue(MiscTitleBasePermissions, FormatPreconditions(command.Preconditions))
+			.AppendCategorySeparator()
+			.AppendHeaderAndValue(MiscTitleDescription, command.Summary);
 
-		var embed = CreateHelpEmbed(command.Aliases[0], Format(info));
+		var embed = CreateHelpEmbed(command.Aliases[0], sb.ToString());
 		foreach (var parameter in command.Parameters)
 		{
-			var paramInfo = new List<(string, string)>()
-			{
-				(MiscTitleBasePermissions, FormatPreconditions(parameter.Preconditions)),
-				(MiscTitleDescription, parameter.Summary),
-				(MiscTitleNamedArguments, parameter.NamedArguments.Join()),
-			};
+			var paramSb = new StringBuilder()
+				.AppendHeaderAndValue(MiscTitleBasePermissions, FormatPreconditions(parameter.Preconditions))
+				.AppendHeaderAndValue(MiscTitleDescription, parameter.Summary)
+				.AppendHeaderAndValue(MiscTitleNamedArguments, parameter.NamedArguments.Join());
 
-			embed.TryAddField(FormatParameter(parameter), Format(paramInfo), true, out _);
+			embed.TryAddField(FormatParameter(parameter), paramSb.ToString(), true, out _);
 		}
 		return Success(embed);
 	}
@@ -304,19 +289,15 @@ public sealed partial class Misc : AdvobotResult
 			}
 		}
 
-		var info = new List<List<(string, string)>>()
-		{
-			TimeCreated(channel),
-			new()
-			{
-				(GetsTitlePosition, channel.Position.ToString()),
-				(GetsTitleUserCount, userCount.ToString()),
-			},
-		};
+		var sb = new StringBuilder()
+			.AppendTimeCreated(channel)
+			.AppendCategorySeparator()
+			.AppendHeaderAndValue(GetsTitlePosition, channel.Position)
+			.AppendHeaderAndValue(GetsTitleUserCount, userCount);
 
 		var embed = new EmbedWrapper
 		{
-			Description = Format(info),
+			Description = sb.ToString(),
 			Author = new()
 			{
 				Name = channel.Format(),
@@ -343,27 +324,22 @@ public sealed partial class Misc : AdvobotResult
 
 	public static AdvobotResult InfoEmote(Emote emote)
 	{
-		var info = new List<List<(string, string)>>()
-		{
-			TimeCreated(emote),
-		};
+		var sb = new StringBuilder()
+			.AppendTimeCreated(emote);
 
 		if (emote is GuildEmote guildEmote)
 		{
-			info.Add(
-			[
-				(GetsTitleManaged, guildEmote.IsManaged.ToString()),
-				(GetsTitleColons, guildEmote.RequireColons.ToString()),
-			]);
-			info.Add(
-			[
-				(GetsTitleRoles, guildEmote.RoleIds.Select(x => x.ToString()).Join()),
-			]);
+			sb
+				.AppendCategorySeparator()
+				.AppendHeaderAndValue(GetsTitleManaged, guildEmote.IsManaged)
+				.AppendHeaderAndValue(GetsTitleColons, guildEmote.RequireColons)
+				.AppendCategorySeparator()
+				.AppendHeaderAndValue(GetsTitleRoles, guildEmote.RoleIds.Select(x => x.ToString()).Join());
 		}
 
 		return Success(new EmbedWrapper
 		{
-			Description = Format(info),
+			Description = sb.ToString(),
 			ThumbnailUrl = emote.Url,
 			Author = new()
 			{
@@ -419,23 +395,19 @@ public sealed partial class Misc : AdvobotResult
 			}
 		}
 
-		var info = new List<List<(string, string)>>()
-		{
-			TimeCreated(guild),
-			new()
-			{
-				(GetsTitleOwner, owner.Format()),
-				(GetsTitleUserCount, userCount.ToString()),
-				(GetsTitleRoleCount, guild.Roles.Count.ToString()),
-				(GetsTitleNotifications, guild.DefaultMessageNotifications.ToString()),
-				(GetsTitleVerification, guild.VerificationLevel.ToString()),
-				(GetsTitleVoiceRegion, guild.VoiceRegionId),
-			},
-		};
+		var sb = new StringBuilder()
+			.AppendTimeCreated(guild)
+			.AppendCategorySeparator()
+			.AppendHeaderAndValue(GetsTitleOwner, owner.Format())
+			.AppendHeaderAndValue(GetsTitleUserCount, userCount)
+			.AppendHeaderAndValue(GetsTitleRoleCount, guild.Roles.Count)
+			.AppendHeaderAndValue(GetsTitleNotifications, guild.DefaultMessageNotifications)
+			.AppendHeaderAndValue(GetsTitleVerification, guild.VerificationLevel)
+			.AppendHeaderAndValue(GetsTitleVoiceRegion, guild.VoiceRegionId);
 
 		var embed = new EmbedWrapper
 		{
-			Description = Format(info),
+			Description = sb.ToString(),
 			Color = owner.GetRoles().LastOrDefault(x => x.Color.RawValue != 0)?.Color,
 			ThumbnailUrl = guild.IconUrl,
 			Author = new()
@@ -451,35 +423,26 @@ public sealed partial class Misc : AdvobotResult
 		};
 
 		{
-			var channelInfo = new List<List<(string, string)>>()
-			{
-				new()
-				{
-					(GetsTitleChannelCount, channels.ToString()),
-					(GetsTitleTextChannelCount, text.ToString()),
-					(GetsTitleVoiceChannelCount, voice.ToString()),
-					(GetsTitleCategoryChannelCount, categories.ToString()),
-				},
-				new()
-				{
-					(GetsTitleDefaultChannel, (await guild.GetDefaultChannelAsync().ConfigureAwait(false)).Format()),
-					(GetsTitleAfkChannel, (await guild.GetAFKChannelAsync().ConfigureAwait(false)).Format()),
-					(GetsTitleSystemChannel, (await guild.GetSystemChannelAsync().ConfigureAwait(false)).Format()),
-					(GetsTitleEmbedChannel, (await guild.GetWidgetChannelAsync().ConfigureAwait(false)).Format()),
-				},
-			};
-			embed.TryAddField(GetsTitleChannelInfo, Format(channelInfo), false, out _);
+			var channelSb = new StringBuilder()
+				.AppendHeaderAndValue(GetsTitleChannelCount, channels)
+				.AppendHeaderAndValue(GetsTitleTextChannelCount, text)
+				.AppendHeaderAndValue(GetsTitleVoiceChannelCount, voice)
+				.AppendHeaderAndValue(GetsTitleCategoryChannelCount, categories)
+				.AppendCategorySeparator()
+				.AppendHeaderAndValue(GetsTitleDefaultChannel, (await guild.GetDefaultChannelAsync().ConfigureAwait(false)).Format())
+				.AppendHeaderAndValue(GetsTitleAfkChannel, (await guild.GetAFKChannelAsync().ConfigureAwait(false)).Format())
+				.AppendHeaderAndValue(GetsTitleSystemChannel, (await guild.GetSystemChannelAsync().ConfigureAwait(false)).Format())
+				.AppendHeaderAndValue(GetsTitleEmbedChannel, (await guild.GetWidgetChannelAsync().ConfigureAwait(false)).Format());
+			embed.TryAddField(GetsTitleChannelInfo, channelSb.ToString(), false, out _);
 		}
 
 		{
-			var emoteInfo = new List<(string, string)>()
-			{
-				(GetsTitleEmoteCount, emotes.ToString()),
-				(GetsTitleAnimatedEmoteCount, animated.ToString()),
-				(GetsTitleLocalEmoteCount, local.ToString()),
-				(GetsTitleManagedEmoteCount, managed.ToString()),
-			};
-			embed.TryAddField(GetsTitleEmoteInfo, Format(emoteInfo), false, out _);
+			var emoteSb = new StringBuilder()
+				.AppendHeaderAndValue(GetsTitleEmoteCount, emotes)
+				.AppendHeaderAndValue(GetsTitleAnimatedEmoteCount, animated)
+				.AppendHeaderAndValue(GetsTitleLocalEmoteCount, local)
+				.AppendHeaderAndValue(GetsTitleManagedEmoteCount, managed);
+			embed.TryAddField(GetsTitleEmoteInfo, emoteSb.ToString(), false, out _);
 		}
 
 		{
@@ -533,21 +496,16 @@ public sealed partial class Misc : AdvobotResult
 			}
 		}
 
-		var info = new List<List<(string, string)>>()
-		{
-			new()
-			{
-				(GetsTitleUserCount, users.Count.ToString()),
-				(GetsTitleBotCount, bots.ToString()),
-				(GetsTitleWebhookCount, webhooks.ToString()),
-				(GetsTitleInVoiceCount, voice.ToString()),
-				(GetsTitleNicknameCount, nickname.ToString()),
-			},
-		};
+		var sb = new StringBuilder()
+			.AppendHeaderAndValue(GetsTitleUserCount, users.Count)
+			.AppendHeaderAndValue(GetsTitleBotCount, bots)
+			.AppendHeaderAndValue(GetsTitleWebhookCount, webhooks)
+			.AppendHeaderAndValue(GetsTitleInVoiceCount, voice)
+			.AppendHeaderAndValue(GetsTitleNicknameCount, nickname);
 
 		var embed = new EmbedWrapper
 		{
-			Description = Format(info),
+			Description = sb.ToString(),
 			Author = new()
 			{
 				Name = guild.Format(),
@@ -560,34 +518,36 @@ public sealed partial class Misc : AdvobotResult
 			},
 		};
 		{
-			var value = statuses
-				.Select(kvp => (kvp.Key.ToString(), kvp.Value.ToString()));
-			embed.TryAddField(GetsTitleStatuses, Format(value), false, out _);
+			var statusesSb = new StringBuilder();
+			foreach (var (header, value) in statuses)
+			{
+				statusesSb.AppendHeaderAndValue(header.ToString(), value);
+			}
+			embed.TryAddField(GetsTitleStatuses, statusesSb.ToString(), false, out _);
 		}
 		{
-			var value = activities
-				.Select(kvp => (kvp.Key.ToString(), kvp.Value.ToString()));
-			embed.TryAddField(GetsTitleActivities, Format(value), false, out _);
+			var activitiesSb = new StringBuilder();
+			foreach (var (header, value) in activities)
+			{
+				activitiesSb.AppendHeaderAndValue(header.ToString(), value);
+			}
+			embed.TryAddField(GetsTitleActivities, activitiesSb.ToString(), false, out _);
 		}
 		return Success(embed);
 	}
 
 	public static AdvobotResult InfoInvite(IInviteMetadata invite)
 	{
-		var info = new List<List<(string, string)>>()
-		{
-			TimeCreated(invite.Id, invite.CreatedAt.GetValueOrDefault()),
-			new()
-			{
-				(GetsTitleCreator, invite.Inviter.Format()),
-				(GetsTitleChannel, invite.Channel.Format()),
-				(GetsTitleUses, (invite.Uses ?? 0).ToString()),
-			},
-		};
+		var sb = new StringBuilder()
+			.AppendTimeCreated(invite.Id, invite.CreatedAt.GetValueOrDefault())
+			.AppendCategorySeparator()
+			.AppendHeaderAndValue(GetsTitleCreator, invite.Inviter.Format())
+			.AppendHeaderAndValue(GetsTitleChannel, invite.Channel.Format())
+			.AppendHeaderAndValue(GetsTitleUses, invite.Uses ?? 0);
 
 		return Success(new EmbedWrapper
 		{
-			Description = Format(info),
+			Description = sb.ToString(),
 			Author = new()
 			{
 				Name = invite.Format(),
@@ -611,26 +571,20 @@ public sealed partial class Misc : AdvobotResult
 			.Select(x => x.ToString("F"))
 			.ToArray();
 
-		var info = new List<List<(string, string)>>()
-		{
-			TimeCreated(role),
-			new()
-			{
-				(GetsTitlePosition, role.Position.ToString()),
-				(GetsTitleUserCount, userCount.ToString()),
-				(GetsTitleColor, $"#{role.Color.RawValue:X6}"),
-			},
-			new()
-			{
-				(GetsTitleHoisted, role.IsHoisted.ToString()),
-				(GetsTitleManaged, role.IsManaged.ToString()),
-				(GetsTitleMentionable, role.IsMentionable.ToString()),
-			},
-		};
+		var sb = new StringBuilder()
+			.AppendTimeCreated(role)
+			.AppendCategorySeparator()
+			.AppendHeaderAndValue(GetsTitlePosition, role.Position)
+			.AppendHeaderAndValue(GetsTitleUserCount, userCount)
+			.AppendHeaderAndValue(GetsTitleColor, $"#{role.Color.RawValue:X6}")
+			.AppendCategorySeparator()
+			.AppendHeaderAndValue(GetsTitleHoisted, role.IsHoisted)
+			.AppendHeaderAndValue(GetsTitleManaged, role.IsManaged)
+			.AppendHeaderAndValue(GetsTitleMentionable, role.IsMentionable);
 
 		var embed = new EmbedWrapper
 		{
-			Description = Format(info),
+			Description = sb.ToString(),
 			Color = role.Color,
 			Author = new() { Name = role.Format(), },
 			Footer = new() { Text = GetsFooterRole, },
@@ -671,15 +625,11 @@ public sealed partial class Misc : AdvobotResult
 
 	public static async Task<RuntimeResult> InfoUser(IUser user)
 	{
-		var info = new List<List<(string, string)>>()
-		{
-			TimeCreated(user),
-			new()
-			{
-				(GetsTitleActivity, user.Activities.Select(x => x.Format()).Join("\n")),
-				(GetsTitleStatus, user.Status.ToString()),
-			},
-		};
+		var sb = new StringBuilder()
+			.AppendTimeCreated(user)
+			.AppendCategorySeparator()
+			.AppendHeaderAndValue(GetsTitleActivity, user.Activities.Select(x => x.Format()).Join("\n"))
+			.AppendHeaderAndValue(GetsTitleStatus, user.Status);
 
 		var embed = new EmbedWrapper
 		{
@@ -695,30 +645,34 @@ public sealed partial class Misc : AdvobotResult
 		// User is not from a guild so we can't get any more information about them
 		if (user is not IGuildUser guildUser)
 		{
-			embed.Description = Format(info);
+			embed.Description = sb.ToString();
 			return Success(embed);
 		}
 
-		var guildInfo = new List<(string, string)>();
+		var optionalSb = new StringBuilder();
 		if (guildUser.Nickname is string nickname)
 		{
-			guildInfo.Add((GetsTitleNickname, nickname.EscapeBackTicks()));
+			sb.AppendHeaderAndValue(GetsTitleNickname, nickname.EscapeBackTicks());
 		}
 		if (guildUser.JoinedAt is DateTimeOffset dto)
 		{
 			//If cachemode is allow download this can take ages
 			var joinNum = (await guildUser.Guild.GetUsersAsync(CacheMode.CacheOnly).ConfigureAwait(false))
 				.Count(x => x.JoinedAt < guildUser.JoinedAt);
-			guildInfo.Add((GetsTitleJoined, GetsJoinedAt.Format(
+			sb.AppendHeaderAndValue(GetsTitleJoined, GetsJoinedAt.Format(
 				dto.UtcDateTime.ToReadable().WithNoMarkdown(),
 				joinNum.ToString().WithNoMarkdown()
-			)));
+			));
 		}
 		if (guildUser.VoiceChannel is IVoiceChannel vc)
 		{
-			guildInfo.Add((GetsTitleVoiceChannel, vc.Format()));
+			sb.AppendHeaderAndValue(GetsTitleVoiceChannel, vc.Format());
 		}
-		embed.Description = Format(info);
+		if (optionalSb.Length > 0)
+		{
+			sb.AppendCategorySeparator().Append(optionalSb);
+		}
+		embed.Description = sb.ToString();
 
 		async Task<IReadOnlyCollection<T>> GetChannelsAsync<T>(
 			Func<IGuild, Task<IReadOnlyCollection<T>>> getter,
@@ -763,19 +717,15 @@ public sealed partial class Misc : AdvobotResult
 
 	public static AdvobotResult InfoWebhook(IWebhook webhook)
 	{
-		var info = new List<List<(string, string)>>()
-		{
-			TimeCreated(webhook),
-			new()
-			{
-				(GetsTitleCreator, webhook.Creator.Format()),
-				(GetsTitleChannel, webhook.Channel.Format()),
-			},
-		};
+		var sb = new StringBuilder()
+			.AppendTimeCreated(webhook)
+			.AppendCategorySeparator()
+			.AppendHeaderAndValue(GetsTitleCreator, webhook.Creator.Format())
+			.AppendHeaderAndValue(GetsTitleChannel, webhook.Channel.Format());
 
 		return Success(new EmbedWrapper
 		{
-			Description = Format(info),
+			Description = sb.ToString(),
 			ThumbnailUrl = webhook.GetAvatarUrl(),
 			Author = new()
 			{
@@ -790,37 +740,48 @@ public sealed partial class Misc : AdvobotResult
 			},
 		});
 	}
+}
 
-	private static string Format(IEnumerable<IEnumerable<(string, string)>> info)
-	{
-		return info
-			.Where(x => x.Any())
-			.Select(Format)
-			.Where(x => !string.IsNullOrWhiteSpace(x))
-			.Join("\n\n");
-	}
+internal static class ResponseUtils
+{
+	public static StringBuilder AppendCategorySeparator(this StringBuilder sb)
+		=> sb.Append('\n');
 
-	private static string Format(IEnumerable<(string, string)> info)
+	public static StringBuilder AppendHeaderAndValue(
+		this StringBuilder sb,
+		string header,
+		object? value)
 	{
-		return info.Select(x =>
+		var valStr = value?.ToString();
+		if (string.IsNullOrWhiteSpace(valStr))
 		{
-			var (title, value) = x;
-			return string.IsNullOrWhiteSpace(value)
-				? string.Empty
-				: $"{title.WithTitleCaseAndColon()} {value}";
-		}).Join("\n");
+			return sb;
+		}
+
+		if (sb.Length > 0)
+		{
+			sb.Append('\n');
+		}
+
+		return sb
+			.Append(header.WithTitleCaseAndColon())
+			.Append(' ')
+			.Append(value);
 	}
 
-	private static List<(string, string)> TimeCreated(ISnowflakeEntity e)
-		=> TimeCreated(e.Id.ToString(), e.CreatedAt.UtcDateTime);
+	public static StringBuilder AppendTimeCreated(
+		this StringBuilder sb,
+		ISnowflakeEntity entity)
+		=> sb.AppendTimeCreated(entity.Id.ToString(), entity.CreatedAt.UtcDateTime);
 
-	private static List<(string, string)> TimeCreated(string id, DateTimeOffset dt)
+	public static StringBuilder AppendTimeCreated(
+		this StringBuilder sb,
+		string id,
+		DateTimeOffset dt)
 	{
 		var diff = (DateTimeOffset.UtcNow - dt).TotalDays;
-		return
-		[
-			("Id", id),
-			("Created At", $"{dt.DateTime.ToReadable()} ({diff:0.00} days ago)"),
-		];
+		return sb
+			.AppendHeaderAndValue("Id", id)
+			.AppendHeaderAndValue("Created At", $"{dt.DateTime.ToReadable()} ({diff:0.00} days ago)");
 	}
 }
