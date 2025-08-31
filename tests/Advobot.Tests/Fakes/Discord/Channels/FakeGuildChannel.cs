@@ -40,15 +40,11 @@ public class FakeGuildChannel : FakeMessageChannel, IGuildChannel
 	public OverwritePermissions? GetPermissionOverwrite(IUser user)
 		=> GetPermissionOverwrite(user.Id);
 
-	// These should probably account for permissions to see the channels, but idc
 	public override async Task<IUser?> GetUserAsync(ulong id, CacheMode mode = CacheMode.AllowDownload, RequestOptions? options = null)
-		=> await FakeGuild.GetUserAsync(id, mode, options).ConfigureAwait(false);
+		=> await ((IGuildChannel)this).GetUserAsync(id, mode, options).ConfigureAwait(false);
 
-	// These should probably account for permissions to see the channels, but idc
-	public override async IAsyncEnumerable<IReadOnlyCollection<IUser>> GetUsersAsync(CacheMode mode = CacheMode.AllowDownload, RequestOptions? options = null)
-	{
-		yield return await FakeGuild.GetUsersAsync(mode, options).ConfigureAwait(false);
-	}
+	public override IAsyncEnumerable<IReadOnlyCollection<IUser>> GetUsersAsync(CacheMode mode = CacheMode.AllowDownload, RequestOptions? options = null)
+		=> ((IGuildChannel)this).GetUsersAsync(mode, options);
 
 	public Task ModifyAsync(Action<GuildChannelProperties> func, RequestOptions options)
 	{
@@ -74,11 +70,40 @@ public class FakeGuildChannel : FakeMessageChannel, IGuildChannel
 		return Task.CompletedTask;
 	}
 
-	Task<IGuildUser> IGuildChannel.GetUserAsync(ulong id, CacheMode mode, RequestOptions options)
-		=> throw new NotImplementedException();
+	public override Task<IUserMessage> SendMessageAsync(
+		string text = null,
+		bool isTTS = false,
+		Embed embed = null,
+		RequestOptions options = null,
+		AllowedMentions allowedMentions = null,
+		MessageReference messageReference = null,
+		MessageComponent components = null,
+		ISticker[] stickers = null,
+		Embed[] embeds = null,
+		MessageFlags flags = MessageFlags.None,
+		PollProperties poll = null)
+	{
+		var fakeMessage = new FakeUserMessage(this, FakeGuild.FakeCurrentUser, text)
+		{
+			IsTTS = isTTS,
+			Embeds = [.. (embeds ?? []).Prepend(embed)],
+			Reference = messageReference,
+			Components = components?.Components ?? [],
+			Stickers = stickers ?? [],
+			Flags = flags,
+		};
+		return Task.FromResult<IUserMessage>(fakeMessage);
+	}
 
-	IAsyncEnumerable<IReadOnlyCollection<IGuildUser>> IGuildChannel.GetUsersAsync(CacheMode mode, RequestOptions options)
-		=> throw new NotImplementedException();
+	// These should probably account for permissions to see the channels, but idc
+	async Task<IGuildUser?> IGuildChannel.GetUserAsync(ulong id, CacheMode mode, RequestOptions options)
+		=> await FakeGuild.GetUserAsync(id, mode, options).ConfigureAwait(false);
+
+	// These should probably account for permissions to see the channels, but idc
+	async IAsyncEnumerable<IReadOnlyCollection<IGuildUser>> IGuildChannel.GetUsersAsync(CacheMode mode, RequestOptions options)
+	{
+		yield return await FakeGuild.GetUsersAsync(mode, options).ConfigureAwait(false);
+	}
 
 	private OverwritePermissions? GetPermissionOverwrite(ulong id)
 		=> _Permissions.TryGetValue(id, out var value) ? value.Permissions : default(OverwritePermissions?);

@@ -15,27 +15,27 @@ public class FakeMessage : FakeSnowflake, IMessage
 	public IReadOnlyCollection<IAttachment> Attachments => throw new NotImplementedException();
 	public MessageCallData? CallData => throw new NotImplementedException();
 	public string CleanContent => throw new NotImplementedException();
-	public IReadOnlyCollection<IMessageComponent> Components => throw new NotImplementedException();
+	public IReadOnlyCollection<IMessageComponent> Components { get; set; } = [];
 	public string Content { get; set; }
 	public DateTimeOffset? EditedTimestamp => throw new NotImplementedException();
-	public IReadOnlyCollection<IEmbed> Embeds => throw new NotImplementedException();
+	public IReadOnlyCollection<IEmbed> Embeds { get; set; } = [];
 	public FakeUser FakeAuthor { get; }
 	public FakeMessageChannel FakeChannel { get; }
 	public MessageFlags? Flags { get; set; }
 	public IMessageInteraction Interaction => throw new NotImplementedException();
 	public bool IsPinned => throw new NotImplementedException();
 	public bool IsSuppressed => throw new NotImplementedException();
-	public bool IsTTS => throw new NotImplementedException();
+	public bool IsTTS { get; set; }
 	public IReadOnlyCollection<ulong> MentionedChannelIds => Content.GetMentions(TryParseChannel);
 	public bool MentionedEveryone => throw new NotImplementedException();
 	public IReadOnlyCollection<ulong> MentionedRoleIds => Content.GetMentions(TryParseRole);
 	public IReadOnlyCollection<ulong> MentionedUserIds => Content.GetMentions(TryParseUser);
 	public PurchaseNotification PurchaseNotification => throw new NotImplementedException();
 	public IReadOnlyDictionary<IEmote, ReactionMetadata> Reactions => throw new NotImplementedException();
-	public MessageReference Reference => throw new NotImplementedException();
+	public MessageReference Reference { get; set; }
 	public MessageRoleSubscriptionData RoleSubscriptionData => throw new NotImplementedException();
 	public MessageSource Source => throw new NotImplementedException();
-	public IReadOnlyCollection<IStickerItem> Stickers => throw new NotImplementedException();
+	public IReadOnlyCollection<IStickerItem> Stickers { get; set; } = [];
 	public IReadOnlyCollection<ITag> Tags => throw new NotImplementedException();
 	public IThreadChannel Thread => throw new NotImplementedException();
 	public DateTimeOffset Timestamp => CreatedAt;
