@@ -24,8 +24,15 @@ public sealed class Client : ModuleBase
 		[Command(RunMode = RunMode.Async)]
 		public async Task Command()
 		{
-			await Context.Client.StopAsync().ConfigureAwait(false);
-			Exit.Invoke(0);
+			try
+			{
+				await Context.Channel.SendMessageAsync("Shutting down...").ConfigureAwait(false);
+				await Context.Client.StopAsync().ConfigureAwait(false);
+			}
+			finally
+			{
+				Exit.Invoke(0);
+			}
 		}
 	}
 
