@@ -18,11 +18,14 @@ public sealed class Users : AdvobotResult
 		));
 	}
 
-	public static AdvobotResult Banned(ulong userId, TimeSpan? time)
-		=> Punished(true, VariableBanned, VariableUnbanned, Format(userId), time);
+	public static AdvobotResult Banned(IUser user, TimeSpan? time)
+		=> Punished(true, VariableBanned, VariableUnbanned, Format(user), time);
+
+	public static AdvobotResult CannotFindUser(ulong userId)
+		=> Failure(UsersDoesNotExist.Format(Format(userId)));
 
 	public static AdvobotResult CannotGiveGatheredRole()
-		=> Failure(UsersCannotGiveRoleBeingGathered);
+			=> Failure(UsersCannotGiveRoleBeingGathered);
 
 	public static AdvobotResult Deafened(bool punished, IUser user, TimeSpan? time)
 		=> Punished(punished, VariableDeafened, VariableUndeafened, Format(user), time);

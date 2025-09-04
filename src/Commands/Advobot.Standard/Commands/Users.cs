@@ -16,6 +16,7 @@ using Advobot.Utilities;
 
 using Discord;
 using Discord.Commands;
+using Discord.Net;
 
 using static Discord.ChannelPermission;
 
@@ -33,27 +34,38 @@ public sealed class Users : ModuleBase
 	{
 		[Command]
 		[Priority(1)]
-		public Task Command(
+		public Task<RuntimeResult> Command(
 			[CanModifyUser]
 			IGuildUser user,
 			[Remainder]
 			ModerationReason reason = default
-		) => Command(user.Id, reason);
+		) => CommandRunner(user, user.Id, reason);
 
 		[Command]
 		[Priority(0)]
-		public async Task<RuntimeResult> Command(
+		public Task<RuntimeResult> Command(
 			[NotBanned]
 			ulong userId,
 			[Remainder]
 			ModerationReason reason = default
-		)
+		) => CommandRunner(null, userId, reason);
+
+		private async Task<RuntimeResult> CommandRunner(
+			IUser? user,
+			ulong userId,
+			ModerationReason reason)
 		{
+			user ??= await Context.Client.GetUserAsync(userId, CacheMode.AllowDownload).ConfigureAwait(false);
+			if (user is null)
+			{
+				return Responses.Users.CannotFindUser(userId);
+			}
+
 			await PunishmentService.PunishAsync(new Punishments.Ban(Context.Guild, userId, true)
 			{
 				Duration = reason.Time,
 			}, GetOptions(reason.Reason)).ConfigureAwait(false);
-			return Responses.Users.Banned(userId, reason.Time);
+			return Responses.Users.Banned(user!, reason.Time);
 		}
 	}
 
