@@ -404,7 +404,10 @@ public sealed class FakeGuild : FakeSnowflake, IGuild
 		=> throw new NotImplementedException();
 
 	public Task LeaveAsync(RequestOptions? options = null)
-		=> throw new NotImplementedException();
+	{
+		FakeClient.FakeGuilds.Remove(this);
+		return Task.CompletedTask;
+	}
 
 	public Task ModifyAsync(Action<GuildProperties> func, RequestOptions? options = null)
 		=> throw new NotImplementedException();

@@ -25,7 +25,7 @@ public sealed class FakeInviteMetadata : IInviteMetadata
 	public FakeGuildUser FakeInviter { get; }
 	public ulong? GuildId => FakeGuild.Id;
 	public string GuildName => FakeGuild.Name;
-	public string Id { get; set; }
+	public string Id => Code;
 	public bool IsRevoked { get; set; }
 	public bool IsTemporary { get; set; }
 	public int? MaxAge { get; set; }
@@ -45,7 +45,7 @@ public sealed class FakeInviteMetadata : IInviteMetadata
 		FakeChannel = channel;
 		FakeInviter = inviter;
 		FakeGuild.FakeInvites.Add(this);
-		Code = Id = GenerateRandomInviteLink();
+		Code = GenerateRandomInviteLink();
 	}
 
 	public Task DeleteAsync(RequestOptions? options = null)
@@ -53,6 +53,9 @@ public sealed class FakeInviteMetadata : IInviteMetadata
 		FakeGuild.FakeInvites.Remove(this);
 		return Task.CompletedTask;
 	}
+
+	public override string ToString()
+		=> Id;
 
 	private static string GenerateRandomInviteLink()
 	{
