@@ -6,6 +6,7 @@ using Advobot.Preconditions;
 using Advobot.Resources;
 using Advobot.Services.GuildSettings;
 using Advobot.Services.Help;
+using Advobot.Utilities;
 
 using Discord;
 using Discord.Commands;
@@ -16,30 +17,6 @@ namespace Advobot.Standard.Commands;
 [Category(nameof(Misc))]
 public sealed class Misc : ModuleBase
 {
-	[LocalizedGroup(nameof(Groups.Commands))]
-	[LocalizedAlias(nameof(Aliases.Commands))]
-	[LocalizedSummary(nameof(Summaries.Commands))]
-	[Meta("ec0f7aef-85d6-4251-9c8e-7c70890f455e", IsEnabled = true, CanToggle = false)]
-	public sealed class Commands : AdvobotModuleBase
-	{
-		public required IGuildSettingsService GuildSettings { get; set; }
-		public required IHelpService HelpEntries { get; set; }
-
-		[Command]
-		public async Task<RuntimeResult> Command()
-		{
-			var prefix = await GuildSettings.GetPrefixAsync(Context.Guild).ConfigureAwait(false);
-			return Responses.Misc.CommandsGeneral(HelpEntries.GetCategories(), prefix);
-		}
-
-		[Command]
-		public Task<RuntimeResult> Command(Category category)
-		{
-			var entries = HelpEntries.GetHelpModules(category.Name);
-			return Responses.Misc.CommandsCategory(entries, category.Name);
-		}
-	}
-
 	[LocalizedGroup(nameof(Groups.GetInfo))]
 	[LocalizedAlias(nameof(Aliases.GetInfo))]
 	[LocalizedSummary(nameof(Summaries.GetInfo))]
@@ -165,25 +142,41 @@ public sealed class Misc : ModuleBase
 	public sealed class Help : AdvobotModuleBase
 	{
 		public required IGuildSettingsService GuildSettings { get; set; }
+		public required IHelpService HelpEntries { get; set; }
 
 		[Command]
 		[LocalizedSummary(nameof(Summaries.HelpGeneralHelp))]
 		public async Task<RuntimeResult> Command()
 		{
 			var prefix = await GuildSettings.GetPrefixAsync(Context.Guild).ConfigureAwait(false);
-			return Responses.Misc.HelpGeneral(prefix);
+			var categories = HelpEntries.GetCategories();
+			return Responses.Misc.Help(categories, prefix);
 		}
 
-		[Command, Priority(1)]
+		[Command]
+		[Priority(1)]
 		[LocalizedSummary(nameof(Summaries.HelpModuleHelp))]
 		public Task<RuntimeResult> Command(
 			[LocalizedSummary(nameof(Summaries.HelpVariableCommand))]
 			[LocalizedName(nameof(Parameters.Command))]
 			[Remainder]
-			IHelpModule helpEntry
-		) => Responses.Misc.Help(helpEntry);
+			IHelpModule module
+		) => Responses.Misc.Help(module);
 
-		[Command, Priority(2)]
+		[Command]
+		[Priority(1)]
+		public Task<RuntimeResult> Command(
+			[LocalizedSummary(nameof(Summaries.HelpVariableCategory))]
+			[LocalizedName(nameof(Parameters.Category))]
+			Category category
+		)
+		{
+			var entries = HelpEntries.GetHelpModules(category.Name);
+			return Responses.Misc.Help(entries, category.Name);
+		}
+
+		[Command]
+		[Priority(2)]
 		[LocalizedSummary(nameof(Summaries.HelpCommandHelp))]
 		public Task<RuntimeResult> Command(
 			[LocalizedSummary(nameof(Summaries.HelpVariableCommandPosition))]
@@ -193,17 +186,25 @@ public sealed class Misc : ModuleBase
 			[LocalizedSummary(nameof(Summaries.HelpVariableExactCommand))]
 			[LocalizedName(nameof(Parameters.Command))]
 			[Remainder]
-			IHelpModule helpEntry
-		) => Responses.Misc.Help(helpEntry, position);
+			IHelpModule module
+		)
+		{
+			if (module.Commands.Count < position)
+			{
+				return Responses.Misc.HelpInvalidPosition(module, position);
+			}
+			return Responses.Misc.Help(module.Commands[position - 1]);
+		}
 
-		[Command(RunMode = RunMode.Async), Priority(0)]
+		[Command(RunMode = RunMode.Async)]
+		[Priority(0)]
 		[Hidden]
 		public async Task<RuntimeResult> Command(
 			[Remainder]
-			IReadOnlyList<IHelpModule> helpEntries
+			IReadOnlyList<IHelpModule> modules
 		)
 		{
-			var entry = await NextItemAtIndexAsync(helpEntries, x => x.Name).ConfigureAwait(false);
+			var entry = await NextItemAtIndexAsync(modules, x => x.Name).ConfigureAwait(false);
 			if (entry.HasValue)
 			{
 				return Responses.Misc.Help(entry.Value);

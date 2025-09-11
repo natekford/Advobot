@@ -606,4 +606,7 @@
   <data name="GetLogCounters" xml:space="preserve">
     <value>Displays the count of each item being logged.</value>
   </data>
+  <data name="HelpVariableCategory" xml:space="preserve">
+    <value>The name of a category. This does need to be exact.</value>
+  </data>
 </root>

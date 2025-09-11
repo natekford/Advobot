@@ -637,6 +637,15 @@ namespace Advobot.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The name of a category. This does need to be exact..
+        /// </summary>
+        public static string HelpVariableCategory {
+            get {
+                return ResourceManager.GetString("HelpVariableCategory", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to The name of a command. This does not need to be exact; commands with similar names will be found..
         /// </summary>
         public static string HelpVariableCommand {

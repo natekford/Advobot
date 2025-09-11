@@ -17,42 +17,7 @@ namespace Advobot.Standard.Responses;
 
 public sealed partial class Misc : AdvobotResult
 {
-	private static readonly Type _Commands = typeof(Commands.Misc.Commands);
 	private static readonly Type _Help = typeof(Commands.Misc.Help);
-
-	public static AdvobotResult CommandsCategory(
-		IEnumerable<IHelpModule> entries,
-		string category)
-	{
-		var title = MiscTitleCategoryCommands.Format(
-			category.WithTitleCase()
-		);
-		var description = entries
-			.Select(x => x.Name)
-			.Join()
-			.WithBigBlock()
-			.Current;
-		return Success(new EmbedWrapper
-		{
-			Title = title,
-			Description = description,
-		});
-	}
-
-	public static AdvobotResult CommandsGeneral(
-		IEnumerable<string> categories,
-		string prefix)
-	{
-		var description = MiscGeneralCommandInfo.Format(
-			GetPrefixedCommand(prefix, _Commands, VariableCategoryParameter),
-			categories.Join().WithBigBlock()
-		);
-		return Success(new EmbedWrapper
-		{
-			Title = MiscTitleCategories,
-			Description = description,
-		});
-	}
 
 	public static AdvobotResult Help(IHelpModule module)
 	{
@@ -91,17 +56,8 @@ public sealed partial class Misc : AdvobotResult
 		return Success(CreateHelpEmbed(module.Aliases[0], sb.ToString()));
 	}
 
-	public static AdvobotResult Help(IHelpModule module, int position)
+	public static AdvobotResult Help(IHelpCommand command)
 	{
-		if (module.Commands.Count < position)
-		{
-			return Failure(MiscInvalidHelpEntryNumber.Format(
-				position.ToString().WithBlock(),
-				module.Name.WithBlock()
-			));
-		}
-		var command = module.Commands[position - 1];
-
 		var sb = new StringBuilder()
 			.AppendHeaderAndValue(MiscTitleAliases, command.Aliases.Select(x => x.WithBlock().Current).Join())
 			.AppendHeaderAndValue(MiscTitleBasePermissions, FormatPreconditions(command.Preconditions))
@@ -121,11 +77,28 @@ public sealed partial class Misc : AdvobotResult
 		return Success(embed);
 	}
 
-	public static AdvobotResult HelpGeneral(string prefix)
+	public static AdvobotResult Help(IEnumerable<IHelpModule> entries, string category)
+	{
+		var title = MiscTitleCategoryCommands.Format(
+			category.WithTitleCase()
+		);
+		var description = entries
+			.Select(x => x.Name)
+			.Join()
+			.WithBigBlock()
+			.Current;
+		return Success(new EmbedWrapper
+		{
+			Title = title,
+			Description = description,
+		});
+	}
+
+	public static AdvobotResult Help(IEnumerable<string> categories, string prefix)
 	{
 		var description = MiscGeneralHelp.Format(
-			GetPrefixedCommand(prefix, _Commands),
-			GetPrefixedCommand(prefix, _Help, VariableCategoryParameter)
+			GetPrefixedCommand(prefix, _Help, VariableCategoryParameter),
+			GetPrefixedCommand(prefix, _Help, VariableCommandParameter)
 		);
 		var syntaxFieldValue = MiscBasicSyntax.Format(
 			(VariableRequiredLeft + VariableRequiredRight).WithBlock(),
@@ -141,9 +114,15 @@ public sealed partial class Misc : AdvobotResult
 			[
 				new()
 				{
+					Name = "Categories",
+					Value = categories.Join().WithBigBlock(),
+					IsInline = true,
+				},
+				new()
+				{
 					Name = MiscTitleBasicSyntax,
 					Value = syntaxFieldValue,
-					IsInline = true,
+					IsInline = false,
 				},
 				new()
 				{
@@ -162,6 +141,14 @@ public sealed partial class Misc : AdvobotResult
 				},
 			],
 		});
+	}
+
+	public static AdvobotResult HelpInvalidPosition(IHelpModule module, int position)
+	{
+		return Failure(MiscInvalidHelpEntryNumber.Format(
+			position.ToString().WithBlock(),
+			module.Name.WithBlock()
+		));
 	}
 
 	private static EmbedWrapper CreateHelpEmbed(string name, string entry)
@@ -219,7 +206,7 @@ public sealed partial class Misc : AdvobotResult
 	{
 		var attr = command.GetCustomAttribute<GroupAttribute>()
 			?? throw new ArgumentException("Group is null.", nameof(command));
-		return $"{prefix}{attr.Prefix} {args}".WithBlock();
+		return (prefix + attr.Prefix + (string.IsNullOrEmpty(args) ? "" : " ") + args).WithBlock();
 	}
 }
 

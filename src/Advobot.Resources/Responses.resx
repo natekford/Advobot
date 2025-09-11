@@ -598,7 +598,7 @@ Level: {3}</value>
 {1}</value>
   </data>
   <data name="MiscGeneralHelp" xml:space="preserve">
-    <value>Type {0} for a list of commands.
+    <value>Type {0} to see the commands in a category.
 Type {1} for help with a command.</value>
   </data>
   <data name="MiscInvalidHelpEntryNumber" xml:space="preserve">
@@ -987,5 +987,8 @@ Type {1} for help with a command.</value>
   </data>
   <data name="UsersDoesNotExist" xml:space="preserve">
     <value>{0} is not a Discord user.</value>
+  </data>
+  <data name="VariableCommandParameter" xml:space="preserve">
+    <value>[Command]</value>
   </data>
 </root>

@@ -1435,7 +1435,7 @@ namespace Advobot.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Type {0} for a list of commands.
+        ///   Looks up a localized string similar to Type {0} to see the commands in a category.
         ///Type {1} for help with a command..
         /// </summary>
         public static string MiscGeneralHelp {
@@ -2344,6 +2344,15 @@ namespace Advobot.Resources {
         public static string VariableCategoryParameter {
             get {
                 return ResourceManager.GetString("VariableCategoryParameter", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to [Command].
+        /// </summary>
+        public static string VariableCommandParameter {
+            get {
+                return ResourceManager.GetString("VariableCommandParameter", resourceCulture);
             }
         }
         
