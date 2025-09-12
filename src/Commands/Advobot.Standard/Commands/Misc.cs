@@ -63,7 +63,7 @@ public sealed class Misc : ModuleBase
 		[Command]
 		[Hidden]
 		[Priority(-1)]
-		public Task<RuntimeResult> FailureImplicit([Remainder] string text)
+		public Task<RuntimeResult> FailureImplicit([Remainder] string _)
 			=> Responses.Misc.InfoNotFound();
 
 		[LocalizedCommand(nameof(Groups.Guild))]

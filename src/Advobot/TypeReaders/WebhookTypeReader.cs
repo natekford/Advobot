@@ -29,7 +29,7 @@ public sealed class WebhookTypeReader : TypeReader
 			&& webhooks.FirstOrDefault(x => x.Id == id) is IWebhook wh)
 		{
 			var wrapper = await WebhookWrapper.CreateAsync(wh, context.Guild).ConfigureAwait(false);
-			if (wrapper is null)
+			if (wrapper is not null)
 			{
 				return TypeReaderResult.FromSuccess(wrapper);
 			}
