@@ -6,31 +6,30 @@ using Advobot.Preconditions;
 using Advobot.Resources;
 using Advobot.Services.GuildSettings;
 using Advobot.Services.Help;
-using Advobot.Utilities;
 
 using Discord;
 using Discord.Commands;
-using Discord.WebSocket;
 
 namespace Advobot.Standard.Commands;
 
 [Category(nameof(Misc))]
 public sealed class Misc : ModuleBase
 {
-	[LocalizedGroup(nameof(Groups.GetInfo))]
-	[LocalizedAlias(nameof(Aliases.GetInfo))]
+	[LocalizedGroup(nameof(Groups.Get))]
+	[LocalizedAlias(nameof(Aliases.Get))]
 	[LocalizedSummary(nameof(Summaries.GetInfo))]
 	[Meta("99dcd5e7-6bb2-49cf-b8b7-66b8e063fd18", IsEnabled = true)]
-	public sealed class GetInfo : AdvobotModuleBase
+	public sealed class Get : AdvobotModuleBase
 	{
 		[LocalizedCommand(nameof(Groups.Ban))]
 		[LocalizedAlias(nameof(Aliases.Ban))]
 		[Priority(1)]
-		public Task<RuntimeResult> Ban(IBan ban)
+		public Task<RuntimeResult> Ban([Remainder] IBan ban)
 			=> Responses.Misc.InfoBan(ban);
 
 		[Command]
-		public Task<RuntimeResult> BanImplicit(IBan ban)
+		[Hidden]
+		public Task<RuntimeResult> BanImplicit([Remainder] IBan ban)
 			=> Responses.Misc.InfoBan(ban);
 
 		[LocalizedCommand(nameof(Groups.Bot))]
@@ -42,22 +41,30 @@ public sealed class Misc : ModuleBase
 		[LocalizedCommand(nameof(Groups.Channel))]
 		[LocalizedAlias(nameof(Aliases.Channel))]
 		[Priority(1)]
-		public Task<RuntimeResult> Channel(IGuildChannel channel)
+		public Task<RuntimeResult> Channel([Remainder] IGuildChannel channel)
 			=> Responses.Misc.InfoChannel(channel);
 
 		[Command]
-		public Task<RuntimeResult> ChannelImplicit(IGuildChannel channel)
+		[Hidden]
+		public Task<RuntimeResult> ChannelImplicit([Remainder] IGuildChannel channel)
 			=> Responses.Misc.InfoChannel(channel);
 
 		[LocalizedCommand(nameof(Groups.Emote))]
 		[LocalizedAlias(nameof(Aliases.Emote))]
 		[Priority(1)]
-		public Task<RuntimeResult> Emote(Emote emote)
+		public Task<RuntimeResult> Emote([Remainder] Emote emote)
 			=> Responses.Misc.InfoEmote(emote);
 
 		[Command]
-		public Task<RuntimeResult> EmoteImplicit(Emote emote)
+		[Hidden]
+		public Task<RuntimeResult> EmoteImplicit([Remainder] Emote emote)
 			=> Responses.Misc.InfoEmote(emote);
+
+		[Command]
+		[Hidden]
+		[Priority(-1)]
+		public Task<RuntimeResult> FailureImplicit([Remainder] string text)
+			=> Responses.Misc.InfoNotFound();
 
 		[LocalizedCommand(nameof(Groups.Guild))]
 		[LocalizedAlias(nameof(Aliases.Guild))]
@@ -65,74 +72,49 @@ public sealed class Misc : ModuleBase
 		public Task<RuntimeResult> Guild()
 			=> Responses.Misc.InfoGuild(Context.Guild);
 
-		[LocalizedCommand(nameof(Groups.GuildUsers))]
-		[LocalizedAlias(nameof(Aliases.GuildUsers))]
-		[Priority(1)]
-		public Task<RuntimeResult> GuildUsers()
-			=> Responses.Misc.InfoGuildUsers(Context.Guild);
-
 		[LocalizedCommand(nameof(Groups.Invite))]
 		[LocalizedAlias(nameof(Aliases.Invite))]
 		[Priority(1)]
-		public Task<RuntimeResult> Invite(IInviteMetadata invite)
+		public Task<RuntimeResult> Invite([Remainder] IInviteMetadata invite)
 			=> Responses.Misc.InfoInvite(invite);
 
 		[Command]
-		public Task<RuntimeResult> InviteImplicit(IInviteMetadata invite)
+		[Hidden]
+		public Task<RuntimeResult> InviteImplicit([Remainder] IInviteMetadata invite)
 			=> Responses.Misc.InfoInvite(invite);
 
 		[LocalizedCommand(nameof(Groups.Role))]
 		[LocalizedAlias(nameof(Aliases.Role))]
 		[Priority(1)]
-		public Task<RuntimeResult> Role(IRole role)
+		public Task<RuntimeResult> Role([Remainder] IRole role)
 			=> Responses.Misc.InfoRole(role);
 
 		[Command]
-		public Task<RuntimeResult> RoleImplicit(IRole role)
+		[Hidden]
+		public Task<RuntimeResult> RoleImplicit([Remainder] IRole role)
 			=> Responses.Misc.InfoRole(role);
-
-		[LocalizedCommand(nameof(Groups.Shards))]
-		[LocalizedAlias(nameof(Aliases.Shards))]
-		[Priority(1)]
-		public Task<RuntimeResult> Shards()
-		{
-			if (Context.Client is DiscordShardedClient shardedClient)
-			{
-				return Responses.Misc.InfoShards(shardedClient);
-			}
-			return Responses.Misc.InfoBot(Context.Client);
-		}
 
 		[LocalizedCommand(nameof(Groups.User))]
 		[LocalizedAlias(nameof(Aliases.User))]
 		[Priority(1)]
-		public Task<RuntimeResult> User(IUser? user = null)
+		public Task<RuntimeResult> User([Remainder] IUser? user = null)
 			=> Responses.Misc.InfoUser(user ?? Context.User);
 
 		[Command]
-		public Task<RuntimeResult> UserImplicit(IUser user)
+		[Hidden]
+		public Task<RuntimeResult> UserImplicit([Remainder] IUser user)
 			=> Responses.Misc.InfoUser(user);
 
 		[LocalizedCommand(nameof(Groups.Webhook))]
 		[LocalizedAlias(nameof(Aliases.Webhook))]
 		[Priority(1)]
-		public Task<RuntimeResult> Webhook(IWebhook webhook)
+		public Task<RuntimeResult> Webhook([Remainder] IWebhook webhook)
 			=> Responses.Misc.InfoWebhook(webhook);
 
 		[Command]
-		public Task<RuntimeResult> WebhookImplicit(IWebhook webhook)
+		[Hidden]
+		public Task<RuntimeResult> WebhookImplicit([Remainder] IWebhook webhook)
 			=> Responses.Misc.InfoWebhook(webhook);
-	}
-
-	[LocalizedGroup(nameof(Groups.GetUserAvatar))]
-	[LocalizedAlias(nameof(Aliases.GetUserAvatar))]
-	[LocalizedSummary(nameof(Summaries.GetUserAvatar))]
-	[Meta("9978b327-b1bb-46af-9e9f-b43ff411902d", IsEnabled = true)]
-	public sealed class GetUserAvatar : AdvobotModuleBase
-	{
-		[Command]
-		public Task Command(IUser? user = null)
-			=> Context.Channel.SendMessageAsync((user ?? Context.User).GetAvatarUrl());
 	}
 
 	[LocalizedGroup(nameof(Groups.Help))]

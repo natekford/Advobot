@@ -358,6 +358,24 @@ namespace Advobot.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Ban Info.
+        /// </summary>
+        public static string GetsFooterBan {
+            get {
+                return ResourceManager.GetString("GetsFooterBan", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Versions [Bot: {0}] [Discord.Net: {1}].
+        /// </summary>
+        public static string GetsFooterBot {
+            get {
+                return ResourceManager.GetString("GetsFooterBot", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Channel Info.
         /// </summary>
         public static string GetsFooterChannel {
@@ -457,6 +475,15 @@ namespace Advobot.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Could not find an item matching the supplied value..
+        /// </summary>
+        public static string GetsNotFound {
+            get {
+                return ResourceManager.GetString("GetsNotFound", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to {0} has the following permissions: {1}..
         /// </summary>
         public static string GetsShowEnumNames {
@@ -538,11 +565,11 @@ namespace Advobot.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Channel Info.
+        ///   Looks up a localized string similar to Channels.
         /// </summary>
-        public static string GetsTitleChannelInfo {
+        public static string GetsTitleChannels {
             get {
-                return ResourceManager.GetString("GetsTitleChannelInfo", resourceCulture);
+                return ResourceManager.GetString("GetsTitleChannels", resourceCulture);
             }
         }
         
@@ -561,6 +588,15 @@ namespace Advobot.Resources {
         public static string GetsTitleColor {
             get {
                 return ResourceManager.GetString("GetsTitleColor", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Counts.
+        /// </summary>
+        public static string GetsTitleCounts {
+            get {
+                return ResourceManager.GetString("GetsTitleCounts", resourceCulture);
             }
         }
         
@@ -628,11 +664,29 @@ namespace Advobot.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Experimental Features.
+        /// </summary>
+        public static string GetsTitleExperimentalFeatures {
+            get {
+                return ResourceManager.GetString("GetsTitleExperimentalFeatures", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Guild Features.
         /// </summary>
         public static string GetsTitleFeatures {
             get {
                 return ResourceManager.GetString("GetsTitleFeatures", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Flags.
+        /// </summary>
+        public static string GetsTitleFlags {
+            get {
+                return ResourceManager.GetString("GetsTitleFlags", resourceCulture);
             }
         }
         
@@ -709,6 +763,15 @@ namespace Advobot.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Latency.
+        /// </summary>
+        public static string GetsTitleLatency {
+            get {
+                return ResourceManager.GetString("GetsTitleLatency", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Local Emote Count.
         /// </summary>
         public static string GetsTitleLocalEmoteCount {
@@ -781,11 +844,29 @@ namespace Advobot.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Normal Features.
+        /// </summary>
+        public static string GetsTitleNormalFeatures {
+            get {
+                return ResourceManager.GetString("GetsTitleNormalFeatures", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Message Notification Level.
         /// </summary>
         public static string GetsTitleNotifications {
             get {
                 return ResourceManager.GetString("GetsTitleNotifications", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Online Since.
+        /// </summary>
+        public static string GetsTitleOnline {
+            get {
+                return ResourceManager.GetString("GetsTitleOnline", resourceCulture);
             }
         }
         
@@ -813,6 +894,15 @@ namespace Advobot.Resources {
         public static string GetsTitlePosition {
             get {
                 return ResourceManager.GetString("GetsTitlePosition", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Reason.
+        /// </summary>
+        public static string GetsTitleReason {
+            get {
+                return ResourceManager.GetString("GetsTitleReason", resourceCulture);
             }
         }
         
@@ -862,6 +952,15 @@ namespace Advobot.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Shard {0}.
+        /// </summary>
+        public static string GetsTitleShard {
+            get {
+                return ResourceManager.GetString("GetsTitleShard", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Status.
         /// </summary>
         public static string GetsTitleStatus {
@@ -903,6 +1002,15 @@ namespace Advobot.Resources {
         public static string GetsTitleTextChannels {
             get {
                 return ResourceManager.GetString("GetsTitleTextChannels", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to User.
+        /// </summary>
+        public static string GetsTitleUser {
+            get {
+                return ResourceManager.GetString("GetsTitleUser", resourceCulture);
             }
         }
         
@@ -1011,6 +1119,60 @@ namespace Advobot.Resources {
         public static string GetsUserJoins {
             get {
                 return ResourceManager.GetString("GetsUserJoins", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to {0} ({1} text, {2} voice, {3} category).
+        /// </summary>
+        public static string GetsValueChannelCount {
+            get {
+                return ResourceManager.GetString("GetsValueChannelCount", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to {0} ({1} animated).
+        /// </summary>
+        public static string GetsValueEmoteCount {
+            get {
+                return ResourceManager.GetString("GetsValueEmoteCount", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to {0}ms.
+        /// </summary>
+        public static string GetsValueLatency {
+            get {
+                return ResourceManager.GetString("GetsValueLatency", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to {0} ({1}).
+        /// </summary>
+        public static string GetsValueOnline {
+            get {
+                return ResourceManager.GetString("GetsValueOnline", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to {0} ({1}ms).
+        /// </summary>
+        public static string GetsValueShard {
+            get {
+                return ResourceManager.GetString("GetsValueShard", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to {0} ({1} bots, {2} webhooks).
+        /// </summary>
+        public static string GetsValueUserCount {
+            get {
+                return ResourceManager.GetString("GetsValueUserCount", resourceCulture);
             }
         }
         
@@ -1411,6 +1573,15 @@ namespace Advobot.Resources {
         public static string MiscBasicSyntax {
             get {
                 return ResourceManager.GetString("MiscBasicSyntax", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to  (Cannot be disabled).
+        /// </summary>
+        public static string MiscCannotBeDisabled {
+            get {
+                return ResourceManager.GetString("MiscCannotBeDisabled", resourceCulture);
             }
         }
         
@@ -2272,6 +2443,15 @@ namespace Advobot.Resources {
         public static string UsersRealPrune {
             get {
                 return ResourceManager.GetString("UsersRealPrune", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Ban.
+        /// </summary>
+        public static string UsersTitleBan {
+            get {
+                return ResourceManager.GetString("UsersTitleBan", resourceCulture);
             }
         }
         

@@ -17,24 +17,17 @@ public sealed class InviteTypeReader : TypeReader
 		string input,
 		IServiceProvider services)
 	{
+		var code = input.Split('/')[^1];
+		var invite = await context.Client.GetInviteAsync(code).ConfigureAwait(false);
+		if (invite is not null && invite.GuildId == context.Guild.Id)
 		{
-			var code = input.Split('/')[^1];
-			var invites = await context.Guild.GetInvitesAsync().ConfigureAwait(false);
-			var invite = invites.FirstOrDefault(x => x.Code.CaseInsEquals(code));
-			if (invite != null)
+			var channel = await context.Guild.GetChannelAsync(invite.ChannelId).ConfigureAwait(false);
+			if (channel is INestedChannel nestedChannel)
 			{
-				return TypeReaderResult.FromSuccess(invite);
+				var invites = await nestedChannel.GetInvitesAsync().ConfigureAwait(false);
+				return TypeReaderResult.FromSuccess(invites.Single(x => x.Id == invite.Id));
 			}
 		}
-
-		{
-			var invite = await context.Client.GetInviteAsync(input).ConfigureAwait(false);
-			if (invite is IInviteMetadata meta && invite.GuildId == context.Guild.Id)
-			{
-				return TypeReaderResult.FromSuccess(meta);
-			}
-		}
-
-		return TypeReaderUtils.SingleValidResult(Array.Empty<IInviteMetadata>(), "invites", input);
+		return TypeReaderUtils.ParseFailedResult<IInviteMetadata>();
 	}
 }

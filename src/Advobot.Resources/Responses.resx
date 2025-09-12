@@ -294,8 +294,8 @@
   <data name="GetsTitleChannelCount" xml:space="preserve">
     <value>Channel Count</value>
   </data>
-  <data name="GetsTitleChannelInfo" xml:space="preserve">
-    <value>Channel Info</value>
+  <data name="GetsTitleChannels" xml:space="preserve">
+    <value>Channels</value>
   </data>
   <data name="GetsTitleColons" xml:space="preserve">
     <value>Requires Colons</value>
@@ -990,5 +990,65 @@ Type {1} for help with a command.</value>
   </data>
   <data name="VariableCommandParameter" xml:space="preserve">
     <value>[Command]</value>
+  </data>
+  <data name="MiscCannotBeDisabled" xml:space="preserve">
+    <value> (Cannot be disabled)</value>
+  </data>
+  <data name="UsersTitleBan" xml:space="preserve">
+    <value>Ban</value>
+  </data>
+  <data name="GetsTitleUser" xml:space="preserve">
+    <value>User</value>
+  </data>
+  <data name="GetsTitleReason" xml:space="preserve">
+    <value>Reason</value>
+  </data>
+  <data name="GetsTitleCounts" xml:space="preserve">
+    <value>Counts</value>
+  </data>
+  <data name="GetsTitleNormalFeatures" xml:space="preserve">
+    <value>Normal Features</value>
+  </data>
+  <data name="GetsTitleExperimentalFeatures" xml:space="preserve">
+    <value>Experimental Features</value>
+  </data>
+  <data name="GetsTitleFlags" xml:space="preserve">
+    <value>Flags</value>
+  </data>
+  <data name="GetsValueChannelCount" xml:space="preserve">
+    <value>{0} ({1} text, {2} voice, {3} category)</value>
+  </data>
+  <data name="GetsValueEmoteCount" xml:space="preserve">
+    <value>{0} ({1} animated)</value>
+  </data>
+  <data name="GetsTitleShard" xml:space="preserve">
+    <value>Shard {0}</value>
+  </data>
+  <data name="GetsValueShard" xml:space="preserve">
+    <value>{0} ({1}ms)</value>
+  </data>
+  <data name="GetsFooterBot" xml:space="preserve">
+    <value>Versions [Bot: {0}] [Discord.Net: {1}]</value>
+  </data>
+  <data name="GetsTitleLatency" xml:space="preserve">
+    <value>Latency</value>
+  </data>
+  <data name="GetsValueLatency" xml:space="preserve">
+    <value>{0}ms</value>
+  </data>
+  <data name="GetsTitleOnline" xml:space="preserve">
+    <value>Online Since</value>
+  </data>
+  <data name="GetsValueOnline" xml:space="preserve">
+    <value>{0} ({1})</value>
+  </data>
+  <data name="GetsValueUserCount" xml:space="preserve">
+    <value>{0} ({1} bots, {2} webhooks)</value>
+  </data>
+  <data name="GetsNotFound" xml:space="preserve">
+    <value>Could not find an item matching the supplied value.</value>
+  </data>
+  <data name="GetsFooterBan" xml:space="preserve">
+    <value>Ban Info</value>
   </data>
 </root>

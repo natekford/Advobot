@@ -23,16 +23,17 @@ public sealed class EmoteTypeReader : TypeReader
 		string input,
 		IServiceProvider services)
 	{
-		if (Emote.TryParse(input, out var tempEmote))
+		if (Emote.TryParse(input, out var emote))
 		{
-			return TypeReaderResult.FromSuccess(tempEmote).AsTask();
+			var guildEmote = context.Guild.Emotes.FirstOrDefault(x => x.Id == emote.Id);
+			return TypeReaderResult.FromSuccess(guildEmote ?? emote).AsTask();
 		}
 		if (ulong.TryParse(input, out var id))
 		{
-			var emote = context.Guild.Emotes.FirstOrDefault(x => x.Id == id);
-			if (emote != null)
+			var guildEmote = context.Guild.Emotes.FirstOrDefault(x => x.Id == id);
+			if (guildEmote != null)
 			{
-				return TypeReaderResult.FromSuccess(emote).AsTask();
+				return TypeReaderResult.FromSuccess(guildEmote).AsTask();
 			}
 		}
 

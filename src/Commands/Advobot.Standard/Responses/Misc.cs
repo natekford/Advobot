@@ -5,6 +5,7 @@ using Advobot.Utilities;
 
 using Discord;
 using Discord.Commands;
+using Discord.Rest;
 using Discord.WebSocket;
 
 using System.Reflection;
@@ -24,11 +25,16 @@ public sealed partial class Misc : AdvobotResult
 		var sb = new StringBuilder()
 			.AppendHeaderAndValue(MiscTitleAliases, module.Aliases.Join())
 			.AppendHeaderAndValue(MiscTitleBasePermissions, FormatPreconditions(module.Preconditions))
+			.AppendHeaderAndValue(MiscTitleEnabledByDefault, module.EnabledByDefault);
+
+		if (!module.AbleToBeToggled)
+		{
+			sb.Append(MiscCannotBeDisabled);
+		}
+
+		sb
 			.AppendCategorySeparator()
-			.AppendHeaderAndValue(MiscTitleDescription, module.Summary)
-			.AppendCategorySeparator()
-			.AppendHeaderAndValue(MiscTitleEnabledByDefault, module.EnabledByDefault)
-			.AppendHeaderAndValue(MiscTitleAbleToBeToggled, module.AbleToBeToggled);
+			.AppendHeaderAndValue(MiscTitleDescription, module.Summary);
 
 		if (module.Submodules.Count != 0)
 		{
@@ -212,48 +218,74 @@ public sealed partial class Misc : AdvobotResult
 
 public sealed partial class Misc : AdvobotResult
 {
-	private static readonly IReadOnlyList<ActivityType> _Activities
-		= Enum.GetValues<ActivityType>();
 	private static readonly IReadOnlyList<GuildPermission> _Permissions
 		= Enum.GetValues<GuildPermission>();
-	private static readonly IReadOnlyList<UserStatus> _Statuses
-		= Enum.GetValues<UserStatus>();
 
 	public static AdvobotResult InfoBan(IBan ban)
 	{
-		var title = UsersTitleBanReason.Format(
-			ban.User.Format().WithNoMarkdown()
-		);
+		var sb = new StringBuilder()
+			.AppendHeaderAndValue(GetsTitleUser, ban.User.Format())
+			.AppendHeaderAndValue(GetsTitleReason, ban.Reason ?? UsersNoBanReason);
 		return Success(new EmbedWrapper
 		{
-			Title = title,
-			Description = ban.Reason ?? UsersNoBanReason,
+			Description = sb.ToString(),
+			Author = ban.User.CreateAuthor(),
+			Footer = new()
+			{
+				Text = GetsFooterBan,
+				IconUrl = ban.User.GetAvatarUrl(),
+			},
 		});
 	}
 
 	public static AdvobotResult InfoBot(IDiscordClient client)
 	{
-		var startTime = Constants.START.ToReadable();
 		var runDuration = DateTime.UtcNow - Constants.START;
-		var description = $"**Online Since:** `{startTime}` (`{runDuration:g}`)";
+		var ts = new TimeSpan(runDuration.Days, runDuration.Hours, runDuration.Minutes, runDuration.Seconds);
+		var sb = new StringBuilder()
+			.AppendHeaderAndValue(GetsTitleOnline, GetsValueOnline.Format(
+				Constants.START.ToReadable().WithNoMarkdown(),
+				ts.ToString("g").WithNoMarkdown()
+			));
 		if (client is BaseSocketClient socketClient)
 		{
-			description += $"\n**Latency:** `{socketClient.Latency}`";
+			sb.AppendHeaderAndValue(GetsTitleLatency, GetsValueLatency.Format(
+				socketClient.Latency.ToString().WithNoMarkdown()
+			));
 		}
 		if (client is DiscordShardedClient shardedClient)
 		{
-			description += $"**Shard Count:** `{shardedClient.Shards.Count}`";
+			sb.AppendCategorySeparator();
+			foreach (var shard in shardedClient.Shards)
+			{
+				var statusEmoji = shard.ConnectionState switch
+				{
+					ConnectionState.Disconnected => Constants.DENIED,
+					ConnectionState.Disconnecting => Constants.DENIED,
+					ConnectionState.Connected => Constants.ALLOWED,
+					ConnectionState.Connecting => Constants.ALLOWED,
+					_ => Constants.UNKNOWN,
+				};
+				sb.AppendHeaderAndValue(GetsTitleShard.Format(
+					shard.ShardId.ToString().WithNoMarkdown()
+				), GetsValueShard.Format(
+					statusEmoji.WithNoMarkdown(),
+					shard.Latency.ToString().WithNoMarkdown()
+				));
+			}
 		}
 
 		return Success(new EmbedWrapper
 		{
-			Description = description,
+			Description = sb.ToString(),
 			Author = client.CurrentUser.CreateAuthor(),
 			Footer = new()
 			{
-				Text =
-					$"Versions [Bot: {Constants.BOT_VERSION}] " +
-					$"[Discord.Net: {Constants.DISCORD_NET_VERSION}]",
+				Text = GetsFooterBot.Format(
+					Constants.BOT_VERSION.WithNoMarkdown(),
+					Constants.DISCORD_NET_VERSION.WithNoMarkdown()
+				),
+				IconUrl = client.CurrentUser.GetAvatarUrl(),
 			},
 		});
 	}
@@ -287,8 +319,9 @@ public sealed partial class Misc : AdvobotResult
 			Description = sb.ToString(),
 			Author = new()
 			{
-				Name = channel.Format(),
 				IconUrl = channel.Guild.IconUrl,
+				Name = channel.Format(),
+				Url = channel.Guild.IconUrl,
 			},
 			Footer = new()
 			{
@@ -327,11 +360,10 @@ public sealed partial class Misc : AdvobotResult
 		return Success(new EmbedWrapper
 		{
 			Description = sb.ToString(),
-			ThumbnailUrl = emote.Url,
 			Author = new()
 			{
-				Name = ((IEmote)emote).Format(),
 				IconUrl = emote.Url,
+				Name = ((IEmote)emote).Format(),
 				Url = emote.Url,
 			},
 			Footer = new()
@@ -344,63 +376,62 @@ public sealed partial class Misc : AdvobotResult
 
 	public static async Task<RuntimeResult> InfoGuild(IGuild guild)
 	{
-		var userCount = (await guild.GetUsersAsync(CacheMode.CacheOnly).ConfigureAwait(false)).Count;
+		var users = await guild.GetUsersAsync(CacheMode.CacheOnly).ConfigureAwait(false);
 		var owner = await guild.GetOwnerAsync().ConfigureAwait(false);
 
-		int channels = 0, categories = 0, voice = 0, text = 0;
+		int webhooks = 0, bots = 0;
+		foreach (var user in users)
+		{
+			if (user.IsWebhook)
+			{
+				++webhooks;
+			}
+			if (user.IsBot)
+			{
+				++bots;
+			}
+		}
+		int channels = 0, category = 0, voice = 0, text = 0;
 		foreach (var channel in await guild.GetChannelsAsync().ConfigureAwait(false))
 		{
 			++channels;
 			if (channel is ICategoryChannel)
 			{
-				++categories;
+				++category;
 			}
-			if (channel is IVoiceChannel)
+			else if (channel is IVoiceChannel)
 			{
 				++voice;
 			}
-			if (channel is ITextChannel)
+			else if (channel is ITextChannel)
 			{
 				++text;
 			}
 		}
-		int emotes = 0, local = 0, animated = 0, managed = 0;
+		int emotes = 0, animated = 0;
 		foreach (var emote in guild.Emotes)
 		{
 			++emotes;
-			if (emote.IsManaged)
-			{
-				++managed;
-			}
 			if (emote.Animated)
 			{
 				++animated;
-			}
-			else
-			{
-				++local;
 			}
 		}
 
 		var sb = new StringBuilder()
 			.AppendTimeCreated(guild)
 			.AppendCategorySeparator()
-			.AppendHeaderAndValue(GetsTitleOwner, owner.Format())
-			.AppendHeaderAndValue(GetsTitleUserCount, userCount)
-			.AppendHeaderAndValue(GetsTitleRoleCount, guild.Roles.Count)
-			.AppendHeaderAndValue(GetsTitleNotifications, guild.DefaultMessageNotifications)
-			.AppendHeaderAndValue(GetsTitleVerification, guild.VerificationLevel)
-			.AppendHeaderAndValue(GetsTitleVoiceRegion, guild.VoiceRegionId);
+			.AppendHeaderAndValue(GetsTitleOwner, owner.Format());
 
 		var embed = new EmbedWrapper
 		{
 			Description = sb.ToString(),
 			Color = owner.GetRoles().LastOrDefault(x => x.Color.RawValue != 0)?.Color,
-			ThumbnailUrl = guild.IconUrl,
 			Author = new()
 			{
-				Name = guild.Format(),
 				IconUrl = guild.IconUrl,
+				Name = guild.Format(),
+				Url = guild.IconUrl,
 			},
 			Footer = new()
 			{
@@ -410,115 +441,52 @@ public sealed partial class Misc : AdvobotResult
 		};
 
 		{
+			var countsSb = new StringBuilder()
+				.AppendHeaderAndValue(GetsTitleUserCount, GetsValueUserCount.Format(
+					users.Count.ToString().WithNoMarkdown(),
+					bots.ToString().WithNoMarkdown(),
+					webhooks.ToString().WithNoMarkdown()
+				))
+				.AppendHeaderAndValue(GetsTitleRoleCount, guild.Roles.Count)
+				.AppendHeaderAndValue(GetsTitleChannelCount, GetsValueChannelCount.Format(
+					channels.ToString().WithNoMarkdown(),
+					text.ToString().WithNoMarkdown(),
+					voice.ToString().WithNoMarkdown(),
+					category.ToString().WithNoMarkdown()
+				))
+				.AppendHeaderAndValue(GetsTitleEmoteCount, GetsValueEmoteCount.Format(
+					emotes.ToString().WithNoMarkdown(),
+					animated.ToString().WithNoMarkdown()
+				));
+			embed.TryAddField(GetsTitleCounts, countsSb.ToString(), false, out _);
+		}
+
+		{
 			var channelSb = new StringBuilder()
-				.AppendHeaderAndValue(GetsTitleChannelCount, channels)
-				.AppendHeaderAndValue(GetsTitleTextChannelCount, text)
-				.AppendHeaderAndValue(GetsTitleVoiceChannelCount, voice)
-				.AppendHeaderAndValue(GetsTitleCategoryChannelCount, categories)
-				.AppendCategorySeparator()
 				.AppendHeaderAndValue(GetsTitleDefaultChannel, (await guild.GetDefaultChannelAsync().ConfigureAwait(false)).Format())
 				.AppendHeaderAndValue(GetsTitleAfkChannel, (await guild.GetAFKChannelAsync().ConfigureAwait(false)).Format())
 				.AppendHeaderAndValue(GetsTitleSystemChannel, (await guild.GetSystemChannelAsync().ConfigureAwait(false)).Format())
 				.AppendHeaderAndValue(GetsTitleEmbedChannel, (await guild.GetWidgetChannelAsync().ConfigureAwait(false)).Format());
-			embed.TryAddField(GetsTitleChannelInfo, channelSb.ToString(), false, out _);
+			embed.TryAddField(GetsTitleChannels, channelSb.ToString(), false, out _);
 		}
 
 		{
-			var emoteSb = new StringBuilder()
-				.AppendHeaderAndValue(GetsTitleEmoteCount, emotes)
-				.AppendHeaderAndValue(GetsTitleAnimatedEmoteCount, animated)
-				.AppendHeaderAndValue(GetsTitleLocalEmoteCount, local)
-				.AppendHeaderAndValue(GetsTitleManagedEmoteCount, managed);
-			embed.TryAddField(GetsTitleEmoteInfo, emoteSb.ToString(), false, out _);
-		}
-
-		{
-			var fieldValue = "";
+			var flagsSb = new StringBuilder()
+				.AppendHeaderAndValue(GetsTitleNotifications, guild.DefaultMessageNotifications)
+				.AppendHeaderAndValue(GetsTitleVerification, guild.VerificationLevel);
 			if (guild.Features.Value != 0)
 			{
-				fieldValue += guild.Features.Value.ToString();
+				flagsSb.AppendHeaderAndValue(GetsTitleNormalFeatures, guild.Features.Value);
 			}
 			if (guild.Features.Experimental.Count > 0)
 			{
-				fieldValue += guild.Features.Experimental.Join();
+				flagsSb.AppendHeaderAndValue(GetsTitleExperimentalFeatures, guild.Features.Experimental.Join());
 			}
 
-			if (!string.IsNullOrWhiteSpace(fieldValue))
+			if (flagsSb.Length > 0)
 			{
-				fieldValue = fieldValue.WithBlock().Current;
-				embed.TryAddField(GetsTitleFeatures, fieldValue, false, out _);
+				embed.TryAddField(GetsTitleFlags, flagsSb.ToString(), false, out _);
 			}
-		}
-		return Success(embed);
-	}
-
-	public static async Task<RuntimeResult> InfoGuildUsers(IGuild guild)
-	{
-		var users = await guild.GetUsersAsync(CacheMode.CacheOnly).ConfigureAwait(false);
-		var statuses = _Statuses.ToDictionary(x => x, _ => 0);
-		var activities = _Activities.ToDictionary(x => x, _ => 0);
-		int webhooks = 0, bots = 0, nickname = 0, voice = 0;
-		foreach (var user in users)
-		{
-			++statuses[user.Status];
-			foreach (var activity in user.Activities)
-			{
-				++activities[activity.Type];
-			}
-			if (user.IsWebhook)
-			{
-				++webhooks;
-			}
-			if (user.IsBot)
-			{
-				++bots;
-			}
-			if (user.Nickname != null)
-			{
-				++nickname;
-			}
-			if (user.VoiceChannel != null)
-			{
-				++voice;
-			}
-		}
-
-		var sb = new StringBuilder()
-			.AppendHeaderAndValue(GetsTitleUserCount, users.Count)
-			.AppendHeaderAndValue(GetsTitleBotCount, bots)
-			.AppendHeaderAndValue(GetsTitleWebhookCount, webhooks)
-			.AppendHeaderAndValue(GetsTitleInVoiceCount, voice)
-			.AppendHeaderAndValue(GetsTitleNicknameCount, nickname);
-
-		var embed = new EmbedWrapper
-		{
-			Description = sb.ToString(),
-			Author = new()
-			{
-				Name = guild.Format(),
-				IconUrl = guild.IconUrl,
-			},
-			Footer = new()
-			{
-				Text = GetsFooterGuildUsers,
-				IconUrl = guild.IconUrl,
-			},
-		};
-		{
-			var statusesSb = new StringBuilder();
-			foreach (var (header, value) in statuses)
-			{
-				statusesSb.AppendHeaderAndValue(header.ToString(), value);
-			}
-			embed.TryAddField(GetsTitleStatuses, statusesSb.ToString(), false, out _);
-		}
-		{
-			var activitiesSb = new StringBuilder();
-			foreach (var (header, value) in activities)
-			{
-				activitiesSb.AppendHeaderAndValue(header.ToString(), value);
-			}
-			embed.TryAddField(GetsTitleActivities, activitiesSb.ToString(), false, out _);
 		}
 		return Success(embed);
 	}
@@ -529,25 +497,39 @@ public sealed partial class Misc : AdvobotResult
 			.AppendTimeCreated(invite.Id, invite.CreatedAt.GetValueOrDefault())
 			.AppendCategorySeparator()
 			.AppendHeaderAndValue(GetsTitleCreator, invite.Inviter.Format())
-			.AppendHeaderAndValue(GetsTitleChannel, invite.Channel.Format())
+			.AppendHeaderAndValue(GetsTitleChannel, new PartialChannel
+			{
+				ChannelType = invite.ChannelType,
+				Id = invite.ChannelId,
+				Name = invite.ChannelName,
+			}.Format())
 			.AppendHeaderAndValue(GetsTitleUses, invite.Uses ?? 0);
+
+		var iconUrl = default(string?);
+		if (invite is RestInvite restInvite)
+		{
+			iconUrl = restInvite.PartialGuild.IconUrl;
+		}
 
 		return Success(new EmbedWrapper
 		{
 			Description = sb.ToString(),
 			Author = new()
 			{
+				IconUrl = iconUrl,
 				Name = invite.Format(),
-				IconUrl = invite.Guild.IconUrl,
-				Url = invite.Url,
+				Url = iconUrl,
 			},
 			Footer = new()
 			{
 				Text = GetsFooterInvite,
-				IconUrl = invite.Guild.IconUrl,
+				IconUrl = iconUrl,
 			},
 		});
 	}
+
+	public static AdvobotResult InfoNotFound()
+		=> Failure(GetsNotFound);
 
 	public static async Task<RuntimeResult> InfoRole(IRole role)
 	{
@@ -573,8 +555,14 @@ public sealed partial class Misc : AdvobotResult
 		{
 			Description = sb.ToString(),
 			Color = role.Color,
-			Author = new() { Name = role.Format(), },
-			Footer = new() { Text = GetsFooterRole, },
+			Author = new()
+			{
+				Name = role.Format(),
+			},
+			Footer = new()
+			{
+				Text = GetsFooterRole,
+			},
 		};
 		if (permissions.Length > 0)
 		{
@@ -582,32 +570,6 @@ public sealed partial class Misc : AdvobotResult
 			embed.TryAddField(GetsTitlePermissions, fieldValue, false, out _);
 		}
 		return Success(embed);
-	}
-
-	public static AdvobotResult InfoShards(DiscordShardedClient client)
-	{
-		var description = client.Shards.Select(shard =>
-		{
-			var statusEmoji = shard.ConnectionState switch
-			{
-				ConnectionState.Disconnected => Constants.DENIED,
-				ConnectionState.Disconnecting => Constants.DENIED,
-				ConnectionState.Connected => Constants.ALLOWED,
-				ConnectionState.Connecting => Constants.ALLOWED,
-				_ => Constants.UNKNOWN,
-			};
-			return $"Shard `{shard.ShardId}`: `{statusEmoji} ({shard.Latency}ms)`";
-		}).Join("\n");
-		return Success(new EmbedWrapper
-		{
-			Description = description,
-			Author = client.CurrentUser.CreateAuthor(),
-			Footer = new()
-			{
-				Text = GetsFooterShards,
-				IconUrl = client.CurrentUser.GetAvatarUrl(),
-			},
-		});
 	}
 
 	public static async Task<RuntimeResult> InfoUser(IUser user)
@@ -620,7 +582,6 @@ public sealed partial class Misc : AdvobotResult
 
 		var embed = new EmbedWrapper
 		{
-			ThumbnailUrl = user.GetAvatarUrl(),
 			Author = user.CreateAuthor(),
 			Footer = new()
 			{
@@ -713,12 +674,11 @@ public sealed partial class Misc : AdvobotResult
 		return Success(new EmbedWrapper
 		{
 			Description = sb.ToString(),
-			ThumbnailUrl = webhook.GetAvatarUrl(),
 			Author = new()
 			{
-				Name = webhook.Format(),
 				IconUrl = webhook.GetAvatarUrl(),
-				Url = webhook.GetAvatarUrl(),
+				Name = webhook.Format(),
+				Url = webhook.GetAvatarUrl(ImageFormat.Auto, 2048),
 			},
 			Footer = new()
 			{
@@ -726,6 +686,20 @@ public sealed partial class Misc : AdvobotResult
 				IconUrl = webhook.GetAvatarUrl(),
 			},
 		});
+	}
+
+	private sealed class PartialChannel : IChannel
+	{
+		public required ChannelType ChannelType { get; init; }
+		public DateTimeOffset CreatedAt => throw new NotImplementedException();
+		public required ulong Id { get; init; }
+		public required string Name { get; init; }
+
+		public Task<IUser> GetUserAsync(ulong id, CacheMode mode = CacheMode.AllowDownload, RequestOptions? options = null)
+			=> throw new NotImplementedException();
+
+		public IAsyncEnumerable<IReadOnlyCollection<IUser>> GetUsersAsync(CacheMode mode = CacheMode.AllowDownload, RequestOptions? options = null)
+			=> throw new NotImplementedException();
 	}
 }
 
@@ -753,7 +727,7 @@ internal static class ResponseUtils
 		return sb
 			.Append(header.WithTitleCaseAndColon())
 			.Append(' ')
-			.Append(value);
+			.Append(value?.ToString()?.WithBlock());
 	}
 
 	public static StringBuilder AppendTimeCreated(

@@ -23,16 +23,15 @@ public sealed class BanTypeReader : TypeReader
 		string input,
 		IServiceProvider services)
 	{
-		var ban = default(IBan?);
 		if (MentionUtils.TryParseUser(input, out var id) || ulong.TryParse(input, out id))
 		{
-			ban = await context.Guild.GetBanAsync(id).ConfigureAwait(false);
+			var ban = await context.Guild.GetBanAsync(id).ConfigureAwait(false);
+			if (ban is not null)
+			{
+				return TypeReaderResult.FromSuccess(ban);
+			}
 		}
 
-		if (ban is not null)
-		{
-			return TypeReaderResult.FromSuccess(ban);
-		}
 		return TypeReaderUtils.ParseFailedResult<IBan>();
 	}
 }

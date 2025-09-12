@@ -16,7 +16,6 @@ using Advobot.Utilities;
 
 using Discord;
 using Discord.Commands;
-using Discord.Net;
 
 using static Discord.ChannelPermission;
 

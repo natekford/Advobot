@@ -28,9 +28,11 @@ public sealed class Levels : AdvobotResult
 		{
 			Title = title,
 			Description = description,
-			ThumbnailUrl = user?.GetAvatarUrl(),
 			Author = user?.CreateAuthor() ?? new(),
-			Footer = new() { Text = LevelsLevelFooter, },
+			Footer = new()
+			{
+				Text = LevelsLevelFooter,
+			},
 		});
 	}
 

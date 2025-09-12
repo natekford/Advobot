@@ -22,7 +22,7 @@ public static class FormattingUtils
 		{
 			IconUrl = author?.GetAvatarUrl(),
 			Name = author?.Format(),
-			Url = author?.GetAvatarUrl(),
+			Url = author?.GetAvatarUrl(ImageFormat.Auto, 2048),
 		};
 	}
 
@@ -65,7 +65,7 @@ public static class FormattingUtils
 		{
 			return "Irretrievable User";
 		}
-		return $"'{user.Username.EscapeBackTicks()}#{user.Discriminator}' ({user.Id})";
+		return $"'{user.Username.EscapeBackTicks()}' ({user.Id})";
 	}
 
 	/// <summary>
@@ -215,8 +215,8 @@ public static class FormattingUtils
 		}
 
 		const string INF = "\u221E"; //∞
-		var uses = invite.MaxUses.HasValue ? invite.MaxUses.Value.ToString() : INF;
-		var time = invite.MaxAge.HasValue ? (invite.MaxAge.Value / 60).ToString() : INF;
+		var uses = invite.MaxUses > 0 ? invite.MaxUses.Value.ToString() : INF;
+		var time = invite.MaxAge > 0 ? (invite.MaxAge.Value / 60).ToString() : INF;
 		var temp = invite.IsTemporary ? ", temp" : "";
 		return $"'{invite.Code}' ({uses} uses, {time} minutes{temp})";
 	}
