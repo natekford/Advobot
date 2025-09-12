@@ -38,7 +38,7 @@ public sealed partial class Misc : AdvobotResult
 
 		if (module.Submodules.Count != 0)
 		{
-			var submodules = "\n" + module.Submodules
+			var submodules = module.Submodules
 				.Select((x, i) => $"{i + 1}. {x.Name}")
 				.Join("\n")
 				.WithBigBlock()
@@ -49,7 +49,7 @@ public sealed partial class Misc : AdvobotResult
 
 		if (module.Commands.Count != 0)
 		{
-			var commands = "\n" + module.Commands.Select((x, i) =>
+			var commands = module.Commands.Select((x, i) =>
 			{
 				var parameters = x.Parameters.Select(FormatParameter).Join();
 				var name = string.IsNullOrWhiteSpace(x.Name) ? "" : x.Name + " ";
@@ -497,12 +497,7 @@ public sealed partial class Misc : AdvobotResult
 			.AppendTimeCreated(invite.Id, invite.CreatedAt.GetValueOrDefault())
 			.AppendCategorySeparator()
 			.AppendHeaderAndValue(GetsTitleCreator, invite.Inviter.Format())
-			.AppendHeaderAndValue(GetsTitleChannel, new PartialChannel
-			{
-				ChannelType = invite.ChannelType,
-				Id = invite.ChannelId,
-				Name = invite.ChannelName,
-			}.Format())
+			.AppendHeaderAndValue(GetsTitleChannel, invite.Channel.Format())
 			.AppendHeaderAndValue(GetsTitleUses, invite.Uses ?? 0);
 
 		var iconUrl = default(string?);
@@ -687,20 +682,6 @@ public sealed partial class Misc : AdvobotResult
 			},
 		});
 	}
-
-	private sealed class PartialChannel : IChannel
-	{
-		public required ChannelType ChannelType { get; init; }
-		public DateTimeOffset CreatedAt => throw new NotImplementedException();
-		public required ulong Id { get; init; }
-		public required string Name { get; init; }
-
-		public Task<IUser> GetUserAsync(ulong id, CacheMode mode = CacheMode.AllowDownload, RequestOptions? options = null)
-			=> throw new NotImplementedException();
-
-		public IAsyncEnumerable<IReadOnlyCollection<IUser>> GetUsersAsync(CacheMode mode = CacheMode.AllowDownload, RequestOptions? options = null)
-			=> throw new NotImplementedException();
-	}
 }
 
 internal static class ResponseUtils
@@ -724,10 +705,18 @@ internal static class ResponseUtils
 			sb.Append('\n');
 		}
 
-		return sb
-			.Append(header.WithTitleCaseAndColon())
-			.Append(' ')
-			.Append(value?.ToString()?.WithBlock());
+		sb.Append(header.WithTitleCaseAndColon()).Append(' ');
+		if (!valStr.StartsWith('`'))
+		{
+			sb.Append('`');
+		}
+		sb.Append(valStr);
+		if (!valStr.EndsWith('`'))
+		{
+			sb.Append('`');
+		}
+
+		return sb;
 	}
 
 	public static StringBuilder AppendTimeCreated(
