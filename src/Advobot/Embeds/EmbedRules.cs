@@ -22,22 +22,12 @@ internal static class EmbedRules
 		);
 	}
 
-	public static EmbedPropertyValidator<TEmbed, string?> MaxLines<TEmbed>(
-		this EmbedPropertyValidator<TEmbed, string?> validator,
-		int max)
-	{
-		return validator.Rule(
-			x => x?.Count(c => c is '\r' or '\n') <= max,
-			() => $"Max new lines is {max}."
-		);
-	}
-
 	public static EmbedPropertyValidator<TEmbed, string?> NotEmpty<TEmbed>(
 		this EmbedPropertyValidator<TEmbed, string?> validator)
 	{
 		return validator.Rule(
 			x => !string.IsNullOrWhiteSpace(x),
-			() => "Cannot be null or empty."
+			() => "Cannot be null, empty, or whitespace."
 		);
 	}
 

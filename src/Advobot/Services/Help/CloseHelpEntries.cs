@@ -6,7 +6,7 @@ namespace Advobot.Services.Help;
 /// Implementation of <see cref="CloseWords{T}"/> which searches through help entries.
 /// </summary>
 /// <param name="source"></param>
-internal sealed class CloseHelpEntries(IReadOnlyList<IHelpModule> source)
+internal sealed class CloseHelpEntries(IEnumerable<IHelpModule> source)
 	: CloseWords<IHelpModule>(source, x => x.Name)
 {
 	/// <inheritdoc />

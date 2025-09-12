@@ -6,6 +6,7 @@ using Advobot.Preconditions;
 using Advobot.Resources;
 using Advobot.Services.GuildSettings;
 using Advobot.Services.Help;
+using Advobot.Utilities;
 
 using Discord;
 using Discord.Commands;
@@ -153,7 +154,9 @@ public sealed class Misc : ModuleBase
 			Category category
 		)
 		{
-			var entries = HelpEntries.GetHelpModules(category.Name);
+			var entries = HelpEntries
+				.GetHelpModules(includeSubmodules: false)
+				.Where(x => x.Category.CaseInsEquals(category.Name));
 			return Responses.Misc.Help(entries, category.Name);
 		}
 

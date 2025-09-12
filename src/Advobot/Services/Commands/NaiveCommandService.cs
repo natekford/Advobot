@@ -127,7 +127,7 @@ public sealed class NaiveCommandService(
 			}
 		}
 
-		static void ThrowIfDuplicateId(
+		static bool CheckDuplicateId(
 			ModuleInfo module,
 			Dictionary<Guid, ModuleInfo> ids,
 			MetaAttribute meta)
@@ -135,23 +135,18 @@ public sealed class NaiveCommandService(
 			if (!ids.TryGetValue(meta.Guid, out var original))
 			{
 				ids.Add(meta.Guid, module);
-				return;
+				return true;
 			}
 
-			var shouldThrow = true;
 			for (var m = module; m != null; m = m.Parent)
 			{
 				if (m == original)
 				{
-					shouldThrow = false;
-					break;
+					return false;
 				}
 			}
 
-			if (shouldThrow)
-			{
-				throw new InvalidOperationException($"Duplicate id between {original.Name} and {module.Name}.");
-			}
+			throw new InvalidOperationException($"Duplicate id between {original.Name} and {module.Name}.");
 		}
 
 		int commandCount = 0, helpEntryCount = 0;
@@ -160,11 +155,10 @@ public sealed class NaiveCommandService(
 		foreach (var module in modules.SelectMany(GetAllModules))
 		{
 			var meta = module.Attributes.OfType<MetaAttribute>().FirstOrDefault();
-			if (meta is null)
+			if (meta is null || !CheckDuplicateId(module, ids, meta))
 			{
 				continue;
 			}
-			ThrowIfDuplicateId(module, ids, meta);
 
 			++commandCount;
 			if (!module.Attributes.Any(a => a is HiddenAttribute))

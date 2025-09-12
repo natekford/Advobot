@@ -26,7 +26,7 @@ public sealed class HelpEntryTypeReader : TypeReader
 		IServiceProvider services)
 	{
 		var help = services.GetRequiredService<IHelpService>();
-		var matches = help.GetHelpModules().Where(x =>
+		var matches = help.GetHelpModules(includeSubmodules: true).Where(x =>
 		{
 			var nameMatch = x.Name.CaseInsEquals(input);
 			var aliasMatch = x.Aliases.CaseInsContains(input);

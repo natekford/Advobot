@@ -22,18 +22,18 @@ public sealed partial class Misc : AdvobotResult
 
 	public static AdvobotResult Help(IHelpModule module)
 	{
+		var enabled = module.EnabledByDefault.ToString();
+		if (!module.AbleToBeToggled)
+		{
+			enabled += MiscCannotBeDisabled;
+		}
+
 		var sb = new StringBuilder()
 			.AppendHeaderAndValue(MiscTitleAliases, module.Aliases.Join())
 			.AppendHeaderAndValue(MiscTitleBasePermissions, FormatPreconditions(module.Preconditions))
-			.AppendHeaderAndValue(MiscTitleEnabledByDefault, module.EnabledByDefault);
+			.AppendHeaderAndValue(MiscTitleEnabledByDefault, enabled);
 
-		if (!module.AbleToBeToggled)
-		{
-			sb.Append(MiscCannotBeDisabled);
-		}
-
-		sb
-			.AppendCategorySeparator()
+		sb.AppendCategorySeparator()
 			.AppendHeaderAndValue(MiscTitleDescription, module.Summary);
 
 		if (module.Submodules.Count != 0)
@@ -41,8 +41,7 @@ public sealed partial class Misc : AdvobotResult
 			var submodules = module.Submodules
 				.Select((x, i) => $"{i + 1}. {x.Name}")
 				.Join("\n")
-				.WithBigBlock()
-				.Current;
+				.WithBigBlock();
 			sb.AppendCategorySeparator()
 				.AppendHeaderAndValue(MiscTitleSubmodules, submodules);
 		}
@@ -54,7 +53,7 @@ public sealed partial class Misc : AdvobotResult
 				var parameters = x.Parameters.Select(FormatParameter).Join();
 				var name = string.IsNullOrWhiteSpace(x.Name) ? "" : x.Name + " ";
 				return $"{i + 1}. {name}({parameters})";
-			}).Join("\n").WithBigBlock().Current;
+			}).Join("\n").WithBigBlock();
 			sb.AppendCategorySeparator()
 				.AppendHeaderAndValue(MiscTitleCommands, commands);
 		}
@@ -115,12 +114,15 @@ public sealed partial class Misc : AdvobotResult
 		{
 			Title = MiscTitleGeneralHelp,
 			Description = description,
-			Footer = new() { Text = MiscFooterHelp },
+			Footer = new()
+			{
+				Text = MiscFooterHelp,
+			},
 			Fields =
 			[
 				new()
 				{
-					Name = "Categories",
+					Name = MiscTitleCategories,
 					Value = categories.Join().WithBigBlock(),
 					IsInline = true,
 				},

@@ -131,7 +131,7 @@ public sealed class Settings : ModuleBase
 			}
 
 			protected Task<RuntimeResult> ModifyAll(CommandOverrideEntity entity, int priority)
-				=> Modify(entity, HelpEntries.GetHelpModules(), priority);
+				=> Modify(entity, HelpEntries.GetHelpModules(includeSubmodules: true), priority);
 
 			protected Task<RuntimeResult> ModifyCategories(
 				CommandOverrideEntity entity,
@@ -140,7 +140,7 @@ public sealed class Settings : ModuleBase
 			{
 				var names = categories.Select(x => x.Name).ToHashSet();
 				var entries = HelpEntries
-					.GetHelpModules()
+					.GetHelpModules(includeSubmodules: true)
 					.Where(x => names.Contains(x.Category));
 				return Modify(entity, entries, priority);
 			}

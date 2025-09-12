@@ -170,44 +170,6 @@ public sealed class EmbedWrapper_Tests
 	}
 
 	[TestMethod]
-	public void DescriptionTooLongTooManyLines_Test()
-	{
-		RunDescriptionTest(embed =>
-		{
-			var success = embed.TryAddDescription(LONG + LINES, out var errors);
-			Assert.IsFalse(success);
-			Assert.HasCount(3, errors);
-			Assert.AreEqual(INITIAL, embed.Description);
-		});
-		RunDescriptionTest(embed =>
-		{
-			Assert.ThrowsExactly<ArgumentException>(
-				() => embed.Description = LONG + LINES
-			);
-			Assert.AreEqual(INITIAL, embed.Description);
-		});
-	}
-
-	[TestMethod]
-	public void DescriptionTooManyLines_Test()
-	{
-		RunDescriptionTest(embed =>
-		{
-			var success = embed.TryAddDescription(LINES, out var errors);
-			Assert.IsFalse(success);
-			Assert.HasCount(1, errors);
-			Assert.AreEqual(INITIAL, embed.Description);
-		});
-		RunDescriptionTest(embed =>
-		{
-			Assert.ThrowsExactly<ArgumentException>(
-				() => embed.Description = LINES
-			);
-			Assert.AreEqual(INITIAL, embed.Description);
-		});
-	}
-
-	[TestMethod]
 	public void DescriptionValidLength_Test()
 	{
 		RunDescriptionTest(embed =>

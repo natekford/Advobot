@@ -6,16 +6,17 @@ namespace Advobot.Services.Help;
 [Replacable]
 internal sealed class NaiveHelpService : IHelpService
 {
-	private readonly Localized<List<IHelpModule>> _Help = Localized.Create<List<IHelpModule>>();
+	private readonly Localized<Dictionary<string, IHelpModule>> _Help
+		= Localized.Create<Dictionary<string, IHelpModule>>();
 
 	/// <inheritdoc />
 	public void Add(IHelpModule item)
-		=> _Help.Get().Add(item);
+		=> _Help.Get().Add(item.Id, item);
 
 	/// <inheritdoc />
 	public IReadOnlyList<IHelpModule> FindCloseHelpModules(string input)
 	{
-		return [.. new CloseHelpEntries(_Help.Get())
+		return [.. new CloseHelpEntries(GetHelpModules(includeSubmodules: true))
 			.FindMatches(input)
 			.Select(x => x.Value)
 		];
@@ -23,28 +24,28 @@ internal sealed class NaiveHelpService : IHelpService
 
 	/// <inheritdoc />
 	public IReadOnlyCollection<string> GetCategories()
-		=> _Help.Get().Select(x => x.Category).ToHashSet();
+		=> _Help.Get().Values.Select(x => x.Category).ToHashSet();
 
 	/// <inheritdoc />
-	public IEnumerable<IHelpModule> GetHelpModules(string? category = null)
+	public IEnumerable<IHelpModule> GetHelpModules(bool includeSubmodules)
 	{
-		static IEnumerable<IHelpModule> GetHelpEntries(IHelpModule entry)
+		static IEnumerable<IHelpModule> IncludeSubmodules(IHelpModule module)
 		{
-			yield return entry;
-			foreach (var submodule in entry.Submodules)
+			yield return module;
+			foreach (var submodule in module.Submodules)
 			{
-				foreach (var item in GetHelpEntries(submodule))
+				foreach (var item in IncludeSubmodules(submodule))
 				{
 					yield return item;
 				}
 			}
 		}
 
-		var entries = _Help.Get().SelectMany(GetHelpEntries);
-		if (category is null)
+		IEnumerable<IHelpModule> entries = _Help.Get().Values;
+		if (includeSubmodules)
 		{
-			return entries;
+			entries = entries.SelectMany(IncludeSubmodules);
 		}
-		return entries.Where(x => x.Category.CaseInsEquals(category));
+		return entries;
 	}
 }

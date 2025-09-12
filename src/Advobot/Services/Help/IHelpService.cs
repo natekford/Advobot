@@ -25,9 +25,9 @@ public interface IHelpService
 	IReadOnlyCollection<string> GetCategories();
 
 	/// <summary>
-	/// Returns an array of every <see cref="IHelpModule"/> unless a category is specified.
+	/// Returns an enumerable of <see cref="IHelpModule"/>.
 	/// </summary>
-	/// <param name="category"></param>
+	/// <param name="includeSubmodules"></param>
 	/// <returns></returns>
-	IEnumerable<IHelpModule> GetHelpModules(string? category = null);
+	IEnumerable<IHelpModule> GetHelpModules(bool includeSubmodules);
 }

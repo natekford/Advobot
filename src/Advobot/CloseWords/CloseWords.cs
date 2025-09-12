@@ -10,7 +10,7 @@ namespace Advobot.CloseWords;
 /// <typeparam name="T"></typeparam>
 /// <param name="source"></param>
 /// <param name="getName"></param>
-public class CloseWords<T>(IReadOnlyList<T> source, Func<T, string> getName)
+public class CloseWords<T>(IEnumerable<T> source, Func<T, string> getName)
 {
 	/// <summary>
 	/// Mark as close if the supplied text is within searched text.
@@ -31,7 +31,7 @@ public class CloseWords<T>(IReadOnlyList<T> source, Func<T, string> getName)
 	/// <summary>
 	/// What to search through.
 	/// </summary>
-	protected IReadOnlyList<T> Source { get; } = source;
+	protected IEnumerable<T> Source { get; } = source;
 
 	/// <summary>
 	/// Returns matches.
@@ -41,9 +41,9 @@ public class CloseWords<T>(IReadOnlyList<T> source, Func<T, string> getName)
 	public virtual IReadOnlyList<CloseWord<T>> FindMatches(string search)
 	{
 		var list = new List<CloseWord<T>>(MaxOutput);
-		for (var i = 0; i < Source.Count; ++i)
+		foreach (var item in Source)
 		{
-			if (!IsCloseWord(search, Source[i], out var closeWord))
+			if (!IsCloseWord(search, item, out var closeWord))
 			{
 				continue;
 			}

@@ -26,7 +26,7 @@ public sealed class HelpEntryTypeReader_Tests : TypeReader_Tests<HelpEntryTypeRe
 			});
 		}
 
-		var result = await ReadAsync(Help.GetHelpModules().First().Name).ConfigureAwait(false);
+		var result = await ReadAsync(Help.GetHelpModules(true).First().Name).ConfigureAwait(false);
 		Assert.IsTrue(result.IsSuccess);
 		Assert.IsInstanceOfType<IHelpModule>(result.BestMatch);
 	}

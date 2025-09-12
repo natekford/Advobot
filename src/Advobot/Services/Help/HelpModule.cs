@@ -29,7 +29,7 @@ internal sealed class HelpModule : IHelpModule
 		Id = meta.Guid.ToString();
 
 		Category = category?.Category?.ToLower() ?? throw new ArgumentNullException(nameof(Category));
-		Name = module.Name?.ToLower() ?? throw new ArgumentNullException(nameof(Name));
+		Name = module.Aliases[0] ?? throw new ArgumentNullException(nameof(Name));
 		Summary = module.Summary ?? throw new ArgumentNullException(nameof(Summary));
 
 		Aliases = [.. module.Aliases.Select(x => x.ToLower())];

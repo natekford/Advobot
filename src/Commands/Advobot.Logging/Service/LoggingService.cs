@@ -487,8 +487,7 @@ partial class LoggingService
 
 			var text = (string.IsNullOrWhiteSpace(message.Content)
 				? "Empty" : message.Content).Sanitize(keepMarkdown: false);
-			var isValid = text.Length < (EmbedFieldBuilder.MaxFieldValueLength - 50)
-				&& text.Count(c => c is '\n') < EmbedWrapper.MAX_DESCRIPTION_LINES / 2;
+			var isValid = text.Length < (EmbedFieldBuilder.MaxFieldValueLength - 50);
 			return (isValid, text);
 		}
 
@@ -515,7 +514,7 @@ partial class LoggingService
 				Files =
 				[
 					MessageUtils.CreateTextFile(
-						"Edited_Message",
+						"Message_Updated",
 						$"Before:\n{beforeContent}\n\nAfter:\n{afterContent}"
 					),
 				],

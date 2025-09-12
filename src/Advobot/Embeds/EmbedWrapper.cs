@@ -12,15 +12,6 @@ namespace Advobot.Embeds;
 /// </summary>
 public sealed class EmbedWrapper
 {
-	/// <summary>
-	/// The maximum length in lines a description can be before it won't render on mobile.
-	/// </summary>
-	public const int MAX_DESCRIPTION_LINES = 20;
-	/// <summary>
-	/// The maximum length in lines a field can be before it won't render on mobile.
-	/// </summary>
-	public const int MAX_FIELD_LINES = 5;
-
 	private readonly EmbedBuilder _Embed;
 	private readonly List<EmbedException> _Errors = [];
 
@@ -278,7 +269,6 @@ public sealed class EmbedWrapper
 		.Property<EmbedBuilder, string?>(x => x.Description, description)
 			.Max(EmbedBuilder.MaxDescriptionLength)
 			.Remaining(GetRemainingLength(nameof(Description)))
-			.MaxLines(MAX_DESCRIPTION_LINES)
 		.Validator.Finalize(out errors);
 	}
 
@@ -316,7 +306,6 @@ public sealed class EmbedWrapper
 			.NotEmpty()
 			.Max(EmbedFieldBuilder.MaxFieldValueLength)
 			.Remaining(remaining)
-			.MaxLines(MAX_FIELD_LINES)
 		.Validator.Property<EmbedFieldBuilder, string?>(x => x.Name + (string)x.Value, name + value)
 			.Remaining(remaining)
 		.Validator.Finalize(out errors);
@@ -418,10 +407,7 @@ public sealed class EmbedWrapper
 	private static void Throw(
 		IReadOnlyList<EmbedException> errors,
 		[CallerMemberName] string property = "")
-	{
-		var innerException = new AggregateException(errors);
-		throw new ArgumentException($"Unable to set {property}.", innerException);
-	}
+		=> throw new ArgumentException($"Unable to set {property}.", new AggregateException(errors));
 
 	private EmbedValidator CreateValidator(Action setter)
 		=> new(setter, _Errors);

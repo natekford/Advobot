@@ -115,18 +115,15 @@ public sealed class MessageQueue(
 		var inEmbed = ordered.Length < 10;
 		var sb = new StringBuilder();
 
-		var lineCount = 0;
 		foreach (var message in ordered)
 		{
 			var text = message.Format(withMentions: true).Sanitize(keepMarkdown: true);
-			lineCount += text.Count(c => c is '\n');
 			sb.AppendLine(text);
 
 			// Can only stay in an embed if the description is less than 2048
 			// and if the line numbers are less than 20
 			// Subtract 100 just to give some leeway
-			if (sb.Length > (EmbedBuilder.MaxDescriptionLength - 100)
-				|| lineCount > EmbedWrapper.MAX_DESCRIPTION_LINES)
+			if (sb.Length > (EmbedBuilder.MaxDescriptionLength - 100))
 			{
 				inEmbed = false;
 				break;
