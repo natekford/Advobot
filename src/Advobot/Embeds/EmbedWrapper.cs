@@ -143,7 +143,7 @@ public sealed class EmbedWrapper
 	/// <summary>
 	/// Whether or not to directly throw an exception when a property is given an invalid value.
 	/// </summary>
-	public bool ThrowOnError { get; set; }
+	public bool ThrowOnError { get; set; } = true;
 	/// <inheritdoc cref="EmbedBuilder.ThumbnailUrl"/>
 	public string? ThumbnailUrl
 	{
