@@ -4,6 +4,7 @@ using Discord;
 
 using System.Diagnostics.CodeAnalysis;
 using System.Runtime.CompilerServices;
+using System.Text;
 
 namespace Advobot.Embeds;
 
@@ -224,7 +225,24 @@ public sealed class EmbedWrapper
 
 	/// <inheritdoc />
 	public override string ToString()
-		=> (_Errors ??= []).Select(x => $"{x.Path}:\n{x.Value}").Join("\n\n");
+	{
+		var sb = new StringBuilder();
+		foreach (var group in (_Errors ??= []).GroupBy(x => x.Path))
+		{
+			var sampleError = default(EmbedException?);
+			foreach (var error in group)
+			{
+				if (sampleError is null)
+				{
+					sampleError = error;
+					sb.Append("Path=").Append(sampleError.Path).AppendLine().Append("Reason=");
+				}
+				sb.Append(error.Message).Append(' ');
+			}
+			sb.AppendLine().Append("Value=").Append(sampleError!.Value).AppendLine().AppendLine();
+		}
+		return sb.ToString();
+	}
 
 	/// <summary>
 	/// Attempts to add a field. Does nothing if fails.

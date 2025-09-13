@@ -1,4 +1,5 @@
 ﻿using Advobot.Attributes;
+using Advobot.Embeds;
 using Advobot.Localization;
 using Advobot.Modules;
 using Advobot.ParameterPreconditions.Numbers;

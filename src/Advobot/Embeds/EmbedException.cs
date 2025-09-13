@@ -51,7 +51,7 @@ public class EmbedException : Exception
 		object? value,
 		Exception? innerException
 	) : this(
-		message: $"{path}: '{value?.ToString() ?? "null"}' is invalid. Reason: {message}",
+		message: message,
 		innerException: innerException
 	)
 	{
