@@ -2,7 +2,7 @@
 
 using Discord;
 
-namespace Advobot.Tests.Core;
+namespace Advobot.Tests.Core.Embeds;
 
 [TestClass]
 public sealed class EmbedWrapper_Tests
@@ -11,7 +11,6 @@ public sealed class EmbedWrapper_Tests
 	private const string INVALID_URL = "not a url lol";
 	private const string NEW = "Second valid length string";
 	private const string VALID_URL = "https://www.google.com";
-	private static readonly string LINES = new('\n', 50);
 	private static readonly string LONG = new('A', 50000);
 
 	[TestMethod]
@@ -21,7 +20,7 @@ public sealed class EmbedWrapper_Tests
 		{
 			var success = embed.TryAddAuthor(NEW, INVALID_URL, null, out var errors);
 			Assert.IsFalse(success);
-			Assert.HasCount(1, errors);
+			Assert.HasCount(1, errors!);
 			Assert.AreEqual(INITIAL, embed.Author?.Name);
 			Assert.IsNull(embed.Author?.IconUrl);
 			Assert.IsNull(embed.Author?.Url);
@@ -59,7 +58,7 @@ public sealed class EmbedWrapper_Tests
 		{
 			var success = embed.TryAddAuthor(LONG, VALID_URL, VALID_URL, out var errors);
 			Assert.IsFalse(success);
-			Assert.HasCount(2, errors);
+			Assert.HasCount(2, errors!);
 			Assert.AreEqual(INITIAL, embed.Author?.Name);
 			Assert.IsNull(embed.Author?.IconUrl);
 			Assert.IsNull(embed.Author?.Url);
@@ -86,7 +85,7 @@ public sealed class EmbedWrapper_Tests
 		{
 			var success = embed.TryAddAuthor(LONG, null, null, out var errors);
 			Assert.IsFalse(success);
-			Assert.HasCount(2, errors);
+			Assert.HasCount(2, errors!);
 			Assert.AreEqual(INITIAL, embed.Author?.Name);
 			Assert.IsNull(embed.Author?.IconUrl);
 			Assert.IsNull(embed.Author?.Url);
@@ -113,7 +112,7 @@ public sealed class EmbedWrapper_Tests
 		{
 			var success = embed.TryAddAuthor(NEW, VALID_URL, null, out var errors);
 			Assert.IsTrue(success);
-			Assert.IsEmpty(errors);
+			Assert.IsNull(errors);
 			Assert.AreEqual(NEW, embed.Author?.Name);
 			Assert.AreEqual(VALID_URL, embed.Author?.Url);
 			Assert.IsNull(embed.Author?.IconUrl);
@@ -138,7 +137,7 @@ public sealed class EmbedWrapper_Tests
 		{
 			var success = embed.TryAddDescription(INITIAL, out var errors);
 			Assert.IsFalse(success);
-			Assert.HasCount(1, errors);
+			Assert.HasCount(1, errors!);
 			Assert.AreEqual(EmbedBuilder.MaxDescriptionLength, embed.Description?.Length);
 		});
 		RunFilledTest(embed =>
@@ -157,7 +156,7 @@ public sealed class EmbedWrapper_Tests
 		{
 			var success = embed.TryAddDescription(LONG, out var errors);
 			Assert.IsFalse(success);
-			Assert.HasCount(2, errors);
+			Assert.HasCount(2, errors!);
 			Assert.AreEqual(INITIAL, embed.Description);
 		});
 		RunDescriptionTest(embed =>
@@ -170,13 +169,13 @@ public sealed class EmbedWrapper_Tests
 	}
 
 	[TestMethod]
-	public void DescriptionValidLength_Test()
+	public void DescriptionValid_Test()
 	{
 		RunDescriptionTest(embed =>
 		{
 			var success = embed.TryAddDescription(NEW, out var errors);
 			Assert.IsTrue(success);
-			Assert.IsEmpty(errors);
+			Assert.IsNull(errors);
 			Assert.AreEqual(NEW, embed.Description);
 		});
 		RunDescriptionTest(embed =>
@@ -187,13 +186,73 @@ public sealed class EmbedWrapper_Tests
 	}
 
 	[TestMethod]
+	public void FieldEmpty_Test()
+	{
+		RunFieldTest(embed =>
+		{
+			var success = embed.TryAddField(null, null, true, out var errors);
+			Assert.IsFalse(success);
+			Assert.HasCount(2, errors!);
+			Assert.HasCount(1, embed.Fields);
+		});
+	}
+
+	[TestMethod]
+	public void FieldTooLong_Test()
+	{
+		RunFieldTest(embed =>
+		{
+			var success = embed.TryAddField(LONG, INITIAL, true, out var errors);
+			Assert.IsFalse(success);
+			Assert.HasCount(2, errors!);
+			Assert.HasCount(1, embed.Fields);
+		});
+		RunFieldTest(embed =>
+		{
+			var success = embed.TryAddField(INITIAL, LONG, true, out var errors);
+			Assert.IsFalse(success);
+			Assert.HasCount(2, errors!);
+			Assert.HasCount(1, embed.Fields);
+		});
+	}
+
+	[TestMethod]
+	public void FieldTooMany_Test()
+	{
+		RunFieldTest(embed =>
+		{
+			embed.Fields = [.. Enumerable.Range(0, 25).Select(x => new EmbedFieldBuilder
+			{
+				Name = x.ToString(),
+				Value = x.ToString(),
+			})];
+			var success = embed.TryAddField(INITIAL, INITIAL, true, out var errors);
+			Assert.IsFalse(success);
+			Assert.HasCount(1, errors!);
+			Assert.HasCount(25, embed.Fields);
+		});
+	}
+
+	[TestMethod]
+	public void FieldValid_Test()
+	{
+		RunFieldTest(embed =>
+		{
+			var success = embed.TryAddField(INITIAL, INITIAL, true, out var errors);
+			Assert.IsTrue(success);
+			Assert.IsNull(errors);
+			Assert.HasCount(2, embed.Fields);
+		});
+	}
+
+	[TestMethod]
 	public void FooterInvalidUrl_Test()
 	{
 		RunFooterTest(embed =>
 		{
 			var success = embed.TryAddFooter(LONG, INVALID_URL, out var errors);
 			Assert.IsFalse(success);
-			Assert.HasCount(3, errors);
+			Assert.HasCount(3, errors!);
 			Assert.AreEqual(INITIAL, embed.Footer?.Text);
 			Assert.IsNull(embed.Footer?.IconUrl);
 		});
@@ -229,7 +288,7 @@ public sealed class EmbedWrapper_Tests
 		{
 			var success = embed.TryAddFooter(LONG, VALID_URL, out var errors);
 			Assert.IsFalse(success);
-			Assert.HasCount(2, errors);
+			Assert.HasCount(2, errors!);
 			Assert.AreEqual(INITIAL, embed.Footer?.Text);
 			Assert.IsNull(embed.Footer?.IconUrl);
 		});
@@ -255,7 +314,7 @@ public sealed class EmbedWrapper_Tests
 		{
 			var success = embed.TryAddFooter(LONG, null, out var errors);
 			Assert.IsFalse(success);
-			Assert.HasCount(2, errors);
+			Assert.HasCount(2, errors!);
 			Assert.AreEqual(INITIAL, embed.Footer?.Text);
 			Assert.IsNull(embed.Footer?.IconUrl);
 		});
@@ -274,6 +333,17 @@ public sealed class EmbedWrapper_Tests
 	}
 
 	[TestMethod]
+	public void FooterValid_Test()
+	{
+		RunFooterTest(embed =>
+		{
+			var success = embed.TryAddFooter(INITIAL, null, out var errors);
+			Assert.IsTrue(success);
+			Assert.IsNull(errors);
+		});
+	}
+
+	[TestMethod]
 	public void ImageUrl_Test()
 		=> RunUrlTest((e, v) => (e.TryAddImageUrl(v, out var ex), ex), x => x.ImageUrl);
 
@@ -288,7 +358,7 @@ public sealed class EmbedWrapper_Tests
 		{
 			var success = embed.TryAddTitle(NEW, out var errors);
 			Assert.IsFalse(success);
-			Assert.HasCount(1, errors);
+			Assert.HasCount(1, errors!);
 			Assert.AreEqual(EmbedBuilder.MaxTitleLength, embed.Title?.Length);
 		});
 		RunFilledTest(embed =>
@@ -307,7 +377,7 @@ public sealed class EmbedWrapper_Tests
 		{
 			var success = embed.TryAddTitle(LONG, out var errors);
 			Assert.IsFalse(success);
-			Assert.HasCount(2, errors);
+			Assert.HasCount(2, errors!);
 			Assert.AreEqual(INITIAL, embed.Title);
 		});
 		RunTitleTest(embed =>
@@ -326,7 +396,7 @@ public sealed class EmbedWrapper_Tests
 		{
 			var success = embed.TryAddTitle(NEW, out var errors);
 			Assert.IsTrue(success);
-			Assert.IsEmpty(errors);
+			Assert.IsNull(errors);
 			Assert.AreEqual(NEW, embed.Title);
 		});
 		RunTitleTest(embed =>
@@ -356,6 +426,21 @@ public sealed class EmbedWrapper_Tests
 		action(new()
 		{
 			Description = INITIAL,
+		});
+	}
+
+	private static void RunFieldTest(Action<EmbedWrapper> action)
+	{
+		action(new()
+		{
+			Fields =
+			[
+				new()
+				{
+					Name = INITIAL,
+					Value = INITIAL,
+				}
+			],
 		});
 	}
 
@@ -404,7 +489,7 @@ public sealed class EmbedWrapper_Tests
 	}
 
 	private static void RunUrlTest(
-		Func<EmbedWrapper, string?, (bool, IReadOnlyList<Exception>)> tryAdd,
+		Func<EmbedWrapper, string?, (bool, IReadOnlyList<Exception>?)> tryAdd,
 		Func<EmbedWrapper, string?> getter)
 	{
 		static void RunUrlTest(Action<EmbedWrapper> action)
@@ -414,21 +499,21 @@ public sealed class EmbedWrapper_Tests
 		{
 			var (success, errors) = tryAdd(embed, VALID_URL);
 			Assert.IsTrue(success);
-			Assert.IsEmpty(errors);
+			Assert.IsNull(errors);
 			Assert.AreEqual(VALID_URL, getter(embed));
 		});
 		RunUrlTest(embed =>
 		{
 			var (success, errors) = tryAdd(embed, INVALID_URL);
 			Assert.IsFalse(success);
-			Assert.HasCount(1, errors);
+			Assert.HasCount(1, errors!);
 			Assert.IsNull(getter(embed));
 		});
 		RunUrlTest(embed =>
 		{
 			var (success, errors) = tryAdd(embed, null);
 			Assert.IsTrue(success);
-			Assert.IsEmpty(errors);
+			Assert.IsNull(errors);
 			Assert.IsNull(getter(embed));
 		});
 	}

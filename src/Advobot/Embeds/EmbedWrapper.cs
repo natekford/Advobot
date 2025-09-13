@@ -2,7 +2,11 @@
 
 using Discord;
 
+using System;
+using System.Diagnostics.CodeAnalysis;
+using System.Reflection.Metadata.Ecma335;
 using System.Runtime.CompilerServices;
+using System.Runtime.Serialization;
 
 namespace Advobot.Embeds;
 
@@ -13,7 +17,7 @@ namespace Advobot.Embeds;
 public sealed class EmbedWrapper
 {
 	private readonly EmbedBuilder _Embed;
-	private readonly List<EmbedException> _Errors = [];
+	private List<EmbedException>? _Errors;
 
 	/// <summary>
 	/// The color to use for attachments on a message.
@@ -82,8 +86,7 @@ public sealed class EmbedWrapper
 	/// <summary>
 	/// Any errors which have happened when building the embed.
 	/// </summary>
-	public IReadOnlyList<EmbedException> Errors
-		=> [.. _Errors];
+	public IReadOnlyList<EmbedException> Errors => _Errors ??= [];
 	/// <inheritdoc cref="EmbedBuilder.Fields"/>
 	public List<EmbedFieldBuilder> Fields
 	{
@@ -220,7 +223,7 @@ public sealed class EmbedWrapper
 
 	/// <inheritdoc />
 	public override string ToString()
-		=> _Errors.Select(x => $"{x.PropertyPath}:\n{x.Value}").Join("\n\n");
+		=> (_Errors ??= []).Select(x => $"{x.Path}:\n{x.Value}").Join("\n\n");
 
 	/// <summary>
 	/// Attempts to modify the author. Does nothing if fails.
@@ -234,25 +237,25 @@ public sealed class EmbedWrapper
 		string? name,
 		string? url,
 		string? iconUrl,
-		out IReadOnlyList<EmbedException> errors)
+		[NotNullWhen(false)] out List<EmbedException>? errors)
 	{
-		return CreateValidator(() =>
+		errors = null;
+
+		ValidateLength(ref errors, "Author.Name", EmbedAuthorBuilder.MaxAuthorNameLength, name);
+		ValidateRemaining(ref errors, "Author.Name", Ignore.Author, name);
+		ValidateUrl(ref errors, "Author.Url", url);
+		ValidateUrl(ref errors, "Author.IconUrl", iconUrl);
+
+		if (errors is null)
 		{
-			_Embed.Author = new EmbedAuthorBuilder
+			_Embed.Author = new()
 			{
 				Name = name,
 				Url = url,
 				IconUrl = iconUrl
 			};
-		})
-		.Property<EmbedAuthorBuilder, string?>(x => x.Name, name)
-			.Max(EmbedAuthorBuilder.MaxAuthorNameLength)
-			.Remaining(GetRemainingLength(nameof(Author)))
-		.Validator.Property<EmbedAuthorBuilder, string?>(x => x.Url, url)
-			.ValidUrl()
-		.Validator.Property<EmbedAuthorBuilder, string?>(x => x.IconUrl, iconUrl)
-			.ValidUrl()
-		.Validator.Finalize(out errors);
+		}
+		return errors is null;
 	}
 
 	/// <summary>
@@ -263,13 +266,18 @@ public sealed class EmbedWrapper
 	/// <returns></returns>
 	public bool TryAddDescription(
 		string? description,
-		out IReadOnlyList<EmbedException> errors)
+		[NotNullWhen(false)] out List<EmbedException>? errors)
 	{
-		return CreateValidator(() => _Embed.Description = description)
-		.Property<EmbedBuilder, string?>(x => x.Description, description)
-			.Max(EmbedBuilder.MaxDescriptionLength)
-			.Remaining(GetRemainingLength(nameof(Description)))
-		.Validator.Finalize(out errors);
+		errors = null;
+
+		ValidateLength(ref errors, "Description", EmbedBuilder.MaxDescriptionLength, description);
+		ValidateRemaining(ref errors, "Description", Ignore.Description, description);
+
+		if (errors is null)
+		{
+			_Embed.Description = description;
+		}
+		return errors is null;
 	}
 
 	/// <summary>
@@ -284,31 +292,27 @@ public sealed class EmbedWrapper
 		string? name,
 		string? value,
 		bool inline,
-		out IReadOnlyList<EmbedException> errors)
+		[NotNullWhen(false)] out List<EmbedException>? errors)
 	{
-		var remaining = GetRemainingLength(null);
-		return CreateValidator(() =>
+		errors = null;
+
+		ValidateMax(ref errors, "Fields", EmbedBuilder.MaxFieldCount, _Embed.Fields.Count + 1);
+		ValidateNotEmpty(ref errors, "Field.Name", name);
+		ValidateLength(ref errors, "Field.Name", EmbedFieldBuilder.MaxFieldNameLength, name);
+		ValidateNotEmpty(ref errors, "Field.Value", value);
+		ValidateLength(ref errors, "Field.Value", EmbedFieldBuilder.MaxFieldValueLength, value);
+		ValidateRemaining(ref errors, "Field.(Name+Value)", Ignore.None, name + value);
+
+		if (errors is null)
 		{
-			_Embed.Fields.Add(new EmbedFieldBuilder
+			_Embed.Fields.Add(new()
 			{
 				Name = name,
 				Value = value,
 				IsInline = inline
 			});
-		})
-		.Property<EmbedBuilder, int>(_ => _Embed.Fields.Count, _Embed.Fields.Count + 1)
-			.Max(EmbedBuilder.MaxFieldCount)
-		.Validator.Property<EmbedFieldBuilder, string?>(x => x.Name, name)
-			.NotEmpty()
-			.Max(EmbedFieldBuilder.MaxFieldNameLength)
-			.Remaining(remaining)
-		.Validator.Property<EmbedFieldBuilder, string?>(x => (string)x.Value, value)
-			.NotEmpty()
-			.Max(EmbedFieldBuilder.MaxFieldValueLength)
-			.Remaining(remaining)
-		.Validator.Property<EmbedFieldBuilder, string?>(x => x.Name + (string)x.Value, name + value)
-			.Remaining(remaining)
-		.Validator.Finalize(out errors);
+		}
+		return errors is null;
 	}
 
 	/// <summary>
@@ -321,22 +325,23 @@ public sealed class EmbedWrapper
 	public bool TryAddFooter(
 		string? text,
 		string? iconUrl,
-		out IReadOnlyList<EmbedException> errors)
+		[NotNullWhen(false)] out List<EmbedException>? errors)
 	{
-		return CreateValidator(() =>
+		errors = null;
+
+		ValidateLength(ref errors, "Footer.Text", EmbedFooterBuilder.MaxFooterTextLength, text);
+		ValidateRemaining(ref errors, "Footer.Text", Ignore.Footer, text);
+		ValidateUrl(ref errors, "Footer.IconUrl", iconUrl);
+
+		if (errors is null)
 		{
-			_Embed.Footer = new EmbedFooterBuilder
+			_Embed.Footer = new()
 			{
 				Text = text,
-				IconUrl = iconUrl
+				IconUrl = iconUrl,
 			};
-		})
-		.Property<EmbedFooterBuilder, string?>(x => x.Text, text)
-			.Max(EmbedFooterBuilder.MaxFooterTextLength)
-			.Remaining(GetRemainingLength(nameof(Footer)))
-		.Validator.Property<EmbedFooterBuilder, string?>(x => x.IconUrl, iconUrl)
-			.ValidUrl()
-		.Validator.Finalize(out errors);
+		}
+		return errors is null;
 	}
 
 	/// <summary>
@@ -347,12 +352,17 @@ public sealed class EmbedWrapper
 	/// <returns></returns>
 	public bool TryAddImageUrl(
 		string? imageUrl,
-		out IReadOnlyList<EmbedException> errors)
+		[NotNullWhen(false)] out List<EmbedException>? errors)
 	{
-		return CreateValidator(() => _Embed.ImageUrl = imageUrl)
-		.Property<EmbedBuilder, string?>(x => x.ImageUrl, imageUrl)
-			.ValidUrl()
-		.Validator.Finalize(out errors);
+		errors = null;
+
+		ValidateUrl(ref errors, "ImageUrl", imageUrl);
+
+		if (errors is null)
+		{
+			_Embed.ImageUrl = imageUrl;
+		}
+		return errors is null;
 	}
 
 	/// <summary>
@@ -363,12 +373,17 @@ public sealed class EmbedWrapper
 	/// <returns></returns>
 	public bool TryAddThumbnailUrl(
 		string? thumbnailUrl,
-		out IReadOnlyList<EmbedException> errors)
+		[NotNullWhen(false)] out List<EmbedException>? errors)
 	{
-		return CreateValidator(() => _Embed.ThumbnailUrl = thumbnailUrl)
-		.Property<EmbedBuilder, string?>(x => x.ThumbnailUrl, thumbnailUrl)
-			.ValidUrl()
-		.Validator.Finalize(out errors);
+		errors = null;
+
+		ValidateUrl(ref errors, "ThumbnailUrl", thumbnailUrl);
+
+		if (errors is null)
+		{
+			_Embed.ThumbnailUrl = thumbnailUrl;
+		}
+		return errors is null;
 	}
 
 	/// <summary>
@@ -379,13 +394,18 @@ public sealed class EmbedWrapper
 	/// <returns></returns>
 	public bool TryAddTitle(
 		string? title,
-		out IReadOnlyList<EmbedException> errors)
+		[NotNullWhen(false)] out List<EmbedException>? errors)
 	{
-		return CreateValidator(() => _Embed.Title = title)
-		.Property<EmbedBuilder, string?>(x => x.Title, title)
-			.Max(EmbedBuilder.MaxTitleLength)
-			.Remaining(GetRemainingLength(nameof(Title)))
-		.Validator.Finalize(out errors);
+		errors = null;
+
+		ValidateLength(ref errors, "Title", EmbedBuilder.MaxTitleLength, title);
+		ValidateRemaining(ref errors, "Title", Ignore.Title, title);
+
+		if (errors is null)
+		{
+			_Embed.Title = title;
+		}
+		return errors is null;
 	}
 
 	/// <summary>
@@ -396,33 +416,86 @@ public sealed class EmbedWrapper
 	/// <returns></returns>
 	public bool TryAddUrl(
 		string? url,
-		out IReadOnlyList<EmbedException> errors)
+		[NotNullWhen(false)] out List<EmbedException>? errors)
 	{
-		return CreateValidator(() => _Embed.Url = url)
-		.Property<EmbedBuilder, string?>(x => x.Url, url)
-			.ValidUrl()
-		.Validator.Finalize(out errors);
+		errors = null;
+
+		ValidateUrl(ref errors, "Url", url);
+
+		if (errors is null)
+		{
+			_Embed.Url = url;
+		}
+		return errors is null;
 	}
 
-	private static void Throw(
-		IReadOnlyList<EmbedException> errors,
-		[CallerMemberName] string property = "")
+	private static void Throw(List<EmbedException> errors, [CallerMemberName] string property = "")
 		=> throw new ArgumentException($"Unable to set {property}.", new AggregateException(errors));
 
-	private EmbedValidator CreateValidator(Action setter)
-		=> new(setter, _Errors);
-
-	private int GetRemainingLength(string? propertyToDisregard)
+	private void AddError(ref List<EmbedException>? errors, EmbedException error)
 	{
-		// Gotten from https://github.com/RogueException/Discord.Net/blob/7837c4862cab32ecc432b3c6794277d92d89647d/src/Discord.Net.Core/Entities/Messages/Embed.cs#L60
-		return EmbedBuilder.MaxEmbedLength - Length + propertyToDisregard switch
+		(errors ??= []).Add(error);
+		(_Errors ??= []).Add(error);
+	}
+
+	private void ValidateLength(ref List<EmbedException>? errors, string path, int max, string? value)
+	{
+		if (value is not null && value.Length > max)
 		{
-			nameof(Title) => _Embed.Title?.Length ?? 0,
-			nameof(Author) => _Embed.Author?.Name?.Length ?? 0,
-			nameof(Description) => _Embed.Description?.Length ?? 0,
-			nameof(Footer) => _Embed.Footer?.Text?.Length ?? 0,
-			nameof(Fields) => _Embed.Fields.Sum(f => f.Name.Length + (f.Value?.ToString() ?? "").Length),
+			AddError(ref errors, new($"Max length is {max}.", path, value));
+		}
+	}
+
+	private void ValidateMax(ref List<EmbedException>? errors, string path, int max, int value)
+	{
+		if (value > max)
+		{
+			AddError(ref errors, new($"Max count is {max}.", path, value));
+		}
+	}
+
+	private void ValidateNotEmpty(ref List<EmbedException>? errors, string path, string? value)
+	{
+		if (string.IsNullOrWhiteSpace(value))
+		{
+			AddError(ref errors, new("Cannot be null, empty, or whitespace.", path, value));
+		}
+	}
+
+	private void ValidateRemaining(ref List<EmbedException>? errors, string path, Ignore property, string? value)
+	{
+		// Reference https://github.com/RogueException/Discord.Net/blob/7837c4862cab32ecc432b3c6794277d92d89647d/src/Discord.Net.Core/Entities/Messages/Embed.cs#L60
+		var remaining = EmbedBuilder.MaxEmbedLength - Length + property switch
+		{
+			Ignore.Title => _Embed.Title?.Length ?? 0,
+			Ignore.Author => _Embed.Author?.Name?.Length ?? 0,
+			Ignore.Description => _Embed.Description?.Length ?? 0,
+			Ignore.Footer => _Embed.Footer?.Text?.Length ?? 0,
+			Ignore.Fields => _Embed.Fields.Sum(f => f.Name.Length + (f.Value?.ToString() ?? "").Length),
 			_ => 0,
 		};
+		if (value is not null && value.Length > remaining)
+		{
+			AddError(ref errors, new($"Remaining length is {remaining}.", path, value));
+		}
+	}
+
+	private void ValidateUrl(ref List<EmbedException>? errors, string path, string? url)
+	{
+		if (url is not null && (!Uri.TryCreate(url, UriKind.Absolute, out var uri)
+			|| (uri.Scheme != Uri.UriSchemeHttp && uri.Scheme != Uri.UriSchemeHttps)))
+		{
+			AddError(ref errors, new("Invalid url.", path, url));
+		}
+	}
+
+	private enum Ignore
+	{
+		None,
+		Title,
+		Author,
+		Description,
+		Footer,
+		Fields,
 	}
 }

@@ -8,7 +8,7 @@ public class EmbedException : Exception
 	/// <summary>
 	/// The property which had an error.
 	/// </summary>
-	public string PropertyPath { get; } = "";
+	public string Path { get; } = "";
 	/// <summary>
 	/// The value that gave an error.
 	/// </summary>
@@ -33,8 +33,8 @@ public class EmbedException : Exception
 	}
 
 	/// <inheritdoc cref="EmbedException(string, string, object?, Exception?)" />
-	public EmbedException(string message, string propertyPath, object? value)
-		: this(message, propertyPath, value, null)
+	public EmbedException(string message, string path, object? value)
+		: this(message, path, value, null)
 	{
 	}
 
@@ -42,20 +42,20 @@ public class EmbedException : Exception
 	/// Creates an instance of <see cref="EmbedException"/>.
 	/// </summary>
 	/// <param name="message"></param>
-	/// <param name="propertyPath"></param>
+	/// <param name="path"></param>
 	/// <param name="value"></param>
 	/// <param name="innerException"></param>
 	public EmbedException(
 		string message,
-		string propertyPath,
+		string path,
 		object? value,
 		Exception? innerException
 	) : this(
-		message: $"{propertyPath}: '{value?.ToString() ?? "null"}' is invalid. Reason: {message}",
+		message: $"{path}: '{value?.ToString() ?? "null"}' is invalid. Reason: {message}",
 		innerException: innerException
 	)
 	{
-		PropertyPath = propertyPath;
+		Path = path;
 		Value = value;
 	}
 }
