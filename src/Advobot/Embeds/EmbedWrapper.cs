@@ -2,11 +2,8 @@
 
 using Discord;
 
-using System;
 using System.Diagnostics.CodeAnalysis;
-using System.Reflection.Metadata.Ecma335;
 using System.Runtime.CompilerServices;
-using System.Runtime.Serialization;
 
 namespace Advobot.Embeds;
 
@@ -59,7 +56,7 @@ public sealed class EmbedWrapper
 				_Embed.Author = null;
 				return;
 			}
-			if (!TryAddAuthor(value.Name, value.Url, value.IconUrl, out var errors))
+			if (!TrySetAuthor(value.Name, value.Url, value.IconUrl, out var errors) && ThrowOnError)
 			{
 				Throw(errors);
 			}
@@ -77,7 +74,7 @@ public sealed class EmbedWrapper
 		get => _Embed.Description;
 		set
 		{
-			if (!TryAddDescription(value, out var errors))
+			if (!TrySetDescription(value, out var errors) && ThrowOnError)
 			{
 				Throw(errors);
 			}
@@ -105,7 +102,7 @@ public sealed class EmbedWrapper
 			for (var i = 0; i < Math.Min(value.Count, EmbedBuilder.MaxFieldCount); ++i)
 			{
 				var f = value[i];
-				if (!TryAddField(f.Name, f.Value?.ToString(), f.IsInline, out var errors))
+				if (!TryAddField(f.Name, f.Value?.ToString(), f.IsInline, out var errors) && ThrowOnError)
 				{
 					Throw(errors, $"{nameof(Fields)}[{i}]");
 				}
@@ -123,7 +120,7 @@ public sealed class EmbedWrapper
 				_Embed.Footer = null;
 				return;
 			}
-			if (!TryAddFooter(value.Text, value.IconUrl, out var errors))
+			if (!TrySetFooter(value.Text, value.IconUrl, out var errors) && ThrowOnError)
 			{
 				Throw(errors);
 			}
@@ -135,7 +132,7 @@ public sealed class EmbedWrapper
 		get => _Embed.ImageUrl;
 		set
 		{
-			if (!TryAddImageUrl(value, out var errors))
+			if (!TrySetImageUrl(value, out var errors) && ThrowOnError)
 			{
 				Throw(errors);
 			}
@@ -143,13 +140,17 @@ public sealed class EmbedWrapper
 	}
 	/// <inheritdoc cref="EmbedBuilder.Length"/>
 	public int Length => _Embed.Length;
+	/// <summary>
+	/// Whether or not to directly throw an exception when a property is given an invalid value.
+	/// </summary>
+	public bool ThrowOnError { get; set; }
 	/// <inheritdoc cref="EmbedBuilder.ThumbnailUrl"/>
 	public string? ThumbnailUrl
 	{
 		get => _Embed.ThumbnailUrl;
 		set
 		{
-			if (!TryAddThumbnailUrl(value, out var errors))
+			if (!TrySetThumbnailUrl(value, out var errors) && ThrowOnError)
 			{
 				Throw(errors);
 			}
@@ -167,7 +168,7 @@ public sealed class EmbedWrapper
 		get => _Embed.Title;
 		set
 		{
-			if (!TryAddTitle(value, out var errors))
+			if (!TrySetTitle(value, out var errors) && ThrowOnError)
 			{
 				Throw(errors);
 			}
@@ -179,7 +180,7 @@ public sealed class EmbedWrapper
 		get => _Embed.Url;
 		set
 		{
-			if (!TryAddUrl(value, out var errors))
+			if (!TrySetUrl(value, out var errors) && ThrowOnError)
 			{
 				Throw(errors);
 			}
@@ -226,6 +227,41 @@ public sealed class EmbedWrapper
 		=> (_Errors ??= []).Select(x => $"{x.Path}:\n{x.Value}").Join("\n\n");
 
 	/// <summary>
+	/// Attempts to add a field. Does nothing if fails.
+	/// </summary>
+	/// <param name="name"></param>
+	/// <param name="value"></param>
+	/// <param name="inline"></param>
+	/// <param name="errors"></param>
+	/// <returns></returns>
+	public bool TryAddField(
+		string? name,
+		string? value,
+		bool inline,
+		[NotNullWhen(false)] out List<EmbedException>? errors)
+	{
+		errors = null;
+
+		CheckMax(ref errors, "Fields", EmbedBuilder.MaxFieldCount, _Embed.Fields.Count + 1);
+		CheckEmpty(ref errors, "Field.Name", name);
+		CheckLength(ref errors, "Field.Name", EmbedFieldBuilder.MaxFieldNameLength, name);
+		CheckEmpty(ref errors, "Field.Value", value);
+		CheckLength(ref errors, "Field.Value", EmbedFieldBuilder.MaxFieldValueLength, value);
+		CheckRemaining(ref errors, "Field.(Name+Value)", Ignore.None, name + value);
+
+		if (errors is null)
+		{
+			_Embed.Fields.Add(new()
+			{
+				Name = name,
+				Value = value,
+				IsInline = inline
+			});
+		}
+		return errors is null;
+	}
+
+	/// <summary>
 	/// Attempts to modify the author. Does nothing if fails.
 	/// </summary>
 	/// <param name="name"></param>
@@ -233,7 +269,7 @@ public sealed class EmbedWrapper
 	/// <param name="iconUrl"></param>
 	/// <param name="errors"></param>
 	/// <returns></returns>
-	public bool TryAddAuthor(
+	public bool TrySetAuthor(
 		string? name,
 		string? url,
 		string? iconUrl,
@@ -241,10 +277,10 @@ public sealed class EmbedWrapper
 	{
 		errors = null;
 
-		ValidateLength(ref errors, "Author.Name", EmbedAuthorBuilder.MaxAuthorNameLength, name);
-		ValidateRemaining(ref errors, "Author.Name", Ignore.Author, name);
-		ValidateUrl(ref errors, "Author.Url", url);
-		ValidateUrl(ref errors, "Author.IconUrl", iconUrl);
+		CheckLength(ref errors, "Author.Name", EmbedAuthorBuilder.MaxAuthorNameLength, name);
+		CheckRemaining(ref errors, "Author.Name", Ignore.Author, name);
+		CheckUrl(ref errors, "Author.Url", url);
+		CheckUrl(ref errors, "Author.IconUrl", iconUrl);
 
 		if (errors is null)
 		{
@@ -264,53 +300,18 @@ public sealed class EmbedWrapper
 	/// <param name="description"></param>
 	/// <param name="errors"></param>
 	/// <returns></returns>
-	public bool TryAddDescription(
+	public bool TrySetDescription(
 		string? description,
 		[NotNullWhen(false)] out List<EmbedException>? errors)
 	{
 		errors = null;
 
-		ValidateLength(ref errors, "Description", EmbedBuilder.MaxDescriptionLength, description);
-		ValidateRemaining(ref errors, "Description", Ignore.Description, description);
+		CheckLength(ref errors, "Description", EmbedBuilder.MaxDescriptionLength, description);
+		CheckRemaining(ref errors, "Description", Ignore.Description, description);
 
 		if (errors is null)
 		{
 			_Embed.Description = description;
-		}
-		return errors is null;
-	}
-
-	/// <summary>
-	/// Attempts to add a field. Does nothing if fails.
-	/// </summary>
-	/// <param name="name"></param>
-	/// <param name="value"></param>
-	/// <param name="inline"></param>
-	/// <param name="errors"></param>
-	/// <returns></returns>
-	public bool TryAddField(
-		string? name,
-		string? value,
-		bool inline,
-		[NotNullWhen(false)] out List<EmbedException>? errors)
-	{
-		errors = null;
-
-		ValidateMax(ref errors, "Fields", EmbedBuilder.MaxFieldCount, _Embed.Fields.Count + 1);
-		ValidateNotEmpty(ref errors, "Field.Name", name);
-		ValidateLength(ref errors, "Field.Name", EmbedFieldBuilder.MaxFieldNameLength, name);
-		ValidateNotEmpty(ref errors, "Field.Value", value);
-		ValidateLength(ref errors, "Field.Value", EmbedFieldBuilder.MaxFieldValueLength, value);
-		ValidateRemaining(ref errors, "Field.(Name+Value)", Ignore.None, name + value);
-
-		if (errors is null)
-		{
-			_Embed.Fields.Add(new()
-			{
-				Name = name,
-				Value = value,
-				IsInline = inline
-			});
 		}
 		return errors is null;
 	}
@@ -322,16 +323,16 @@ public sealed class EmbedWrapper
 	/// <param name="iconUrl"></param>
 	/// <param name="errors"></param>
 	/// <returns></returns>
-	public bool TryAddFooter(
+	public bool TrySetFooter(
 		string? text,
 		string? iconUrl,
 		[NotNullWhen(false)] out List<EmbedException>? errors)
 	{
 		errors = null;
 
-		ValidateLength(ref errors, "Footer.Text", EmbedFooterBuilder.MaxFooterTextLength, text);
-		ValidateRemaining(ref errors, "Footer.Text", Ignore.Footer, text);
-		ValidateUrl(ref errors, "Footer.IconUrl", iconUrl);
+		CheckLength(ref errors, "Footer.Text", EmbedFooterBuilder.MaxFooterTextLength, text);
+		CheckRemaining(ref errors, "Footer.Text", Ignore.Footer, text);
+		CheckUrl(ref errors, "Footer.IconUrl", iconUrl);
 
 		if (errors is null)
 		{
@@ -350,13 +351,13 @@ public sealed class EmbedWrapper
 	/// <param name="imageUrl"></param>
 	/// <param name="errors"></param>
 	/// <returns></returns>
-	public bool TryAddImageUrl(
+	public bool TrySetImageUrl(
 		string? imageUrl,
 		[NotNullWhen(false)] out List<EmbedException>? errors)
 	{
 		errors = null;
 
-		ValidateUrl(ref errors, "ImageUrl", imageUrl);
+		CheckUrl(ref errors, "ImageUrl", imageUrl);
 
 		if (errors is null)
 		{
@@ -371,13 +372,13 @@ public sealed class EmbedWrapper
 	/// <param name="thumbnailUrl"></param>
 	/// <param name="errors"></param>
 	/// <returns></returns>
-	public bool TryAddThumbnailUrl(
+	public bool TrySetThumbnailUrl(
 		string? thumbnailUrl,
 		[NotNullWhen(false)] out List<EmbedException>? errors)
 	{
 		errors = null;
 
-		ValidateUrl(ref errors, "ThumbnailUrl", thumbnailUrl);
+		CheckUrl(ref errors, "ThumbnailUrl", thumbnailUrl);
 
 		if (errors is null)
 		{
@@ -392,14 +393,14 @@ public sealed class EmbedWrapper
 	/// <param name="title"></param>
 	/// <param name="errors"></param>
 	/// <returns></returns>
-	public bool TryAddTitle(
+	public bool TrySetTitle(
 		string? title,
 		[NotNullWhen(false)] out List<EmbedException>? errors)
 	{
 		errors = null;
 
-		ValidateLength(ref errors, "Title", EmbedBuilder.MaxTitleLength, title);
-		ValidateRemaining(ref errors, "Title", Ignore.Title, title);
+		CheckLength(ref errors, "Title", EmbedBuilder.MaxTitleLength, title);
+		CheckRemaining(ref errors, "Title", Ignore.Title, title);
 
 		if (errors is null)
 		{
@@ -414,13 +415,13 @@ public sealed class EmbedWrapper
 	/// <param name="url"></param>
 	/// <param name="errors"></param>
 	/// <returns></returns>
-	public bool TryAddUrl(
+	public bool TrySetUrl(
 		string? url,
 		[NotNullWhen(false)] out List<EmbedException>? errors)
 	{
 		errors = null;
 
-		ValidateUrl(ref errors, "Url", url);
+		CheckUrl(ref errors, "Url", url);
 
 		if (errors is null)
 		{
@@ -438,23 +439,7 @@ public sealed class EmbedWrapper
 		(_Errors ??= []).Add(error);
 	}
 
-	private void ValidateLength(ref List<EmbedException>? errors, string path, int max, string? value)
-	{
-		if (value is not null && value.Length > max)
-		{
-			AddError(ref errors, new($"Max length is {max}.", path, value));
-		}
-	}
-
-	private void ValidateMax(ref List<EmbedException>? errors, string path, int max, int value)
-	{
-		if (value > max)
-		{
-			AddError(ref errors, new($"Max count is {max}.", path, value));
-		}
-	}
-
-	private void ValidateNotEmpty(ref List<EmbedException>? errors, string path, string? value)
+	private void CheckEmpty(ref List<EmbedException>? errors, string path, string? value)
 	{
 		if (string.IsNullOrWhiteSpace(value))
 		{
@@ -462,7 +447,23 @@ public sealed class EmbedWrapper
 		}
 	}
 
-	private void ValidateRemaining(ref List<EmbedException>? errors, string path, Ignore property, string? value)
+	private void CheckLength(ref List<EmbedException>? errors, string path, int max, string? value)
+	{
+		if (value is not null && value.Length > max)
+		{
+			AddError(ref errors, new($"Max length is {max}.", path, value));
+		}
+	}
+
+	private void CheckMax(ref List<EmbedException>? errors, string path, int max, int value)
+	{
+		if (value > max)
+		{
+			AddError(ref errors, new($"Max count is {max}.", path, value));
+		}
+	}
+
+	private void CheckRemaining(ref List<EmbedException>? errors, string path, Ignore property, string? value)
 	{
 		// Reference https://github.com/RogueException/Discord.Net/blob/7837c4862cab32ecc432b3c6794277d92d89647d/src/Discord.Net.Core/Entities/Messages/Embed.cs#L60
 		var remaining = EmbedBuilder.MaxEmbedLength - Length + property switch
@@ -480,7 +481,7 @@ public sealed class EmbedWrapper
 		}
 	}
 
-	private void ValidateUrl(ref List<EmbedException>? errors, string path, string? url)
+	private void CheckUrl(ref List<EmbedException>? errors, string path, string? url)
 	{
 		if (url is not null && (!Uri.TryCreate(url, UriKind.Absolute, out var uri)
 			|| (uri.Scheme != Uri.UriSchemeHttp && uri.Scheme != Uri.UriSchemeHttps)))

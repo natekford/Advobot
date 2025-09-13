@@ -23,8 +23,8 @@ public static class NotificationUtils
 			Url = custom.Url,
 			ThumbnailUrl = custom.ThumbnailUrl,
 		};
-		embed.TryAddAuthor(custom.AuthorName, custom.AuthorUrl, custom.AuthorIconUrl, out _);
-		embed.TryAddFooter(custom.Footer, custom.FooterIconUrl, out _);
+		embed.TrySetAuthor(custom.AuthorName, custom.AuthorUrl, custom.AuthorIconUrl, out _);
+		embed.TrySetFooter(custom.Footer, custom.FooterIconUrl, out _);
 
 		return embed;
 	}

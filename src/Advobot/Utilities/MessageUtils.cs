@@ -179,7 +179,7 @@ public static class MessageUtils
 
 			args.Errors.Flush();
 			args.Errors.BaseStream.Seek(0, SeekOrigin.Begin);
-			args.Files.Add(new FileAttachment(args.Errors.BaseStream, "Errors.txt"));
+			args.Files.Add(new(args.Errors.BaseStream, "Errors.txt"));
 		}
 
 		// Can clear the content if it's going to only be a zero length space
