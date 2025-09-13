@@ -165,7 +165,10 @@ public sealed partial class Misc : AdvobotResult
 		{
 			Title = name,
 			Description = entry,
-			Footer = new() { Text = MiscFooterHelp, },
+			Footer = new()
+			{
+				Text = MiscFooterHelp,
+			},
 		};
 	}
 
@@ -683,57 +686,5 @@ public sealed partial class Misc : AdvobotResult
 				IconUrl = webhook.GetAvatarUrl(),
 			},
 		});
-	}
-}
-
-internal static class ResponseUtils
-{
-	public static StringBuilder AppendCategorySeparator(this StringBuilder sb)
-		=> sb.Append('\n');
-
-	public static StringBuilder AppendHeaderAndValue(
-		this StringBuilder sb,
-		string header,
-		object? value)
-	{
-		var valStr = value?.ToString();
-		if (string.IsNullOrWhiteSpace(valStr))
-		{
-			return sb;
-		}
-
-		if (sb.Length > 0)
-		{
-			sb.Append('\n');
-		}
-
-		sb.Append(header.WithTitleCaseAndColon()).Append(' ');
-		if (!valStr.StartsWith('`'))
-		{
-			sb.Append('`');
-		}
-		sb.Append(valStr);
-		if (!valStr.EndsWith('`'))
-		{
-			sb.Append('`');
-		}
-
-		return sb;
-	}
-
-	public static StringBuilder AppendTimeCreated(
-		this StringBuilder sb,
-		ISnowflakeEntity entity)
-		=> sb.AppendTimeCreated(entity.Id.ToString(), entity.CreatedAt.UtcDateTime);
-
-	public static StringBuilder AppendTimeCreated(
-		this StringBuilder sb,
-		string id,
-		DateTimeOffset dt)
-	{
-		var diff = (DateTimeOffset.UtcNow - dt).TotalDays;
-		return sb
-			.AppendHeaderAndValue("Id", id)
-			.AppendHeaderAndValue("Created At", $"{dt.DateTime.ToReadable()} ({diff:0.00} days ago)");
 	}
 }

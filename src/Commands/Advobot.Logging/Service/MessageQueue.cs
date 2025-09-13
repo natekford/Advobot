@@ -10,6 +10,8 @@ using Microsoft.Extensions.Logging;
 using System.Collections.Concurrent;
 using System.Text;
 
+using static Advobot.Resources.Responses;
+
 namespace Advobot.Logging.Service;
 
 public sealed class MessageQueue(
@@ -111,54 +113,26 @@ public sealed class MessageQueue(
 			}]
 		);
 
-		// Needs to not be a lot of messages to fit in an embed
-		var inEmbed = ordered.Length < 10;
 		var sb = new StringBuilder();
-
 		foreach (var message in ordered)
 		{
-			var text = message.Format(withMentions: true).Sanitize(keepMarkdown: true);
-			sb.AppendLine(text);
-
-			// Can only stay in an embed if the description is less than 2048
-			// and if the line numbers are less than 20
-			// Subtract 100 just to give some leeway
-			if (sb.Length > (EmbedBuilder.MaxDescriptionLength - 100))
-			{
-				inEmbed = false;
-				break;
-			}
+			sb.AppendLine(message.Format().Sanitize(keepMarkdown: true));
 		}
 
-		if (inEmbed)
+		var embed = new EmbedWrapper
 		{
-			EnqueueSend(channel, new EmbedWrapper
+			Color = EmbedWrapper.MessageDelete,
+			Title = TitleDeletedMessages,
+			Footer = new()
 			{
-				Title = "Deleted Messages",
-				Description = sb.ToString(),
-				Color = EmbedWrapper.MessageDelete,
-				Footer = new() { Text = "Deleted Messages", },
-			}.ToMessageArgs());
-		}
-		else
+				Text = TitleDeletedMessages,
+			},
+		};
+		if (!embed.TrySetDescription(sb.ToString(), out _))
 		{
-			sb.Clear();
-			foreach (var message in ordered)
-			{
-				var text = message.Format(withMentions: false).Sanitize(keepMarkdown: false);
-				sb.AppendLine(text);
-			}
-
-			EnqueueSend(channel, new()
-			{
-				Files =
-				[
-					MessageUtils.CreateTextFile(
-						fileName: $"{ordered.Length}_Deleted_Messages",
-						content: sb.ToString()
-					),
-				],
-			});
+			embed.TrySetDescription(VariableSeeAttachedFile, out _);
 		}
+
+		EnqueueSend(channel, embed.ToMessageArgs());
 	}
 }

@@ -15,7 +15,6 @@ namespace Advobot.Embeds;
 public sealed class EmbedWrapper
 {
 	private readonly EmbedBuilder _Embed;
-	private List<EmbedException>? _Errors;
 
 	/// <summary>
 	/// The color to use for attachments on a message.
@@ -84,7 +83,7 @@ public sealed class EmbedWrapper
 	/// <summary>
 	/// Any errors which have happened when building the embed.
 	/// </summary>
-	public IReadOnlyList<EmbedException> Errors => _Errors ??= [];
+	public List<EmbedException> Errors => field ??= [];
 	/// <inheritdoc cref="EmbedBuilder.Fields"/>
 	public List<EmbedFieldBuilder> Fields
 	{
@@ -227,7 +226,7 @@ public sealed class EmbedWrapper
 	public override string ToString()
 	{
 		var sb = new StringBuilder();
-		foreach (var group in (_Errors ??= []).GroupBy(x => x.Path))
+		foreach (var group in Errors.GroupBy(x => x.Path))
 		{
 			var sampleError = default(EmbedException?);
 			foreach (var error in group)
@@ -454,7 +453,7 @@ public sealed class EmbedWrapper
 	private void AddError(ref List<EmbedException>? errors, EmbedException error)
 	{
 		(errors ??= []).Add(error);
-		(_Errors ??= []).Add(error);
+		Errors.Add(error);
 	}
 
 	private void CheckEmpty(ref List<EmbedException>? errors, string path, string? value)

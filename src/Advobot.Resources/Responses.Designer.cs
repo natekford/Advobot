@@ -331,6 +331,78 @@ namespace Advobot.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to {0} ({1} days ago).
+        /// </summary>
+        public static string FormatCreatedAt {
+            get {
+                return ResourceManager.GetString("FormatCreatedAt", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Listening to {0}.
+        /// </summary>
+        public static string FormatListening {
+            get {
+                return ResourceManager.GetString("FormatListening", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to {0} uses, {1} minutes.
+        /// </summary>
+        public static string FormatNotTemp {
+            get {
+                return ResourceManager.GetString("FormatNotTemp", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Playing {0}.
+        /// </summary>
+        public static string FormatPlayingBasic {
+            get {
+                return ResourceManager.GetString("FormatPlayingBasic", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Playing {0} ({1}).
+        /// </summary>
+        public static string FormatPlayingRich {
+            get {
+                return ResourceManager.GetString("FormatPlayingRich", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to {0} {1}, {2} at {3}.
+        /// </summary>
+        public static string FormatReadable {
+            get {
+                return ResourceManager.GetString("FormatReadable", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Streaming {0} at {1}.
+        /// </summary>
+        public static string FormatStreaming {
+            get {
+                return ResourceManager.GetString("FormatStreaming", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to {0} uses, {1} minutes, temp.
+        /// </summary>
+        public static string FormatTemp {
+            get {
+                return ResourceManager.GetString("FormatTemp", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to {0}_Messages.
         /// </summary>
         public static string GetsFileMessages {
@@ -2339,6 +2411,168 @@ namespace Advobot.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to After.
+        /// </summary>
+        public static string TitleAfter {
+            get {
+                return ResourceManager.GetString("TitleAfter", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Before.
+        /// </summary>
+        public static string TitleBefore {
+            get {
+                return ResourceManager.GetString("TitleBefore", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Bot Joined.
+        /// </summary>
+        public static string TitleBotJoined {
+            get {
+                return ResourceManager.GetString("TitleBotJoined", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Bot Left.
+        /// </summary>
+        public static string TitleBotLeft {
+            get {
+                return ResourceManager.GetString("TitleBotLeft", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Command Executed.
+        /// </summary>
+        public static string TitleCommandExecuted {
+            get {
+                return ResourceManager.GetString("TitleCommandExecuted", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Created At.
+        /// </summary>
+        public static string TitleCreatedAt {
+            get {
+                return ResourceManager.GetString("TitleCreatedAt", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Deleted Messages.
+        /// </summary>
+        public static string TitleDeletedMessages {
+            get {
+                return ResourceManager.GetString("TitleDeletedMessages", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Embed.
+        /// </summary>
+        public static string TitleEmbed {
+            get {
+                return ResourceManager.GetString("TitleEmbed", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Id.
+        /// </summary>
+        public static string TitleId {
+            get {
+                return ResourceManager.GetString("TitleId", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to IURL.
+        /// </summary>
+        public static string TitleImageUrl {
+            get {
+                return ResourceManager.GetString("TitleImageUrl", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Invite.
+        /// </summary>
+        public static string TitleInvite {
+            get {
+                return ResourceManager.GetString("TitleInvite", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Message Updated.
+        /// </summary>
+        public static string TitleMessageUpdated {
+            get {
+                return ResourceManager.GetString("TitleMessageUpdated", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Name Changed.
+        /// </summary>
+        public static string TitleNameChanged {
+            get {
+                return ResourceManager.GetString("TitleNameChanged", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to New Account.
+        /// </summary>
+        public static string TitleNewAccount {
+            get {
+                return ResourceManager.GetString("TitleNewAccount", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Stayed For.
+        /// </summary>
+        public static string TitleStayedFor {
+            get {
+                return ResourceManager.GetString("TitleStayedFor", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to URL.
+        /// </summary>
+        public static string TitleUrl {
+            get {
+                return ResourceManager.GetString("TitleUrl", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to User Joined.
+        /// </summary>
+        public static string TitleUserJoined {
+            get {
+                return ResourceManager.GetString("TitleUserJoined", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to User Left.
+        /// </summary>
+        public static string TitleUserLeft {
+            get {
+                return ResourceManager.GetString("TitleUserLeft", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Successfully {0} {1}..
         /// </summary>
         public static string UsersActionDone {
@@ -2519,6 +2753,24 @@ namespace Advobot.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Bot invited by admin..
+        /// </summary>
+        public static string VariableBotInvitedByAdmin {
+            get {
+                return ResourceManager.GetString("VariableBotInvitedByAdmin", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to category.
+        /// </summary>
+        public static string VariableCategory {
+            get {
+                return ResourceManager.GetString("VariableCategory", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to [Category].
         /// </summary>
         public static string VariableCategoryParameter {
@@ -2555,6 +2807,24 @@ namespace Advobot.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Embed Source.
+        /// </summary>
+        public static string VariableEmbedSource {
+            get {
+                return ResourceManager.GetString("VariableEmbedSource", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Empty.
+        /// </summary>
+        public static string VariableEmpty {
+            get {
+                return ResourceManager.GetString("VariableEmpty", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to enabled.
         /// </summary>
         public static string VariableEnabled {
@@ -2564,11 +2834,38 @@ namespace Advobot.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to File.
+        /// </summary>
+        public static string VariableFile {
+            get {
+                return ResourceManager.GetString("VariableFile", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Gif.
+        /// </summary>
+        public static string VariableGif {
+            get {
+                return ResourceManager.GetString("VariableGif", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to ignored.
         /// </summary>
         public static string VariableIgnored {
             get {
                 return ResourceManager.GetString("VariableIgnored", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Image.
+        /// </summary>
+        public static string VariableImage {
+            get {
+                return ResourceManager.GetString("VariableImage", resourceCulture);
             }
         }
         
@@ -2591,11 +2888,101 @@ namespace Advobot.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Irretrievable Channel.
+        /// </summary>
+        public static string VariableIrretrievableChannel {
+            get {
+                return ResourceManager.GetString("VariableIrretrievableChannel", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Irretrievable Emote.
+        /// </summary>
+        public static string VariableIrretrievableEmote {
+            get {
+                return ResourceManager.GetString("VariableIrretrievableEmote", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Irretrievable Guild.
+        /// </summary>
+        public static string VariableIrretrievableGuild {
+            get {
+                return ResourceManager.GetString("VariableIrretrievableGuild", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Irretrievable Invite.
+        /// </summary>
+        public static string VariableIrretrievableInvite {
+            get {
+                return ResourceManager.GetString("VariableIrretrievableInvite", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Irretrievable Message.
+        /// </summary>
+        public static string VariableIrretrievableMessage {
+            get {
+                return ResourceManager.GetString("VariableIrretrievableMessage", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Irretrievable Role.
+        /// </summary>
+        public static string VariableIrretrievableRole {
+            get {
+                return ResourceManager.GetString("VariableIrretrievableRole", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Irretrievable User.
+        /// </summary>
+        public static string VariableIrretrievableUser {
+            get {
+                return ResourceManager.GetString("VariableIrretrievableUser", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Irretrievable Webhook.
+        /// </summary>
+        public static string VariableIrretrievableWebhook {
+            get {
+                return ResourceManager.GetString("VariableIrretrievableWebhook", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to kicked.
         /// </summary>
         public static string VariableKicked {
             get {
                 return ResourceManager.GetString("VariableKicked", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Link.
+        /// </summary>
+        public static string VariableLink {
+            get {
+                return ResourceManager.GetString("VariableLink", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Message.
+        /// </summary>
+        public static string VariableMessage {
+            get {
+                return ResourceManager.GetString("VariableMessage", resourceCulture);
             }
         }
         
@@ -2627,6 +3014,15 @@ namespace Advobot.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to No description..
+        /// </summary>
+        public static string VariableNoDescription {
+            get {
+                return ResourceManager.GetString("VariableNoDescription", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to None..
         /// </summary>
         public static string VariableNone {
@@ -2650,6 +3046,24 @@ namespace Advobot.Resources {
         public static string VariableNothing {
             get {
                 return ResourceManager.GetString("VariableNothing", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to not temp.
+        /// </summary>
+        public static string VariableNotTemp {
+            get {
+                return ResourceManager.GetString("VariableNotTemp", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to null.
+        /// </summary>
+        public static string VariableNull {
+            get {
+                return ResourceManager.GetString("VariableNull", resourceCulture);
             }
         }
         
@@ -2735,11 +3149,29 @@ namespace Advobot.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to See Attached File.
+        /// </summary>
+        public static string VariableSeeAttachedFile {
+            get {
+                return ResourceManager.GetString("VariableSeeAttachedFile", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to server.
         /// </summary>
         public static string VariableServerLog {
             get {
                 return ResourceManager.GetString("VariableServerLog", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Single use invite, vanity url, or linked Twitch account..
+        /// </summary>
+        public static string VariableSingleUseInviteVanityUrlOrTwitch {
+            get {
+                return ResourceManager.GetString("VariableSingleUseInviteVanityUrlOrTwitch", resourceCulture);
             }
         }
         
@@ -2771,6 +3203,24 @@ namespace Advobot.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to temp.
+        /// </summary>
+        public static string VariableTemp {
+            get {
+                return ResourceManager.GetString("VariableTemp", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to text.
+        /// </summary>
+        public static string VariableText {
+            get {
+                return ResourceManager.GetString("VariableText", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to unbanned.
         /// </summary>
         public static string VariableUnbanned {
@@ -2798,6 +3248,15 @@ namespace Advobot.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to unknown.
+        /// </summary>
+        public static string VariableUnknown {
+            get {
+                return ResourceManager.GetString("VariableUnknown", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to unmuted.
         /// </summary>
         public static string VariableUnmuted {
@@ -2812,6 +3271,24 @@ namespace Advobot.Resources {
         public static string VariableUnvoiceMuted {
             get {
                 return ResourceManager.GetString("VariableUnvoiceMuted", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Video.
+        /// </summary>
+        public static string VariableVideo {
+            get {
+                return ResourceManager.GetString("VariableVideo", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to voice.
+        /// </summary>
+        public static string VariableVoice {
+            get {
+                return ResourceManager.GetString("VariableVoice", resourceCulture);
             }
         }
         

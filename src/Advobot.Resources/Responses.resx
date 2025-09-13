@@ -1051,4 +1051,164 @@ Type {1} for help with a command.</value>
   <data name="GetsFooterBan" xml:space="preserve">
     <value>Ban Info</value>
   </data>
+  <data name="VariableSeeAttachedFile" xml:space="preserve">
+    <value>See Attached File</value>
+  </data>
+  <data name="TitleDeletedMessages" xml:space="preserve">
+    <value>Deleted Messages</value>
+  </data>
+  <data name="TitleCommandExecuted" xml:space="preserve">
+    <value>Command Executed</value>
+  </data>
+  <data name="VariableGif" xml:space="preserve">
+    <value>Gif</value>
+  </data>
+  <data name="VariableVideo" xml:space="preserve">
+    <value>Video</value>
+  </data>
+  <data name="VariableImage" xml:space="preserve">
+    <value>Image</value>
+  </data>
+  <data name="VariableFile" xml:space="preserve">
+    <value>File</value>
+  </data>
+  <data name="VariableMessage" xml:space="preserve">
+    <value>Message</value>
+  </data>
+  <data name="VariableEmbedSource" xml:space="preserve">
+    <value>Embed Source</value>
+  </data>
+  <data name="VariableIrretrievableMessage" xml:space="preserve">
+    <value>Irretrievable Message</value>
+  </data>
+  <data name="VariableEmpty" xml:space="preserve">
+    <value>Empty</value>
+  </data>
+  <data name="VariableLink" xml:space="preserve">
+    <value>Link</value>
+  </data>
+  <data name="TitleMessageUpdated" xml:space="preserve">
+    <value>Message Updated</value>
+  </data>
+  <data name="TitleBefore" xml:space="preserve">
+    <value>Before</value>
+  </data>
+  <data name="TitleAfter" xml:space="preserve">
+    <value>After</value>
+  </data>
+  <data name="TitleBotJoined" xml:space="preserve">
+    <value>Bot Joined</value>
+  </data>
+  <data name="TitleUserJoined" xml:space="preserve">
+    <value>User Joined</value>
+  </data>
+  <data name="TitleId" xml:space="preserve">
+    <value>Id</value>
+  </data>
+  <data name="TitleInvite" xml:space="preserve">
+    <value>Invite</value>
+  </data>
+  <data name="TitleNewAccount" xml:space="preserve">
+    <value>New Account</value>
+  </data>
+  <data name="TitleStayedFor" xml:space="preserve">
+    <value>Stayed For</value>
+  </data>
+  <data name="TitleBotLeft" xml:space="preserve">
+    <value>Bot Left</value>
+  </data>
+  <data name="TitleUserLeft" xml:space="preserve">
+    <value>User Left</value>
+  </data>
+  <data name="TitleNameChanged" xml:space="preserve">
+    <value>Name Changed</value>
+  </data>
+  <data name="VariableBotInvitedByAdmin" xml:space="preserve">
+    <value>Bot invited by admin.</value>
+  </data>
+  <data name="VariableSingleUseInviteVanityUrlOrTwitch" xml:space="preserve">
+    <value>Single use invite, vanity url, or linked Twitch account.</value>
+  </data>
+  <data name="TitleCreatedAt" xml:space="preserve">
+    <value>Created At</value>
+  </data>
+  <data name="FormatCreatedAt" xml:space="preserve">
+    <value>{0} ({1} days ago)</value>
+  </data>
+  <data name="VariableNull" xml:space="preserve">
+    <value>null</value>
+  </data>
+  <data name="VariableIrretrievableUser" xml:space="preserve">
+    <value>Irretrievable User</value>
+  </data>
+  <data name="VariableIrretrievableRole" xml:space="preserve">
+    <value>Irretrievable Role</value>
+  </data>
+  <data name="VariableIrretrievableChannel" xml:space="preserve">
+    <value>Irretrievable Channel</value>
+  </data>
+  <data name="VariableVoice" xml:space="preserve">
+    <value>voice</value>
+  </data>
+  <data name="VariableText" xml:space="preserve">
+    <value>text</value>
+  </data>
+  <data name="VariableUnknown" xml:space="preserve">
+    <value>unknown</value>
+  </data>
+  <data name="VariableCategory" xml:space="preserve">
+    <value>category</value>
+  </data>
+  <data name="VariableIrretrievableGuild" xml:space="preserve">
+    <value>Irretrievable Guild</value>
+  </data>
+  <data name="VariableNoDescription" xml:space="preserve">
+    <value>No description.</value>
+  </data>
+  <data name="TitleEmbed" xml:space="preserve">
+    <value>Embed</value>
+  </data>
+  <data name="TitleUrl" xml:space="preserve">
+    <value>URL</value>
+  </data>
+  <data name="TitleImageUrl" xml:space="preserve">
+    <value>IURL</value>
+  </data>
+  <data name="VariableIrretrievableWebhook" xml:space="preserve">
+    <value>Irretrievable Webhook</value>
+  </data>
+  <data name="VariableIrretrievableInvite" xml:space="preserve">
+    <value>Irretrievable Invite</value>
+  </data>
+  <data name="VariableIrretrievableEmote" xml:space="preserve">
+    <value>Irretrievable Emote</value>
+  </data>
+  <data name="VariableTemp" xml:space="preserve">
+    <value>temp</value>
+  </data>
+  <data name="VariableNotTemp" xml:space="preserve">
+    <value>not temp</value>
+  </data>
+  <data name="FormatTemp" xml:space="preserve">
+    <value>{0} uses, {1} minutes, temp</value>
+  </data>
+  <data name="FormatNotTemp" xml:space="preserve">
+    <value>{0} uses, {1} minutes</value>
+  </data>
+  <data name="FormatListening" xml:space="preserve">
+    <value>Listening to {0}</value>
+  </data>
+  <data name="FormatStreaming" xml:space="preserve">
+    <value>Streaming {0} at {1}</value>
+  </data>
+  <data name="FormatPlayingBasic" xml:space="preserve">
+    <value>Playing {0}</value>
+  </data>
+  <data name="FormatPlayingRich" xml:space="preserve">
+    <value>Playing {0} ({1})</value>
+  </data>
+  <data name="FormatReadable" xml:space="preserve">
+    <value>{0} {1}, {2} at {3}</value>
+    <comment>July 24, 2000 at 12:34:56</comment>
+  </data>
 </root>

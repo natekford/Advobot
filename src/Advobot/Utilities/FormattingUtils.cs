@@ -4,6 +4,8 @@ using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 using System.Text;
 
+using static Advobot.Resources.Responses;
+
 namespace Advobot.Utilities;
 
 /// <summary>
@@ -11,6 +13,83 @@ namespace Advobot.Utilities;
 /// </summary>
 public static class FormattingUtils
 {
+	/// <summary>
+	/// Appends \n to <paramref name="sb"/>.
+	/// </summary>
+	/// <param name="sb"></param>
+	/// <returns></returns>
+	public static StringBuilder AppendCategorySeparator(this StringBuilder sb)
+		=> sb.Append('\n');
+
+	/// <summary>
+	/// Appends the header in bold and the value in code block to <paramref name="sb"/>.
+	/// </summary>
+	/// <param name="sb"></param>
+	/// <param name="header"></param>
+	/// <param name="value"></param>
+	/// <returns></returns>
+	public static StringBuilder AppendHeaderAndValue(
+		this StringBuilder sb,
+		string header,
+		object? value)
+	{
+		var valStr = value?.ToString();
+		if (string.IsNullOrWhiteSpace(valStr))
+		{
+			return sb;
+		}
+
+		if (sb.Length > 0)
+		{
+			sb.Append('\n');
+		}
+
+		sb.Append(header.WithTitleCaseAndColon()).Append(' ');
+		if (!valStr.StartsWith('`'))
+		{
+			sb.Append('`');
+		}
+		sb.Append(valStr);
+		if (!valStr.EndsWith('`'))
+		{
+			sb.Append('`');
+		}
+
+		return sb;
+	}
+
+	/// <summary>
+	/// Appends the id and time created from <paramref name="entity"/> to <paramref name="sb"/>.
+	/// </summary>
+	/// <param name="sb"></param>
+	/// <param name="entity"></param>
+	/// <returns></returns>
+	public static StringBuilder AppendTimeCreated(
+		this StringBuilder sb,
+		ISnowflakeEntity entity)
+		=> sb.AppendTimeCreated(entity.Id.ToString(), entity.CreatedAt.UtcDateTime);
+
+	/// <summary>
+	/// Appends the id and time to <paramref name="sb"/>.
+	/// </summary>
+	/// <param name="sb"></param>
+	/// <param name="id"></param>
+	/// <param name="dt"></param>
+	/// <returns></returns>
+	public static StringBuilder AppendTimeCreated(
+		this StringBuilder sb,
+		string id,
+		DateTimeOffset dt)
+	{
+		var diff = (DateTimeOffset.UtcNow - dt).TotalDays;
+		return sb
+			.AppendHeaderAndValue(TitleId, id)
+			.AppendHeaderAndValue(TitleCreatedAt, FormatCreatedAt.Format(
+				dt.DateTime.ToReadable().WithNoMarkdown(),
+				diff.ToString("0:00").WithNoMarkdown()
+			));
+	}
+
 	/// <summary>
 	/// Returns a new <see cref="EmbedAuthorBuilder"/> containing the user's info.
 	/// </summary>
@@ -46,12 +125,12 @@ public static class FormattingUtils
 		IRole role => role.Format(),
 		IChannel channel => channel.Format(),
 		IGuild guild => guild.Format(),
-		IMessage message => message.Format(true),
+		IMessage message => message.Format(),
 		IActivity activity => activity.Format(),
 		IWebhook webhook => webhook.Format(),
 		IInviteMetadata invite => invite.Format(),
 		IEmote emote => emote.Format(),
-		_ => obj?.ToString() ?? "null",
+		_ => obj?.ToString() ?? VariableNull,
 	};
 
 	/// <summary>
@@ -63,7 +142,7 @@ public static class FormattingUtils
 	{
 		if (user is null)
 		{
-			return "Irretrievable User";
+			return VariableIrretrievableUser;
 		}
 		return $"'{user.Username.EscapeBackTicks()}' ({user.Id})";
 	}
@@ -77,7 +156,7 @@ public static class FormattingUtils
 	{
 		if (role is null)
 		{
-			return "Irretrievable Role";
+			return VariableIrretrievableRole;
 		}
 		return $"'{role.Name.EscapeBackTicks()}' ({role.Id})";
 	}
@@ -91,15 +170,15 @@ public static class FormattingUtils
 	{
 		if (channel is null)
 		{
-			return "Irretrievable Channel";
+			return VariableIrretrievableChannel;
 		}
 
 		var channelType = channel switch
 		{
-			IVoiceChannel _ => "voice",
-			IMessageChannel _ => "text",
-			ICategoryChannel _ => "category",
-			_ => "unknown",
+			IVoiceChannel _ => VariableVoice,
+			IMessageChannel _ => VariableText,
+			ICategoryChannel _ => VariableCategory,
+			_ => VariableUnknown,
 		};
 		return $"'{channel.Name.EscapeBackTicks()}' ({channelType}) ({channel.Id})";
 	}
@@ -113,7 +192,7 @@ public static class FormattingUtils
 	{
 		if (guild is null)
 		{
-			return "Irretrievable Guild";
+			return VariableIrretrievableGuild;
 		}
 		return $"'{guild.Name.EscapeBackTicks()}' ({guild.Id})";
 	}
@@ -122,25 +201,20 @@ public static class FormattingUtils
 	/// Returns a string with the messages content, embeds, and attachments listed.
 	/// </summary>
 	/// <param name="msg"></param>
-	/// <param name="withMentions"></param>
 	/// <returns></returns>
-	public static string Format(this IMessage? msg, bool withMentions)
+	public static string Format(this IMessage? msg)
 	{
 		if (msg is null)
 		{
-			return "Irretrievable Message";
+			return VariableIrretrievableMessage;
 		}
 
 		var time = msg.CreatedAt.ToString("HH:mm:ss");
 		var text = string.IsNullOrWhiteSpace(msg.Content)
-			? "Empty"
+			? VariableEmpty
 			: msg.Content.EscapeBackTicks();
-		var author = withMentions
-			? msg.Author.Mention
-			: msg.Author.Format();
-		var channel = withMentions
-			? $"[Link]({msg.GetJumpUrl()})"
-			: $"{msg.Channel.Format()} ({msg.Id})";
+		var author = msg.Author.Mention;
+		var channel = $"[{VariableLink}]({msg.GetJumpUrl()})";
 		var sb = new StringBuilder($"{author} {channel} `[{time}]`\n```{text}");
 
 		var currentEmbed = default(int);
@@ -151,16 +225,16 @@ public static class FormattingUtils
 				continue;
 			}
 
-			var description = embed.Description?.EscapeBackTicks() ?? "No description";
-			sb.AppendLine();
-			sb.Append("Embed ").Append(currentEmbed + 1).Append(": ").Append(description);
+			sb.AppendLine()
+				.Append($"{TitleEmbed} {currentEmbed + 1}: ")
+				.Append(embed.Description?.EscapeBackTicks() ?? VariableNoDescription);
 			if (embed.Url != null)
 			{
-				sb.Append(" URL: ").Append(embed.Url);
+				sb.Append($" {TitleUrl}: {embed.Url}");
 			}
 			if (embed.Image.HasValue)
 			{
-				sb.Append(" IURL: ").Append(embed.Image.Value.Url);
+				sb.Append($" {TitleImageUrl}: {embed.Image.Value.Url}");
 			}
 			++currentEmbed;
 		}
@@ -181,11 +255,21 @@ public static class FormattingUtils
 	public static string Format(this IActivity? activity) => activity switch
 	{
 		CustomStatusGame csg => csg.State,
-		SpotifyGame sp => $"Listening to {sp.TrackTitle}",
-		StreamingGame sg => $"Streaming {sg.Name.EscapeBackTicks()} at {sg.Url}",
-		RichGame rg => $"Playing {rg.Name.EscapeBackTicks()} ({rg.State.EscapeBackTicks()})",
-		Game g => $"Playing {g.Name.EscapeBackTicks()}",
-		_ => "N/A",
+		SpotifyGame sp => FormatListening.Format(
+			sp.TrackTitle.WithNoMarkdown()
+		),
+		StreamingGame sg => FormatStreaming.Format(
+			sg.Name.EscapeBackTicks().WithNoMarkdown(),
+			sg.Url.WithNoMarkdown()
+		),
+		RichGame rg => FormatPlayingRich.Format(
+			rg.Name.EscapeBackTicks().WithNoMarkdown(),
+			rg.State.EscapeBackTicks().WithNoMarkdown()
+		),
+		Game g => FormatPlayingBasic.Format(
+			g.Name.EscapeBackTicks().WithNoMarkdown()
+		),
+		_ => VariableNotApplicable,
 	};
 
 	/// <summary>
@@ -197,7 +281,7 @@ public static class FormattingUtils
 	{
 		if (webhook is null)
 		{
-			return "Irretrievable Webhook";
+			return VariableIrretrievableWebhook;
 		}
 		return $"'{webhook.Name.EscapeBackTicks()}' ({webhook.Id})";
 	}
@@ -211,14 +295,17 @@ public static class FormattingUtils
 	{
 		if (invite is null)
 		{
-			return "Irretrievable Invite";
+			return VariableIrretrievableInvite;
 		}
 
 		const string INF = "\u221E"; //∞
 		var uses = invite.MaxUses > 0 ? invite.MaxUses.Value.ToString() : INF;
 		var time = invite.MaxAge > 0 ? (invite.MaxAge.Value / 60).ToString() : INF;
-		var temp = invite.IsTemporary ? ", temp" : "";
-		return $"'{invite.Code}' ({uses} uses, {time} minutes{temp})";
+		var format = invite.IsTemporary ? FormatTemp : FormatNotTemp;
+		return $"'{invite.Code}' ({format.Format(
+			uses.WithNoMarkdown(),
+			time.WithNoMarkdown()
+		)})";
 	}
 
 	/// <summary>
@@ -230,7 +317,7 @@ public static class FormattingUtils
 	{
 		Emote e => $"'{e.Name.EscapeBackTicks()}' ({e.Id})",
 		IEmote e => $"'{e.Name.EscapeBackTicks()}'",
-		_ => "Irretrievable Emote",
+		_ => VariableIrretrievableEmote,
 	};
 
 	/// <summary>
@@ -333,7 +420,12 @@ public static class FormattingUtils
 	{
 		var utc = dt.ToUniversalTime();
 		var month = CultureInfo.CurrentCulture.DateTimeFormat.GetMonthName(utc.Month);
-		return $"{month} {utc.Day}, {utc.Year} at {utc.ToLongTimeString()}";
+		return FormatReadable.Format(
+			month.WithNoMarkdown(),
+			utc.Day.ToString().WithNoMarkdown(),
+			utc.Year.ToString().WithNoMarkdown(),
+			utc.ToLongTimeString().WithNoMarkdown()
+		);
 	}
 
 	/// <summary>

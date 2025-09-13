@@ -22,6 +22,9 @@ using MimeTypes;
 
 using System.Collections.Concurrent;
 using System.Net.WebSockets;
+using System.Text;
+
+using static Advobot.Resources.Responses;
 
 namespace Advobot.Logging.Service;
 
@@ -220,7 +223,10 @@ partial class LoggingService
 		{
 			Description = context.Message.Content,
 			Author = context.User.CreateAuthor(),
-			Footer = new() { Text = "Mod Log", },
+			Footer = new()
+			{
+				Text = TitleCommandExecuted,
+			},
 		}.ToMessageArgs()).ConfigureAwait(false);
 	}
 
@@ -363,6 +369,12 @@ partial class LoggingService
 			}
 		);
 
+		static string GetVideoThumbnail(string url)
+		{
+			var replaced = url.Replace("//cdn.discordapp.com/", "//media.discordapp.net/");
+			return replaced + "?format=jpeg&width=241&height=241";
+		}
+
 		static IEnumerable<(string, string, string?)> GetAllImages(IMessage message)
 		{
 			foreach (var group in message.Attachments.GroupBy(x => x.Url))
@@ -372,10 +384,10 @@ partial class LoggingService
 				var ext = MimeTypeMap.GetMimeType(Path.GetExtension(url));
 				var (footer, imageUrl) = ext switch
 				{
-					string s when s.CaseInsContains("/gif") => ("Gif", GetVideoThumbnail(url)),
-					string s when s.CaseInsContains("video/") => ("Video", GetVideoThumbnail(url)),
-					string s when s.CaseInsContains("image/") => ("Image", url),
-					_ => ("File", null),
+					string s when s.CaseInsContains("/gif") => (VariableGif, GetVideoThumbnail(url)),
+					string s when s.CaseInsContains("video/") => (VariableVideo, GetVideoThumbnail(url)),
+					string s when s.CaseInsContains("image/") => (VariableImage, url),
+					_ => (VariableFile, null),
 				};
 				yield return new(footer, url, imageUrl);
 			}
@@ -385,31 +397,25 @@ partial class LoggingService
 				if (embed.Video is EmbedVideo video)
 				{
 					var thumb = embed.Thumbnail?.Url ?? GetVideoThumbnail(video.Url);
-					yield return new("Video", embed.Url, thumb);
+					yield return new(VariableVideo, embed.Url, thumb);
 					continue;
 				}
 
 				var img = embed.Image?.Url ?? embed.Thumbnail?.Url;
 				if (img != null)
 				{
-					yield return new("Image", embed.Url, img);
+					yield return new(VariableImage, embed.Url, img);
 				}
 			}
-		}
-
-		static string GetVideoThumbnail(string url)
-		{
-			var replaced = url.Replace("//cdn.discordapp.com/", "//media.discordapp.net/");
-			return replaced + "?format=jpeg&width=241&height=241";
 		}
 
 		foreach (var (footer, url, imageUrl) in GetAllImages(context.Message))
 		{
 			var jump = context.Message.GetJumpUrl();
-			var description = $"[Message]({jump}), [Embed Source]({url})";
+			var description = $"[{VariableMessage}]({jump}), [{VariableEmbedSource}]({url})";
 			if (imageUrl != null)
 			{
-				description += $", [Image]({imageUrl})";
+				description += $", [{VariableImage}]({imageUrl})";
 			}
 
 			messageQueue.EnqueueSend(channels.ImageLog, new EmbedWrapper
@@ -478,48 +484,39 @@ partial class LoggingService
 			}
 		);
 
-		static (bool, string) FormatContent(IMessage? message)
+		static string FormatContent(IMessage? message)
 		{
 			if (message is null)
 			{
-				return (true, "Unknown");
+				return VariableIrretrievableMessage;
 			}
-
-			var text = (string.IsNullOrWhiteSpace(message.Content)
-				? "Empty" : message.Content).Sanitize(keepMarkdown: false);
-			var isValid = text.Length < (EmbedFieldBuilder.MaxFieldValueLength - 50);
-			return (isValid, text);
-		}
-
-		var (isBeforeValid, beforeContent) = FormatContent(context.Before);
-		var (isAfterValid, afterContent) = FormatContent(context.Message);
-		if (isBeforeValid && isAfterValid) //Send file instead if text too long
-		{
-			messageQueue.EnqueueSend(channels.ServerLog, new EmbedWrapper
+			else if (string.IsNullOrWhiteSpace(message.Content))
 			{
-				Color = EmbedWrapper.MessageEdit,
-				Author = context.User.CreateAuthor(),
-				Footer = new() { Text = "Message Updated", },
-				Fields =
-				[
-					new() { Name = "Before", Value = beforeContent, },
-					new() { Name = "After", Value = afterContent, },
-				],
-			}.ToMessageArgs());
+				return VariableEmpty;
+			}
+			return message.Content.Sanitize(keepMarkdown: false);
 		}
-		else
+
+		var embed = new EmbedWrapper
 		{
-			messageQueue.EnqueueSend(channels.ServerLog, new()
+			Color = EmbedWrapper.MessageEdit,
+			Author = context.User.CreateAuthor(),
+			Description = $"[{VariableLink}]({context.Message.GetJumpUrl()})",
+			Footer = new()
 			{
-				Files =
-				[
-					MessageUtils.CreateTextFile(
-						"Message_Updated",
-						$"Before:\n{beforeContent}\n\nAfter:\n{afterContent}"
-					),
-				],
-			});
+				Text = TitleMessageUpdated,
+			},
+		};
+		if (!embed.TryAddField(TitleBefore, FormatContent(context.Before), false, out _))
+		{
+			embed.TryAddField(TitleBefore, VariableSeeAttachedFile, false, out _);
 		}
+		if (!embed.TryAddField(TitleAfter, FormatContent(context.Message), false, out _))
+		{
+			embed.TryAddField(TitleAfter, VariableSeeAttachedFile, false, out _);
+		}
+
+		messageQueue.EnqueueSend(channels.ServerLog, embed.ToMessageArgs());
 		return Task.CompletedTask;
 	}
 
@@ -600,29 +597,29 @@ partial class LoggingService
 			args: [context.User.Id, context.Guild.Id]
 		);
 
-		var description = $"**ID:** {context.User.Id}";
+		var sb = new StringBuilder().AppendTimeCreated(context.User);
 
 		var cache = _InviteCaches.GetOrAdd(context.Guild.Id, _ => new());
 		var invite = await cache.GetInviteUserJoinedOnAsync(context.Guild, context.User).ConfigureAwait(false);
 		if (invite is not null)
 		{
-			description += $"\n**Invite:** {invite}";
+			sb.AppendHeaderAndValue(TitleInvite, invite);
 		}
 
 		var age = time.UtcNow - context.User.CreatedAt.ToUniversalTime();
 		if (age.TotalHours < 24)
 		{
-			description += $"\n**New Account:** {age:hh\\:mm\\:ss}";
+			sb.AppendHeaderAndValue(TitleNewAccount, age.ToString("hh:mm:ss"));
 		}
 
 		messageQueue.EnqueueSend(channels.ServerLog, new EmbedWrapper
 		{
-			Description = description,
+			Description = sb.ToString(),
 			Color = EmbedWrapper.Join,
 			Author = context.User.CreateAuthor(),
 			Footer = new()
 			{
-				Text = context.User.IsBot ? "Bot Joined" : "User Joined"
+				Text = context.User.IsBot ? TitleBotJoined : TitleUserJoined,
 			},
 		}.ToMessageArgs());
 	}
@@ -639,22 +636,22 @@ partial class LoggingService
 			args: [context.User.Id, context.Guild.Id]
 		);
 
-		var description = $"**ID:** {context.User.Id}";
+		var sb = new StringBuilder().AppendTimeCreated(context.User);
 
 		if (context.User is IGuildUser { JoinedAt: DateTimeOffset joinedAt })
 		{
 			var length = time.UtcNow - joinedAt.ToUniversalTime();
-			description += $"\n**Stayed for:** {length:d\\:hh\\:mm\\:ss}";
+			sb.AppendHeaderAndValue(TitleStayedFor, length.ToString("d:hh:mm:ss"));
 		}
 
 		messageQueue.EnqueueSend(channels.ServerLog, new EmbedWrapper
 		{
-			Description = description,
 			Color = EmbedWrapper.Leave,
+			Description = sb.ToString(),
 			Author = context.User.CreateAuthor(),
 			Footer = new()
 			{
-				Text = context.User.IsBot ? "Bot Left" : "User Left",
+				Text = context.User.IsBot ? TitleBotLeft : TitleUserLeft,
 			},
 		}.ToMessageArgs());
 		return Task.CompletedTask;
@@ -676,20 +673,23 @@ partial class LoggingService
 		{
 			Color = EmbedWrapper.UserEdit,
 			Author = context.User.CreateAuthor(),
-			Footer = new() { Text = "Name Changed" },
+			Footer = new()
+			{
+				Text = TitleNameChanged,
+			},
 			Fields =
 			[
 				new()
 				{
-					Name = "Before",
-					Value = $"`{context.Before.Username}`",
-					IsInline = true
+					Name = TitleBefore,
+					Value = context.Before.Username.WithBlock().Current,
+					IsInline = true,
 				},
 				new()
 				{
-					Name = "After",
-					Value = $"`{context.User.Username}`",
-					IsInline = true
+					Name = TitleAfter,
+					Value = context.User.Username.WithBlock().Current,
+					IsInline = true,
 				},
 			],
 		}.ToMessageArgs());

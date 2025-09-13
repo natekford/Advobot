@@ -65,7 +65,10 @@ public sealed class Levels : AdvobotResult
 		{
 			Title = title,
 			Description = description,
-			Footer = new() { Text = LevelsTopFooter, },
+			Footer = new()
+			{
+				Text = LevelsTopFooter,
+			},
 		});
 	}
 

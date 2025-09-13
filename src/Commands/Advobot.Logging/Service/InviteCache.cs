@@ -4,6 +4,8 @@ using Discord.Net;
 using System.Collections.Concurrent;
 using System.Net;
 
+using static Advobot.Resources.Responses;
+
 namespace Advobot.Logging.Service;
 
 /// <summary>
@@ -32,7 +34,7 @@ public sealed class InviteCache
 		//Bots join by being invited by admin, not through invites.
 		if (user.IsBot)
 		{
-			return "Bot invited by admin.";
+			return VariableBotInvitedByAdmin;
 		}
 
 		//If the bot can't get invites then determining the correct invite is not possible with any accuracy
@@ -44,7 +46,7 @@ public sealed class InviteCache
 		}
 		if (current.Count == 0)
 		{
-			return "Single use invite, vanity url, or linked Twitch account.";
+			return VariableSingleUseInviteVanityUrlOrTwitch;
 		}
 
 		//Find invites where the cached invite uses are not the same as the current ones.
@@ -63,7 +65,7 @@ public sealed class InviteCache
 		if ((uncached.Length == 0 || uncached.All(x => x.Uses == 0))
 			&& !string.IsNullOrWhiteSpace(guild.VanityURLCode))
 		{
-			return "Single use invite, vanity url, or linked Twitch account.";
+			return VariableSingleUseInviteVanityUrlOrTwitch;
 		}
 		var firstUses = uncached.Where(x => x.Uses != 0).ToArray();
 		if (firstUses.Length == 1)
