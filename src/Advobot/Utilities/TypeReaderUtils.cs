@@ -32,8 +32,7 @@ public static class TypeReaderUtils
 		{
 			return TypeReaderResult.FromSuccess(matches);
 		}
-		var noneError = $"Unable to find any {type} matching `{value}`.";
-		return TypeReaderResult.FromError(CommandError.ObjectNotFound, noneError);
+		return NotFoundResult(type, value);
 	}
 
 	/// <summary>

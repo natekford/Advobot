@@ -146,13 +146,15 @@ public static class PreconditionUtils
 		var bot = await invoker.Guild.GetCurrentUserAsync().ConfigureAwait(false)
 			?? throw new InvalidOperationException($"Invalid bot during {typeof(T).Name} validation.");
 
-		foreach (var user in new[] { invoker, bot })
+		if (!permissionsCallback(invoker, target))
 		{
-			if (!permissionsCallback(user, target))
-			{
-				return new LackingPermissions(user, target);
-			}
+			return new LackingPermissions(invoker, target);
 		}
+		if (!permissionsCallback(bot, target))
+		{
+			return new LackingPermissions(bot, target);
+		}
+
 		return SuccessInstance;
 	}
 }
