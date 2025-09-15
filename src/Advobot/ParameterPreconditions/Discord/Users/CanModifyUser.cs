@@ -1,7 +1,10 @@
-﻿using Advobot.Utilities;
+﻿using Advobot.Modules;
+using Advobot.Utilities;
 
 using Discord;
-using Discord.Commands;
+
+using YACCS.Preconditions;
+using YACCS.Results;
 
 namespace Advobot.ParameterPreconditions.Discord.Users;
 
@@ -15,11 +18,9 @@ public sealed class CanModifyUser : AdvobotParameterPrecondition<IGuildUser>
 	public override string Summary => "Can be modified by the bot and invoking user";
 
 	/// <inheritdoc />
-	protected override Task<PreconditionResult> CheckPermissionsAsync(
-		ICommandContext context,
-		ParameterInfo parameter,
-		IGuildUser invoker,
-		IGuildUser user,
-		IServiceProvider services)
-		=> invoker.ValidateUser(user);
+	public override ValueTask<IResult> CheckAsync(
+		CommandMeta meta,
+		IGuildContext context,
+		IGuildUser? value
+	) => new(context.User.ValidateUser(value));
 }

@@ -1,7 +1,10 @@
-﻿using Advobot.Utilities;
+﻿using Advobot.Modules;
+using Advobot.Utilities;
 
 using Discord;
-using Discord.Commands;
+
+using YACCS.Preconditions;
+using YACCS.Results;
 
 namespace Advobot.ParameterPreconditions.Discord.Users;
 
@@ -20,17 +23,15 @@ public sealed class CanBeMoved : AdvobotParameterPrecondition<IGuildUser>
 	public override string Summary => "Can be moved from their current channel";
 
 	/// <inheritdoc />
-	protected override Task<PreconditionResult> CheckPermissionsAsync(
-		ICommandContext context,
-		ParameterInfo parameter,
-		IGuildUser invoker,
-		IGuildUser user,
-		IServiceProvider services)
+	public override ValueTask<IResult> CheckAsync(
+		CommandMeta meta,
+		IGuildContext context,
+		IGuildUser? value)
 	{
-		if (user.VoiceChannel is not IVoiceChannel voiceChannel)
+		if (value?.VoiceChannel is not IVoiceChannel voiceChannel)
 		{
-			return PreconditionResult.FromError("The user is not in a voice channel.").AsTask();
+			return new(Result.Failure("The user is not in a voice channel."));
 		}
-		return invoker.ValidateChannel(voiceChannel, _MoveMembers);
+		return new(context.User.ValidateChannel(voiceChannel, _MoveMembers));
 	}
 }

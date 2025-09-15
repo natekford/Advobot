@@ -1,12 +1,16 @@
 ﻿using Advobot.Logging.Database;
 using Advobot.Logging.Database.Models;
+using Advobot.Modules;
 using Advobot.ParameterPreconditions;
 using Advobot.Utilities;
 
 using Discord;
-using Discord.Commands;
 
 using Microsoft.Extensions.DependencyInjection;
+
+using YACCS.Preconditions;
+using YACCS.Results;
+using YACCS.TypeReaders;
 
 using static Advobot.Resources.Responses;
 
@@ -26,24 +30,21 @@ public abstract class LogParameterPrecondition : AdvobotParameterPrecondition<IT
 	/// </summary>
 	protected abstract string LogName { get; }
 
-	/// <inheritdoc />
-	protected override async Task<PreconditionResult> CheckPermissionsAsync(
-		ICommandContext context,
-		ParameterInfo parameter,
-		IGuildUser invoker,
-		ITextChannel value,
-		IServiceProvider services)
+	public override async ValueTask<IResult> CheckAsync(
+		CommandMeta meta,
+		IGuildContext context,
+		ITextChannel? value)
 	{
-		var service = services.GetRequiredService<LoggingDatabase>();
-		var channels = await service.GetLogChannelsAsync(context.Guild.Id).ConfigureAwait(false);
-		if (GetId(channels) != value.Id)
+		var db = GetDatabase(context.Services);
+		var channels = await db.GetLogChannelsAsync(context.Guild.Id).ConfigureAwait(false);
+		if (GetId(channels) == value.Id)
 		{
-			return this.FromSuccess();
+			return Result.Failure(LogParameterPreconditionSummary.Format(
+				value.Format().WithBlock(),
+				LogName.WithNoMarkdown()
+			));
 		}
-		return PreconditionResult.FromError(LogParameterPreconditionSummary.Format(
-			value.Format().WithBlock(),
-			LogName.WithNoMarkdown()
-		));
+		return CachedResults.Success;
 	}
 
 	/// <summary>
@@ -52,4 +53,8 @@ public abstract class LogParameterPrecondition : AdvobotParameterPrecondition<IT
 	/// <param name="channels"></param>
 	/// <returns></returns>
 	protected abstract ulong GetId(LogChannels channels);
+
+	[GetServiceMethod]
+	private static LoggingDatabase GetDatabase(IServiceProvider services)
+		=> services.GetRequiredService<LoggingDatabase>();
 }

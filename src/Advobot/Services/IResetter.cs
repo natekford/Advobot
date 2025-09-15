@@ -1,4 +1,4 @@
-﻿using Discord.Commands;
+﻿using Advobot.Modules;
 
 namespace Advobot.Services;
 
@@ -12,5 +12,5 @@ public interface IResetter
 	/// </summary>
 	/// <param name="context"></param>
 	/// <returns></returns>
-	Task ResetAsync(ICommandContext context);
+	Task ResetAsync(IGuildContext context);
 }

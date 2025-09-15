@@ -1,31 +1,32 @@
 ﻿using Advobot.Attributes;
-using Advobot.Localization;
 using Advobot.Modules;
 using Advobot.Preconditions;
 using Advobot.Resources;
 
 using Discord;
-using Discord.Commands;
+
+using YACCS.Commands.Attributes;
+using YACCS.Localization;
 
 namespace Advobot.Standard.Commands;
 
-[Category(nameof(Guilds))]
-public sealed class Guilds : ModuleBase
+[LocalizedCategory(nameof(Guilds))]
+public sealed class Guilds : AdvobotModuleBase
 {
-	[LocalizedGroup(nameof(Groups.LeaveGuild))]
-	[LocalizedAlias(nameof(Aliases.LeaveGuild))]
+	[LocalizedCommand(nameof(Groups.LeaveGuild), nameof(Aliases.LeaveGuild))]
 	[LocalizedSummary(nameof(Summaries.LeaveGuild))]
-	[Meta("3090730c-1377-4a56-b379-485baed393e7", IsEnabled = true)]
+	[Id("3090730c-1377-4a56-b379-485baed393e7")]
+	[Meta(IsEnabled = true)]
 	public sealed class LeaveGuild : AdvobotModuleBase
 	{
-		[Command]
+		[LocalizedCommand]
 		[RequireGuildOwner]
 		public Task Command()
 			=> Context.Guild.LeaveAsync();
 
-		[Command]
+		[LocalizedCommand]
 		[RequireBotOwner]
-		public async Task<RuntimeResult> Command([Remainder] IGuild guild)
+		public async Task<AdvobotResult> Command([Remainder] IGuild guild)
 		{
 			await guild.LeaveAsync().ConfigureAwait(false);
 			return Responses.Guilds.LeftGuild(guild);

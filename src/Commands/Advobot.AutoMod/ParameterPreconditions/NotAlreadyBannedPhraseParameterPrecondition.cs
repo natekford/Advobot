@@ -1,12 +1,14 @@
 ﻿using Advobot.AutoMod.Database;
 using Advobot.AutoMod.Database.Models;
+using Advobot.Modules;
 using Advobot.ParameterPreconditions;
 using Advobot.Utilities;
 
-using Discord;
-using Discord.Commands;
-
 using Microsoft.Extensions.DependencyInjection;
+
+using YACCS.Preconditions;
+using YACCS.Results;
+using YACCS.TypeReaders;
 
 using static Advobot.Resources.Responses;
 
@@ -27,23 +29,21 @@ public abstract class NotAlreadyBannedPhraseParameterPrecondition
 	protected abstract string BannedPhraseName { get; }
 
 	/// <inheritdoc />
-	protected override async Task<PreconditionResult> CheckPermissionsAsync(
-		ICommandContext context,
-		ParameterInfo parameter,
-		IGuildUser invoker,
-		string value,
-		IServiceProvider services)
+	public override async ValueTask<IResult> CheckAsync(
+		CommandMeta meta,
+		IGuildContext context,
+		string? value)
 	{
-		var db = services.GetRequiredService<AutoModDatabase>();
+		var db = GetDatabase(context.Services);
 		var phrases = await db.GetBannedPhrasesAsync(context.Guild.Id).ConfigureAwait(false);
 		if (phrases.Any(x => IsMatch(x, value)))
 		{
-			return PreconditionResult.FromError(BannedPhraseAlreadyExists.Format(
+			return Result.Failure(BannedPhraseAlreadyExists.Format(
 				value.WithBlock(),
 				BannedPhraseName.WithNoMarkdown()
 			));
 		}
-		return this.FromSuccess();
+		return CachedResults.Success;
 	}
 
 	/// <summary>
@@ -53,4 +53,8 @@ public abstract class NotAlreadyBannedPhraseParameterPrecondition
 	/// <param name="input"></param>
 	/// <returns></returns>
 	protected abstract bool IsMatch(BannedPhrase phrase, string input);
+
+	[GetServiceMethod]
+	private static AutoModDatabase GetDatabase(IServiceProvider services)
+		=> services.GetRequiredService<AutoModDatabase>();
 }

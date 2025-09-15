@@ -1,6 +1,6 @@
 ﻿using Advobot.Tests.Fakes.Discord.Users;
 using Advobot.Tests.TestBases;
-using Advobot.TypeReaders;
+using Advobot.TypeReaders.Discord;
 
 using Discord;
 
@@ -32,7 +32,7 @@ public sealed class BanTypeReader_Tests : TypeReader_Tests<BanTypeReader>
 		}
 
 		var result = await ReadAsync(NAME).ConfigureAwait(false);
-		Assert.IsFalse(result.IsSuccess);
+		Assert.IsFalse(result.InnerResult.IsSuccess);
 	}
 
 	[TestMethod]
@@ -42,9 +42,9 @@ public sealed class BanTypeReader_Tests : TypeReader_Tests<BanTypeReader>
 		await Context.Guild.AddBanAsync(user).ConfigureAwait(false);
 
 		var result = await ReadAsync(user.Id.ToString()).ConfigureAwait(false);
-		Assert.IsTrue(result.IsSuccess);
-		Assert.IsInstanceOfType<IBan>(result.BestMatch);
-		var ban = (IBan)result.BestMatch;
+		Assert.IsTrue(result.InnerResult.IsSuccess);
+		Assert.IsInstanceOfType<IBan>(result.Value);
+		var ban = (IBan)result.Value;
 		Assert.AreEqual(user.Id, ban.User.Id);
 	}
 
@@ -55,9 +55,9 @@ public sealed class BanTypeReader_Tests : TypeReader_Tests<BanTypeReader>
 		await Context.Guild.AddBanAsync(user).ConfigureAwait(false);
 
 		var result = await ReadAsync(user.Mention).ConfigureAwait(false);
-		Assert.IsTrue(result.IsSuccess);
-		Assert.IsInstanceOfType<IBan>(result.BestMatch);
-		var ban = (IBan)result.BestMatch;
+		Assert.IsTrue(result.InnerResult.IsSuccess);
+		Assert.IsInstanceOfType<IBan>(result.Value);
+		var ban = (IBan)result.Value;
 		Assert.AreEqual(user.Id, ban.User.Id);
 	}
 }

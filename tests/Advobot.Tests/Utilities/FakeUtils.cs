@@ -25,19 +25,6 @@ public static class FakeUtils
 		where T : class
 		=> services.AddSingletonWithLogger<T>(Guid.NewGuid().ToString());
 
-	public static FakeCommandContext CreateContext()
-	{
-		var client = new FakeClient();
-		var guild = new FakeGuild(client);
-		var channel = new FakeTextChannel(guild)
-		{
-			Name = "General"
-		};
-		var user = new FakeGuildUser(guild);
-		var message = new FakeUserMessage(channel, user, "nothing");
-		return new(client, message);
-	}
-
 	public static async Task<TDb> GetDatabaseAsync<TDb>(
 		this IServiceProvider services) where TDb : class
 	{

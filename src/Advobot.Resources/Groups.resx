@@ -705,4 +705,7 @@
   <data name="GetLogCounters" xml:space="preserve">
     <value>GetLogCounters</value>
   </data>
+  <data name="Global" xml:space="preserve">
+    <value>Global</value>
+  </data>
 </root>

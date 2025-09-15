@@ -1,4 +1,7 @@
-﻿using Discord.Commands;
+﻿using Advobot.Modules;
+
+using YACCS.Commands.Models;
+using YACCS.Results;
 
 namespace Advobot.Services;
 
@@ -10,10 +13,10 @@ public interface ICommandValidator
 	/// <summary>
 	/// Checks whether <paramref name="command"/> can be invoked in <paramref name="context"/>.
 	/// </summary>
-	/// <param name="context"></param>
 	/// <param name="command"></param>
+	/// <param name="context"></param>
 	/// <returns></returns>
-	Task<PreconditionResult> CanInvokeAsync(
-		ICommandContext context,
-		CommandInfo command);
+	Task<IResult> CanInvokeAsync(
+		IImmutableCommand command,
+		IGuildContext context);
 }

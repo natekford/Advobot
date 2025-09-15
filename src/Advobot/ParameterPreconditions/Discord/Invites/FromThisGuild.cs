@@ -1,7 +1,9 @@
-﻿using Advobot.Utilities;
+﻿using Advobot.Modules;
 
 using Discord;
-using Discord.Commands;
+
+using YACCS.Preconditions;
+using YACCS.Results;
 
 namespace Advobot.ParameterPreconditions.Discord.Invites;
 
@@ -15,17 +17,15 @@ public sealed class FromThisGuild : AdvobotParameterPrecondition<IInviteMetadata
 	public override string Summary => "From this guild";
 
 	/// <inheritdoc />
-	protected override Task<PreconditionResult> CheckPermissionsAsync(
-		ICommandContext context,
-		ParameterInfo parameter,
-		IGuildUser invoker,
-		IInviteMetadata invite,
-		IServiceProvider services)
+	public override ValueTask<IResult> CheckAsync(
+		CommandMeta meta,
+		IGuildContext context,
+		IInviteMetadata? value)
 	{
-		if (context.Guild.Id == invite.GuildId)
+		if (context.Guild.Id == value?.GuildId)
 		{
-			return this.FromSuccess().AsTask();
+			return new(CachedResults.Success);
 		}
-		return PreconditionResult.FromError("The invite must belong to this guild.").AsTask();
+		return new(Result.Failure("The invite must belong to this guild."));
 	}
 }

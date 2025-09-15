@@ -1,8 +1,8 @@
-﻿using Advobot.ParameterPreconditions.Numbers;
-using Advobot.Utilities;
+﻿using Advobot.Modules;
+using Advobot.ParameterPreconditions.Numbers;
 
-using Discord;
-using Discord.Commands;
+using YACCS.Preconditions;
+using YACCS.Results;
 
 namespace Advobot.ParameterPreconditions.Strings;
 
@@ -28,17 +28,16 @@ public abstract class StringLengthParameterPrecondition(int min, int max)
 		=> $"Valid {StringType} ({Range} long)";
 
 	/// <inheritdoc />
-	protected override Task<PreconditionResult> CheckPermissionsAsync(
-		ICommandContext context,
-		ParameterInfo parameter,
-		IGuildUser invoker,
-		string value,
-		IServiceProvider services)
+	public override ValueTask<IResult> CheckAsync(
+		CommandMeta meta,
+		IGuildContext context,
+		string? value)
 	{
-		if (Range.Contains(value.Length))
+		if (Range.Contains(value?.Length ?? 0))
 		{
-			return this.FromSuccess().AsTask();
+			return new(CachedResults.Success);
 		}
-		return PreconditionResult.FromError($"Invalid {parameter?.Name} supplied, must have a length in `{Range}`").AsTask();
+		// TODO: singleton?
+		return new(Result.Failure($"Invalid {meta.Parameter.ParameterName} supplied, must have a length in `{Range}`"));
 	}
 }

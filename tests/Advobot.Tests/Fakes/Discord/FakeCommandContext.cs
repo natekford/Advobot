@@ -3,28 +3,29 @@ using Advobot.Tests.Fakes.Discord.Channels;
 using Advobot.Tests.Fakes.Discord.Users;
 
 using Discord;
-using Discord.Commands;
 
 namespace Advobot.Tests.Fakes.Discord;
 
-public class FakeCommandContext : IGuildCommandContext
+public class FakeCommandContext : IGuildContext
 {
 	public FakeGuildUser Bot => Guild.FakeCurrentUser;
 	public FakeTextChannel Channel { get; }
 	public FakeClient Client { get; }
 	public FakeGuild Guild { get; }
+	public Guid Id { get; } = Guid.NewGuid();
 	public FakeUserMessage Message { get; }
+	public IServiceProvider Services { get; }
+	public object Source => Message;
 	public FakeGuildUser User { get; }
-	IMessageChannel ICommandContext.Channel => Channel;
-	ITextChannel IGuildCommandContext.Channel => Channel;
-	IDiscordClient ICommandContext.Client => Client;
-	IGuild ICommandContext.Guild => Guild;
-	IUserMessage ICommandContext.Message => Message;
-	IUser ICommandContext.User => User;
-	IGuildUser IGuildCommandContext.User => User;
+	ITextChannel IGuildContext.Channel => Channel;
+	IDiscordClient IGuildContext.Client => Client;
+	IGuild IGuildContext.Guild => Guild;
+	IUserMessage IGuildContext.Message => Message;
+	IGuildUser IGuildContext.User => User;
 
-	public FakeCommandContext(FakeClient client, FakeUserMessage message)
+	public FakeCommandContext(IServiceProvider services, FakeClient client, FakeUserMessage message)
 	{
+		Services = services;
 		Client = client;
 		Channel = (FakeTextChannel)message.FakeChannel;
 		User = (FakeGuildUser)message.FakeAuthor;

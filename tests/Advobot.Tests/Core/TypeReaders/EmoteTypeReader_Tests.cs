@@ -1,6 +1,6 @@
 ﻿using Advobot.Tests.TestBases;
 using Advobot.Tests.Utilities;
-using Advobot.TypeReaders;
+using Advobot.TypeReaders.Discord;
 
 using Discord;
 
@@ -20,14 +20,14 @@ public sealed class EmoteTypeReader_Tests : TypeReader_Tests<EmoteTypeReader>
 	public async Task InvalidNotOnThisGuildId_Test()
 	{
 		var result = await ReadAsync(_Emote.Id.ToString()).ConfigureAwait(false);
-		Assert.IsFalse(result.IsSuccess);
+		Assert.IsFalse(result.InnerResult.IsSuccess);
 	}
 
 	[TestMethod]
 	public async Task InvalidNotOnThisGuildName_Test()
 	{
 		var result = await ReadAsync(_Emote.Name).ConfigureAwait(false);
-		Assert.IsFalse(result.IsSuccess);
+		Assert.IsFalse(result.InnerResult.IsSuccess);
 	}
 
 	[TestMethod]
@@ -36,8 +36,8 @@ public sealed class EmoteTypeReader_Tests : TypeReader_Tests<EmoteTypeReader>
 		Context.Guild.Emotes.Add(_Emote);
 
 		var result = await ReadAsync(_Emote.Id.ToString()).ConfigureAwait(false);
-		Assert.IsTrue(result.IsSuccess);
-		Assert.IsInstanceOfType<Emote>(result.BestMatch);
+		Assert.IsTrue(result.InnerResult.IsSuccess);
+		Assert.IsInstanceOfType<Emote>(result.Value);
 	}
 
 	[TestMethod]
@@ -46,7 +46,7 @@ public sealed class EmoteTypeReader_Tests : TypeReader_Tests<EmoteTypeReader>
 		Context.Guild.Emotes.Add(_Emote);
 
 		var result = await ReadAsync(_Emote.Name).ConfigureAwait(false);
-		Assert.IsTrue(result.IsSuccess);
-		Assert.IsInstanceOfType<Emote>(result.BestMatch);
+		Assert.IsTrue(result.InnerResult.IsSuccess);
+		Assert.IsInstanceOfType<Emote>(result.Value);
 	}
 }

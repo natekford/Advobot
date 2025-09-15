@@ -8,7 +8,9 @@ using Advobot.Services.Punishments;
 using Advobot.Utilities;
 
 using Discord;
-using Discord.Commands;
+
+using YACCS.Commands;
+using YACCS.Commands.Building;
 
 namespace Advobot.Modules;
 
@@ -16,8 +18,7 @@ namespace Advobot.Modules;
 /// Shorter way to write the used modulebase and also has every command go through the <see cref="ExtendableCommandValidation"/> first.
 /// </summary>
 [ExtendableCommandValidation]
-[RequireContext(ContextType.Guild, Group = nameof(RequireContextAttribute))]
-public abstract class AdvobotModuleBase : ModuleBase<IGuildCommandContext>
+public abstract class AdvobotModuleBase : CommandGroup<IGuildContext>
 {
 	private static readonly ICriterion<IMessage>[] _NextIndexCriteria =
 	[
@@ -28,20 +29,22 @@ public abstract class AdvobotModuleBase : ModuleBase<IGuildCommandContext>
 	/// <summary>
 	/// The settings for the bot.
 	/// </summary>
+	[InjectService]
 	public required IRuntimeConfig BotConfig { get; set; }
-	/// <summary>
-	/// The default time to wait for a user's response.
-	/// </summary>
-	[DontInject]
-	public TimeSpan DefaultInteractivityTime { get; set; } = TimeSpan.FromSeconds(5);
 	/// <summary>
 	/// The service to provide events with.
 	/// </summary>
+	[InjectService]
 	public required EventProvider EventProvider { get; set; }
 	/// <summary>
 	/// The service to use for giving punishments.
 	/// </summary>
+	[InjectService]
 	public required IPunishmentService PunishmentService { get; set; }
+	/// <summary>
+	/// The default time to wait for a user's response.
+	/// </summary>
+	protected TimeSpan DefaultInteractivityTime { get; set; } = TimeSpan.FromSeconds(5);
 
 	/// <summary>
 	/// Gets a <see cref="RequestOptions"/> that mainly is used for the reason in the audit log.
@@ -115,6 +118,8 @@ public abstract class AdvobotModuleBase : ModuleBase<IGuildCommandContext>
 		IMessageTryParser<T> tryParser,
 		InteractivityOptions? options = null)
 	{
+		throw new NotImplementedException();
+		/*
 		var timeout = options?.Timeout ?? DefaultInteractivityTime;
 
 		var eventTrigger = new TaskCompletionSource<T>();
@@ -158,21 +163,17 @@ public abstract class AdvobotModuleBase : ModuleBase<IGuildCommandContext>
 		{
 			return InteractiveResult<T>.TimedOut;
 		}
-		return await @event.ConfigureAwait(false);
+		return await @event.ConfigureAwait(false);*/
 	}
 
 	/// <inheritdoc />
-	protected override Task<IUserMessage> ReplyAsync(
+	protected Task<IUserMessage> ReplyAsync(
 		string? message = null,
 		bool isTTS = false,
 		Embed? embed = null,
 		RequestOptions? options = null,
 		AllowedMentions? allowedMentions = null,
-		MessageReference? messageReference = null,
-		MessageComponent? components = null,
-		ISticker[]? stickers = null,
-		Embed[]? embeds = null,
-		MessageFlags flags = MessageFlags.None)
+		Embed[]? embeds = null)
 	{
 		if (embed is not null)
 		{

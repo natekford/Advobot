@@ -2,22 +2,30 @@
 using Advobot.Levels.Service;
 using Advobot.Logging.Resetters;
 using Advobot.Logging.Service;
+using Advobot.Services.Commands;
+using Advobot.Services.Events;
 using Advobot.Services.GuildSettings;
 using Advobot.Services.Punishments;
 using Advobot.Settings.Service;
 using Advobot.SQLite;
 using Advobot.Tests.Fakes.Discord;
 using Advobot.Tests.Fakes.Discord.Channels;
+using Advobot.Tests.Fakes.Services.Events;
 using Advobot.Tests.Utilities;
-using Advobot.TypeReaders;
 
 using Discord;
-using Discord.Commands;
 
 using Microsoft.Extensions.DependencyInjection;
 
 using System.Reflection;
 using System.Threading.Channels;
+
+using YACCS.Commands;
+using YACCS.Help;
+using YACCS.Localization;
+using YACCS.Parsing;
+using YACCS.Results;
+using YACCS.TypeReaders;
 
 namespace Advobot.Tests.TestBases;
 
@@ -30,17 +38,12 @@ public abstract class Command_Tests : TestsBase
 		typeof(Logging.LoggingInstantiator).Assembly,
 		typeof(MyCommands.MyCommandsInstantiator).Assembly,
 		typeof(Settings.SettingsInstantiator).Assembly,
-		typeof(Standard.Commands.Channels).Assembly,
+		typeof(Standard.StandardInstantiator).Assembly,
 		typeof(AdvobotLauncher).Assembly,
 	];
-	protected virtual CommandService CommandService { get; set; } = new(new()
-	{
-		CaseSensitiveCommands = false,
-		ThrowOnError = false,
-		LogLevel = LogSeverity.Info,
-	});
-	protected virtual Channel<IResult> ExecutedCommands { get; set; }
-		= Channel.CreateUnbounded<IResult>();
+	protected virtual NaiveCommandService CommandService { get; set; }
+	protected virtual Channel<CommandExecutedResult> ExecutedCommands { get; set; }
+		= Channel.CreateUnbounded<CommandExecutedResult>();
 	protected virtual bool HasBeenShutdown { get; set; }
 	protected virtual FakeTextChannel OtherTextChannel { get; set; }
 	protected virtual FakeVoiceChannel VoiceChannel { get; set; }
@@ -49,7 +52,7 @@ public abstract class Command_Tests : TestsBase
 	{
 		Context.Message.Content = input;
 
-		await CommandService.ExecuteAsync(Context, 0, Services).ConfigureAwait(false);
+		await CommandService.ExecuteAsync(Context, Context.Message.Content).ConfigureAwait(false);
 	}
 
 	protected virtual async Task<IResult> ExecuteWithResultAsync(string input)
@@ -61,8 +64,12 @@ public abstract class Command_Tests : TestsBase
 	protected override void ModifyServices(IServiceCollection services)
 	{
 		services
+			.AddSingleton<IEnumerable<Assembly>>(CommandAssemblies)
+			.AddSingleton<NaiveCommandService>()
+			.AddSingleton<CommandService>(x => x.GetRequiredService<NaiveCommandService>())
+			.AddSingleton<ICommandService>(x => x.GetRequiredService<NaiveCommandService>())
+
 			.AddSingleton<ShutdownApplication>(_ => HasBeenShutdown = true)
-			.AddSingleton(CommandService)
 			.AddSingleton<IGuildSettingsService, NaiveGuildSettingsService>()
 			.AddSingleton<IPunishmentService>(x => x.GetRequiredService<TimedPunishmentService>())
 			.AddSingleton<LevelServiceConfig>()
@@ -81,25 +88,15 @@ public abstract class Command_Tests : TestsBase
 
 	protected override async Task SetupAsync()
 	{
-		await Context.Client.StartAsync().ConfigureAwait(false);
+		var commandService = Services.GetRequiredService<NaiveCommandService>();
 
-		CommandService.CommandExecuted += async (_, __, result)
-			=> await ExecutedCommands.Writer.WriteAsync(result).ConfigureAwait(false);
-		foreach (var type in CommandAssemblies.SelectMany(x => x.GetTypes()))
+		await Context.Client.StartAsync().ConfigureAwait(false);
+		await CommandService.InitializeAsync().ConfigureAwait(false);
+
+		EventProvider.CommandExecuted.Add(async x =>
 		{
-			var attr = type.GetCustomAttribute<TypeReaderTargetTypeAttribute>();
-			if (attr is not null && Activator.CreateInstance(type) is TypeReader instance)
-			{
-				foreach (var targetType in attr.TargetTypes)
-				{
-					CommandService.AddTypeReader(targetType, instance, true);
-				}
-			}
-		}
-		foreach (var assembly in CommandAssemblies)
-		{
-			await CommandService.AddModulesAsync(assembly, Services).ConfigureAwait(false);
-		}
+			await ExecutedCommands.Writer.WriteAsync(x).ConfigureAwait(false);
+		});
 
 		OtherTextChannel = new(Context.Guild)
 		{

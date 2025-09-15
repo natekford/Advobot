@@ -1,11 +1,20 @@
 ﻿using Advobot;
 using Advobot.AutoMod;
-using Advobot.CommandAssemblies;
+using Advobot.AutoMod.Database;
+using Advobot.AutoMod.Service;
+using Advobot.Serilog;
+using Advobot.Services;
+using Advobot.Services.Punishments;
+using Advobot.SQLite;
+
+using Microsoft.Extensions.DependencyInjection;
 
 using System.Reflection;
 using System.Resources;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
+
+using YACCS.Plugins;
 
 // General Information about an assembly is controlled through the following
 // set of attributes. Change these attribute values to modify the information
@@ -36,5 +45,22 @@ using System.Runtime.InteropServices;
 [assembly: AssemblyVersion(Constants.ASSEMBLY_VERSION)]
 
 // Indicates the assembly has commands in it for the bot to use
-[assembly: CommandAssembly("en-US", InstantiatorType = typeof(AutoModInstantiator))]
+[assembly: AutoModInstantiator(SupportedCultures = ["en-US"])]
 [assembly: InternalsVisibleTo("Advobot.Tests")]
+
+namespace Advobot.AutoMod;
+
+public sealed class AutoModInstantiator : PluginAttribute<IServiceCollection>
+{
+	public override Task AddServicesAsync(IServiceCollection services)
+	{
+		services
+			.AddSQLiteDatabase<AutoModDatabase>("AutoMod")
+			.AddSingletonWithLogger<AutoModService>("AutoMod")
+			.AddSQLiteDatabase<TimedPunishmentDatabase>("TimedPunishments")
+			.ReplaceAllWithSingleton<IPunishmentService, TimedPunishmentService>()
+			.AddLogger<TimedPunishmentService>("TimedPunishments");
+
+		return Task.CompletedTask;
+	}
+}

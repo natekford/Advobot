@@ -1,15 +1,17 @@
-﻿using Advobot.Attributes;
-using Advobot.Localization;
-using Advobot.Logging.Database.Models;
+﻿using Advobot.Logging.Database.Models;
 using Advobot.Logging.ParameterPreconditions;
 using Advobot.Logging.Preconditions;
 using Advobot.Logging.Resetters;
+using Advobot.Modules;
 using Advobot.ParameterPreconditions.Discord.Channels;
 using Advobot.Preconditions.Permissions;
 using Advobot.Resources;
 
 using Discord;
-using Discord.Commands;
+
+using YACCS.Commands.Attributes;
+using YACCS.Commands.Building;
+using YACCS.Localization;
 
 using static Advobot.Logging.Responses.Logging;
 using static Advobot.Resources.Responses;
@@ -17,23 +19,21 @@ using static Discord.ChannelPermission;
 
 namespace Advobot.Logging.Commands;
 
-[Category(nameof(Logging))]
-[LocalizedGroup(nameof(Groups.Logging))]
-[LocalizedAlias(nameof(Aliases.Logging))]
-public sealed class Logging : ModuleBase
+[LocalizedCategory(nameof(Logging))]
+[LocalizedCommand(nameof(Groups.Logging), nameof(Aliases.Logging))]
+public sealed class Logging : AdvobotModuleBase
 {
-	[LocalizedGroup(nameof(Groups.ModifyActions))]
-	[LocalizedAlias(nameof(Aliases.ModifyActions))]
+	[LocalizedCommand(nameof(Groups.ModifyActions), nameof(Aliases.ModifyActions))]
 	[LocalizedSummary(nameof(Summaries.ModifyActions))]
-	[Meta("1457fb28-6510-47f1-998f-3bdca737f9b9")]
+	[Id("1457fb28-6510-47f1-998f-3bdca737f9b9")]
 	[RequireGuildPermissions]
 	public sealed class ModifyActions : LoggingModuleBase
 	{
+		[InjectService]
 		public required LogActionsResetter DefaultSetter { get; set; }
 
-		[LocalizedCommand(nameof(Groups.All))]
-		[LocalizedAlias(nameof(Aliases.All))]
-		public async Task<RuntimeResult> All(bool enable)
+		[LocalizedCommand(nameof(Groups.All), nameof(Aliases.All))]
+		public async Task<AdvobotResult> All(bool enable)
 		{
 			if (enable)
 			{
@@ -46,8 +46,10 @@ public sealed class Logging : ModuleBase
 			return ModifiedAllLogActions(enable);
 		}
 
-		[Command]
-		public async Task<RuntimeResult> Command(bool enable, params LogAction[] logActions)
+		[LocalizedCommand]
+		public async Task<AdvobotResult> Command(
+			bool enable,
+			params LogAction[] logActions)
 		{
 			if (enable)
 			{
@@ -60,25 +62,22 @@ public sealed class Logging : ModuleBase
 			return ModifiedLogActions(logActions, enable);
 		}
 
-		[LocalizedCommand(nameof(Groups.Default))]
-		[LocalizedAlias(nameof(Aliases.Default))]
-		public async Task<RuntimeResult> Default()
+		[LocalizedCommand(nameof(Groups.Default), nameof(Aliases.Default))]
+		public async Task<AdvobotResult> Default()
 		{
 			await DefaultSetter.ResetAsync(Context).ConfigureAwait(false);
 			return DefaultLogActions();
 		}
 	}
 
-	[LocalizedGroup(nameof(Groups.ModifyIgnoredChannels))]
-	[LocalizedAlias(nameof(Aliases.ModifyIgnoredChannels))]
+	[LocalizedCommand(nameof(Groups.ModifyIgnoredChannels), nameof(Aliases.ModifyIgnoredChannels))]
 	[LocalizedSummary(nameof(Summaries.ModifyIgnoredChannels))]
-	[Meta("c348ba6c-7112-4a36-b0b9-3a546d8efd68")]
+	[Id("c348ba6c-7112-4a36-b0b9-3a546d8efd68")]
 	[RequireGuildPermissions]
 	public sealed class ModifyIgnoredChannels : LoggingModuleBase
 	{
-		[LocalizedCommand(nameof(Groups.Add))]
-		[LocalizedAlias(nameof(Aliases.Add))]
-		public async Task<RuntimeResult> Add(
+		[LocalizedCommand(nameof(Groups.Add), nameof(Aliases.Add))]
+		public async Task<AdvobotResult> Add(
 			[CanModifyChannel(ManageChannels | ManageRoles)]
 			params ITextChannel[] channels
 		)
@@ -88,9 +87,8 @@ public sealed class Logging : ModuleBase
 			return ModifiedIgnoredLogChannels(channels, true);
 		}
 
-		[LocalizedCommand(nameof(Groups.Remove))]
-		[LocalizedAlias(nameof(Aliases.Remove))]
-		public async Task<RuntimeResult> Remove(
+		[LocalizedCommand(nameof(Groups.Remove), nameof(Aliases.Remove))]
+		public async Task<AdvobotResult> Remove(
 			[CanModifyChannel(ManageChannels | ManageRoles)]
 			params ITextChannel[] channels
 		)
@@ -101,84 +99,81 @@ public sealed class Logging : ModuleBase
 		}
 	}
 
-	[LocalizedGroup(nameof(Groups.ModifyImageLog))]
-	[LocalizedAlias(nameof(Aliases.ModifyImageLog))]
+	[LocalizedCommand(nameof(Groups.ModifyImageLog), nameof(Aliases.ModifyImageLog))]
 	[LocalizedSummary(nameof(Summaries.ModifyImageLog))]
-	[Meta("dd36f347-a33b-490a-a751-8d671e50abe1")]
+	[Id("dd36f347-a33b-490a-a751-8d671e50abe1")]
 	[RequireGuildPermissions]
 	public sealed class ModifyImageLog : LoggingModuleBase
 	{
 		private const Log LogType = Log.Server;
 
-		[Command]
-		public async Task<RuntimeResult> Command(
-			[NotImageLog, CanModifyChannel(ManageChannels | ManageRoles)]
+		[LocalizedCommand]
+		public async Task<AdvobotResult> Command(
+			[NotImageLog]
+			[CanModifyChannel(ManageChannels | ManageRoles)]
 			ITextChannel channel)
 		{
 			await Db.UpsertLogChannelAsync(LogType, Context.Guild.Id, channel.Id).ConfigureAwait(false);
 			return SetLog(VariableImageLog, channel);
 		}
 
-		[LocalizedCommand(nameof(Groups.Remove))]
-		[LocalizedAlias(nameof(Aliases.Remove))]
+		[LocalizedCommand(nameof(Groups.Remove), nameof(Aliases.Remove))]
 		[RequireImageLog]
-		public async Task<RuntimeResult> Remove()
+		public async Task<AdvobotResult> Remove()
 		{
 			await Db.UpsertLogChannelAsync(LogType, Context.Guild.Id, null).ConfigureAwait(false);
 			return Removed(VariableImageLog);
 		}
 	}
 
-	[LocalizedGroup(nameof(Groups.ModifyModLog))]
-	[LocalizedAlias(nameof(Aliases.ModifyModLog))]
+	[LocalizedCommand(nameof(Groups.ModifyModLog), nameof(Aliases.ModifyModLog))]
 	[LocalizedSummary(nameof(Summaries.ModifyModLog))]
-	[Meta("00199443-02f9-4873-ba21-d6d462a0052a")]
+	[Id("00199443-02f9-4873-ba21-d6d462a0052a")]
 	[RequireGuildPermissions]
 	public sealed class ModifyModLog : LoggingModuleBase
 	{
 		private const Log LogType = Log.Server;
 
 		[Command]
-		public async Task<RuntimeResult> Command(
-			[NotModLog, CanModifyChannel(ManageChannels | ManageRoles)]
+		public async Task<AdvobotResult> Command(
+			[NotModLog]
+			[CanModifyChannel(ManageChannels | ManageRoles)]
 			ITextChannel channel)
 		{
 			await Db.UpsertLogChannelAsync(LogType, Context.Guild.Id, channel.Id).ConfigureAwait(false);
 			return SetLog(VariableModLog, channel);
 		}
 
-		[LocalizedCommand(nameof(Groups.Remove))]
-		[LocalizedAlias(nameof(Aliases.Remove))]
+		[LocalizedCommand(nameof(Groups.Remove), nameof(Aliases.Remove))]
 		[RequireModLog]
-		public async Task<RuntimeResult> Remove()
+		public async Task<AdvobotResult> Remove()
 		{
 			await Db.UpsertLogChannelAsync(LogType, Context.Guild.Id, null).ConfigureAwait(false);
 			return Removed(VariableModLog);
 		}
 	}
 
-	[LocalizedGroup(nameof(Groups.ModifyServerLog))]
-	[LocalizedAlias(nameof(Aliases.ModifyServerLog))]
+	[LocalizedCommand(nameof(Groups.ModifyServerLog), nameof(Aliases.ModifyServerLog))]
 	[LocalizedSummary(nameof(Summaries.ModifyServerLog))]
-	[Meta("58abc6df-6814-4946-9f04-b99b024ec8ac")]
+	[Id("58abc6df-6814-4946-9f04-b99b024ec8ac")]
 	[RequireGuildPermissions]
 	public sealed class ModifyServerLog : LoggingModuleBase
 	{
 		private const Log LogType = Log.Server;
 
-		[Command]
-		public async Task<RuntimeResult> Command(
-			[NotServerLog, CanModifyChannel(ManageChannels | ManageRoles)]
+		[LocalizedCommand]
+		public async Task<AdvobotResult> Command(
+			[NotServerLog]
+			[CanModifyChannel(ManageChannels | ManageRoles)]
 			ITextChannel channel)
 		{
 			await Db.UpsertLogChannelAsync(LogType, Context.Guild.Id, channel.Id).ConfigureAwait(false);
 			return SetLog(VariableServerLog, channel);
 		}
 
-		[LocalizedCommand(nameof(Groups.Remove))]
-		[LocalizedAlias(nameof(Aliases.Remove))]
+		[LocalizedCommand(nameof(Groups.Remove), nameof(Aliases.Remove))]
 		[RequireServerLog]
-		public async Task<RuntimeResult> Remove()
+		public async Task<AdvobotResult> Remove()
 		{
 			await Db.UpsertLogChannelAsync(LogType, Context.Guild.Id, null).ConfigureAwait(false);
 			return Removed(VariableServerLog);

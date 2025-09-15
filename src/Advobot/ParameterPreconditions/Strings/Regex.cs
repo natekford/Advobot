@@ -1,10 +1,10 @@
-﻿using Advobot.Utilities;
-
-using Discord;
-using Discord.Commands;
+﻿using Advobot.Modules;
 
 using System.Text;
 using System.Text.RegularExpressions;
+
+using YACCS.Preconditions;
+using YACCS.Results;
 
 namespace Advobot.ParameterPreconditions.Strings;
 
@@ -23,14 +23,12 @@ public sealed class Regex : StringLengthParameterPrecondition
 	public Regex() : base(1, 100) { }
 
 	/// <inheritdoc />
-	protected override async Task<PreconditionResult> CheckPermissionsAsync(
-		ICommandContext context,
-		ParameterInfo parameter,
-		IGuildUser invoker,
-		string value,
-		IServiceProvider services)
+	public override async ValueTask<IResult> CheckAsync(
+		CommandMeta meta,
+		IGuildContext context,
+		string? value)
 	{
-		var result = await base.CheckPermissionsAsync(context, parameter, invoker, value, services).ConfigureAwait(false);
+		var result = await base.CheckAsync(meta, context, value).ConfigureAwait(false);
 		if (!result.IsSuccess)
 		{
 			return result;
@@ -43,7 +41,8 @@ public sealed class Regex : StringLengthParameterPrecondition
 		}
 		catch (ArgumentException)
 		{
-			return PreconditionResult.FromError("Invalid regex provided.");
+			// TODO: singleton
+			return Result.Failure("Invalid regex provided.");
 		}
 
 		var tests = new (string Name, Func<string, bool> Test)[]
@@ -75,10 +74,12 @@ public sealed class Regex : StringLengthParameterPrecondition
 		{
 			if (Test.Invoke(value))
 			{
-				return PreconditionResult.FromError($"Invalid regex; matched {Name} when it should not have.");
+				// TODO: singleton?
+				var error = $"Invalid regex; matched {Name} when it should not have.";
+				return Result.Failure(error);
 			}
 		}
-		return this.FromSuccess();
+		return CachedResults.Success;
 	}
 
 	private bool IsMatch(string input, string pattern)

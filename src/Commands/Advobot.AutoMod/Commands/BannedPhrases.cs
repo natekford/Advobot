@@ -1,50 +1,46 @@
-﻿using Advobot.Attributes;
-using Advobot.AutoMod.Database.Models;
+﻿using Advobot.AutoMod.Database.Models;
 using Advobot.AutoMod.ParameterPreconditions;
 using Advobot.AutoMod.TypeReaders;
-using Advobot.Localization;
+using Advobot.Modules;
 using Advobot.ParameterPreconditions.Strings;
 using Advobot.Preconditions.Permissions;
 using Advobot.Punishments;
 using Advobot.Resources;
 
-using Discord.Commands;
+using YACCS.Commands.Attributes;
+using YACCS.Localization;
 
 using static Advobot.AutoMod.Responses.BannedPhrases;
 using static Advobot.Resources.Responses;
 
 namespace Advobot.AutoMod.Commands;
 
-[Category(nameof(BannedPhrases))]
-public sealed class BannedPhrases : ModuleBase
+[LocalizedCategory(nameof(BannedPhrases))]
+public sealed class BannedPhrases : AdvobotModuleBase
 {
-	[LocalizedGroup(nameof(Groups.DisplayBannedPhrases))]
-	[LocalizedAlias(nameof(Aliases.DisplayBannedPhrases))]
+	[LocalizedCommand(nameof(Groups.DisplayBannedPhrases), nameof(Aliases.DisplayBannedPhrases))]
 	[LocalizedSummary(nameof(Summaries.DisplayBannedPhrases))]
-	[Meta("5beb670b-e6ff-40c6-a884-66a17f95209d")]
+	[Id("5beb670b-e6ff-40c6-a884-66a17f95209d")]
 	[RequireGuildPermissions]
 	public sealed class DisplayBannedPhrases : AutoModModuleBase
 	{
-		[Command]
-		public Task<RuntimeResult> Command()
+		[LocalizedCommand]
+		public Task<AdvobotResult> Command()
 			=> CommandRunner(true, true, true);
 
-		[LocalizedCommand(nameof(Groups.Names))]
-		[LocalizedAlias(nameof(Aliases.Names))]
-		public Task<RuntimeResult> Names()
+		[LocalizedCommand(nameof(Groups.Names), nameof(Aliases.Names))]
+		public Task<AdvobotResult> Names()
 			=> CommandRunner(false, false, true);
 
-		[LocalizedCommand(nameof(Groups.Regex))]
-		[LocalizedAlias(nameof(Aliases.Regex))]
-		public Task<RuntimeResult> Regex()
+		[LocalizedCommand(nameof(Groups.Regex), nameof(Aliases.Regex))]
+		public Task<AdvobotResult> Regex()
 			=> CommandRunner(false, true, false);
 
-		[LocalizedCommand(nameof(Groups.Strings))]
-		[LocalizedAlias(nameof(Aliases.Strings))]
-		public Task<RuntimeResult> Strings()
+		[LocalizedCommand(nameof(Groups.Strings), nameof(Aliases.Strings))]
+		public Task<AdvobotResult> Strings()
 			=> CommandRunner(true, false, false);
 
-		private async Task<RuntimeResult> CommandRunner(bool @string, bool regex, bool name)
+		private async Task<AdvobotResult> CommandRunner(bool @string, bool regex, bool name)
 		{
 			var phrases = await Db.GetBannedPhrasesAsync(Context.Guild.Id).ConfigureAwait(false);
 			return Display(phrases.Where(x =>
@@ -56,16 +52,14 @@ public sealed class BannedPhrases : ModuleBase
 		}
 	}
 
-	[LocalizedGroup(nameof(Groups.ModifyBannedNames))]
-	[LocalizedAlias(nameof(Aliases.ModifyBannedNames))]
+	[LocalizedCommand(nameof(Groups.ModifyBannedNames), nameof(Aliases.ModifyBannedNames))]
 	[LocalizedSummary(nameof(Summaries.ModifyBannedNames))]
-	[Meta("c19c7402-4206-48ce-b109-ab11da476ac2")]
+	[Id("c19c7402-4206-48ce-b109-ab11da476ac2")]
 	[RequireGuildPermissions]
 	public sealed class ModifyBannedNames : AutoModModuleBase
 	{
-		[LocalizedCommand(nameof(Groups.Add))]
-		[LocalizedAlias(nameof(Aliases.Add))]
-		public async Task<RuntimeResult> Add(
+		[LocalizedCommand(nameof(Groups.Add), nameof(Aliases.Add))]
+		public async Task<AdvobotResult> Add(
 			[NotAlreadyBannedName]
 			string name,
 			PunishmentType punishment = default)
@@ -82,10 +76,9 @@ public sealed class BannedPhrases : ModuleBase
 			return Added(VariableName, name);
 		}
 
-		[LocalizedCommand(nameof(Groups.ChangePunishment))]
-		[LocalizedAlias(nameof(Aliases.ChangePunishment))]
-		public async Task<RuntimeResult> ChangePunishment(
-			[OverrideTypeReader(typeof(BannedNameTypeReader))]
+		[LocalizedCommand(nameof(Groups.ChangePunishment), nameof(Aliases.ChangePunishment))]
+		public async Task<AdvobotResult> ChangePunishment(
+			[OverrideTypeReader<BannedNameTypeReader>]
 			BannedPhrase name,
 			PunishmentType punishment)
 		{
@@ -96,28 +89,26 @@ public sealed class BannedPhrases : ModuleBase
 			return PunishmentChanged(VariableName, name.Phrase, punishment);
 		}
 
-		[LocalizedCommand(nameof(Groups.Remove))]
-		[LocalizedAlias(nameof(Aliases.Remove))]
-		public async Task<RuntimeResult> Remove(
-			[OverrideTypeReader(typeof(BannedNameTypeReader))]
-				BannedPhrase name)
+		[LocalizedCommand(nameof(Groups.Remove), nameof(Aliases.Remove))]
+		public async Task<AdvobotResult> Remove(
+			[OverrideTypeReader<BannedNameTypeReader>]
+			BannedPhrase name)
 		{
 			await Db.DeletedBannedPhraseAsync(name).ConfigureAwait(false);
 			return Removed(VariableName, name.Phrase);
 		}
 	}
 
-	[LocalizedGroup(nameof(Groups.ModifyBannedRegex))]
-	[LocalizedAlias(nameof(Aliases.ModifyBannedRegex))]
+	[LocalizedCommand(nameof(Groups.ModifyBannedRegex), nameof(Aliases.ModifyBannedRegex))]
 	[LocalizedSummary(nameof(Summaries.ModifyBannedRegex))]
-	[Meta("3438fb1e-e78b-44d2-960f-f19c73113879")]
+	[Id("3438fb1e-e78b-44d2-960f-f19c73113879")]
 	[RequireGuildPermissions]
 	public sealed class ModifyBannedRegex : AutoModModuleBase
 	{
-		[LocalizedCommand(nameof(Groups.Add))]
-		[LocalizedAlias(nameof(Aliases.Add))]
-		public async Task<RuntimeResult> Add(
-			[Regex, NotAlreadyBannedRegex]
+		[LocalizedCommand(nameof(Groups.Add), nameof(Aliases.Add))]
+		public async Task<AdvobotResult> Add(
+			[Regex]
+			[NotAlreadyBannedRegex]
 			string regex,
 			PunishmentType punishment = default)
 		{
@@ -133,10 +124,9 @@ public sealed class BannedPhrases : ModuleBase
 			return Added(VariableRegex, regex);
 		}
 
-		[LocalizedCommand(nameof(Groups.ChangePunishment))]
-		[LocalizedAlias(nameof(Aliases.ChangePunishment))]
-		public async Task<RuntimeResult> ChangePunishment(
-			[OverrideTypeReader(typeof(BannedRegexTypeReader))]
+		[LocalizedCommand(nameof(Groups.ChangePunishment), nameof(Aliases.ChangePunishment))]
+		public async Task<AdvobotResult> ChangePunishment(
+			[OverrideTypeReader<BannedRegexTypeReader>]
 			BannedPhrase regex,
 			PunishmentType punishment)
 		{
@@ -147,27 +137,24 @@ public sealed class BannedPhrases : ModuleBase
 			return PunishmentChanged(VariableRegex, regex.Phrase, punishment);
 		}
 
-		[LocalizedCommand(nameof(Groups.Remove))]
-		[LocalizedAlias(nameof(Aliases.Remove))]
-		public async Task<RuntimeResult> Remove(
-			[OverrideTypeReader(typeof(BannedRegexTypeReader))]
-				BannedPhrase regex)
+		[LocalizedCommand(nameof(Groups.Remove), nameof(Aliases.Remove))]
+		public async Task<AdvobotResult> Remove(
+			[OverrideTypeReader<BannedRegexTypeReader>]
+			BannedPhrase regex)
 		{
 			await Db.DeletedBannedPhraseAsync(regex).ConfigureAwait(false);
 			return Removed(VariableRegex, regex.Phrase);
 		}
 	}
 
-	[LocalizedGroup(nameof(Groups.ModifyBannedStrings))]
-	[LocalizedAlias(nameof(Aliases.ModifyBannedStrings))]
+	[LocalizedCommand(nameof(Groups.ModifyBannedStrings), nameof(Aliases.ModifyBannedStrings))]
 	[LocalizedSummary(nameof(Summaries.ModifyBannedStrings))]
-	[Meta("6e494bca-519e-41ce-998a-f71f0677dfb0")]
+	[Id("6e494bca-519e-41ce-998a-f71f0677dfb0")]
 	[RequireGuildPermissions]
 	public sealed class ModifyBannedStrings : AutoModModuleBase
 	{
-		[LocalizedCommand(nameof(Groups.Add))]
-		[LocalizedAlias(nameof(Aliases.Add))]
-		public async Task<RuntimeResult> Add(
+		[LocalizedCommand(nameof(Groups.Add), nameof(Aliases.Add))]
+		public async Task<AdvobotResult> Add(
 			[NotAlreadyBannedString]
 			string phrase,
 			PunishmentType punishment = default)
@@ -184,10 +171,9 @@ public sealed class BannedPhrases : ModuleBase
 			return Added(VariableString, phrase);
 		}
 
-		[LocalizedCommand(nameof(Groups.ChangePunishment))]
-		[LocalizedAlias(nameof(Aliases.ChangePunishment))]
-		public async Task<RuntimeResult> ChangePunishment(
-			[OverrideTypeReader(typeof(BannedStringTypeReader))]
+		[LocalizedCommand(nameof(Groups.ChangePunishment), nameof(Aliases.ChangePunishment))]
+		public async Task<AdvobotResult> ChangePunishment(
+			[OverrideTypeReader<BannedStringTypeReader>]
 			BannedPhrase phrase,
 			PunishmentType punishment)
 		{
@@ -198,11 +184,10 @@ public sealed class BannedPhrases : ModuleBase
 			return PunishmentChanged(VariableString, phrase.Phrase, punishment);
 		}
 
-		[LocalizedCommand(nameof(Groups.Remove))]
-		[LocalizedAlias(nameof(Aliases.Remove))]
-		public async Task<RuntimeResult> Remove(
-			[OverrideTypeReader(typeof(BannedStringTypeReader))]
-				BannedPhrase phrase)
+		[LocalizedCommand(nameof(Groups.Remove), nameof(Aliases.Remove))]
+		public async Task<AdvobotResult> Remove(
+			[OverrideTypeReader<BannedStringTypeReader>]
+			BannedPhrase phrase)
 		{
 			await Db.DeletedBannedPhraseAsync(phrase).ConfigureAwait(false);
 			return Removed(VariableString, phrase.Phrase);

@@ -1,6 +1,7 @@
-﻿using Advobot.Utilities;
+﻿using Advobot.Modules;
 
-using Discord.Commands;
+using YACCS.Commands.Models;
+using YACCS.Results;
 
 namespace Advobot.Preconditions;
 
@@ -14,15 +15,16 @@ public sealed class RequireGuildOwner : AdvobotPrecondition
 	public override string Summary => "Invoker is the guild owner";
 
 	/// <inheritdoc />
-	public override Task<PreconditionResult> CheckPermissionsAsync(
-		ICommandContext context,
-		CommandInfo command,
-		IServiceProvider services)
+	public override ValueTask<IResult> CheckAsync(
+		IImmutableCommand command,
+		IGuildContext context)
 	{
 		if (context.Guild.OwnerId == context.User.Id)
 		{
-			return this.FromSuccess().AsTask();
+			return new(CachedResults.Success);
 		}
-		return PreconditionResult.FromError("You are not the guild owner.").AsTask();
+		// TODO: singleton
+		var error = "You are not the guild owner.";
+		return new(Result.Failure(error));
 	}
 }

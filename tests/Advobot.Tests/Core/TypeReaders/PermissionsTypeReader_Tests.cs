@@ -16,7 +16,7 @@ public sealed class PermissionsTypeReader_Tests
 	public async Task InvalidNumber_Test()
 	{
 		var result = await ReadAsync("123412341234123412341234132412341234123412341234").ConfigureAwait(false);
-		Assert.IsFalse(result.IsSuccess);
+		Assert.IsFalse(result.InnerResult.IsSuccess);
 	}
 
 	[TestMethod]
@@ -24,22 +24,22 @@ public sealed class PermissionsTypeReader_Tests
 	{
 		var perms = new[]
 		{
-				ChannelPermission.AddReactions,
-				ChannelPermission.AttachFiles,
-				ChannelPermission.CreateInstantInvite,
-				ChannelPermission.EmbedLinks,
-				ChannelPermission.ManageWebhooks
-			};
+			ChannelPermission.AddReactions,
+			ChannelPermission.AttachFiles,
+			ChannelPermission.CreateInstantInvite,
+			ChannelPermission.EmbedLinks,
+			ChannelPermission.ManageWebhooks
+		};
 		var result = await ReadAsync(perms.Select(x => x.ToString()).Join()).ConfigureAwait(false);
-		Assert.IsTrue(result.IsSuccess);
-		Assert.IsInstanceOfType<ChannelPermission>(result.BestMatch);
+		Assert.IsTrue(result.InnerResult.IsSuccess);
+		Assert.IsInstanceOfType<ChannelPermission>(result.Value);
 	}
 
 	[TestMethod]
 	public async Task ValidNumber_Test()
 	{
 		var result = await ReadAsync("123456789").ConfigureAwait(false);
-		Assert.IsTrue(result.IsSuccess);
-		Assert.IsInstanceOfType<ChannelPermission>(result.BestMatch);
+		Assert.IsTrue(result.InnerResult.IsSuccess);
+		Assert.IsInstanceOfType<ChannelPermission>(result.Value);
 	}
 }

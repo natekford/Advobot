@@ -1,19 +1,18 @@
-﻿using Advobot.Utilities;
-
-using Discord;
-using Discord.Commands;
+﻿using Discord;
 
 using System.Collections.Immutable;
 using System.Globalization;
 using System.Reflection;
+
+using YACCS.TypeReaders;
 
 namespace Advobot.TypeReaders;
 
 /// <summary>
 /// Attemps to create a <see cref="Color"/>.
 /// </summary>
-[TypeReaderTargetType(typeof(Color))]
-public sealed class ColorTypeReader : TypeReader
+[TypeReaderTargetTypes(typeof(Color))]
+public sealed class ColorTypeReader() : TryParseTypeReader<Color>(TryParse)
 {
 	private static readonly ImmutableDictionary<string, Color> _Colors = typeof(Color)
 		.GetFields(BindingFlags.Public | BindingFlags.Static)
@@ -23,26 +22,20 @@ public sealed class ColorTypeReader : TypeReader
 	private static readonly char[] _SplitChars = ['/', '-', ','];
 	private static readonly char[] _TrimChars = ['&', 'h', '#', 'x'];
 
-	/// <summary>
-	/// Attempts to parse a color from the input. If unable to parse, returns null.
-	/// </summary>
-	/// <param name="input"></param>
-	/// <param name="result"></param>
-	/// <returns></returns>
-	public static bool TryParseColor(string input, out Color result)
+	private static bool TryParse(string s, out Color result)
 	{
-		if (input is null)
+		if (s is null)
 		{
 			result = default;
 			return true;
 		}
 		// By name
-		if (_Colors.TryGetValue(input, out result))
+		if (_Colors.TryGetValue(s, out result))
 		{
 			return true;
 		}
 		// By hex (trimming characters that are sometimes at the beginning of hex numbers)
-		var trimmed = input.Replace("0x", "").TrimStart(_TrimChars);
+		var trimmed = s.Replace("0x", "").TrimStart(_TrimChars);
 		if (uint.TryParse(trimmed, NumberStyles.HexNumber, null, out var hex))
 		{
 			result = new(hex);
@@ -51,7 +44,7 @@ public sealed class ColorTypeReader : TypeReader
 		// By RGB
 		foreach (var c in _SplitChars)
 		{
-			var split = input.Split(c);
+			var split = s.Split(c);
 			if (split.Length != 3)
 			{
 				continue;
@@ -68,24 +61,5 @@ public sealed class ColorTypeReader : TypeReader
 			}
 		}
 		return false;
-	}
-
-	/// <summary>
-	/// Input is tested as a color name, then hex, then RBG separated by back slashes.
-	/// </summary>
-	/// <param name="context"></param>
-	/// <param name="input"></param>
-	/// <param name="services"></param>
-	/// <returns></returns>
-	public override Task<TypeReaderResult> ReadAsync(
-		ICommandContext context,
-		string input,
-		IServiceProvider services)
-	{
-		if (TryParseColor(input, out var color))
-		{
-			return TypeReaderResult.FromSuccess(color).AsTask();
-		}
-		return TypeReaderUtils.ParseFailedResult<Color>().AsTask();
 	}
 }

@@ -1,7 +1,9 @@
-﻿using Advobot.Utilities;
+﻿using Advobot.Modules;
 
 using Discord;
-using Discord.Commands;
+
+using YACCS.Preconditions;
+using YACCS.Results;
 
 namespace Advobot.ParameterPreconditions.Discord.Roles;
 
@@ -15,17 +17,17 @@ public sealed class NotManaged : AdvobotParameterPrecondition<IRole>
 	public override string Summary => "Not managed";
 
 	/// <inheritdoc />
-	protected override Task<PreconditionResult> CheckPermissionsAsync(
-		ICommandContext context,
-		ParameterInfo parameter,
-		IGuildUser invoker,
-		IRole role,
-		IServiceProvider services)
+	public override ValueTask<IResult> CheckAsync(
+		CommandMeta meta,
+		IGuildContext context,
+		IRole? value)
 	{
-		if (!role.IsManaged)
+		if (value.IsManaged)
 		{
-			return this.FromSuccess().AsTask();
+			// TODO: singleton
+			var error = "The role cannot be managed.";
+			return new(Result.Failure(error));
 		}
-		return PreconditionResult.FromError("The role cannot be managed.").AsTask();
+		return new(CachedResults.Success);
 	}
 }

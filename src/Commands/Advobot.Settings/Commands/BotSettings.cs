@@ -1,11 +1,11 @@
-﻿using Advobot.Attributes;
+﻿using Advobot.Modules;
 
-using Discord.Commands;
+using YACCS.Localization;
 
 namespace Advobot.Settings.Commands;
 
-[Category(nameof(BotSettings))]
-public sealed class BotSettings : ModuleBase
+[LocalizedCategory(nameof(BotSettings))]
+public sealed class BotSettings : AdvobotModuleBase
 {
 #warning reenable
 	/*

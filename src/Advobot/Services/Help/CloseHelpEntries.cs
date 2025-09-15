@@ -1,7 +1,6 @@
-﻿using Advobot.CloseWords;
+﻿namespace Advobot.Services.Help;
 
-namespace Advobot.Services.Help;
-
+/*
 /// <summary>
 /// Implementation of <see cref="CloseWords{T}"/> which searches through help entries.
 /// </summary>
@@ -25,4 +24,4 @@ internal sealed class CloseHelpEntries(IEnumerable<IHelpModule> source)
 		}
 		return new(closest, search, distance, obj);
 	}
-}
+}*/

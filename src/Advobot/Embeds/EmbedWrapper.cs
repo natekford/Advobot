@@ -1,6 +1,4 @@
-﻿using Advobot.Utilities;
-
-using Discord;
+﻿using Discord;
 
 using System.Diagnostics.CodeAnalysis;
 using System.Runtime.CompilerServices;

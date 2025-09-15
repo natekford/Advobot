@@ -1,54 +1,58 @@
-﻿using Advobot.Settings.Database.Models;
-using Advobot.TypeReaders;
-using Advobot.Utilities;
+﻿using Advobot.Modules;
+using Advobot.Settings.Database.Models;
+using Advobot.TypeReaders.Discord;
 
 using Discord;
-using Discord.Commands;
+
+using MorseCode.ITask;
+
+using YACCS.Results;
+using YACCS.TypeReaders;
 
 namespace Advobot.Settings.TypeReaders;
 
-[TypeReaderTargetType(typeof(CommandOverrideEntity))]
-public class EntityTypeReader : TypeReader
+[TypeReaderTargetTypes(typeof(CommandOverrideEntity))]
+public class EntityTypeReader : DiscordTypeReader<CommandOverrideEntity>
 {
-	private static readonly ChannelTypeReader<ITextChannel> _ChannelTypeReader = new();
+	private static readonly TextChannelTypeReader _ChannelTypeReader = new();
 	private static readonly GuildTypeReader _GuildTypeReader = new();
-	private static readonly RoleTypeReader<IRole> _RoleTypeReader = new();
-	private static readonly UserTypeReader<IGuildUser> _UserTypeReader = new();
+	private static readonly RoleTypeReader _RoleTypeReader = new();
+	private static readonly UserTypeReader _UserTypeReader = new();
 
-	public override async Task<TypeReaderResult> ReadAsync(
-		ICommandContext context,
-		string input,
-		IServiceProvider services)
+	public override async ITask<ITypeReaderResult<CommandOverrideEntity>> ReadAsync(
+		IGuildContext context,
+		ReadOnlyMemory<string> input)
 	{
-		var userResult = await _UserTypeReader.ReadAsync(context, input, services).ConfigureAwait(false);
-		if (userResult.IsSuccess && userResult.BestMatch is IGuildUser user)
+		var userResult = await _UserTypeReader.ReadAsync(context, input).ConfigureAwait(false);
+		if (userResult.InnerResult.IsSuccess && userResult.Value is IGuildUser user)
 		{
-			return TypeReaderResult.FromSuccess(new CommandOverrideEntity(user));
+			return Success(new(user));
 		}
 
-		var roleResult = await _RoleTypeReader.ReadAsync(context, input, services).ConfigureAwait(false);
-		if (roleResult.IsSuccess && roleResult.BestMatch is IRole role)
+		var roleResult = await _RoleTypeReader.ReadAsync(context, input).ConfigureAwait(false);
+		if (roleResult.InnerResult.IsSuccess && roleResult.Value is IRole role)
 		{
-			return TypeReaderResult.FromSuccess(new CommandOverrideEntity(role));
+			return Success(new(role));
 		}
 
-		var channelResult = await _ChannelTypeReader.ReadAsync(context, input, services).ConfigureAwait(false);
-		if (channelResult.IsSuccess && channelResult.BestMatch is ITextChannel channel)
+		var channelResult = await _ChannelTypeReader.ReadAsync(context, input).ConfigureAwait(false);
+		if (channelResult.InnerResult.IsSuccess && channelResult.Value is ITextChannel channel)
 		{
-			return TypeReaderResult.FromSuccess(new CommandOverrideEntity(channel));
+			return Success(new(channel));
 		}
 
-		var guildResult = await _GuildTypeReader.ReadAsync(context, input, services).ConfigureAwait(false);
-		if (guildResult.IsSuccess && guildResult.BestMatch is IGuild guild)
+		var guildResult = await _GuildTypeReader.ReadAsync(context, input).ConfigureAwait(false);
+		if (guildResult.InnerResult.IsSuccess && guildResult.Value is IGuild guild)
 		{
-			return TypeReaderResult.FromSuccess(new CommandOverrideEntity(guild));
+			return Success(new(guild));
 		}
 
-		if (input.CaseInsEquals("guild"))
+		if (input.Span[0] == "guild")
 		{
-			return TypeReaderResult.FromSuccess(new CommandOverrideEntity(context.Guild));
+			return Success(new(context.Guild));
 		}
 
-		return TypeReaderResult.FromError(CommandError.ObjectNotFound, "Unable to find a targetable entity.");
+		// TODO: singleton?
+		return CachedResults<CommandOverrideEntity>.NotFound.Result;
 	}
 }

@@ -1,13 +1,13 @@
-﻿using Advobot.Services.Help;
+﻿using Advobot.Modules;
 
-using Discord.Commands;
+using YACCS.Preconditions;
 
 namespace Advobot.Preconditions;
 
 /// <summary>
 /// Requires the context to meet a preconidition.
 /// </summary>
-public abstract class AdvobotPrecondition : PreconditionAttribute, IHelpPrecondition
+public abstract class AdvobotPrecondition : Precondition<IGuildContext>
 {
 	/// <inheritdoc />
 	public string Name => Summary;

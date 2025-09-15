@@ -1,5 +1,5 @@
 ﻿using Advobot.Tests.TestBases;
-using Advobot.TypeReaders;
+using Advobot.TypeReaders.Discord;
 
 using Discord;
 
@@ -15,8 +15,8 @@ public sealed class WebhookTypeReader_Tests : TypeReader_Tests<WebhookTypeReader
 	{
 		var wh = await Context.Channel.CreateWebhookAsync("testo").ConfigureAwait(false);
 		var result = await ReadAsync(wh.Id.ToString()).ConfigureAwait(false);
-		Assert.IsTrue(result.IsSuccess);
-		Assert.IsInstanceOfType<IWebhook>(result.BestMatch);
+		Assert.IsTrue(result.InnerResult.IsSuccess);
+		Assert.IsInstanceOfType<IWebhook>(result.Value);
 	}
 
 	[TestMethod]
@@ -24,7 +24,7 @@ public sealed class WebhookTypeReader_Tests : TypeReader_Tests<WebhookTypeReader
 	{
 		var wh = await Context.Channel.CreateWebhookAsync("testo").ConfigureAwait(false);
 		var result = await ReadAsync(wh.Name).ConfigureAwait(false);
-		Assert.IsTrue(result.IsSuccess);
-		Assert.IsInstanceOfType<IWebhook>(result.BestMatch);
+		Assert.IsTrue(result.InnerResult.IsSuccess);
+		Assert.IsInstanceOfType<IWebhook>(result.Value);
 	}
 }

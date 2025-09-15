@@ -1,60 +1,70 @@
 ﻿using Advobot.AutoMod.Database;
 using Advobot.AutoMod.Database.Models;
-using Advobot.TypeReaders;
-using Advobot.Utilities;
+using Advobot.Modules;
+using Advobot.TypeReaders.Discord;
 
 using Discord;
-using Discord.Commands;
 
 using Microsoft.Extensions.DependencyInjection;
 
+using MorseCode.ITask;
+
+using YACCS.Results;
+using YACCS.TypeReaders;
+
 namespace Advobot.AutoMod.TypeReaders;
 
-[TypeReaderTargetType(typeof(SelfRoleState))]
-public sealed class SelfRoleStateTypeReader : RoleTypeReader<IRole>
+[TypeReaderTargetTypes(typeof(SelfRoleState))]
+public sealed class SelfRoleStateTypeReader : DiscordTypeReader<SelfRoleState>
 {
-	public override async Task<TypeReaderResult> ReadAsync(
-		ICommandContext context,
-		string input,
-		IServiceProvider services)
-	{
-		var result = await base.ReadAsync(context, input, services).ConfigureAwait(false);
-		if (!result.IsSuccess)
-		{
-			return result;
-		}
-		var role = (IRole)result.BestMatch;
+	private readonly RoleTypeReader _RoleTypeReader = new();
 
-		var db = services.GetRequiredService<AutoModDatabase>();
+	public override async ITask<ITypeReaderResult<SelfRoleState>> ReadAsync(
+		IGuildContext context,
+		ReadOnlyMemory<string> input)
+	{
+		var result = await _RoleTypeReader.ReadAsync(context, input).ConfigureAwait(false);
+		if (!result.InnerResult.IsSuccess)
+		{
+			return Error(result.InnerResult);
+		}
+		if (result.Value is not IRole role)
+		{
+			return CachedResults<SelfRoleState>.ParseFailed.Result;
+		}
+
+		var db = GetDatabase(context.Services);
 		var selfRole = await db.GetSelfRoleAsync(role.Id).ConfigureAwait(false);
 		if (selfRole is null)
 		{
-			return TypeReaderResult.FromError(CommandError.ObjectNotFound,
-				$"`{role.Format()}` is not a self assignable role.");
+			return CachedResults<SelfRoleState>.NotFound.Result;
 		}
 
 		IReadOnlyList<IRole> conflicting = [];
 		if (selfRole.GroupId != SelfRole.NO_GROUP)
 		{
-			conflicting = await GetConflictingRoles(db, context, selfRole).ConfigureAwait(false);
+			conflicting = await GetConflictingRoles(db, selfRole, context.Guild).ConfigureAwait(false);
 		}
 
-		var state = new SelfRoleState(selfRole.GroupId, role, conflicting);
-		return TypeReaderResult.FromSuccess(state);
+		return Success(new(selfRole.GroupId, role, conflicting));
 	}
+
+	[GetServiceMethod]
+	private static AutoModDatabase GetDatabase(IServiceProvider services)
+		=> services.GetRequiredService<AutoModDatabase>();
 
 	private async Task<List<IRole>> GetConflictingRoles(
 		AutoModDatabase db,
-		ICommandContext context,
-		SelfRole item)
+		SelfRole item,
+		IGuild guild)
 	{
-		var selfRoles = await db.GetSelfRolesAsync(context.Guild.Id, item.GroupId).ConfigureAwait(false);
+		var selfRoles = await db.GetSelfRolesAsync(guild.Id, item.GroupId).ConfigureAwait(false);
 		var conflicting = new List<IRole>(selfRoles.Count);
 		var deletable = new List<ulong>();
 
 		foreach (var selfRole in selfRoles)
 		{
-			var role = context.Guild.GetRole(selfRole.RoleId);
+			var role = guild.GetRole(selfRole.RoleId);
 			// Role doesn't exist anymore, so go remove it from the db
 			if (role is null)
 			{

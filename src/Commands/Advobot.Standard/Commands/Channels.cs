@@ -1,5 +1,4 @@
 ﻿using Advobot.Attributes;
-using Advobot.Localization;
 using Advobot.Modules;
 using Advobot.ParameterPreconditions.Discord.Channels;
 using Advobot.Preconditions.Permissions;
@@ -7,25 +6,27 @@ using Advobot.Resources;
 using Advobot.Utilities;
 
 using Discord;
-using Discord.Commands;
+
+using YACCS.Commands.Attributes;
+using YACCS.Localization;
 
 using static Discord.ChannelPermission;
 
 namespace Advobot.Standard.Commands;
 
-[Category(nameof(Channels))]
-public sealed class Channels : ModuleBase
+[LocalizedCategory(nameof(Channels))]
+public sealed class Channels : AdvobotModuleBase
 {
 	// On mobile this has to be done 1 by 1
-	[LocalizedGroup(nameof(Groups.ClearChannelPerms))]
-	[LocalizedAlias(nameof(Aliases.ClearChannelPerms))]
+	[LocalizedCommand(nameof(Groups.ClearChannelPerms), nameof(Aliases.ClearChannelPerms))]
 	[LocalizedSummary(nameof(Summaries.ClearChannelPerms))]
-	[Meta("5710430c-ce62-4474-9296-071eca65c9b1", IsEnabled = true)]
+	[Id("5710430c-ce62-4474-9296-071eca65c9b1")]
+	[Meta(IsEnabled = true)]
 	[RequireGuildPermissions(GuildPermission.ManageChannels | GuildPermission.ManageRoles)]
 	public sealed class ClearChannelPerms : AdvobotModuleBase
 	{
-		[Command]
-		public async Task<RuntimeResult> Command(
+		[LocalizedCommand]
+		public async Task<AdvobotResult> Command(
 			[CanModifyChannel(ManageChannels | ManageRoles)]
 			IGuildChannel channel
 		)
@@ -36,23 +37,23 @@ public sealed class Channels : ModuleBase
 	}
 
 	// Can copy an entire channel on mobile, but not individual overwrites
-	[LocalizedGroup(nameof(Groups.CopyChannelPerms))]
-	[LocalizedAlias(nameof(Aliases.CopyChannelPerms))]
+	[LocalizedCommand(nameof(Groups.CopyChannelPerms), nameof(Aliases.CopyChannelPerms))]
 	[LocalizedSummary(nameof(Summaries.CopyChannelPerms))]
-	[Meta("621f61a8-f3ba-41d1-b9b8-9e2075bcfa11", IsEnabled = true)]
+	[Id("621f61a8-f3ba-41d1-b9b8-9e2075bcfa11")]
+	[Meta(IsEnabled = true)]
 	[RequireGuildPermissions(GuildPermission.ManageChannels | GuildPermission.ManageRoles)]
 	public sealed class CopyChannelPerms : AdvobotModuleBase
 	{
-		[Command]
-		public Task<RuntimeResult> Command(
+		[LocalizedCommand]
+		public Task<AdvobotResult> Command(
 			[CanModifyChannel(ManageChannels | ManageRoles)]
 			IGuildChannel input,
 			[CanModifyChannel(ManageChannels | ManageRoles)]
 			IGuildChannel output
 		) => CommandRunner(input, output, default(IGuildUser));
 
-		[Command]
-		public Task<RuntimeResult> Command(
+		[LocalizedCommand]
+		public Task<AdvobotResult> Command(
 			[CanModifyChannel(ManageChannels | ManageRoles)]
 			IGuildChannel input,
 			[CanModifyChannel(ManageChannels | ManageRoles)]
@@ -60,8 +61,8 @@ public sealed class Channels : ModuleBase
 			IRole role
 		) => CommandRunner(input, output, role);
 
-		[Command]
-		public Task<RuntimeResult> Command(
+		[LocalizedCommand]
+		public Task<AdvobotResult> Command(
 			[CanModifyChannel(ManageChannels | ManageRoles)]
 			IGuildChannel input,
 			[CanModifyChannel(ManageChannels | ManageRoles)]
@@ -69,7 +70,7 @@ public sealed class Channels : ModuleBase
 			IGuildUser user
 		) => CommandRunner(input, output, user);
 
-		private async Task<RuntimeResult> CommandRunner(
+		private async Task<AdvobotResult> CommandRunner(
 			IGuildChannel input,
 			IGuildChannel output,
 			ISnowflakeEntity? obj

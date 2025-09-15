@@ -1,12 +1,6 @@
-﻿using Advobot.Services.Help;
-using Advobot.Utilities;
+﻿namespace Advobot.TypeReaders;
 
-using Discord.Commands;
-
-using Microsoft.Extensions.DependencyInjection;
-
-namespace Advobot.TypeReaders;
-
+/*
 /// <summary>
 /// Attempts to find a help entry with the supplied name.
 /// </summary>
@@ -35,3 +29,4 @@ public sealed class HelpEntryTypeReader : TypeReader
 		return TypeReaderUtils.SingleValidResult(matches, "help entries", input).AsTask();
 	}
 }
+*/

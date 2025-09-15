@@ -1,8 +1,10 @@
-﻿using Advobot.Services;
-
-using Discord.Commands;
+﻿using Advobot.Modules;
+using Advobot.Services;
 
 using Microsoft.Extensions.DependencyInjection;
+
+using YACCS.Commands.Models;
+using YACCS.Results;
 
 namespace Advobot.Preconditions;
 
@@ -16,19 +18,18 @@ public sealed class ExtendableCommandValidation : AdvobotPrecondition
 	public override string Summary => "Command is turned on";
 
 	/// <inheritdoc />
-	public override async Task<PreconditionResult> CheckPermissionsAsync(
-		ICommandContext context,
-		CommandInfo command,
-		IServiceProvider services)
+	public override async ValueTask<IResult> CheckAsync(
+		IImmutableCommand command,
+		IGuildContext context)
 	{
-		foreach (var checker in services.GetServices<ICommandValidator>())
+		foreach (var checker in context.Services.GetServices<ICommandValidator>())
 		{
-			var result = await checker.CanInvokeAsync(context, command).ConfigureAwait(false);
+			var result = await checker.CanInvokeAsync(command, context).ConfigureAwait(false);
 			if (!result.IsSuccess)
 			{
 				return result;
 			}
 		}
-		return PreconditionResult.FromSuccess();
+		return CachedResults.Success;
 	}
 }

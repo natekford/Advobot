@@ -1,29 +1,30 @@
 ﻿using Advobot.TypeReaders;
-
-using Discord.Commands;
+using YACCS.TypeReaders;
+using YACCS.NamedArguments;
+using YACCS.Commands.Attributes;
 
 namespace Advobot.Logging.Database.Models;
 
 //TODO: validate lengths when parsing
-[NamedArgumentType]
+[GenerateNamedArguments]
 public record CustomEmbed(
-	[OverrideTypeReader(typeof(UriTypeReader))]
+	[OverrideTypeReader<UriTypeReader>]
 	string? AuthorIconUrl,
 	string? AuthorName,
-	[OverrideTypeReader(typeof(UriTypeReader))]
+	[OverrideTypeReader<UriTypeReader>]
 	string? AuthorUrl,
-	[OverrideTypeReader(typeof(ColorTypeReader))]
+	[OverrideTypeReader<ColorTypeReader>]
 	uint Color,
 	string? Description,
 	string? Footer,
-	[OverrideTypeReader(typeof(UriTypeReader))]
+	[OverrideTypeReader<UriTypeReader>]
 	string? FooterIconUrl,
-	[OverrideTypeReader(typeof(UriTypeReader))]
+	[OverrideTypeReader<UriTypeReader>]
 	string? ImageUrl,
-	[OverrideTypeReader(typeof(UriTypeReader))]
+	[OverrideTypeReader<UriTypeReader>]
 	string? ThumbnailUrl,
 	string? Title,
-	[OverrideTypeReader(typeof(UriTypeReader))]
+	[OverrideTypeReader<UriTypeReader>]
 	string? Url
 )
 {

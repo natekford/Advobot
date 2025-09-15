@@ -1,9 +1,10 @@
-﻿using Discord.Commands;
+﻿using YACCS.Preconditions;
+using YACCS.Results;
 
 namespace Advobot.Tests.TestBases;
 
 public abstract class ParameterPrecondition_Tests<T> : TestsBase
-	 where T : ParameterPreconditionAttribute
+	 where T : IParameterPrecondition
 {
 	protected abstract T Instance { get; }
 
@@ -11,23 +12,19 @@ public abstract class ParameterPrecondition_Tests<T> : TestsBase
 	public async Task InvalidType_Test()
 		=> await AssertFailureAsync(new object()).ConfigureAwait(false);
 
-	protected async Task<PreconditionResult> AssertFailureAsync(
-		object value,
-		ParameterInfo? parameter = null)
+	protected async Task<IResult> AssertFailureAsync(object value)
 	{
-		var result = await Instance.CheckPermissionsAsync(
-			Context, parameter, value, Services
+		var result = await Instance.CheckAsync(
+			new(), Context, value
 		).ConfigureAwait(false);
 		Assert.IsFalse(result.IsSuccess);
 		return result;
 	}
 
-	protected async Task<PreconditionResult> AssertSuccessAsync(
-		object value,
-		ParameterInfo? parameter = null)
+	protected async Task<IResult> AssertSuccessAsync(object value)
 	{
-		var result = await Instance.CheckPermissionsAsync(
-			Context, parameter, value, Services
+		var result = await Instance.CheckAsync(
+			new(), Context, value
 		).ConfigureAwait(false);
 		Assert.IsTrue(result.IsSuccess);
 		return result;

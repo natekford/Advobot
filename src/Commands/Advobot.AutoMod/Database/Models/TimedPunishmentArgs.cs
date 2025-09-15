@@ -1,20 +1,21 @@
 ﻿using Advobot.Punishments;
-using Advobot.TypeReaders;
 
-using Discord.Commands;
+using YACCS.NamedArguments;
 
 namespace Advobot.AutoMod.Database.Models;
 
-[NamedArgumentType]
+[GenerateNamedArguments]
 public sealed class TimedPunishmentArgs
 {
-	[OverrideTypeReader(typeof(PositiveNullableIntTypeReader))]
+	//[OverrideTypeReader(typeof(PositiveNullableIntTypeReader))]
+#warning positive precondition
 	public int? Instances { get; set; }
 	public TimeSpan? Interval { get; set; }
 	public TimeSpan? Length { get; set; }
 	public PunishmentType? PunishmentType { get; set; }
 	public ulong? RoleId { get; set; }
-	[OverrideTypeReader(typeof(PositiveNullableIntTypeReader))]
+	//[OverrideTypeReader(typeof(PositiveNullableIntTypeReader))]
+#warning positive precondition
 	public int? Size { get; set; }
 
 	public T Create<T>(TimedPrevention? original) where T : TimedPrevention, new()

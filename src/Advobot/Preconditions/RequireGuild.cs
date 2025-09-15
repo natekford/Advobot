@@ -1,6 +1,7 @@
-﻿using Advobot.Utilities;
+﻿using Advobot.Modules;
 
-using Discord.Commands;
+using YACCS.Commands.Models;
+using YACCS.Results;
 
 namespace Advobot.Preconditions;
 
@@ -17,16 +18,16 @@ public sealed class RequireGuild(ulong id) : AdvobotPrecondition
 	/// <inheritdoc />
 	public override string Summary => $"Will only work in the guild with the id {Id}";
 
-	/// <inheritdoc />
-	public override Task<PreconditionResult> CheckPermissionsAsync(
-		ICommandContext context,
-		CommandInfo command,
-		IServiceProvider services)
+	public override ValueTask<IResult> CheckAsync(
+		IImmutableCommand command,
+		IGuildContext context)
 	{
 		if (context.Guild.Id == Id)
 		{
-			return this.FromSuccess().AsTask();
+			return new(CachedResults.Success);
 		}
-		return PreconditionResult.FromError($"This guild does not have the id {Id}.").AsTask();
+		// TODO: singleton
+		var error = $"This guild does not have the id {Id}.";
+		return new(Result.Failure(error));
 	}
 }

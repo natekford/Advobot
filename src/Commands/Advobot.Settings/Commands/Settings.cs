@@ -1,119 +1,107 @@
 ﻿using Advobot.Attributes;
-using Advobot.Localization;
+using Advobot.Modules;
 using Advobot.Preconditions.Permissions;
 using Advobot.Resources;
-using Advobot.Services.Help;
 using Advobot.Settings.Database.Models;
 
-using Discord.Commands;
+using YACCS.Commands;
+using YACCS.Commands.Attributes;
+using YACCS.Commands.Building;
+using YACCS.Commands.Models;
+using YACCS.Localization;
+using YACCS.TypeReaders;
 
 using static Advobot.Settings.Responses.Settings;
 
 namespace Advobot.Settings.Commands;
 
-[Category(nameof(Settings))]
-public sealed class Settings : ModuleBase
+[LocalizedCategory(nameof(Settings))]
+public sealed class Settings : AdvobotModuleBase
 {
-	[LocalizedGroup(nameof(Groups.ModifyCommands))]
-	[LocalizedAlias(nameof(Aliases.ModifyCommands))]
+	[LocalizedCommand(nameof(Groups.ModifyCommands), nameof(Aliases.ModifyCommands))]
 	[LocalizedSummary(nameof(Summaries.ModifyCommands))]
-	[Meta("6fb02198-9eab-4e44-a59a-7ba7f7317c10", IsEnabled = true, CanToggle = false)]
+	[Id("6fb02198-9eab-4e44-a59a-7ba7f7317c10")]
+	[Meta(IsEnabled = true, CanToggle = false)]
 	[RequireGuildPermissions]
-	public sealed class ModifyCommands : ModuleBase
+	public sealed class ModifyCommands : AdvobotModuleBase
 	{
-		[LocalizedGroup(nameof(Groups.Clear))]
-		[LocalizedAlias(nameof(Aliases.Clear))]
+		[LocalizedCommand(nameof(Groups.Clear), nameof(Aliases.Clear))]
 		[LocalizedSummary(nameof(Summaries.ModifyCommandsClear))]
 		public sealed class Clear : ModifyCommandsModuleBase
 		{
-			public override bool? ShouldEnable => null;
+			protected override bool? ShouldEnable => null;
 
 			[Command]
-			public Task<RuntimeResult> Command(CommandOverrideEntity entity)
+			public Task<AdvobotResult> Command(CommandOverrideEntity entity)
 				=> ModifyAll(entity, 0);
 
 			[Command]
-			public Task<RuntimeResult> Command(
+			public Task<AdvobotResult> Command(
 				CommandOverrideEntity entity,
-				params Category[] categories)
-				=> ModifyCategories(entity, categories, 0);
-
-			[Command]
-			public Task<RuntimeResult> Command(
-				CommandOverrideEntity entity,
-				params IHelpModule[] commands)
-				=> Modify(entity, commands, 0);
+				[OverrideTypeReader<CommandsNameTypeReader>]
+				[Remainder]
+				IReadOnlyCollection<IImmutableCommand> commands
+			) => Modify(entity, commands, 0);
 		}
 
-		[LocalizedGroup(nameof(Groups.Disable))]
-		[LocalizedAlias(nameof(Aliases.Disable))]
+		[LocalizedCommand(nameof(Groups.Disable), nameof(Aliases.Disable))]
 		[LocalizedSummary(nameof(Summaries.ModifyCommandsDisable))]
 		public sealed class Disable : ModifyCommandsModuleBase
 		{
-			public override bool? ShouldEnable => false;
+			protected override bool? ShouldEnable => false;
 
 			[Command]
-			public Task<RuntimeResult> Command(
+			public Task<AdvobotResult> Command(
 				int priority,
-				CommandOverrideEntity entity)
-				=> ModifyAll(entity, priority);
+				CommandOverrideEntity entity
+			) => ModifyAll(entity, priority);
 
 			[Command]
-			public Task<RuntimeResult> Command(
-				int priority,
-				CommandOverrideEntity entity,
-				params Category[] categories)
-				=> ModifyCategories(entity, categories, priority);
-
-			[Command]
-			public Task<RuntimeResult> Command(
+			public Task<AdvobotResult> Command(
 				int priority,
 				CommandOverrideEntity entity,
-				params IHelpModule[] commands)
-				=> Modify(entity, commands, priority);
+				[OverrideTypeReader<CommandsNameTypeReader>]
+				[Remainder]
+				IReadOnlyCollection<IImmutableCommand> commands
+			) => Modify(entity, commands, priority);
 		}
 
-		[LocalizedGroup(nameof(Groups.Enable))]
-		[LocalizedAlias(nameof(Aliases.Enable))]
+		[LocalizedCommand(nameof(Groups.Enable), nameof(Aliases.Enable))]
 		[LocalizedSummary(nameof(Summaries.ModifyCommandsEnable))]
 		public sealed class Enable : ModifyCommandsModuleBase
 		{
-			public override bool? ShouldEnable => true;
+			protected override bool? ShouldEnable => true;
 
 			[Command]
-			public Task<RuntimeResult> Command(
+			public Task<AdvobotResult> Command(
 				int priority,
-				CommandOverrideEntity entity)
-				=> ModifyAll(entity, priority);
+				CommandOverrideEntity entity
+			) => ModifyAll(entity, priority);
 
 			[Command]
-			public Task<RuntimeResult> Command(
-				int priority,
-				CommandOverrideEntity entity,
-				params Category[] categories)
-				=> ModifyCategories(entity, categories, priority);
-
-			[Command]
-			public Task<RuntimeResult> Command(
+			public Task<AdvobotResult> Command(
 				int priority,
 				CommandOverrideEntity entity,
-				params IHelpModule[] commands)
-				=> Modify(entity, commands, priority);
+				[OverrideTypeReader<CommandsNameTypeReader>]
+				[Remainder]
+				IReadOnlyCollection<IImmutableCommand> commands
+			) => Modify(entity, commands, priority);
 		}
 
 		public abstract class ModifyCommandsModuleBase : SettingsModuleBase
 		{
-			public required IHelpService HelpEntries { get; set; }
-			public abstract bool? ShouldEnable { get; }
+			[InjectService]
+			public required CommandService CommandService { get; set; }
+			protected abstract bool? ShouldEnable { get; }
 
-			protected async Task<RuntimeResult> Modify(
+			protected async Task<AdvobotResult> Modify(
 				CommandOverrideEntity entity,
-				IEnumerable<IHelpModule> commands,
+				IEnumerable<IImmutableCommand> commands,
 				int priority)
 			{
 				var overrides = commands.Select(x => new CommandOverride(entity)
 				{
-					CommandId = x.Id,
+					CommandId = x.PrimaryId,
 					Enabled = ShouldEnable ?? false,
 					Priority = priority,
 				});
@@ -130,20 +118,8 @@ public sealed class Settings : ModuleBase
 				}
 			}
 
-			protected Task<RuntimeResult> ModifyAll(CommandOverrideEntity entity, int priority)
-				=> Modify(entity, HelpEntries.GetHelpModules(includeSubmodules: true), priority);
-
-			protected Task<RuntimeResult> ModifyCategories(
-				CommandOverrideEntity entity,
-				IEnumerable<Category> categories,
-				int priority)
-			{
-				var names = categories.Select(x => x.Name).ToHashSet();
-				var entries = HelpEntries
-					.GetHelpModules(includeSubmodules: true)
-					.Where(x => names.Contains(x.Category));
-				return Modify(entity, entries, priority);
-			}
+			protected Task<AdvobotResult> ModifyAll(CommandOverrideEntity entity, int priority)
+				=> Modify(entity, CommandService.Commands, priority);
 		}
 	}
 

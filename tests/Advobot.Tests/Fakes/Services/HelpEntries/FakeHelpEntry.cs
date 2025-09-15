@@ -1,7 +1,7 @@
-﻿using Advobot.Services.Help;
+﻿namespace Advobot.Tests.Fakes.Services.HelpEntries;
 
-namespace Advobot.Tests.Fakes.Services.HelpEntries;
-
+#warning reenable
+/*
 public sealed record FakeHelpEntry : IHelpModule
 {
 	public bool AbleToBeToggled { get; set; }
@@ -14,4 +14,4 @@ public sealed record FakeHelpEntry : IHelpModule
 	public IReadOnlyList<IHelpPrecondition> Preconditions { get; set; } = [];
 	public IReadOnlyList<IHelpModule> Submodules { get; set; } = [];
 	public string Summary { get; set; } = "";
-}
+}*/

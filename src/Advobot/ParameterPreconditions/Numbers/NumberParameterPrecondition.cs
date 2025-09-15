@@ -1,7 +1,7 @@
-﻿using Advobot.Utilities;
+﻿using Advobot.Modules;
 
-using Discord;
-using Discord.Commands;
+using YACCS.Preconditions;
+using YACCS.Results;
 
 namespace Advobot.ParameterPreconditions.Numbers;
 
@@ -42,31 +42,28 @@ public abstract class NumberParameterPrecondition : AdvobotParameterPrecondition
 	}
 
 	/// <inheritdoc />
-	protected override Task<PreconditionResult> CheckPermissionsAsync(
-		ICommandContext context,
-		ParameterInfo parameter,
-		IGuildUser invoker,
-		int value,
-		IServiceProvider services)
+	public override ValueTask<IResult> CheckAsync(
+		CommandMeta meta,
+		IGuildContext context,
+		int value)
 	{
-		var numbers = GetRange(context, parameter, services);
+		var numbers = GetRange(meta, context);
 		if (numbers.Contains(value))
 		{
-			return this.FromSuccess().AsTask();
+			return new(CachedResults.Success);
 		}
-		return PreconditionResult.FromError($"Invalid {parameter?.Name} supplied, must be in `{Range}`").AsTask();
+		// TODO: singleton?
+		return new(Result.Failure($"Invalid {meta.Parameter?.ParameterName} supplied, must be in `{Range}`"));
 	}
 
 	/// <summary>
 	/// Returns the number to use for the start.
 	/// </summary>
+	/// <param name="meta"></param>
 	/// <param name="context"></param>
-	/// <param name="parameter"></param>
-	/// <param name="services"></param>
 	/// <returns></returns>
 	protected virtual ValidateNumber<int> GetRange(
-		ICommandContext context,
-		ParameterInfo parameter,
-		IServiceProvider services)
-		=> Range;
+		CommandMeta meta,
+		IGuildContext context
+	) => Range;
 }

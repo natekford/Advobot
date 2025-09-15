@@ -40,10 +40,10 @@ public sealed class SelfRoleStateTypeReader_Tests
 
 		{
 			var result = await ReadAsync(roles[0].Name).ConfigureAwait(false);
-			Assert.IsTrue(result.IsSuccess);
-			Assert.IsInstanceOfType<SelfRoleState>(result.BestMatch);
+			Assert.IsTrue(result.InnerResult.IsSuccess);
+			Assert.IsInstanceOfType<SelfRoleState>(result.Value);
 
-			var cast = (SelfRoleState)result.BestMatch;
+			var cast = (SelfRoleState)result.Value;
 			Assert.IsNotNull(cast.ConflictingRoles);
 			Assert.AreEqual(selfRoles[0].RoleId, cast.Role.Id);
 			Assert.AreEqual(selfRoles[0].GroupId, cast.Group);
@@ -59,10 +59,10 @@ public sealed class SelfRoleStateTypeReader_Tests
 
 		{
 			var result = await ReadAsync(roles[0].Name).ConfigureAwait(false);
-			Assert.IsTrue(result.IsSuccess);
-			Assert.IsInstanceOfType<SelfRoleState>(result.BestMatch);
+			Assert.IsTrue(result.InnerResult.IsSuccess);
+			Assert.IsInstanceOfType<SelfRoleState>(result.Value);
 
-			var cast = (SelfRoleState)result.BestMatch;
+			var cast = (SelfRoleState)result.Value;
 			Assert.IsNotNull(cast.ConflictingRoles);
 			Assert.AreEqual(selfRoles[0].RoleId, cast.Role.Id);
 			Assert.AreEqual(selfRoles[0].GroupId, cast.Group);

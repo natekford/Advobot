@@ -1,5 +1,5 @@
 ﻿using Advobot.Tests.TestBases;
-using Advobot.TypeReaders;
+using Advobot.TypeReaders.Discord;
 
 using Discord;
 
@@ -14,15 +14,15 @@ public sealed class GuildTypeReader_Tests : TypeReader_Tests<GuildTypeReader>
 	public async Task ValidId_Test()
 	{
 		var result = await ReadAsync(Context.Guild.Id.ToString()).ConfigureAwait(false);
-		Assert.IsTrue(result.IsSuccess);
-		Assert.IsInstanceOfType<IGuild>(result.BestMatch);
+		Assert.IsTrue(result.InnerResult.IsSuccess);
+		Assert.IsInstanceOfType<IGuild>(result.Value);
 	}
 
 	[TestMethod]
 	public async Task ValidName_Test()
 	{
 		var result = await ReadAsync(Context.Guild.Name).ConfigureAwait(false);
-		Assert.IsTrue(result.IsSuccess);
-		Assert.IsInstanceOfType<IGuild>(result.BestMatch);
+		Assert.IsTrue(result.InnerResult.IsSuccess);
+		Assert.IsInstanceOfType<IGuild>(result.Value);
 	}
 }

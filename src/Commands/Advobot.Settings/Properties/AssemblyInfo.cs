@@ -1,11 +1,19 @@
 ﻿using Advobot;
-using Advobot.CommandAssemblies;
+using Advobot.Services;
+using Advobot.Services.GuildSettings;
 using Advobot.Settings;
+using Advobot.Settings.Database;
+using Advobot.Settings.Service;
+using Advobot.SQLite;
+
+using Microsoft.Extensions.DependencyInjection;
 
 using System.Reflection;
 using System.Resources;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
+
+using YACCS.Plugins;
 
 // General Information about an assembly is controlled through the following
 // set of attributes. Change these attribute values to modify the information
@@ -36,5 +44,20 @@ using System.Runtime.InteropServices;
 [assembly: AssemblyVersion(Constants.ASSEMBLY_VERSION)]
 
 // Indicates the assembly has commands in it for the bot to use
-[assembly: CommandAssembly("en-US", InstantiatorType = typeof(SettingsInstantiator))]
+[assembly: SettingsInstantiator(SupportedCultures = ["en-US"])]
 [assembly: InternalsVisibleTo("Advobot.Tests")]
+
+namespace Advobot.Settings;
+
+public sealed class SettingsInstantiator : PluginAttribute<IServiceCollection>
+{
+	public override Task AddServicesAsync(IServiceCollection services)
+	{
+		services
+			.AddSQLiteDatabase<SettingsDatabase>("GuildSettings")
+			.ReplaceAllWithSingleton<IGuildSettingsService, GuildSettingsService>()
+			.AddSingleton<ICommandValidator, CommandValidator>();
+
+		return Task.CompletedTask;
+	}
+}

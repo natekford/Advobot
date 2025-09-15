@@ -1,9 +1,12 @@
-﻿using Advobot.Utilities;
+﻿using Advobot.Modules;
+using Advobot.Utilities;
 
 using Discord;
-using Discord.Commands;
 
 using System.Collections.Immutable;
+
+using YACCS.Preconditions;
+using YACCS.Results;
 
 namespace Advobot.ParameterPreconditions.Discord.Channels;
 
@@ -25,11 +28,9 @@ public sealed class CanModifyChannel(params ChannelPermission[] permissions) : A
 	public override string Summary => "Can be modified by the bot and invoking user";
 
 	/// <inheritdoc />
-	protected override Task<PreconditionResult> CheckPermissionsAsync(
-		ICommandContext context,
-		ParameterInfo parameter,
-		IGuildUser invoker,
-		IGuildChannel channel,
-		IServiceProvider services)
-		=> invoker.ValidateChannel(channel, Permissions);
+	public override ValueTask<IResult> CheckAsync(
+		CommandMeta meta,
+		IGuildContext context,
+		IGuildChannel? value)
+		=> new(context.User.ValidateChannel(value, Permissions));
 }

@@ -1,11 +1,13 @@
-﻿using Advobot.Services.Time;
-using Advobot.Utilities;
-
-using Discord.Commands;
+﻿using Advobot.Modules;
+using Advobot.Services.Time;
 
 using Microsoft.Extensions.DependencyInjection;
 
 using System.Collections.Concurrent;
+
+using YACCS.Commands.Models;
+using YACCS.Results;
+using YACCS.TypeReaders;
 
 namespace Advobot.Preconditions;
 
@@ -58,20 +60,23 @@ public sealed class RateLimit(TimeUnit unit, double value) : AdvobotPrecondition
 	public double Value { get; } = value;
 
 	/// <inheritdoc />
-	public override Task<PreconditionResult> CheckPermissionsAsync(
-		ICommandContext context,
-		CommandInfo command,
-		IServiceProvider services)
+	public override ValueTask<IResult> CheckAsync(
+		IImmutableCommand command,
+		IGuildContext context)
 	{
-		var time = services.GetRequiredService<ITimeService>();
+		var time = GetTime(context.Services);
 		var key = (context.Guild.Id, context.User.Id);
 		if (_Times.TryGetValue(key, out var next) && time.UtcNow < next)
 		{
-			var err = $"Command can be next used at `{next.DateTime:F}`.";
-			return PreconditionResult.FromError(err).AsTask();
+			var error = $"Command can be next used at `{next.DateTime:F}`.";
+			return new(Result.Failure(error));
 		}
 
 		_Times[key] = time.UtcNow.Add(Time);
-		return this.FromSuccess().AsTask();
+		return new(CachedResults.Success);
 	}
+
+	[GetServiceMethod]
+	private static ITimeService GetTime(IServiceProvider services)
+		=> services.GetRequiredService<ITimeService>();
 }

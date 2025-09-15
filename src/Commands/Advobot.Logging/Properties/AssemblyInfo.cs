@@ -1,11 +1,19 @@
 ﻿using Advobot;
-using Advobot.CommandAssemblies;
 using Advobot.Logging;
+using Advobot.Logging.Database;
+using Advobot.Logging.Resetters;
+using Advobot.Logging.Service;
+using Advobot.Serilog;
+using Advobot.SQLite;
+
+using Microsoft.Extensions.DependencyInjection;
 
 using System.Reflection;
 using System.Resources;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
+
+using YACCS.Plugins;
 
 // General Information about an assembly is controlled through the following
 // set of attributes. Change these attribute values to modify the information
@@ -36,5 +44,25 @@ using System.Runtime.InteropServices;
 [assembly: AssemblyVersion(Constants.ASSEMBLY_VERSION)]
 
 // Indicates the assembly has commands in it for the bot to use
-[assembly: CommandAssembly("en-US", InstantiatorType = typeof(LoggingInstantiator))]
+[assembly: LoggingInstantiator(SupportedCultures = ["en-US"])]
 [assembly: InternalsVisibleTo("Advobot.Tests")]
+
+namespace Advobot.Logging;
+
+public sealed class LoggingInstantiator : PluginAttribute<IServiceCollection>
+{
+	public override Task AddServicesAsync(IServiceCollection services)
+	{
+		services
+			.AddSQLiteDatabase<LoggingDatabase>("Logging")
+			.AddSingletonWithLogger<LoggingService>("Logging")
+			.AddSQLiteDatabase<NotificationDatabase>("Notification")
+			.AddSingletonWithLogger<NotificationService>("Notification")
+			.AddSingleton<MessageQueue>()
+			.AddDefaultOptionsSetter<LogActionsResetter>()
+			.AddDefaultOptionsSetter<WelcomeNotificationResetter>()
+			.AddDefaultOptionsSetter<GoodbyeNotificationResetter>();
+
+		return Task.CompletedTask;
+	}
+}

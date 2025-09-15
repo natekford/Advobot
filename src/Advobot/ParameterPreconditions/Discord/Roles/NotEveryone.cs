@@ -1,7 +1,9 @@
-﻿using Advobot.Utilities;
+﻿using Advobot.Modules;
 
 using Discord;
-using Discord.Commands;
+
+using YACCS.Preconditions;
+using YACCS.Results;
 
 namespace Advobot.ParameterPreconditions.Discord.Roles;
 
@@ -14,18 +16,17 @@ public sealed class NotEveryone : AdvobotParameterPrecondition<IRole>
 	/// <inheritdoc />
 	public override string Summary => "Not everyone";
 
-	/// <inheritdoc />
-	protected override Task<PreconditionResult> CheckPermissionsAsync(
-		ICommandContext context,
-		ParameterInfo parameter,
-		IGuildUser invoker,
-		IRole role,
-		IServiceProvider services)
+	public override ValueTask<IResult> CheckAsync(
+		CommandMeta meta,
+		IGuildContext context,
+		IRole? value)
 	{
-		if (context.Guild.EveryoneRole.Id != role.Id)
+		if (context.Guild.EveryoneRole.Id == value?.Id)
 		{
-			return this.FromSuccess().AsTask();
+			// TODO: singleton
+			var error = "The role cannot be the everyone role.";
+			return new(Result.Failure(error));
 		}
-		return PreconditionResult.FromError("The role cannot be the everyone role.").AsTask();
+		return new(CachedResults.Success);
 	}
 }

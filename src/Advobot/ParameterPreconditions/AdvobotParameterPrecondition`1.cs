@@ -1,9 +1,8 @@
-﻿using Advobot.Preconditions.Results;
-using Advobot.Services.Help;
-using Advobot.Utilities;
+﻿using Advobot.Modules;
 
-using Discord;
-using Discord.Commands;
+using YACCS.Commands;
+using YACCS.Preconditions;
+using YACCS.Results;
 
 namespace Advobot.ParameterPreconditions;
 
@@ -11,102 +10,10 @@ namespace Advobot.ParameterPreconditions;
 /// Requires the parameter to meet a precondition unless it's optional.
 /// </summary>
 public abstract class AdvobotParameterPrecondition<T>
-	: ParameterPreconditionAttribute, IHelpParameterPrecondition
+	: ParameterPrecondition<IGuildContext, T>
 {
-	/// <inheritdoc />
-	public virtual bool AllowEnumerating { get; set; } = true;
-	/// <inheritdoc />
-	public virtual bool AllowNonGuildInvokers { get; set; }
-	/// <inheritdoc />
-	public virtual bool AllowOptional { get; set; }
 	/// <inheritdoc />
 	public virtual string Name => Summary;
 	/// <inheritdoc />
 	public abstract string Summary { get; }
-
-	/// <inheritdoc />
-	public override Task<PreconditionResult> CheckPermissionsAsync(
-		ICommandContext context,
-		ParameterInfo parameter,
-		object value,
-		IServiceProvider services)
-	{
-		// If optional, return success when nothing is supplied
-		if (AllowOptional && parameter.IsOptional && parameter.DefaultValue == value)
-		{
-			return this.FromSuccess().AsTask();
-		}
-
-		var invoker = context.User as IGuildUser;
-		if (!AllowNonGuildInvokers && invoker is null)
-		{
-			return this.FromInvalidInvoker().AsTask();
-		}
-
-		if (value is T t)
-		{
-			return CheckPermissionsAsync(context, parameter, invoker!, t, services);
-		}
-		else if (AllowEnumerating && value is IEnumerable<T> enumerable)
-		{
-			return CheckPermissionsAsync(context, parameter, invoker!, enumerable, services);
-		}
-		return new NotSupported(value, typeof(T)).AsTask();
-	}
-
-	/// <summary>
-	/// Checks an enumerable of <typeparamref name="T"/>.
-	/// </summary>
-	/// <param name="context"></param>
-	/// <param name="parameter"></param>
-	/// <param name="invoker"></param>
-	/// <param name="enumerable"></param>
-	/// <param name="services"></param>
-	/// <returns></returns>
-	protected virtual async Task<PreconditionResult> CheckPermissionsAsync(
-		ICommandContext context,
-		ParameterInfo parameter,
-		IGuildUser invoker,
-		IEnumerable<T> enumerable,
-		IServiceProvider services)
-	{
-		var count = 0;
-		foreach (var value in enumerable)
-		{
-			var result = await CheckPermissionsAsync(context, parameter, invoker!, value, services).ConfigureAwait(false);
-			// Don't bother testing more if anything is a failure.
-			if (!result.IsSuccess)
-			{
-				return result;
-			}
-			++count;
-		}
-
-		// Need the count check otherwise empty strings count as success
-		if (count == 0 && (parameter?.IsMultiple ?? false))
-		{
-			if (AllowOptional)
-			{
-				return this.FromSuccess();
-			}
-			return PreconditionResult.FromError("Nothing was supplied.");
-		}
-		return this.FromSuccess();
-	}
-
-	/// <summary>
-	/// Only checks one item at a time.
-	/// </summary>
-	/// <param name="context"></param>
-	/// <param name="parameter"></param>
-	/// <param name="invoker"></param>
-	/// <param name="value"></param>
-	/// <param name="services"></param>
-	/// <returns></returns>
-	protected abstract Task<PreconditionResult> CheckPermissionsAsync(
-		ICommandContext context,
-		ParameterInfo parameter,
-		IGuildUser invoker,
-		T value,
-		IServiceProvider services);
 }

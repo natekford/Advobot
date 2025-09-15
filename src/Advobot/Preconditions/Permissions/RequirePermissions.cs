@@ -1,9 +1,12 @@
-﻿using Advobot.Utilities;
+﻿using Advobot.Modules;
+using Advobot.Utilities;
 
 using Discord;
-using Discord.Commands;
 
 using System.Collections.Immutable;
+
+using YACCS.Commands.Models;
+using YACCS.Results;
 
 namespace Advobot.Preconditions.Permissions;
 
@@ -46,37 +49,27 @@ public abstract class RequirePermissions(IEnumerable<Enum> permissions)
 		return perms?.Join(" & ") ?? "";
 	}).Join(" | ");
 
-	/// <inheritdoc />
-	public override async Task<PreconditionResult> CheckPermissionsAsync(
-		ICommandContext context,
-		CommandInfo command,
-		IServiceProvider services)
+	public override async ValueTask<IResult> CheckAsync(
+		IImmutableCommand command,
+		IGuildContext context)
 	{
-		async Task<PreconditionResult> CheckPermissionsAsync(
-			ICommandContext context,
-			IGuildUser user,
-			IServiceProvider services)
+		async Task<IResult> CheckPermissionsAsync(IGuildContext context, IGuildUser user)
 		{
-			var perms = await GetUserPermissionsAsync(context, user, services).ConfigureAwait(false);
+			var perms = await GetUserPermissionsAsync(context, user).ConfigureAwait(false);
 			if (perms is null)
 			{
-				return PreconditionResult.FromError($"`{user.Format()}` has no permissions.");
+				return Result.Failure($"`{user.Format()}` has no permissions.");
 			}
 			else if (!Permissions.Any(perms.HasFlag))
 			{
-				return PreconditionResult.FromError($"`{user.Format()}` does not have any suitable permissions.");
+				return Result.Failure($"`{user.Format()}` does not have any suitable permissions.");
 			}
-			return this.FromSuccess();
+			return CachedResults.Success;
 		}
 
 		if (AppliesToInvoker)
 		{
-			if (context.User is not IGuildUser user)
-			{
-				return this.FromInvalidInvoker();
-			}
-
-			var result = await CheckPermissionsAsync(context, user, services).ConfigureAwait(false);
+			var result = await CheckPermissionsAsync(context, context.User).ConfigureAwait(false);
 			if (!result.IsSuccess)
 			{
 				return result;
@@ -85,14 +78,13 @@ public abstract class RequirePermissions(IEnumerable<Enum> permissions)
 		if (AppliesToBot)
 		{
 			var bot = await context.Guild.GetCurrentUserAsync().ConfigureAwait(false);
-
-			var result = await CheckPermissionsAsync(context, bot, services).ConfigureAwait(false);
+			var result = await CheckPermissionsAsync(context, bot).ConfigureAwait(false);
 			if (!result.IsSuccess)
 			{
 				return result;
 			}
 		}
-		return this.FromSuccess();
+		return CachedResults.Success;
 	}
 
 	/// <summary>
@@ -100,10 +92,8 @@ public abstract class RequirePermissions(IEnumerable<Enum> permissions)
 	/// </summary>
 	/// <param name="context"></param>
 	/// <param name="user"></param>
-	/// <param name="services"></param>
 	/// <returns></returns>
 	public abstract Task<Enum?> GetUserPermissionsAsync(
-		ICommandContext context,
-		IGuildUser user,
-		IServiceProvider services);
+		IGuildContext context,
+		IGuildUser user);
 }

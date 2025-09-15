@@ -1,6 +1,7 @@
-﻿using Advobot.Utilities;
+﻿using Advobot.Modules;
 
-using Discord.Commands;
+using YACCS.Commands.Models;
+using YACCS.Results;
 
 namespace Advobot.Preconditions;
 
@@ -14,16 +15,16 @@ public sealed class RequireBotOwner : AdvobotPrecondition
 	public override string Summary => "Invoker is the bot owner";
 
 	/// <inheritdoc />
-	public override async Task<PreconditionResult> CheckPermissionsAsync(
-		ICommandContext context,
-		CommandInfo command,
-		IServiceProvider services)
+	public override async ValueTask<IResult> CheckAsync(
+		IImmutableCommand command,
+		IGuildContext context)
 	{
 		var application = await context.Client.GetApplicationInfoAsync().ConfigureAwait(false);
 		if (application.Owner.Id == context.User.Id)
 		{
-			return this.FromSuccess();
+			return CachedResults.Success;
 		}
-		return PreconditionResult.FromError("You are not the bot owner.");
+		// TODO: singleton?
+		return Result.Failure("You are not the bot owner.");
 	}
 }

@@ -1,12 +1,6 @@
-﻿using Advobot.Services.Help;
-using Advobot.Utilities;
+﻿namespace Advobot.TypeReaders;
 
-using Discord.Commands;
-
-using Microsoft.Extensions.DependencyInjection;
-
-namespace Advobot.TypeReaders;
-
+/*
 /// <summary>
 /// Finds help entries with names or aliases similar to the passed in input.
 /// </summary>
@@ -23,4 +17,4 @@ public sealed class CloseHelpEntryTypeReader : TypeReader
 		var matches = helpEntries.FindCloseHelpModules(input);
 		return TypeReaderUtils.MultipleValidResults(matches, "help entries", input).AsTask();
 	}
-}
+}*/

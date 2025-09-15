@@ -1,5 +1,4 @@
 ﻿using Advobot.Attributes;
-using Advobot.Localization;
 using Advobot.Modules;
 using Advobot.ParameterPreconditions.Discord.Roles;
 using Advobot.ParameterPreconditions.Numbers;
@@ -8,22 +7,24 @@ using Advobot.Resources;
 using Advobot.Utilities;
 
 using Discord;
-using Discord.Commands;
+
+using YACCS.Commands.Attributes;
+using YACCS.Localization;
 
 namespace Advobot.Standard.Commands;
 
-[Category(nameof(Roles))]
-public sealed class Roles : ModuleBase
+[LocalizedCategory(nameof(Roles))]
+public sealed class Roles : AdvobotModuleBase
 {
-	[LocalizedGroup(nameof(Groups.ClearRolePerms))]
-	[LocalizedAlias(nameof(Aliases.ClearRolePerms))]
+	[LocalizedCommand(nameof(Groups.ClearRolePerms), nameof(Aliases.ClearRolePerms))]
 	[LocalizedSummary(nameof(Summaries.ClearRolePerms))]
-	[Meta("bb5e3639-7287-45d4-a3fe-22359dd25073", IsEnabled = true)]
+	[Id("bb5e3639-7287-45d4-a3fe-22359dd25073")]
+	[Meta(IsEnabled = true)]
 	[RequireGuildPermissions(GuildPermission.ManageRoles)]
 	public sealed class ClearRolePerms : AdvobotModuleBase
 	{
 		[Command]
-		public async Task<RuntimeResult> Command([CanModifyRole] IRole role)
+		public async Task<AdvobotResult> Command([CanModifyRole] IRole role)
 		{
 			var immovable = role.Permissions.RawValue & ~Context.User.GuildPermissions.RawValue;
 			await role.ModifyAsync(x => x.Permissions = new GuildPermissions(immovable), GetOptions()).ConfigureAwait(false);
@@ -31,15 +32,15 @@ public sealed class Roles : ModuleBase
 		}
 	}
 
-	[LocalizedGroup(nameof(Groups.CopyRolePerms))]
-	[LocalizedAlias(nameof(Aliases.CopyRolePerms))]
+	[LocalizedCommand(nameof(Groups.CopyRolePerms), nameof(Aliases.CopyRolePerms))]
 	[LocalizedSummary(nameof(Summaries.CopyRolePerms))]
-	[Meta("bbf7898b-fcb6-4c04-a04a-f343fa129008", IsEnabled = true)]
+	[Id("bbf7898b-fcb6-4c04-a04a-f343fa129008")]
+	[Meta(IsEnabled = true)]
 	[RequireGuildPermissions(GuildPermission.ManageRoles)]
 	public sealed class CopyRolePerms : AdvobotModuleBase
 	{
 		[Command]
-		public async Task<RuntimeResult> Command(
+		public async Task<AdvobotResult> Command(
 			IRole input,
 			[CanModifyRole]
 			IRole output)
@@ -56,15 +57,15 @@ public sealed class Roles : ModuleBase
 	}
 
 	// Moving roles on mobile sucks
-	[LocalizedGroup(nameof(Groups.ModifyRolePosition))]
-	[LocalizedAlias(nameof(Aliases.ModifyRolePosition))]
+	[LocalizedCommand(nameof(Groups.ModifyRolePosition), nameof(Aliases.ModifyRolePosition))]
 	[LocalizedSummary(nameof(Summaries.ModifyRolePosition))]
-	[Meta("efb2d8e5-b5d5-4c77-b0f6-66b9c378080d", IsEnabled = true)]
+	[Id("efb2d8e5-b5d5-4c77-b0f6-66b9c378080d")]
+	[Meta(IsEnabled = true)]
 	[RequireGuildPermissions(GuildPermission.ManageRoles)]
 	public sealed class ModifyRolePosition : AdvobotModuleBase
 	{
 		[Command]
-		public async Task<RuntimeResult> Command(
+		public async Task<AdvobotResult> Command(
 			[CanModifyRole]
 			IRole role,
 			[Positive]
@@ -75,15 +76,15 @@ public sealed class Roles : ModuleBase
 		}
 	}
 
-	[LocalizedGroup(nameof(Groups.SoftDeleteRole))]
-	[LocalizedAlias(nameof(Aliases.SoftDeleteRole))]
+	[LocalizedCommand(nameof(Groups.SoftDeleteRole), nameof(Aliases.SoftDeleteRole))]
 	[LocalizedSummary(nameof(Summaries.SoftDeleteRole))]
-	[Meta("4cecc4b9-9d25-44d2-9de3-3b5fe5bd33c5", IsEnabled = true)]
+	[Id("4cecc4b9-9d25-44d2-9de3-3b5fe5bd33c5")]
+	[Meta(IsEnabled = true)]
 	[RequireGuildPermissions(GuildPermission.ManageRoles)]
 	public sealed class SoftDeleteRole : AdvobotModuleBase
 	{
 		[Command]
-		public async Task<RuntimeResult> Command(
+		public async Task<AdvobotResult> Command(
 			[CanModifyRole, NotManaged, NotEveryone]
 			IRole role)
 		{

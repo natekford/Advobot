@@ -1,14 +1,11 @@
 ﻿using Advobot.Embeds;
 using Advobot.Modules;
-using Advobot.Services.Help;
 using Advobot.Utilities;
 
 using Discord;
-using Discord.Commands;
 using Discord.Rest;
 using Discord.WebSocket;
 
-using System.Reflection;
 using System.Text;
 
 using static Advobot.Resources.Responses;
@@ -18,9 +15,10 @@ namespace Advobot.Standard.Responses;
 
 public sealed partial class Misc : AdvobotResult
 {
+	/*
 	private static readonly Type _Help = typeof(Commands.Misc.Help);
 
-	public static AdvobotResult Help(IHelpModule module)
+	public static AdvobotResult Help(IImmutableCommand module)
 	{
 		var enabled = module.EnabledByDefault.ToString();
 		if (!module.AbleToBeToggled)
@@ -61,7 +59,7 @@ public sealed partial class Misc : AdvobotResult
 		return Success(CreateHelpEmbed(module.Aliases[0], sb.ToString()));
 	}
 
-	public static AdvobotResult Help(IHelpCommand command)
+	public static AdvobotResult Help(IImmutableCommand command)
 	{
 		var sb = new StringBuilder()
 			.AppendHeaderAndValue(MiscTitleAliases, command.Aliases.Select(x => x.WithBlock().Current).Join())
@@ -82,7 +80,7 @@ public sealed partial class Misc : AdvobotResult
 		return Success(embed);
 	}
 
-	public static AdvobotResult Help(IEnumerable<IHelpModule> entries, string category)
+	public static AdvobotResult Help(IEnumerable<IImmutableCommand> entries, string category)
 	{
 		var title = MiscTitleCategoryCommands.Format(
 			category.WithTitleCase()
@@ -219,6 +217,7 @@ public sealed partial class Misc : AdvobotResult
 			?? throw new ArgumentException("Group is null.", nameof(command));
 		return (prefix + attr.Prefix + (string.IsNullOrEmpty(args) ? "" : " ") + args).WithBlock();
 	}
+	*/
 }
 
 public sealed partial class Misc : AdvobotResult
@@ -295,7 +294,7 @@ public sealed partial class Misc : AdvobotResult
 		});
 	}
 
-	public static async Task<RuntimeResult> InfoChannel(IGuildChannel channel)
+	public static async Task<AdvobotResult> InfoChannel(IGuildChannel channel)
 	{
 		var userCount = channel is SocketGuildChannel sgc ? sgc.Users.Count : 0;
 		var roles = new List<string>();
@@ -379,7 +378,7 @@ public sealed partial class Misc : AdvobotResult
 		});
 	}
 
-	public static async Task<RuntimeResult> InfoGuild(IGuild guild)
+	public static async Task<AdvobotResult> InfoGuild(IGuild guild)
 	{
 		var users = await guild.GetUsersAsync(CacheMode.CacheOnly).ConfigureAwait(false);
 		var owner = await guild.GetOwnerAsync().ConfigureAwait(false);
@@ -531,7 +530,7 @@ public sealed partial class Misc : AdvobotResult
 	public static AdvobotResult InfoNotFound()
 		=> Failure(GetsNotFound);
 
-	public static async Task<RuntimeResult> InfoRole(IRole role)
+	public static async Task<AdvobotResult> InfoRole(IRole role)
 	{
 		var userCount = (await role.Guild.GetUsersAsync(CacheMode.CacheOnly).ConfigureAwait(false))
 			.Count(x => x.RoleIds.Contains(role.Id));
@@ -572,7 +571,7 @@ public sealed partial class Misc : AdvobotResult
 		return Success(embed);
 	}
 
-	public static async Task<RuntimeResult> InfoUser(IUser user)
+	public static async Task<AdvobotResult> InfoUser(IUser user)
 	{
 		var sb = new StringBuilder()
 			.AppendTimeCreated(user)

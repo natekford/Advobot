@@ -1,9 +1,11 @@
-﻿using Discord.Commands;
+﻿using MorseCode.ITask;
+
+using YACCS.TypeReaders;
 
 namespace Advobot.Tests.TestBases;
 
 public abstract class TypeReader_Tests<T> : TestsBase
-	where T : TypeReader
+	where T : ITypeReader
 {
 	protected abstract T Instance { get; }
 	protected virtual string? NotExisting { get; } = "asdf";
@@ -17,9 +19,9 @@ public abstract class TypeReader_Tests<T> : TestsBase
 		}
 
 		var result = await ReadAsync(NotExisting).ConfigureAwait(false);
-		Assert.IsFalse(result.IsSuccess);
+		Assert.IsFalse(result.InnerResult.IsSuccess);
 	}
 
-	protected Task<TypeReaderResult> ReadAsync(string input)
-		=> Instance.ReadAsync(Context, input, Services);
+	protected ITask<ITypeReaderResult> ReadAsync(string input)
+		=> Instance.ReadAsync(Context, new[] { input });
 }

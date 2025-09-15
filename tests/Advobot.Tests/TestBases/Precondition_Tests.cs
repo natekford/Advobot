@@ -1,12 +1,14 @@
-﻿using Discord.Commands;
+﻿using YACCS.Commands.Models;
+using YACCS.Preconditions;
+using YACCS.Results;
 
 namespace Advobot.Tests.TestBases;
 
 public abstract class Precondition_Tests<T> : TestsBase
-	where T : PreconditionAttribute
+	where T : IPrecondition
 {
 	protected abstract T Instance { get; }
 
-	protected Task<PreconditionResult> CheckPermissionsAsync(CommandInfo? command = null)
-		=> Instance.CheckPermissionsAsync(Context, command, Services);
+	protected ValueTask<IResult> CheckPermissionsAsync(IImmutableCommand? command = null)
+		=> Instance.CheckAsync(command, Context);
 }

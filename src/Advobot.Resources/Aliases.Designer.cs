@@ -711,6 +711,15 @@ namespace Advobot.Resources {
         /// <summary>
         ///   Looks up a localized string similar to g.
         /// </summary>
+        public static string Global {
+            get {
+                return ResourceManager.GetString("Global", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to g.
+        /// </summary>
         public static string Goodbye {
             get {
                 return ResourceManager.GetString("Goodbye", resourceCulture);

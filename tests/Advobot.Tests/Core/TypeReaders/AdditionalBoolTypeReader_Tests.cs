@@ -15,9 +15,9 @@ public sealed class AdditionalBoolTypeReader_Tests
 		foreach (var value in AdditionalBoolTypeReader.FalseVals)
 		{
 			var result = await ReadAsync(value).ConfigureAwait(false);
-			Assert.IsTrue(result.IsSuccess);
-			Assert.IsInstanceOfType<bool>(result.BestMatch);
-			Assert.IsFalse((bool)result.BestMatch);
+			Assert.IsTrue(result.InnerResult.IsSuccess);
+			Assert.IsInstanceOfType<bool>(result.Value);
+			Assert.IsFalse((bool)result.Value);
 		}
 	}
 
@@ -27,9 +27,9 @@ public sealed class AdditionalBoolTypeReader_Tests
 		foreach (var value in AdditionalBoolTypeReader.TrueVals)
 		{
 			var result = await ReadAsync(value).ConfigureAwait(false);
-			Assert.IsTrue(result.IsSuccess);
-			Assert.IsInstanceOfType<bool>(result.BestMatch);
-			Assert.IsTrue((bool)result.BestMatch);
+			Assert.IsTrue(result.InnerResult.IsSuccess);
+			Assert.IsInstanceOfType<bool>(result.Value);
+			Assert.IsTrue((bool)result.Value);
 		}
 	}
 }

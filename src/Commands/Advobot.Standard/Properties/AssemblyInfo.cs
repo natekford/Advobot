@@ -1,10 +1,12 @@
 ﻿using Advobot;
-using Advobot.CommandAssemblies;
+using Advobot.Standard;
 
 using System.Reflection;
 using System.Resources;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
+
+using YACCS.Plugins;
 
 // General Information about an assembly is controlled through the following
 // set of attributes. Change these attribute values to modify the information
@@ -35,5 +37,9 @@ using System.Runtime.InteropServices;
 [assembly: AssemblyVersion(Constants.ASSEMBLY_VERSION)]
 
 // Indicates the assembly has commands in it for the bot to use
-[assembly: CommandAssembly("en-US")]
+[assembly: StandardInstantiator(SupportedCultures = ["en-US"])]
 [assembly: InternalsVisibleTo("Advobot.Tests")]
+
+namespace Advobot.Standard;
+
+public sealed class StandardInstantiator : PluginAttribute;

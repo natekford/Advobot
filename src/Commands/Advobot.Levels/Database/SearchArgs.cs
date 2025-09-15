@@ -1,8 +1,8 @@
-﻿using Discord.Commands;
+﻿using YACCS.NamedArguments;
 
 namespace Advobot.Levels.Database;
 
-[NamedArgumentType]
+[GenerateNamedArguments]
 public sealed class SearchArgs
 {
 	public ulong? ChannelId { get; set; }

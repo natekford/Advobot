@@ -32,8 +32,8 @@ public abstract class BannedPhraseTypeReader_Tests<T> : TypeReader_Tests<T>
 		)).ConfigureAwait(false);
 
 		var result = await ReadAsync(PHRASE).ConfigureAwait(false);
-		Assert.IsTrue(result.IsSuccess);
-		Assert.IsInstanceOfType<BannedPhrase>(result.BestMatch);
+		Assert.IsTrue(result.InnerResult.IsSuccess);
+		Assert.IsInstanceOfType<BannedPhrase>(result.Value);
 	}
 
 	[TestMethod]
@@ -53,7 +53,7 @@ public abstract class BannedPhraseTypeReader_Tests<T> : TypeReader_Tests<T>
 		)).ConfigureAwait(false);
 
 		var result = await ReadAsync(PHRASE).ConfigureAwait(false);
-		Assert.IsFalse(result.IsSuccess);
+		Assert.IsFalse(result.InnerResult.IsSuccess);
 	}
 
 	protected Task<AutoModDatabase> GetDatabaseAsync()

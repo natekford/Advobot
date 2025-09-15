@@ -1,9 +1,9 @@
-﻿using Advobot.Utilities;
-
-using Discord;
-using Discord.Commands;
+﻿using Advobot.Modules;
 
 using System.Text.RegularExpressions;
+
+using YACCS.Preconditions;
+using YACCS.Results;
 
 namespace Advobot.ParameterPreconditions.Strings;
 
@@ -22,14 +22,12 @@ public sealed partial class TwitchStream : StringLengthParameterPrecondition
 	public TwitchStream() : base(4, 25) { }
 
 	/// <inheritdoc />
-	protected override async Task<PreconditionResult> CheckPermissionsAsync(
-		ICommandContext context,
-		ParameterInfo parameter,
-		IGuildUser invoker,
-		string value,
-		IServiceProvider services)
+	public override async ValueTask<IResult> CheckAsync(
+		CommandMeta meta,
+		IGuildContext context,
+		string? value)
 	{
-		var result = await base.CheckPermissionsAsync(context, parameter, invoker, value, services).ConfigureAwait(false);
+		var result = await base.CheckAsync(meta, context, value).ConfigureAwait(false);
 		if (!result.IsSuccess)
 		{
 			return result;
@@ -37,9 +35,10 @@ public sealed partial class TwitchStream : StringLengthParameterPrecondition
 
 		if (GetTwitchRegex().IsMatch(value))
 		{
-			return this.FromSuccess();
+			return CachedResults.Success;
 		}
-		return PreconditionResult.FromError("Invalid Twitch username supplied.");
+		// TODO: singleton
+		return Result.Failure("Invalid Twitch username supplied.");
 	}
 
 	[GeneratedRegex("^[a-zA-Z0-9_]{4,25}$", RegexOptions.Compiled)]

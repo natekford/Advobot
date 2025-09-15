@@ -1,219 +1,93 @@
-﻿using Advobot.Attributes;
-using Advobot.CommandAssemblies;
-using Advobot.Localization;
-using Advobot.Modules;
-using Advobot.Services.BotConfig;
-using Advobot.Services.Events;
-using Advobot.Services.GuildSettings;
-using Advobot.Services.Help;
-using Advobot.TypeReaders;
+﻿using Advobot.Services.Events;
 
 using Discord;
-using Discord.Commands;
 
-using System.Collections.Concurrent;
 using System.Globalization;
 using System.Reflection;
+
+using YACCS.Commands;
+using YACCS.Commands.Models;
+using YACCS.Localization;
+using YACCS.Parsing;
+using YACCS.Trie;
+using YACCS.TypeReaders;
 
 namespace Advobot.Services.Commands;
 
 /// <summary>
-/// Handles user input commands.
+/// Handles command creation.
 /// </summary>
-/// <param name="services"></param>
-/// <param name="commandConfig"></param>
-/// <param name="client"></param>
-/// <param name="eventProvider"></param>
-/// <param name="botConfig"></param>
-/// <param name="guildSettings"></param>
-/// <param name="help"></param>
-public sealed class NaiveCommandService(
-	IServiceProvider services,
-	CommandServiceConfig commandConfig,
-	IDiscordClient client,
-	EventProvider eventProvider,
-	IRuntimeConfig botConfig,
-	IGuildSettingsService guildSettings,
-	IHelpService help
-) : StartableService
+public sealed class NaiveCommandService : CommandService
 {
-	// TODO: hook/remove the events in start/stop?
-	private readonly Localized<CommandService> _CommandService = new(_ =>
-	{
-		var commands = new CommandService(commandConfig);
-		commands.Log += eventProvider.Log.InvokeAsync;
-		commands.CommandExecuted += eventProvider.CommandExecuted.InvokeAsync;
-		return commands;
-	});
-	private readonly ConcurrentDictionary<ulong, byte> _GatheringUsers = new();
+	private readonly IEnumerable<Assembly> _CommandAssemblies;
+	private readonly Localized<CommandTrie> _Commands;
+	private readonly EventProvider _EventProvider;
+	private readonly Localized<Lazy<Task>> _Initialize;
+	private readonly IServiceProvider _Services;
+
+	/// <inheritdoc />
+	public override ITrie<string, IImmutableCommand> Commands
+		=> _Commands.GetCurrent();
 
 	/// <summary>
-	/// Adds commands to this service.
+	/// Creates an instance of <see cref="NaiveCommandService"/>.
 	/// </summary>
-	/// <param name="assemblies"></param>
+	/// <param name="config"></param>
+	/// <param name="argumentHandler"></param>
+	/// <param name="readers"></param>
+	/// <param name="services"></param>
+	/// <param name="commandAssemblies"></param>
+	/// <param name="eventProvider"></param>
+	public NaiveCommandService(
+		CommandServiceConfig config,
+		IArgumentHandler argumentHandler,
+		IReadOnlyDictionary<Type, ITypeReader> readers,
+		IServiceProvider services,
+		IEnumerable<Assembly> commandAssemblies,
+		EventProvider eventProvider
+	) : base(config, argumentHandler, readers)
+	{
+		_Services = services;
+		_CommandAssemblies = commandAssemblies;
+		_EventProvider = eventProvider;
+
+		_Commands = new(_ => new CommandTrie(readers, config.Separator, config.CommandNameComparer));
+		_Initialize = new(_ => new(() => PrivateInitialize()));
+	}
+
+	/// <summary>
+	/// Creates commands using <see cref="CultureInfo.CurrentUICulture"/>.
+	/// </summary>
 	/// <returns></returns>
-	/// <exception cref="InvalidCastException"></exception>
-	public async Task AddCommandsAsync(IEnumerable<CommandAssembly> assemblies)
-	{
-		var commandServices = assemblies
-			.SelectMany(x => x.SupportedCultures)
-			.ToHashSet()
-			.Select(_CommandService.Get)
-			.ToArray();
-		var types = assemblies
-			.Select(x => x.Assembly)
-			.Prepend(Assembly.GetExecutingAssembly())
-			.SelectMany(x => x.GetTypes());
-		foreach (var type in types)
-		{
-			var attr = type.GetCustomAttribute<TypeReaderTargetTypeAttribute>();
-			if (attr is null)
-			{
-				continue;
-			}
-			if (Activator.CreateInstance(type) is not TypeReader instance)
-			{
-				throw new InvalidCastException($"{type} is not a {nameof(TypeReader)}.");
-			}
-
-			foreach (var commandService in commandServices)
-			{
-				foreach (var targetType in attr.TargetTypes)
-				{
-					commandService.AddTypeReader(targetType, instance, replaceDefault: true);
-				}
-			}
-		}
-
-		foreach (var assembly in assemblies)
-		{
-			foreach (var culture in assembly.SupportedCultures)
-			{
-				await AddCommandsAsync(culture, assembly.Assembly).ConfigureAwait(false);
-			}
-		}
-	}
+	public Task InitializeAsync()
+		=> _Initialize.GetCurrent().Value;
 
 	/// <inheritdoc />
-	protected override Task StartAsyncImpl()
+	protected override async Task CommandExecutedAsync(CommandExecutedResult result)
 	{
-		eventProvider.MessageReceived.Add(OnMessageReceived);
-
-		return Task.CompletedTask;
+		await _EventProvider.CommandExecuted.InvokeAsync(result).ConfigureAwait(false);
+		await base.CommandExecutedAsync(result).ConfigureAwait(false);
 	}
 
-	/// <inheritdoc />
-	protected override Task StopAsyncImpl()
+	private async Task PrivateInitialize()
 	{
-		eventProvider.MessageReceived.Remove(OnMessageReceived);
-
-		return base.StopAsyncImpl();
-	}
-
-	private async Task AddCommandsAsync(CultureInfo culture, Assembly assembly)
-	{
-		var commandService = _CommandService.Get(culture);
-		var modules = await commandService.AddModulesAsync(assembly, services).ConfigureAwait(false);
-
-		static IEnumerable<ModuleInfo> GetAllModules(ModuleInfo module)
+		foreach (var assembly in _CommandAssemblies)
 		{
-			yield return module;
-			foreach (var submodule in module.Submodules)
+			await foreach (var (_, command) in assembly.GetAllCommandsAsync(_Services))
 			{
-				foreach (var m in GetAllModules(submodule))
-				{
-					yield return m;
-				}
+				Commands.Add(command);
 			}
 		}
 
-		static bool CheckDuplicateId(
-			ModuleInfo module,
-			Dictionary<Guid, ModuleInfo> ids,
-			MetaAttribute meta)
-		{
-			if (!ids.TryGetValue(meta.Guid, out var original))
-			{
-				ids.Add(meta.Guid, module);
-				return true;
-			}
-
-			for (var m = module; m != null; m = m.Parent)
-			{
-				if (m == original)
-				{
-					return false;
-				}
-			}
-
-			throw new InvalidOperationException($"Duplicate id between {original.Name} and {module.Name}.");
-		}
-
-		int commandCount = 0, helpEntryCount = 0;
-		var ids = new Dictionary<Guid, ModuleInfo>();
-		var categories = new HashSet<string>();
-		foreach (var module in modules.SelectMany(GetAllModules))
-		{
-			var meta = module.Attributes.OfType<MetaAttribute>().FirstOrDefault();
-			if (meta is null || !CheckDuplicateId(module, ids, meta))
-			{
-				continue;
-			}
-
-			++commandCount;
-			if (!module.Attributes.Any(a => a is HiddenAttribute))
-			{
-				++helpEntryCount;
-
-				var category = module.Attributes.OfType<CategoryAttribute>().First();
-				categories.Add(category.Category);
-				help.Add(new HelpModule(module, meta, category));
-			}
-		}
-
-		await eventProvider.Log.InvokeAsync(new(
+		await _EventProvider.Log.InvokeAsync(new(
 			severity: LogSeverity.Info,
-			source: nameof(AddCommandsAsync),
-			message: $"Successfully loaded {categories.Count} categories " +
-				$"containing {commandCount} commands " +
-				$"({helpEntryCount} were given help entries) " +
-				$"from {assembly.GetName().Name} in the {culture} culture."
+			source: nameof(InitializeAsync),
+			message: $"Successfully loaded {Commands.Count} commands."
+		/*
+		message: $"Successfully loaded {categories.Count} categories " +
+			$"containing {commandCount} commands " +
+			$"({helpEntryCount} were given help entries) " +
+			$"from {assembly.GetName().Name} in the {culture} culture."*/
 		)).ConfigureAwait(false);
-	}
-
-	private async Task OnMessageReceived(IMessage message)
-	{
-		if (botConfig.Pause
-			|| message.Author.IsBot
-			|| string.IsNullOrWhiteSpace(message.Content)
-			|| botConfig.UsersIgnoredFromCommands.Contains(message.Author.Id)
-			|| message is not IUserMessage msg
-			|| msg.Author is not IGuildUser user
-			|| msg.Channel is not ITextChannel _)
-		{
-			return;
-		}
-
-		if (_GatheringUsers.TryAdd(user.Guild.Id, 0))
-		{
-			_ = user.Guild.DownloadUsersAsync();
-		}
-
-		var argPos = -1;
-		if (!msg.HasMentionPrefix(client.CurrentUser, ref argPos))
-		{
-			var prefix = await guildSettings.GetPrefixAsync(user.Guild).ConfigureAwait(false);
-			if (!msg.HasStringPrefix(prefix, ref argPos))
-			{
-				return;
-			}
-		}
-
-		var culture = await guildSettings.GetCultureAsync(user.Guild).ConfigureAwait(false);
-		CultureInfo.CurrentUICulture = culture;
-		CultureInfo.CurrentCulture = culture;
-		var commands = _CommandService.Get(culture);
-		var context = new GuildCommandContext(client, msg);
-		await commands.ExecuteAsync(context, argPos, services).ConfigureAwait(false);
 	}
 }

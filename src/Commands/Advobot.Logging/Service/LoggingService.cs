@@ -13,7 +13,6 @@ using Advobot.Services.Time;
 using Advobot.Utilities;
 
 using Discord;
-using Discord.Commands;
 using Discord.WebSocket;
 
 using Microsoft.Extensions.Logging;
@@ -23,6 +22,8 @@ using MimeTypes;
 using System.Collections.Concurrent;
 using System.Net.WebSockets;
 using System.Text;
+
+using YACCS.Commands;
 
 using static Advobot.Resources.Responses;
 
@@ -164,16 +165,9 @@ public sealed partial class LoggingService(
 /// </summary>
 partial class LoggingService
 {
-	public async Task OnCommandExecuted(Optional<CommandInfo> command, ICommandContext context, IResult result)
+	public async Task OnCommandExecuted(CommandExecutedResult result)
 	{
-		static bool CanBeIgnored(IResult result)
-		{
-			return result is null
-				|| result.Error == CommandError.UnknownCommand
-				|| (!result.IsSuccess && result.ErrorReason is null)
-				|| (result is PreconditionGroupResult g && g.PreconditionResults.All(CanBeIgnored));
-		}
-		if (!command.IsSpecified || CanBeIgnored(result))
+		if (result.Context is not IGuildContext context)
 		{
 			return;
 		}
@@ -185,24 +179,24 @@ partial class LoggingService
 				Guild = context.Guild.Id,
 				Channel = context.Channel.Id,
 				User = context.User.Id,
-				Command = command.Value.Aliases[0],
+				Command = result.Command.Paths[0].Join(" "),
 				// probably shouldn't put user content into logs? idk
 				//Content = context.Message.Content,
 				Elapsed = context is IElapsed elapsed
 					? elapsed.Elapsed.Milliseconds : (int?)null,
-				Error = result.IsSuccess ? null : result.ErrorReason,
+				Error = result.InnerResult.IsSuccess ? null : result.InnerResult.Response,
 			}
 		);
 
-		if (result is AdvobotResult advobotResult)
+		if (result.InnerResult is AdvobotResult advobotResult)
 		{
 			await advobotResult.SendAsync(context).ConfigureAwait(false);
 		}
-		else if (!result.IsSuccess)
+		else if (!result.InnerResult.IsSuccess)
 		{
 			await context.Channel.SendMessageAsync(new SendMessageArgs
 			{
-				Content = result.ErrorReason
+				Content = result.InnerResult.Response,
 			}).ConfigureAwait(false);
 		}
 

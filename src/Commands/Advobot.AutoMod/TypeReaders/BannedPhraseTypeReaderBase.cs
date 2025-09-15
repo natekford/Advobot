@@ -1,19 +1,20 @@
 ﻿using Advobot.AutoMod.Database;
 using Advobot.AutoMod.Database.Models;
-using Advobot.Utilities;
-
-using Discord.Commands;
+using Advobot.Modules;
+using Advobot.TypeReaders.Discord;
 
 using Microsoft.Extensions.DependencyInjection;
 
-using static Advobot.Resources.Responses;
+using MorseCode.ITask;
+
+using YACCS.TypeReaders;
 
 namespace Advobot.AutoMod.TypeReaders;
 
 /// <summary>
 /// A type reader for banned phrases.
 /// </summary>
-public abstract class BannedPhraseTypeReaderBase : TypeReader
+public abstract class BannedPhraseTypeReaderBase : DiscordTypeReader<BannedPhrase>
 {
 	/// <summary>
 	/// Gets the name of the banned phrase type.
@@ -21,17 +22,19 @@ public abstract class BannedPhraseTypeReaderBase : TypeReader
 	protected abstract string BannedPhraseName { get; }
 
 	/// <inheritdoc />
-	public override async Task<TypeReaderResult> ReadAsync(
-		ICommandContext context,
-		string input,
-		IServiceProvider services)
+	public override async ITask<ITypeReaderResult<BannedPhrase>> ReadAsync(
+		IGuildContext context,
+		ReadOnlyMemory<string> input)
 	{
-		var db = services.GetRequiredService<AutoModDatabase>();
-		var phrases = await db.GetBannedPhrasesAsync(context.Guild.Id).ConfigureAwait(false);
-		var matches = phrases.Where(x => IsValid(x, input)).ToArray();
+		var joined = Join(context, input);
 
-		var type = BannedPhraseType.Format(BannedPhraseName.WithNoMarkdown());
-		return TypeReaderUtils.SingleValidResult(matches, type, input);
+		var db = GetDatabase(context.Services);
+		var phrases = await db.GetBannedPhrasesAsync(context.Guild.Id).ConfigureAwait(false);
+
+		var matches = phrases
+			.Where(x => IsValid(x, joined))
+			.ToArray();
+		return SingleValidResult(matches);
 	}
 
 	/// <summary>
@@ -41,4 +44,8 @@ public abstract class BannedPhraseTypeReaderBase : TypeReader
 	/// <param name="input"></param>
 	/// <returns></returns>
 	protected abstract bool IsValid(BannedPhrase phrase, string input);
+
+	[GetServiceMethod]
+	private static AutoModDatabase GetDatabase(IServiceProvider services)
+		=> services.GetRequiredService<AutoModDatabase>();
 }

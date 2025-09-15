@@ -1,7 +1,6 @@
-﻿using Advobot.Preconditions.Results;
+﻿using Discord;
 
-using Discord;
-using Discord.Commands;
+using YACCS.Results;
 
 namespace Advobot.Utilities;
 
@@ -10,19 +9,6 @@ namespace Advobot.Utilities;
 /// </summary>
 public static class PreconditionUtils
 {
-	/// <summary>
-	/// A successful result.
-	/// </summary>
-	public static PreconditionResult SuccessInstance { get; } = PreconditionResult.FromSuccess();
-
-	/// <summary>
-	/// Creates a <see cref="Task{T}"/> returning <paramref name="result"/>.
-	/// </summary>
-	/// <param name="result"></param>
-	/// <returns></returns>
-	public static Task<PreconditionResult> AsTask(this PreconditionResult result)
-		=> Task.FromResult(result);
-
 	/// <summary>
 	/// Returns true if the invoking user's position is greater than the target user's position or if both users are the bot.
 	/// </summary>
@@ -42,33 +28,15 @@ public static class PreconditionUtils
 		=> invoker.GetHierarchy() > target.Position;
 
 	/// <summary>
-	/// Creates a <see cref="InvalidInvokingUser"/>.
-	/// </summary>
-	/// <param name="_"></param>
-	/// <returns></returns>
-	public static PreconditionResult FromInvalidInvoker(
-		this Attribute _)
-		=> InvalidInvokingUser.Instance;
-
-	/// <summary>
-	/// Returns <see cref="SuccessInstance"/>.
-	/// </summary>
-	/// <param name="_"></param>
-	/// <returns></returns>
-	public static PreconditionResult FromSuccess(
-		this Attribute _)
-		=> SuccessInstance;
-
-	/// <summary>
 	/// Verifies that the channel can be edited in specific ways.
 	/// </summary>
 	/// <param name="invoker"></param>
 	/// <param name="target"></param>
 	/// <param name="permissions"></param>
 	/// <returns></returns>
-	public static Task<PreconditionResult> ValidateChannel(
+	public static Task<IResult> ValidateChannel(
 		this IGuildUser invoker,
-		IGuildChannel target,
+		IGuildChannel? target,
 		IEnumerable<ChannelPermission> permissions)
 	{
 		return invoker.ValidateAsync(target, (i, t) =>
@@ -103,9 +71,9 @@ public static class PreconditionUtils
 	/// <param name="invoker"></param>
 	/// <param name="target"></param>
 	/// <returns></returns>
-	public static Task<PreconditionResult> ValidateRole(
+	public static Task<IResult> ValidateRole(
 		this IGuildUser invoker,
-		IRole target)
+		IRole? target)
 		=> invoker.ValidateAsync(target, CanModify);
 
 	/// <summary>
@@ -114,9 +82,9 @@ public static class PreconditionUtils
 	/// <param name="invoker"></param>
 	/// <param name="target"></param>
 	/// <returns></returns>
-	public static Task<PreconditionResult> ValidateUser(
+	public static Task<IResult> ValidateUser(
 		this IGuildUser invoker,
-		IGuildUser target)
+		IGuildUser? target)
 		=> invoker.ValidateAsync(target, CanModify);
 
 	private static int GetHierarchy(this IGuildUser user)
@@ -132,15 +100,15 @@ public static class PreconditionUtils
 		return user.RoleIds.Max(x => user.Guild.GetRole(x).Position);
 	}
 
-	private static async Task<PreconditionResult> ValidateAsync<T>(
+	private static async Task<IResult> ValidateAsync<T>(
 		this IGuildUser invoker,
-		T target,
+		T? target,
 		Func<IGuildUser, T, bool> permissionsCallback)
 		where T : ISnowflakeEntity
 	{
 		if (target is null)
 		{
-			return new UnableToFind(typeof(T));
+			return CachedResults<T>.NotFound.Result.InnerResult;
 		}
 
 		var bot = await invoker.Guild.GetCurrentUserAsync().ConfigureAwait(false)
@@ -148,13 +116,13 @@ public static class PreconditionUtils
 
 		if (!permissionsCallback(invoker, target))
 		{
-			return new LackingPermissions(invoker, target);
+			return Result.Failure($"{invoker.Format()} can't modify {target.Format()}.");
 		}
 		if (!permissionsCallback(bot, target))
 		{
-			return new LackingPermissions(bot, target);
+			return Result.Failure($"{bot.Format()} can't modify {target.Format()}.");
 		}
 
-		return SuccessInstance;
+		return CachedResults.Success;
 	}
 }

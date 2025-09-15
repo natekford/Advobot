@@ -2,20 +2,16 @@
 using Advobot.Utilities;
 
 using Discord;
-using Discord.Commands;
+
+using YACCS.Results;
 
 namespace Advobot.Modules;
 
 /// <summary>
 /// A result which should only be logged once.
 /// </summary>
-public class AdvobotResult : RuntimeResult
+public class AdvobotResult : IResult
 {
-	/// <summary>
-	/// The result to use when this should be fully ignored.
-	/// </summary>
-	public static AdvobotResult IgnoreFailure { get; } = Failure(null, CommandError.Unsuccessful);
-
 	/// <summary>
 	/// The embed to post with the message.
 	/// </summary>
@@ -24,43 +20,32 @@ public class AdvobotResult : RuntimeResult
 	/// The file to post with the message.
 	/// </summary>
 	public FileAttachment? File { get; set; }
+	/// <inheritdoc />
+	public bool IsSuccess { get; set; }
 	/// <summary>
 	/// Where to send this result to. If this is null, the default context channel will be used instead.
 	/// </summary>
 	public ulong? OverrideDestinationChannelId { get; set; }
+	/// <inheritdoc />
+	public string Response { get; set; } = "";
 	/// <summary>
 	/// How long to let this message stay up for.
 	/// </summary>
 	public TimeSpan? Time { get; set; }
 
 	/// <summary>
-	/// Creates an instance of <see cref="AdvobotResult"/>.
-	/// </summary>
-	/// <param name="error"></param>
-	/// <param name="reason"></param>
-	protected AdvobotResult(CommandError? error, string? reason) : base(error, reason) { }
-
-	/// <summary>
-	/// Creates an instance of <see cref="AdvobotResult"/>.
-	/// </summary>
-	protected AdvobotResult() : base(null, "") { }
-
-	/// <summary>
-	/// Creates an error result from an exception.
-	/// </summary>
-	/// <param name="e"></param>
-	/// <returns></returns>
-	public static AdvobotResult Exception(Exception e)
-		=> Failure(e.Message, CommandError.Exception);
-
-	/// <summary>
 	/// Creates an error result.
 	/// </summary>
 	/// <param name="reason"></param>
-	/// <param name="error"></param>
 	/// <returns></returns>
-	public static AdvobotResult Failure(string? reason, CommandError? error = CommandError.Unsuccessful)
-		=> new(error, reason);
+	public static AdvobotResult Failure(string reason)
+	{
+		return new()
+		{
+			IsSuccess = false,
+			Response = reason,
+		};
+	}
 
 	/// <summary>
 	/// Converts the result into a task returning the result.
@@ -68,13 +53,6 @@ public class AdvobotResult : RuntimeResult
 	/// <param name="result"></param>
 	public static implicit operator Task<AdvobotResult>(AdvobotResult result)
 		=> Task.FromResult(result);
-
-	/// <summary>
-	/// Converts the result into a task returning the result.
-	/// </summary>
-	/// <param name="result"></param>
-	public static implicit operator Task<RuntimeResult>(AdvobotResult result)
-		=> Task.FromResult<RuntimeResult>(result);
 
 	/// <summary>
 	/// Creates a successful result.
@@ -85,7 +63,11 @@ public class AdvobotResult : RuntimeResult
 	{
 		if (reason.Length < 2000)
 		{
-			return new(null, reason);
+			return new()
+			{
+				IsSuccess = true,
+				Response = reason,
+			};
 		}
 		return Success(MessageUtils.CreateTextFile("Message_Too_Long", reason));
 	}
@@ -119,7 +101,7 @@ public class AdvobotResult : RuntimeResult
 	/// </summary>
 	/// <param name="context"></param>
 	/// <returns></returns>
-	public async Task<IUserMessage> SendAsync(ICommandContext context)
+	public async Task<IUserMessage> SendAsync(IGuildContext context)
 	{
 		var destination = context.Channel;
 		if (OverrideDestinationChannelId is ulong id)
@@ -136,7 +118,7 @@ public class AdvobotResult : RuntimeResult
 
 		return await destination.SendMessageAsync(new SendMessageArgs(Embed)
 		{
-			Content = Reason,
+			Content = Response,
 			Files = File.HasValue ? [File.Value] : null,
 		}).ConfigureAwait(false);
 	}
@@ -146,5 +128,5 @@ public class AdvobotResult : RuntimeResult
 	/// </summary>
 	/// <returns></returns>
 	public override string ToString()
-		=> Reason;
+		=> Response;
 }

@@ -14,31 +14,31 @@ public sealed class ColorTypeReader_Tests : TypeReader_Tests<ColorTypeReader>
 	public async Task ValidEmpty_Test()
 	{
 		var result = await ReadAsync(null).ConfigureAwait(false);
-		Assert.IsTrue(result.IsSuccess);
-		Assert.IsInstanceOfType<Color>(result.BestMatch);
+		Assert.IsTrue(result.InnerResult.IsSuccess);
+		Assert.IsInstanceOfType<Color>(result.Value);
 	}
 
 	[TestMethod]
 	public async Task ValidHex_Test()
 	{
 		var result = await ReadAsync(Color.Red.RawValue.ToString("X6")).ConfigureAwait(false);
-		Assert.IsTrue(result.IsSuccess);
-		Assert.IsInstanceOfType<Color>(result.BestMatch);
+		Assert.IsTrue(result.InnerResult.IsSuccess);
+		Assert.IsInstanceOfType<Color>(result.Value);
 	}
 
 	[TestMethod]
 	public async Task ValidName_Test()
 	{
 		var result = await ReadAsync("Red").ConfigureAwait(false);
-		Assert.IsTrue(result.IsSuccess);
-		Assert.IsInstanceOfType<Color>(result.BestMatch);
+		Assert.IsTrue(result.InnerResult.IsSuccess);
+		Assert.IsInstanceOfType<Color>(result.Value);
 	}
 
 	[TestMethod]
 	public async Task ValidRGB_Test()
 	{
 		var result = await ReadAsync("100/100/100").ConfigureAwait(false);
-		Assert.IsTrue(result.IsSuccess);
-		Assert.IsInstanceOfType<Color>(result.BestMatch);
+		Assert.IsTrue(result.InnerResult.IsSuccess);
+		Assert.IsInstanceOfType<Color>(result.Value);
 	}
 }

@@ -1,11 +1,18 @@
 ﻿using Advobot;
-using Advobot.CommandAssemblies;
 using Advobot.Levels;
+using Advobot.Levels.Database;
+using Advobot.Levels.Service;
+using Advobot.Serilog;
+using Advobot.SQLite;
+
+using Microsoft.Extensions.DependencyInjection;
 
 using System.Reflection;
 using System.Resources;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
+
+using YACCS.Plugins;
 
 // General Information about an assembly is controlled through the following
 // set of attributes. Change these attribute values to modify the information
@@ -36,5 +43,20 @@ using System.Runtime.InteropServices;
 [assembly: AssemblyVersion(Constants.ASSEMBLY_VERSION)]
 
 // Indicates the assembly has commands in it for the bot to use
-[assembly: CommandAssembly("en-US", InstantiatorType = typeof(LevelInstantiator))]
+[assembly: LevelInstantiator(SupportedCultures = ["en-US"])]
 [assembly: InternalsVisibleTo("Advobot.Tests")]
+
+namespace Advobot.Levels;
+
+public sealed class LevelInstantiator : PluginAttribute<IServiceCollection>
+{
+	public override Task AddServicesAsync(IServiceCollection services)
+	{
+		services
+			.AddSQLiteDatabase<LevelDatabase>("Levels")
+			.AddSingletonWithLogger<LevelService>("Levels")
+			.AddSingleton<LevelServiceConfig>();
+
+		return Task.CompletedTask;
+	}
+}

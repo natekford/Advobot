@@ -1,51 +1,48 @@
-﻿using Advobot.Utilities;
+﻿using Advobot.Modules;
+using Advobot.Utilities;
 
 using Discord;
-using Discord.Commands;
 
-namespace Advobot.TypeReaders;
+using MorseCode.ITask;
+
+using YACCS.TypeReaders;
+
+namespace Advobot.TypeReaders.Discord;
 
 /// <summary>
-/// Attempts to find an <see cref="IWebhook"/> on a guild.
+/// Attempts to find an <see cref="IWebhook"/>.
 /// </summary>
-[TypeReaderTargetType(typeof(IWebhook))]
-public sealed class WebhookTypeReader : TypeReader
+[TypeReaderTargetTypes(typeof(IWebhook))]
+public sealed class WebhookTypeReader : DiscordTypeReader<IWebhook>
 {
-	/// <summary>
-	/// Checks for any webhooks matching the input. Input is tested as a webhook id and a username.
-	/// </summary>
-	/// <param name="context"></param>
-	/// <param name="input"></param>
-	/// <param name="services"></param>
-	/// <returns></returns>
-	public override async Task<TypeReaderResult> ReadAsync(
-		ICommandContext context,
-		string input,
-		IServiceProvider services)
+	/// <inheritdoc />
+	public override async ITask<ITypeReaderResult<IWebhook>> ReadAsync(
+		IGuildContext context,
+		ReadOnlyMemory<string> input)
 	{
+		var joined = Join(context, input);
 		var webhooks = await context.Guild.GetWebhooksAsync().ConfigureAwait(false);
 
-		if (ulong.TryParse(input, out var id)
+		if (ulong.TryParse(joined, out var id)
 			&& webhooks.FirstOrDefault(x => x.Id == id) is IWebhook wh)
 		{
 			var wrapper = await WebhookWrapper.CreateAsync(wh, context.Guild).ConfigureAwait(false);
 			if (wrapper is not null)
 			{
-				return TypeReaderResult.FromSuccess(wrapper);
+				return Success(wrapper);
 			}
 		}
 
-		var wrappers = new List<IWebhook>();
-		foreach (var webhook in webhooks.Where(x => x.Name.CaseInsEquals(input)))
+		var matches = new List<IWebhook>();
+		foreach (var webhook in webhooks.Where(x => x.Name.CaseInsEquals(joined)))
 		{
 			var wrapper = await WebhookWrapper.CreateAsync(webhook, context.Guild).ConfigureAwait(false);
 			if (wrapper is not null)
 			{
-				wrappers.Add(wrapper);
+				matches.Add(wrapper);
 			}
 		}
-
-		return TypeReaderUtils.SingleValidResult(wrappers, "webhooks", input);
+		return SingleValidResult(matches);
 	}
 
 	private sealed class WebhookWrapper(IWebhook Actual, IIntegrationChannel IntegrationChannel) : IWebhook
@@ -74,7 +71,7 @@ public sealed class WebhookTypeReader : TypeReader
 		}
 
 		public Task DeleteAsync(RequestOptions? options = null)
-					=> Actual.DeleteAsync(options);
+			=> Actual.DeleteAsync(options);
 
 		public string GetAvatarUrl(ImageFormat format = ImageFormat.Auto, ushort size = 128)
 			=> Actual.GetAvatarUrl(format, size);

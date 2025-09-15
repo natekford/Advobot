@@ -8,14 +8,19 @@ using Advobot.Preconditions.Permissions;
 using Advobot.Utilities;
 
 using Discord;
-using Discord.Commands;
+
+using YACCS.Commands.Attributes;
+using YACCS.Commands.Models;
+using YACCS.Help.Attributes;
+using YACCS.Results;
 
 namespace Advobot.MyCommands.Commands;
 
 [Category("spanitch")]
-[Group("spanitch")]
+[Command("spanitch")]
 [Summary("spanitches a user")]
-[Meta("0c96c96b-5d11-41cd-941b-8864b7542349", IsEnabled = true)]
+[Id("0c96c96b-5d11-41cd-941b-8864b7542349")]
+[Meta(IsEnabled = true)]
 [RequireGuildPermissionsOrMickezoor(GuildPermission.ManageRoles)]
 [RequireGuild(199339772118827008)]
 [SpanitchRolesExist]
@@ -33,7 +38,7 @@ public sealed class SpanitchModule : AutoModModuleBase
 	];
 
 	[Command]
-	public async Task<RuntimeResult> Command([CanModifyUser] IGuildUser user)
+	public async Task<AdvobotResult> Command([CanModifyUser] IGuildUser user)
 	{
 		await user.ModifyRolesAsync(
 			rolesToAdd: Roles,
@@ -46,7 +51,7 @@ public sealed class SpanitchModule : AutoModModuleBase
 	[Command("hard")]
 	[Summary("makes it so if they leave the server and rejoin they are still spanitched")]
 	[Priority(1)]
-	public async Task<RuntimeResult> Hard([CanModifyUser] IGuildUser user)
+	public async Task<AdvobotResult> Hard([CanModifyUser] IGuildUser user)
 	{
 		await Command(user).ConfigureAwait(false);
 		return await Hard(user.Id).ConfigureAwait(false);
@@ -55,7 +60,7 @@ public sealed class SpanitchModule : AutoModModuleBase
 	[Command("hard")]
 	[Summary("makes it so if they leave the server and rejoin they are still spanitched")]
 	[Priority(0)]
-	public async Task<RuntimeResult> Hard(ulong user)
+	public async Task<AdvobotResult> Hard(ulong user)
 	{
 		foreach (var pRole in CreatePersistentRoles(user))
 		{
@@ -67,7 +72,7 @@ public sealed class SpanitchModule : AutoModModuleBase
 
 	[Command("unspanitch")]
 	[Summary("unspanitches a user")]
-	public async Task<RuntimeResult> Unspanitch([CanModifyUser] IGuildUser user)
+	public async Task<AdvobotResult> Unspanitch([CanModifyUser] IGuildUser user)
 	{
 		await user.ModifyRolesAsync(
 			rolesToAdd: [],
@@ -96,34 +101,35 @@ public sealed class SpanitchModule : AutoModModuleBase
 		});
 	}
 
-	public sealed class RequireGuildPermissionsOrMickezoor(params GuildPermission[] permissions) : RequireGuildPermissions(permissions)
+	public sealed class RequireGuildPermissionsOrMickezoor(params GuildPermission[] permissions)
+		: RequireGuildPermissions(permissions)
 	{
 		public override string Summary => base.Summary + " or you are Mickezoor";
 
-		public override async Task<PreconditionResult> CheckPermissionsAsync(
-			ICommandContext context,
-			CommandInfo command,
-			IServiceProvider services)
+		public override async ValueTask<IResult> CheckAsync(
+			IImmutableCommand command,
+			IGuildContext context)
 		{
-			var result = await base.CheckPermissionsAsync(context, command, services).ConfigureAwait(false);
+			var result = await base.CheckAsync(command, context).ConfigureAwait(false);
 			if (result.IsSuccess)
 			{
 				return result;
 			}
 			if (context.User.Id == MIJE_ID)
 			{
-				return PreconditionResult.FromSuccess();
+				return CachedResults.Success;
 			}
 			return result;
 		}
 	}
 
-	public sealed class SpanitchRolesExist : PreconditionAttribute
+	public sealed class SpanitchRolesExist : AdvobotPrecondition
 	{
-		public override Task<PreconditionResult> CheckPermissionsAsync(
-			ICommandContext context,
-			CommandInfo command,
-			IServiceProvider services)
+		public override string Summary => "spanitch role and mute role must exist.";
+
+		public override ValueTask<IResult> CheckAsync(
+			IImmutableCommand command,
+			IGuildContext context)
 		{
 			var hasMute = false;
 			var hasSpan = false;
@@ -146,9 +152,10 @@ public sealed class SpanitchModule : AutoModModuleBase
 
 			if (hasMute && hasSpan)
 			{
-				return this.FromSuccess().AsTask();
+				return new(CachedResults.Success);
 			}
-			return PreconditionResult.FromError("one of the roles doesn't exist anymore.").AsTask();
+			// TODO: singleton
+			return new(Result.Failure("one of the roles doesn't exist anymore."));
 		}
 	}
 }

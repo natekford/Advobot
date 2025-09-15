@@ -1,27 +1,29 @@
 ﻿using Advobot.Attributes;
-using Advobot.Localization;
 using Advobot.Modules;
 using Advobot.ParameterPreconditions.Strings;
 using Advobot.Preconditions;
 using Advobot.Resources;
 
-using Discord.Commands;
+using YACCS.Commands.Attributes;
+using YACCS.Commands.Building;
+using YACCS.Localization;
 
 namespace Advobot.Standard.Commands;
 
-[Category(nameof(Client))]
-public sealed class Client : ModuleBase
+[LocalizedCategory(nameof(Client))]
+public sealed class Client : AdvobotModuleBase
 {
-	[LocalizedGroup(nameof(Groups.DisconnectBot))]
-	[LocalizedAlias(nameof(Aliases.DisconnectBot), nameof(Aliases.RunescapeServers))]
+	[LocalizedCommand(nameof(Groups.DisconnectBot), nameof(Aliases.DisconnectBot), nameof(Aliases.RunescapeServers))]
 	[LocalizedSummary(nameof(Summaries.DisconnectBot))]
-	[Meta("10f3bf15-0652-4bd7-a29f-630136d0164a", IsEnabled = true)]
+	[Id("10f3bf15-0652-4bd7-a29f-630136d0164a")]
+	[Meta(IsEnabled = true)]
 	[RequireBotOwner]
 	public sealed class DisconnectBot : AdvobotModuleBase
 	{
+		[InjectService]
 		public required ShutdownApplication Exit { get; set; }
 
-		[Command(RunMode = RunMode.Async)]
+		[LocalizedCommand]
 		public async Task Command()
 		{
 			try
@@ -36,15 +38,18 @@ public sealed class Client : ModuleBase
 		}
 	}
 
-	[LocalizedGroup(nameof(Groups.ModifyBotName))]
-	[LocalizedAlias(nameof(Aliases.ModifyBotName))]
+	[LocalizedCommand(nameof(Groups.ModifyBotName), nameof(Aliases.ModifyBotName))]
 	[LocalizedSummary(nameof(Summaries.ModifyBotName))]
-	[Meta("6882dc55-3557-4366-8c4c-2954b46cfb2b", IsEnabled = true)]
+	[Id("6882dc55-3557-4366-8c4c-2954b46cfb2b")]
+	[Meta(IsEnabled = true)]
 	[RequireBotOwner]
 	public sealed class ModifyBotName : AdvobotModuleBase
 	{
-		[Command]
-		public async Task<RuntimeResult> Command([Remainder, Username] string name)
+		[LocalizedCommand]
+		public async Task<AdvobotResult> Command(
+			[Remainder]
+			[Username]
+			string name)
 		{
 			await Context.Client.CurrentUser.ModifyAsync(x => x.Username = name).ConfigureAwait(false);
 			return Responses.Snowflakes.ModifiedName(Context.Client.CurrentUser, name);

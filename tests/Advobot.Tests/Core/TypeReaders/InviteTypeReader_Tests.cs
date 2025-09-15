@@ -1,5 +1,5 @@
 ﻿using Advobot.Tests.TestBases;
-using Advobot.TypeReaders;
+using Advobot.TypeReaders.Discord;
 
 using Discord;
 
@@ -16,7 +16,7 @@ public sealed class InviteTypeReader_Tests : TypeReader_Tests<InviteTypeReader>
 		var invite = await Context.Channel.CreateInviteAsync().ConfigureAwait(false);
 
 		var result = await ReadAsync(invite.Code).ConfigureAwait(false);
-		Assert.IsTrue(result.IsSuccess);
-		Assert.IsInstanceOfType<IInviteMetadata>(result.BestMatch);
+		Assert.IsTrue(result.InnerResult.IsSuccess);
+		Assert.IsInstanceOfType<IInviteMetadata>(result.Value);
 	}
 }

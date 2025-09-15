@@ -1,16 +1,14 @@
-﻿using Advobot.Utilities;
+﻿using System.Collections.Immutable;
 
-using Discord.Commands;
-
-using System.Collections.Immutable;
+using YACCS.TypeReaders;
 
 namespace Advobot.TypeReaders;
 
 /// <summary>
 /// Attempts to parse bools and also other positive/negative words.
 /// </summary>
-[TypeReaderTargetType(typeof(bool))]
-public sealed class AdditionalBoolTypeReader : TypeReader
+[TypeReaderTargetTypes(typeof(bool), OverrideExistingTypeReaders = true)]
+public sealed class AdditionalBoolTypeReader() : TryParseTypeReader<bool>(TryParse)
 {
 	/// <summary>
 	/// Values that will set the stored bool to false.
@@ -38,28 +36,22 @@ public sealed class AdditionalBoolTypeReader : TypeReader
 		"positive"
 	}.ToImmutableHashSet(StringComparer.OrdinalIgnoreCase);
 
-	/// <summary>
-	/// Converts a string into a true bool if it has a match in <see cref="TrueVals"/>,
-	/// false bool if it has a match in <see cref="FalseVals"/>,
-	/// or returns an error.
-	/// </summary>
-	/// <param name="context"></param>
-	/// <param name="input"></param>
-	/// <param name="services"></param>
-	/// <returns></returns>
-	public override Task<TypeReaderResult> ReadAsync(
-		ICommandContext context,
-		string input,
-		IServiceProvider services)
+	private static bool TryParse(string s, out bool result)
 	{
-		if (TrueVals.Contains(input))
+		if (TrueVals.Contains(s))
 		{
-			return TypeReaderResult.FromSuccess(true).AsTask();
+			result = true;
+			return true;
 		}
-		else if (FalseVals.Contains(input))
+		else if (FalseVals.Contains(s))
 		{
-			return TypeReaderResult.FromSuccess(false).AsTask();
+			result = false;
+			return true;
 		}
-		return TypeReaderUtils.ParseFailedResult<bool>().AsTask();
+		else
+		{
+			result = false;
+			return false;
+		}
 	}
 }

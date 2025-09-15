@@ -1,24 +1,37 @@
-﻿using Advobot.CommandAssemblies;
-using Advobot.Services;
+﻿using Advobot.Services;
 using Advobot.Services.BotConfig;
 using Advobot.Services.Commands;
 using Advobot.Services.Events;
 using Advobot.Services.GuildSettings;
-using Advobot.Services.Help;
 using Advobot.Services.Punishments;
 using Advobot.Services.Time;
 using Advobot.Utilities;
 
 using Discord;
-using Discord.Commands;
 using Discord.WebSocket;
 
 using Microsoft.Extensions.DependencyInjection;
 
+using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Net;
+using System.Reflection;
+
+using YACCS.Commands;
+using YACCS.Commands.Models;
+using YACCS.Help;
+using YACCS.Localization;
+using YACCS.Parsing;
+using YACCS.Plugins;
+using YACCS.TypeReaders;
 
 namespace Advobot;
+
+/// <summary>
+/// Shuts down the application.
+/// </summary>
+/// <param name="exitCode"></param>
+public delegate void ShutdownApplication(int exitCode);
 
 /// <summary>
 /// Puts the similarities from launching the console application and the .Net Core UI application into one.
@@ -73,12 +86,6 @@ public sealed class AdvobotLauncher
 	private static async Task<IServiceProvider> CreateServicesAsync(StartupConfig config)
 	{
 		var botConfig = NaiveRuntimeConfig.CreateOrLoad(config);
-		var commandConfig = new CommandServiceConfig
-		{
-			CaseSensitiveCommands = false,
-			ThrowOnError = false,
-			LogLevel = botConfig.LogLevel,
-		};
 		var discordClient = new DiscordShardedClient(new DiscordSocketConfig
 		{
 			MessageCacheSize = botConfig.MessageCacheSize,
@@ -96,36 +103,52 @@ public sealed class AdvobotLauncher
 			AutomaticDecompression = DecompressionMethods.GZip | DecompressionMethods.Deflate,
 		});
 
+		var directory = AppDomain.CurrentDomain.BaseDirectory;
+		var files = Directory.EnumerateFiles(directory, "*.dll", SearchOption.TopDirectoryOnly);
+		var pluginAssemblies = PluginUtils.LoadPluginAssemblies(files)
+			.Values
+			.Prepend(typeof(AdvobotLauncher).Assembly)
+			.ToImmutableArray();
+
 		var collection = new ServiceCollection()
-			.AddSingleton<ShutdownApplication>(Environment.Exit)
-			.AddSingleton(commandConfig)
 			.AddSingleton(httpClient)
 			.AddSingleton(discordClient)
+			.AddSingleton<ShutdownApplication>(Environment.Exit)
 			.AddSingleton<BaseSocketClient>(discordClient)
 			.AddSingleton<IDiscordClient>(discordClient)
 			.AddSingleton<IRuntimeConfig>(botConfig)
 			.AddSingleton<IConfig>(botConfig)
 			.AddSingleton<EventProvider>(eventProvider)
+			.AddSingleton<IEnumerable<Assembly>>(pluginAssemblies)
+			.AddSingleton<ILocalizer>(Localize.Instance)
+			.AddSingleton(CommandServiceConfig.Default)
 			.AddSingleton<NaiveCommandService>()
+			.AddSingleton<CommandService>(x => x.GetRequiredService<NaiveCommandService>())
+			.AddSingleton<ICommandService>(x => x.GetRequiredService<NaiveCommandService>())
+			.AddSingleton<IArgumentHandler>(x =>
+			{
+				var config = x.GetRequiredService<CommandServiceConfig>();
+				return new ArgumentHandler(
+					config.Separator,
+					config.StartQuotes,
+					config.EndQuotes
+				);
+			})
+			.AddSingleton<IReadOnlyDictionary<Type, ITypeReader>, TypeReaderRegistry>()
+			.AddSingleton<IReadOnlyDictionary<Type, string>, TypeNameRegistry>()
+			.AddSingleton<DiscordCommandService>()
 			.AddSingleton<ITimeService, NaiveTimeService>()
-			.AddSingleton<IHelpService, NaiveHelpService>()
 			.AddSingleton<IPunishmentService, NaivePunishmentService>()
 			.AddSingleton<IGuildSettingsService, NaiveGuildSettingsService>();
 
-		var commandAssemblyDirectory = AppDomain.CurrentDomain.BaseDirectory;
-		var commandAssemblies = CommandAssembly.Load(commandAssemblyDirectory);
+		var services = await collection.InstantiatePlugins(
+			pluginAssemblies: pluginAssemblies,
+			createServiceProvider: x => x.BuildServiceProvider()
+		);
 
-		// Add in services each command assembly uses
-		foreach (var assembly in commandAssemblies)
-		{
-			if (assembly.Instantiator != null)
-			{
-				await assembly.Instantiator.AddServicesAsync(collection).ConfigureAwait(false);
-			}
-		}
+		var commandService = services.GetRequiredService<NaiveCommandService>();
+		await commandService.InitializeAsync().ConfigureAwait(false);
 
-		var services = collection.BuildServiceProvider();
-		// Instantiate and configure each service
 		foreach (var service in collection)
 		{
 			if (service.Lifetime != ServiceLifetime.Singleton)
@@ -140,19 +163,18 @@ public sealed class AdvobotLauncher
 			}
 		}
 
-		// Allow each command assembly to do configuration with access to all of the services
-		foreach (var assembly in commandAssemblies)
+		services
+			.GetRequiredService<IReadOnlyDictionary<Type, ITypeReader>>()
+			.ThrowIfUnregisteredServices(services);
+
+		Localize.Instance.KeyNotFound += (key, culture) =>
 		{
-			if (assembly.Instantiator != null)
-			{
-				await assembly.Instantiator.ConfigureServicesAsync(services).ConfigureAwait(false);
-			}
-		}
-
-		// Add in commands
-		var commandHandler = services.GetRequiredService<NaiveCommandService>();
-		await commandHandler.AddCommandsAsync(commandAssemblies).ConfigureAwait(false);
-
+			_ = eventProvider.Log.InvokeAsync(new(
+				severity: LogSeverity.Warning,
+				source: key,
+				message: $"Unable to find the localization for '{key}' in '{culture}'."
+			));
+		};
 		eventProvider.Ready.Add(async _ =>
 		{
 			var game = botConfig.Game;
@@ -169,9 +191,3 @@ public sealed class AdvobotLauncher
 		return services;
 	}
 }
-
-/// <summary>
-/// Shuts down the application.
-/// </summary>
-/// <param name="exitCode"></param>
-public delegate void ShutdownApplication(int exitCode);

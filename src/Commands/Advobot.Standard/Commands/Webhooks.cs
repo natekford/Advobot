@@ -1,5 +1,4 @@
 ﻿using Advobot.Attributes;
-using Advobot.Localization;
 using Advobot.Modules;
 using Advobot.ParameterPreconditions.Discord.Channels;
 using Advobot.ParameterPreconditions.Strings;
@@ -7,31 +6,34 @@ using Advobot.Preconditions.Permissions;
 using Advobot.Resources;
 
 using Discord;
-using Discord.Commands;
 using Discord.Webhook;
 
 using System.Collections.Concurrent;
+
+using YACCS.Commands.Attributes;
+using YACCS.Localization;
 
 using static Discord.ChannelPermission;
 
 namespace Advobot.Standard.Commands;
 
-[Category(nameof(Webhooks))]
-public sealed class Webhooks : ModuleBase
+[LocalizedCategory(nameof(Webhooks))]
+public sealed class Webhooks : AdvobotModuleBase
 {
-	[LocalizedGroup(nameof(Groups.CreateWebhook))]
-	[LocalizedAlias(nameof(Aliases.CreateWebhook))]
+	[LocalizedCommand(nameof(Groups.CreateWebhook), nameof(Aliases.CreateWebhook))]
 	[LocalizedSummary(nameof(Summaries.CreateWebhook))]
-	[Meta("a177bff8-5ade-4c21-8e6a-97a254c26331", IsEnabled = true)]
+	[Id("a177bff8-5ade-4c21-8e6a-97a254c26331")]
+	[Meta(IsEnabled = true)]
 	[RequireGuildPermissions(GuildPermission.ManageWebhooks)]
 	public sealed class CreateWebhook : AdvobotModuleBase
 	{
-		[Command]
-		public async Task<RuntimeResult> Command(
+		[LocalizedCommand]
+		public async Task<AdvobotResult> Command(
 			[CanModifyChannel(ManageWebhooks)]
 			[LocalizedSummary(nameof(Summaries.CreateWebhookChannel))]
 			ITextChannel channel,
-			[Remainder, Username]
+			[Remainder]
+			[Username]
 			[LocalizedSummary(nameof(Summaries.CreateWebhookName))]
 			string name
 		)
@@ -41,16 +43,15 @@ public sealed class Webhooks : ModuleBase
 		}
 	}
 
-	[LocalizedGroup(nameof(Groups.SpeakThroughWebhook))]
-	[LocalizedAlias(nameof(Aliases.SpeakThroughWebhook))]
+	[LocalizedCommand(nameof(Groups.SpeakThroughWebhook), nameof(Aliases.SpeakThroughWebhook))]
 	[LocalizedSummary(nameof(Summaries.SpeakThroughWebhook))]
-	[Meta("d830df02-b33b-4e95-88d7-8acb029506f6")]
+	[Id("d830df02-b33b-4e95-88d7-8acb029506f6")]
 	[RequireGuildPermissions(GuildPermission.ManageWebhooks)]
 	public sealed class SpeakThroughWebhook : AdvobotModuleBase
 	{
 		private static readonly ConcurrentDictionary<ulong, DiscordWebhookClient> _Clients = new();
 
-		[Command(RunMode = RunMode.Async)]
+		[LocalizedCommand]
 		public Task Command(
 			[LocalizedSummary(nameof(Summaries.SpeakThroughWebhookWebhook))]
 			IWebhook webhook,

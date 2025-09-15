@@ -1,7 +1,7 @@
-﻿using Advobot.Utilities;
+﻿using Advobot.Modules;
 
-using Discord;
-using Discord.Commands;
+using YACCS.Preconditions;
+using YACCS.Results;
 
 namespace Advobot.ParameterPreconditions.Discord;
 
@@ -15,18 +15,17 @@ public sealed class NotBanned : AdvobotParameterPrecondition<ulong>
 	public override string Summary => "Not already banned";
 
 	/// <inheritdoc />
-	protected override async Task<PreconditionResult> CheckPermissionsAsync(
-		ICommandContext context,
-		ParameterInfo parameter,
-		IGuildUser invoker,
-		ulong value,
-		IServiceProvider services)
+	public override async ValueTask<IResult> CheckAsync(
+		CommandMeta meta,
+		IGuildContext context,
+		ulong value)
 	{
 		var ban = await context.Guild.GetBanAsync(value).ConfigureAwait(false);
 		if (ban is null)
 		{
-			return this.FromSuccess();
+			return CachedResults.Success;
 		}
-		return PreconditionResult.FromError($"`{value}` already exists as a ban.");
+		// TODO: singleton
+		return Result.Failure($"User is already banned.");
 	}
 }

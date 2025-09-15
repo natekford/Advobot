@@ -1,32 +1,33 @@
 ﻿using Advobot.Attributes;
-using Advobot.Localization;
 using Advobot.Modules;
 using Advobot.Preconditions.Permissions;
 using Advobot.Resources;
 
 using Discord;
-using Discord.Commands;
+
+using YACCS.Commands.Attributes;
+using YACCS.Localization;
 
 namespace Advobot.Standard.Commands;
 
-[Category(nameof(Nicknames))]
-public sealed class Nicknames : ModuleBase
+[LocalizedCategory(nameof(Nicknames))]
+public sealed class Nicknames : AdvobotModuleBase
 {
-	[LocalizedGroup(nameof(Groups.RemoveAllNickNames))]
-	[LocalizedAlias(nameof(Aliases.RemoveAllNickNames))]
+	[LocalizedCommand(nameof(Groups.RemoveAllNickNames), nameof(Aliases.RemoveAllNickNames))]
 	[LocalizedSummary(nameof(Summaries.RemoveAllNickNames))]
-	[Meta("d31a48de-ad5d-4f15-b216-299b8b8c66dd", IsEnabled = true)]
+	[Id("d31a48de-ad5d-4f15-b216-299b8b8c66dd")]
+	[Meta(IsEnabled = true)]
 	[RequireGuildPermissions(GuildPermission.ManageNicknames)]
 	public sealed class RemoveAllNickNames : MultiUserActionModuleBase
 	{
-		[Command(RunMode = RunMode.Async)]
-		public async Task<RuntimeResult> Command(bool getUnlimitedUsers = false)
+		[LocalizedCommand]
+		public async Task<AdvobotResult> Command(bool getUnlimitedUsers = false)
 		{
 			var amountChanged = await ProcessAsync(
 				getUnlimitedUsers,
 				u => u.Nickname != null,
 				(u, o) => u.ModifyAsync(x => x.Nickname = u.Username, o),
-				i => Responses.Users.MultiUserActionProgress(i.AmountLeft).Reason,
+				i => Responses.Users.MultiUserActionProgress(i.AmountLeft).Response,
 				GetOptions()
 			).ConfigureAwait(false);
 			return Responses.Users.MultiUserActionSuccess(amountChanged);

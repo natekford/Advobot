@@ -1,5 +1,4 @@
 ﻿using Advobot.Attributes;
-using Advobot.Localization;
 using Advobot.Modules;
 using Advobot.ParameterPreconditions.Discord;
 using Advobot.ParameterPreconditions.Discord.Channels;
@@ -15,25 +14,28 @@ using Advobot.Services.Time;
 using Advobot.Utilities;
 
 using Discord;
-using Discord.Commands;
+
+using YACCS.Commands.Attributes;
+using YACCS.Commands.Building;
+using YACCS.Localization;
 
 using static Discord.ChannelPermission;
 
 namespace Advobot.Standard.Commands;
 
-[Category(nameof(Users))]
-public sealed class Users : ModuleBase
+[LocalizedCategory(nameof(Users))]
+public sealed class Users : AdvobotModuleBase
 {
-	[LocalizedGroup(nameof(Groups.Ban))]
-	[LocalizedAlias(nameof(Aliases.Ban))]
+	[LocalizedCommand(nameof(Groups.Ban), nameof(Aliases.Ban))]
 	[LocalizedSummary(nameof(Summaries.Ban))]
-	[Meta("b798e679-3ca7-4af1-9544-585672ec9936", IsEnabled = true)]
+	[Id("b798e679-3ca7-4af1-9544-585672ec9936")]
+	[Meta(IsEnabled = true)]
 	[RequireGuildPermissions(GuildPermission.BanMembers)]
 	public sealed class Ban : AdvobotModuleBase
 	{
-		[Command]
+		[LocalizedCommand]
 		[Priority(1)]
-		public Task<RuntimeResult> Command(
+		public Task<AdvobotResult> Command(
 			[CanModifyUser]
 			IGuildUser user,
 			[Remainder]
@@ -42,14 +44,14 @@ public sealed class Users : ModuleBase
 
 		[Command]
 		[Priority(0)]
-		public Task<RuntimeResult> Command(
+		public Task<AdvobotResult> Command(
 			[NotBanned]
 			ulong userId,
 			[Remainder]
 			ModerationReason reason = default
 		) => CommandRunner(null, userId, reason);
 
-		private async Task<RuntimeResult> CommandRunner(
+		private async Task<AdvobotResult> CommandRunner(
 			IUser? user,
 			ulong userId,
 			ModerationReason reason)
@@ -68,15 +70,15 @@ public sealed class Users : ModuleBase
 		}
 	}
 
-	[LocalizedGroup(nameof(Groups.Deafen))]
-	[LocalizedAlias(nameof(Aliases.Deafen))]
+	[LocalizedCommand(nameof(Groups.Deafen), nameof(Aliases.Deafen))]
 	[LocalizedSummary(nameof(Summaries.Deafen))]
-	[Meta("99aa7f17-5710-41ce-ba12-291c2971c0a4", IsEnabled = true)]
+	[Id("99aa7f17-5710-41ce-ba12-291c2971c0a4")]
+	[Meta(IsEnabled = true)]
 	[RequireGuildPermissions(GuildPermission.DeafenMembers)]
 	public sealed class Deafen : AdvobotModuleBase
 	{
 		[Command]
-		public async Task<RuntimeResult> Command(
+		public async Task<AdvobotResult> Command(
 			IGuildUser user,
 			[Remainder]
 			ModerationReason reason = default
@@ -91,16 +93,15 @@ public sealed class Users : ModuleBase
 		}
 	}
 
-	[LocalizedGroup(nameof(Groups.ForAllWithRole))]
-	[LocalizedAlias(nameof(Aliases.ForAllWithRole))]
+	[LocalizedCommand(nameof(Groups.ForAllWithRole), nameof(Aliases.ForAllWithRole))]
 	[LocalizedSummary(nameof(Summaries.ForAllWithRole))]
-	[Meta("0dd92f6d-e4ad-4c80-82f0-da6c3e02743c", IsEnabled = true)]
+	[Id("0dd92f6d-e4ad-4c80-82f0-da6c3e02743c")]
+	[Meta(IsEnabled = true)]
 	[RequireGuildPermissions]
 	public sealed class ForAllWithRole : MultiUserActionModuleBase
 	{
-		[LocalizedCommand(nameof(Groups.ClearNickname), RunMode = RunMode.Async)]
-		[LocalizedAlias(nameof(Aliases.ClearNickname))]
-		public Task<RuntimeResult> ClearNickname(
+		[LocalizedCommand(nameof(Groups.ClearNickname), nameof(Aliases.ClearNickname))]
+		public Task<AdvobotResult> ClearNickname(
 			IRole target,
 			bool getUnlimitedUsers = false
 		)
@@ -115,9 +116,8 @@ public sealed class Users : ModuleBase
 			});
 		}
 
-		[LocalizedCommand(nameof(Groups.GiveNickname), RunMode = RunMode.Async)]
-		[LocalizedAlias(nameof(Aliases.GiveNickname))]
-		public Task<RuntimeResult> GiveNickname(
+		[LocalizedCommand(nameof(Groups.GiveNickname), nameof(Aliases.GiveNickname))]
+		public Task<AdvobotResult> GiveNickname(
 			IRole target,
 			[Nickname]
 			string nickname,
@@ -134,9 +134,8 @@ public sealed class Users : ModuleBase
 			});
 		}
 
-		[LocalizedCommand(nameof(Groups.GiveRole), RunMode = RunMode.Async)]
-		[LocalizedAlias(nameof(Aliases.GiveRole))]
-		public Task<RuntimeResult> GiveRole(
+		[LocalizedCommand(nameof(Groups.GiveRole), nameof(Aliases.GiveRole))]
+		public Task<AdvobotResult> GiveRole(
 			IRole target,
 			[CanModifyRole, NotEveryone, NotManaged]
 			IRole give,
@@ -158,9 +157,8 @@ public sealed class Users : ModuleBase
 			});
 		}
 
-		[LocalizedCommand(nameof(Groups.TakeRole), RunMode = RunMode.Async)]
-		[LocalizedAlias(nameof(Aliases.TakeRole))]
-		public Task<RuntimeResult> TakeRole(
+		[LocalizedCommand(nameof(Groups.TakeRole), nameof(Aliases.TakeRole))]
+		public Task<AdvobotResult> TakeRole(
 			IRole target,
 			[CanModifyRole, NotEveryone, NotManaged]
 			IRole take,
@@ -177,7 +175,7 @@ public sealed class Users : ModuleBase
 			});
 		}
 
-		private async Task<RuntimeResult> CommandRunner(
+		private async Task<AdvobotResult> CommandRunner(
 			IRole role,
 			bool getUnlimitedUsers,
 			Func<IGuildUser, RequestOptions, Task> update)
@@ -186,22 +184,22 @@ public sealed class Users : ModuleBase
 				getUnlimitedUsers,
 				u => u.RoleIds.Contains(role.Id),
 				update,
-				i => Responses.Users.MultiUserActionProgress(i.AmountLeft).Reason,
+				i => Responses.Users.MultiUserActionProgress(i.AmountLeft).Response,
 				GetOptions()
 			).ConfigureAwait(false);
 			return Responses.Users.MultiUserActionSuccess(amountChanged);
 		}
 	}
 
-	[LocalizedGroup(nameof(Groups.Kick))]
-	[LocalizedAlias(nameof(Aliases.Kick))]
+	[LocalizedCommand(nameof(Groups.Kick), nameof(Aliases.Kick))]
 	[LocalizedSummary(nameof(Summaries.Kick))]
-	[Meta("1d86aa7d-da06-478c-861b-a62ca279523b", IsEnabled = true)]
+	[Id("1d86aa7d-da06-478c-861b-a62ca279523b")]
+	[Meta(IsEnabled = true)]
 	[RequireGuildPermissions(GuildPermission.KickMembers)]
 	public sealed class Kick : AdvobotModuleBase
 	{
 		[Command]
-		public async Task<RuntimeResult> Command(
+		public async Task<AdvobotResult> Command(
 			[CanModifyUser]
 			IGuildUser user,
 			[Remainder]
@@ -216,15 +214,15 @@ public sealed class Users : ModuleBase
 		}
 	}
 
-	[LocalizedGroup(nameof(Groups.MoveUser))]
-	[LocalizedAlias(nameof(Aliases.MoveUser))]
+	[LocalizedCommand(nameof(Groups.MoveUser), nameof(Aliases.MoveUser))]
 	[LocalizedSummary(nameof(Summaries.MoveUser))]
-	[Meta("158dca6d-fc89-43b3-a6b5-d055f6672547", IsEnabled = true)]
+	[Id("158dca6d-fc89-43b3-a6b5-d055f6672547")]
+	[Meta(IsEnabled = true)]
 	[RequireGuildPermissions(GuildPermission.MoveMembers)]
 	public sealed class MoveUser : AdvobotModuleBase
 	{
 		[Command]
-		public async Task<RuntimeResult> Command(
+		public async Task<AdvobotResult> Command(
 			[CanBeMoved]
 			IGuildUser user,
 			[CanModifyChannel(MoveMembers)]
@@ -241,15 +239,15 @@ public sealed class Users : ModuleBase
 		}
 	}
 
-	[LocalizedGroup(nameof(Groups.MoveUsers))]
-	[LocalizedAlias(nameof(Aliases.MoveUsers))]
+	[LocalizedCommand(nameof(Groups.MoveUsers), nameof(Aliases.MoveUsers))]
 	[LocalizedSummary(nameof(Summaries.MoveUsers))]
-	[Meta("4e8439fa-cc29-4acb-9049-89865be825c8", IsEnabled = true)]
+	[Id("4e8439fa-cc29-4acb-9049-89865be825c8")]
+	[Meta(IsEnabled = true)]
 	[RequireGuildPermissions(GuildPermission.MoveMembers)]
 	public sealed class MoveUsers : MultiUserActionModuleBase
 	{
-		[Command(RunMode = RunMode.Async)]
-		public async Task<RuntimeResult> Command(
+		[LocalizedCommand]
+		public async Task<AdvobotResult> Command(
 			[CanModifyChannel(MoveMembers)]
 			IVoiceChannel input,
 			[CanModifyChannel(MoveMembers)]
@@ -263,17 +261,17 @@ public sealed class Users : ModuleBase
 				getUnlimitedUsers,
 				_ => true,
 				(u, o) => u.ModifyAsync(x => x.Channel = new(output), o),
-				i => Responses.Users.MultiUserActionProgress(i.AmountLeft).Reason,
+				i => Responses.Users.MultiUserActionProgress(i.AmountLeft).Response,
 				GetOptions()
 			).ConfigureAwait(false);
 			return Responses.Users.MultiUserActionSuccess(amountChanged);
 		}
 	}
 
-	[LocalizedGroup(nameof(Groups.Mute))]
-	[LocalizedAlias(nameof(Aliases.Mute))]
+	[LocalizedCommand(nameof(Groups.Mute), nameof(Aliases.Mute))]
 	[LocalizedSummary(nameof(Summaries.Mute))]
-	[Meta("b9f305d4-d343-4350-a140-c54a42af8d8d", IsEnabled = true)]
+	[Id("b9f305d4-d343-4350-a140-c54a42af8d8d")]
+	[Meta(IsEnabled = true)]
 	[RequireGuildPermissions(GuildPermission.ManageRoles, GuildPermission.ManageMessages)]
 	public sealed class Mute : AdvobotModuleBase
 	{
@@ -307,10 +305,11 @@ public sealed class Users : ModuleBase
 			)
 		);
 
+		[InjectService]
 		public required IGuildSettingsService GuildSettings { get; set; }
 
 		[Command]
-		public async Task<RuntimeResult> Command(
+		public async Task<AdvobotResult> Command(
 			IGuildUser user,
 			[Remainder]
 			ModerationReason reason = default
@@ -352,32 +351,33 @@ public sealed class Users : ModuleBase
 		}
 	}
 
-	[LocalizedGroup(nameof(Groups.RemoveMessages))]
-	[LocalizedAlias(nameof(Aliases.RemoveMessages))]
+	[LocalizedCommand(nameof(Groups.RemoveMessages), nameof(Aliases.RemoveMessages))]
 	[LocalizedSummary(nameof(Summaries.RemoveMessages))]
-	[Meta("a4f3959e-1f56-4bf0-b377-dc98ef017906", IsEnabled = true)]
+	[Id("a4f3959e-1f56-4bf0-b377-dc98ef017906")]
+	[Meta(IsEnabled = true)]
 	[RequireGuildPermissions(GuildPermission.ManageMessages)]
 	public sealed class RemoveMessages : AdvobotModuleBase
 	{
+		[InjectService]
 		public required ITimeService Time { get; set; }
 
 		[Command]
 		[RequireChannelPermissions(ManageMessages)]
-		public Task<RuntimeResult> Command(
+		public Task<AdvobotResult> Command(
 			[Positive]
 			int deleteCount
 		) => CommandRunner(deleteCount, Context.Channel, null);
 
 		[Command]
 		[RequireChannelPermissions(ManageMessages)]
-		public Task<RuntimeResult> Command(
+		public Task<AdvobotResult> Command(
 			[Positive]
 			int deleteCount,
-			IUser user
+			IGuildUser user
 		) => CommandRunner(deleteCount, Context.Channel, user);
 
 		[Command]
-		public Task<RuntimeResult> Command(
+		public Task<AdvobotResult> Command(
 			[Positive]
 			int deleteCount,
 			[CanModifyChannel(ManageMessages)]
@@ -385,24 +385,24 @@ public sealed class Users : ModuleBase
 		) => CommandRunner(deleteCount, channel, null);
 
 		[Command]
-		public Task<RuntimeResult> Command(
+		public Task<AdvobotResult> Command(
 			[Positive]
 			int deleteCount,
-			IUser user,
+			IGuildUser user,
 			[CanModifyChannel(ManageMessages)]
 			ITextChannel channel
 		) => CommandRunner(deleteCount, channel, user);
 
 		[Command]
-		public Task<RuntimeResult> Command(
+		public Task<AdvobotResult> Command(
 			[Positive]
 			int deleteCount,
 			[CanModifyChannel(ManageMessages)]
 			ITextChannel channel,
-			IUser user
+			IGuildUser user
 		) => CommandRunner(deleteCount, channel, user);
 
-		private async Task<RuntimeResult> CommandRunner(
+		private async Task<AdvobotResult> CommandRunner(
 			int deleteCount,
 			ITextChannel channel,
 			IUser? user)
@@ -423,16 +423,16 @@ public sealed class Users : ModuleBase
 		}
 	}
 
-	[LocalizedGroup(nameof(Groups.SoftBan))]
-	[LocalizedAlias(nameof(Aliases.SoftBan))]
+	[LocalizedCommand(nameof(Groups.SoftBan), nameof(Aliases.SoftBan))]
 	[LocalizedSummary(nameof(Summaries.SoftBan))]
-	[Meta("a6084728-77bf-469c-af09-41e53ac021d9", IsEnabled = true)]
+	[Id("a6084728-77bf-469c-af09-41e53ac021d9")]
+	[Meta(IsEnabled = true)]
 	[RequireGuildPermissions(GuildPermission.BanMembers, GuildPermission.KickMembers)]
 	public sealed class SoftBan : AdvobotModuleBase
 	{
 		[Command]
 		[Priority(1)]
-		public Task<RuntimeResult> Command(
+		public Task<AdvobotResult> Command(
 			[CanModifyUser]
 			IGuildUser user,
 			[Remainder]
@@ -440,7 +440,7 @@ public sealed class Users : ModuleBase
 		) => Command(user.Id, reason);
 
 		[Command]
-		public async Task<RuntimeResult> Command(
+		public async Task<AdvobotResult> Command(
 			[NotBanned]
 			ulong userId,
 			[Remainder]
@@ -455,15 +455,15 @@ public sealed class Users : ModuleBase
 		}
 	}
 
-	[LocalizedGroup(nameof(Groups.Unban))]
-	[LocalizedAlias(nameof(Aliases.Unban))]
+	[LocalizedCommand(nameof(Groups.Unban), nameof(Aliases.Unban))]
 	[LocalizedSummary(nameof(Summaries.Unban))]
-	[Meta("417e9dd0-306b-4d1f-8b62-0427f01f921a", IsEnabled = true)]
+	[Id("417e9dd0-306b-4d1f-8b62-0427f01f921a")]
+	[Meta(IsEnabled = true)]
 	[RequireGuildPermissions(GuildPermission.BanMembers)]
 	public sealed class Unban : AdvobotModuleBase
 	{
 		[Command]
-		public async Task<RuntimeResult> Command(
+		public async Task<AdvobotResult> Command(
 			IBan ban,
 			[Remainder]
 			ModerationReason reason = default
@@ -477,15 +477,15 @@ public sealed class Users : ModuleBase
 		}
 	}
 
-	[LocalizedGroup(nameof(Groups.VoiceMute))]
-	[LocalizedAlias(nameof(Aliases.VoiceMute))]
+	[LocalizedCommand(nameof(Groups.VoiceMute), nameof(Aliases.VoiceMute))]
 	[LocalizedSummary(nameof(Summaries.VoiceMute))]
-	[Meta("a51ea911-10be-4e40-8995-a507015a7e57", IsEnabled = true)]
+	[Id("a51ea911-10be-4e40-8995-a507015a7e57")]
+	[Meta(IsEnabled = true)]
 	[RequireGuildPermissions(GuildPermission.MuteMembers)]
 	public sealed class VoiceMute : AdvobotModuleBase
 	{
 		[Command]
-		public async Task<RuntimeResult> Command(
+		public async Task<AdvobotResult> Command(
 			IGuildUser user,
 			[Remainder]
 			ModerationReason reason = default
