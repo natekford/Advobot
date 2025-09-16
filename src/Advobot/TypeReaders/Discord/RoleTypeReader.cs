@@ -1,4 +1,5 @@
 ﻿using Advobot.Modules;
+using Advobot.Utilities;
 
 using Discord;
 
@@ -30,6 +31,9 @@ public sealed class RoleTypeReader : DiscordTypeReader<IRole>
 			}
 		}
 
-		return CachedResults<IRole>.ParseFailed.Result;
+		var matches = context.Guild.Roles
+			.Where(x => x.Name.CaseInsEquals(joined))
+			.ToArray();
+		return SingleValidResult(matches);
 	}
 }

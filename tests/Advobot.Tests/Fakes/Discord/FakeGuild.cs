@@ -341,7 +341,7 @@ public sealed class FakeGuild : FakeSnowflake, IGuild
 		=> FakeRoles.SingleOrDefault(x => x.Id == id);
 
 	public Task<IRole> GetRoleAsync(ulong id, RequestOptions options = null)
-		=> throw new NotImplementedException();
+		=> Task.FromResult(GetRole(id));
 
 	public Task<ITextChannel> GetRulesChannelAsync(CacheMode mode = CacheMode.AllowDownload, RequestOptions? options = null)
 		=> throw new NotImplementedException();

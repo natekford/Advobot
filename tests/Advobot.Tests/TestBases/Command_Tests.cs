@@ -88,7 +88,7 @@ public abstract class Command_Tests : TestsBase
 
 	protected override async Task SetupAsync()
 	{
-		var commandService = Services.GetRequiredService<NaiveCommandService>();
+		CommandService = Services.GetRequiredService<NaiveCommandService>();
 
 		await Context.Client.StartAsync().ConfigureAwait(false);
 		await CommandService.InitializeAsync().ConfigureAwait(false);

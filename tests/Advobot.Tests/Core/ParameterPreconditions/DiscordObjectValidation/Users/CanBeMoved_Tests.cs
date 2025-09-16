@@ -25,17 +25,9 @@ public sealed class CanBeMoved_Tests : ParameterPrecondition_Tests<CanBeMoved>
 	private static readonly GuildPermissions _MoveMembers = new(
 		moveMembers: true
 	);
-	private readonly FakeVoiceChannel _Channel;
-	private readonly FakeGuildUser _User;
-
 	protected override CanBeMoved Instance { get; } = new();
-
-	public CanBeMoved_Tests()
-	{
-		_Channel = new(Context.Guild);
-		_User = new(Context.Guild) { VoiceChannel = _Channel, };
-		Context.Guild.FakeEveryoneRole.Permissions = new(viewChannel: true);
-	}
+	private FakeVoiceChannel Channel { get; set; }
+	private FakeGuildUser User { get; set; }
 
 	[TestMethod]
 	public async Task UserCanBeMovedBecauseAdmin_Test()
@@ -45,19 +37,19 @@ public sealed class CanBeMoved_Tests : ParameterPrecondition_Tests<CanBeMoved>
 		await Context.User.AddRoleAsync(role).ConfigureAwait(false);
 		await Context.Guild.FakeCurrentUser.AddRoleAsync(role).ConfigureAwait(false);
 
-		await _Channel.AddPermissionOverwriteAsync(Context.User, _Denied).ConfigureAwait(false);
-		await _Channel.AddPermissionOverwriteAsync(Context.Guild.FakeCurrentUser, _Denied).ConfigureAwait(false);
+		await Channel.AddPermissionOverwriteAsync(Context.User, _Denied).ConfigureAwait(false);
+		await Channel.AddPermissionOverwriteAsync(Context.Guild.FakeCurrentUser, _Denied).ConfigureAwait(false);
 
-		await AssertSuccessAsync(_User).ConfigureAwait(false);
+		await AssertSuccessAsync(User).ConfigureAwait(false);
 	}
 
 	[TestMethod]
 	public async Task UserCanBeMovedBecauseChannelOverride_Test()
 	{
-		await _Channel.AddPermissionOverwriteAsync(Context.User, _Allowed).ConfigureAwait(false);
-		await _Channel.AddPermissionOverwriteAsync(Context.Guild.FakeCurrentUser, _Allowed).ConfigureAwait(false);
+		await Channel.AddPermissionOverwriteAsync(Context.User, _Allowed).ConfigureAwait(false);
+		await Channel.AddPermissionOverwriteAsync(Context.Guild.FakeCurrentUser, _Allowed).ConfigureAwait(false);
 
-		await AssertSuccessAsync(_User).ConfigureAwait(false);
+		await AssertSuccessAsync(User).ConfigureAwait(false);
 	}
 
 	[TestMethod]
@@ -68,7 +60,7 @@ public sealed class CanBeMoved_Tests : ParameterPrecondition_Tests<CanBeMoved>
 		await Context.User.AddRoleAsync(role).ConfigureAwait(false);
 		await Context.Guild.FakeCurrentUser.AddRoleAsync(role).ConfigureAwait(false);
 
-		await AssertSuccessAsync(_User).ConfigureAwait(false);
+		await AssertSuccessAsync(User).ConfigureAwait(false);
 	}
 
 	[TestMethod]
@@ -79,21 +71,29 @@ public sealed class CanBeMoved_Tests : ParameterPrecondition_Tests<CanBeMoved>
 		await Context.User.AddRoleAsync(role).ConfigureAwait(false);
 		await Context.Guild.FakeCurrentUser.AddRoleAsync(role).ConfigureAwait(false);
 
-		await _Channel.AddPermissionOverwriteAsync(Context.User, _Denied).ConfigureAwait(false);
-		await _Channel.AddPermissionOverwriteAsync(Context.Guild.FakeCurrentUser, _Denied).ConfigureAwait(false);
+		await Channel.AddPermissionOverwriteAsync(Context.User, _Denied).ConfigureAwait(false);
+		await Channel.AddPermissionOverwriteAsync(Context.Guild.FakeCurrentUser, _Denied).ConfigureAwait(false);
 
-		await AssertFailureAsync(_User).ConfigureAwait(false);
+		await AssertFailureAsync(User).ConfigureAwait(false);
 	}
 
 	[TestMethod]
 	public async Task UserCannotBeMovedBecausePermissions_Test()
-		=> await AssertFailureAsync(_User).ConfigureAwait(false);
+		=> await AssertFailureAsync(User).ConfigureAwait(false);
 
 	[TestMethod]
 	public async Task UserNotInVoiceChannel_Test()
 	{
-		_User.VoiceChannel = null;
+		User.VoiceChannel = null;
 
-		await AssertFailureAsync(_User).ConfigureAwait(false);
+		await AssertFailureAsync(User).ConfigureAwait(false);
+	}
+
+	protected override Task SetupAsync()
+	{
+		Channel = new(Context.Guild);
+		User = new(Context.Guild) { VoiceChannel = Channel, };
+		Context.Guild.FakeEveryoneRole.Permissions = new(viewChannel: true);
+		return Task.CompletedTask;
 	}
 }

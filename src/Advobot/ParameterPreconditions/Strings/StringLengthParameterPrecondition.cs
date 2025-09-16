@@ -38,6 +38,6 @@ public abstract class StringLengthParameterPrecondition(int min, int max)
 			return new(CachedResults.Success);
 		}
 		// TODO: singleton?
-		return new(Result.Failure($"Invalid {meta.Parameter.ParameterName} supplied, must have a length in `{Range}`"));
+		return new(Result.Failure($"Invalid {StringType} supplied, must have a length in `{Range}`"));
 	}
 }

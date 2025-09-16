@@ -19,15 +19,8 @@ public sealed class CanModifyChannel_Tests : ParameterPrecondition_Tests<CanModi
 		manageMessages: PermValue.Deny
 	);
 	private static readonly GuildPermissions _ManageMessages = new(manageMessages: true);
-	private readonly FakeTextChannel _Channel;
-
 	protected override CanModifyChannel Instance { get; } = new(ChannelPermission.ManageMessages);
-
-	public CanModifyChannel_Tests()
-	{
-		_Channel = new(Context.Guild);
-		Context.Guild.FakeEveryoneRole.Permissions = new(viewChannel: true);
-	}
+	private FakeTextChannel Channel { get; set; }
 
 	[TestMethod]
 	public async Task CanModify_Test()
@@ -37,10 +30,10 @@ public sealed class CanModifyChannel_Tests : ParameterPrecondition_Tests<CanModi
 		await Context.User.AddRoleAsync(role).ConfigureAwait(false);
 		await Context.Guild.FakeCurrentUser.AddRoleAsync(role).ConfigureAwait(false);
 
-		await _Channel.AddPermissionOverwriteAsync(Context.User, _Allowed).ConfigureAwait(false);
-		await _Channel.AddPermissionOverwriteAsync(Context.Guild.FakeCurrentUser, _Allowed).ConfigureAwait(false);
+		await Channel.AddPermissionOverwriteAsync(Context.User, _Allowed).ConfigureAwait(false);
+		await Channel.AddPermissionOverwriteAsync(Context.Guild.FakeCurrentUser, _Allowed).ConfigureAwait(false);
 
-		await AssertSuccessAsync(_Channel).ConfigureAwait(false);
+		await AssertSuccessAsync(Channel).ConfigureAwait(false);
 	}
 
 	[TestMethod]
@@ -51,9 +44,16 @@ public sealed class CanModifyChannel_Tests : ParameterPrecondition_Tests<CanModi
 		await Context.User.AddRoleAsync(role).ConfigureAwait(false);
 		await Context.Guild.FakeCurrentUser.AddRoleAsync(role).ConfigureAwait(false);
 
-		await _Channel.AddPermissionOverwriteAsync(Context.User, _Denied).ConfigureAwait(false);
-		await _Channel.AddPermissionOverwriteAsync(Context.Guild.FakeCurrentUser, _Denied).ConfigureAwait(false);
+		await Channel.AddPermissionOverwriteAsync(Context.User, _Denied).ConfigureAwait(false);
+		await Channel.AddPermissionOverwriteAsync(Context.Guild.FakeCurrentUser, _Denied).ConfigureAwait(false);
 
-		await AssertFailureAsync(_Channel).ConfigureAwait(false);
+		await AssertFailureAsync(Channel).ConfigureAwait(false);
+	}
+
+	protected override Task SetupAsync()
+	{
+		Channel = new(Context.Guild);
+		Context.Guild.FakeEveryoneRole.Permissions = new(viewChannel: true);
+		return Task.CompletedTask;
 	}
 }
