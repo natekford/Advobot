@@ -24,7 +24,7 @@ namespace Advobot.MyCommands.Commands;
 [RequireGuildPermissionsOrMickezoor(GuildPermission.ManageRoles)]
 [RequireGuild(199339772118827008)]
 [SpanitchRolesExist]
-public sealed class SpanitchModule : AutoModModuleBase
+public sealed class Spanitch : AutoModModuleBase
 {
 	private const ulong MIJE_ID = 107770708142067712;
 	private const ulong MUTE_ID = 328101628664086528;
@@ -38,7 +38,7 @@ public sealed class SpanitchModule : AutoModModuleBase
 	];
 
 	[Command]
-	public async Task<AdvobotResult> Command([CanModifyUser] IGuildUser user)
+	public async Task<AdvobotResult> Give([CanModifyUser] IGuildUser user)
 	{
 		await user.ModifyRolesAsync(
 			rolesToAdd: Roles,
@@ -51,16 +51,16 @@ public sealed class SpanitchModule : AutoModModuleBase
 	[Command("hard")]
 	[Summary("makes it so if they leave the server and rejoin they are still spanitched")]
 	[Priority(1)]
-	public async Task<AdvobotResult> Hard([CanModifyUser] IGuildUser user)
+	public async Task<AdvobotResult> Permanent([CanModifyUser] IGuildUser user)
 	{
-		await Command(user).ConfigureAwait(false);
-		return await Hard(user.Id).ConfigureAwait(false);
+		await Give(user).ConfigureAwait(false);
+		return await Permanent(user.Id).ConfigureAwait(false);
 	}
 
 	[Command("hard")]
 	[Summary("makes it so if they leave the server and rejoin they are still spanitched")]
 	[Priority(0)]
-	public async Task<AdvobotResult> Hard(ulong user)
+	public async Task<AdvobotResult> Permanent(ulong user)
 	{
 		foreach (var pRole in CreatePersistentRoles(user))
 		{
@@ -72,7 +72,7 @@ public sealed class SpanitchModule : AutoModModuleBase
 
 	[Command("unspanitch")]
 	[Summary("unspanitches a user")]
-	public async Task<AdvobotResult> Unspanitch([CanModifyUser] IGuildUser user)
+	public async Task<AdvobotResult> Remove([CanModifyUser] IGuildUser user)
 	{
 		await user.ModifyRolesAsync(
 			rolesToAdd: [],

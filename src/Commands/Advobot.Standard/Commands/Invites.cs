@@ -22,8 +22,10 @@ public sealed class Invites : AdvobotModuleBase
 	[RequireGuildPermissions(GuildPermission.ManageChannels)]
 	public sealed class DeleteInvite : AdvobotModuleBase
 	{
-		[LocalizedCommand]
-		public async Task<AdvobotResult> Command([FromThisGuild] IInviteMetadata invite)
+		[Command]
+		public async Task<AdvobotResult> Targeted(
+			[FromThisGuild]
+			IInviteMetadata invite)
 		{
 			await invite.DeleteAsync(GetOptions()).ConfigureAwait(false);
 			return Responses.Snowflakes.Deleted(invite);

@@ -40,18 +40,18 @@ public sealed class Logging : AdvobotResult
 		));
 	}
 
-	public static AdvobotResult Removed(string logType)
+	public static AdvobotResult Removed(Log log)
 	{
 		return Success(LoggingRemoved.Format(
-			logType.WithNoMarkdown()
+			GetLogType(log).WithNoMarkdown()
 		));
 	}
 
-	public static AdvobotResult SetLog(string logType, ITextChannel channel)
+	public static AdvobotResult SetLog(Log log, ITextChannel channel)
 	{
 		return Success(LoggingSetLog.Format(
 			channel.Format().WithBlock(),
-			logType.WithNoMarkdown()
+			GetLogType(log).WithNoMarkdown()
 		));
 	}
 
@@ -60,4 +60,15 @@ public sealed class Logging : AdvobotResult
 
 	private static string GetIgnored(bool value)
 		=> value ? VariableIgnored : VariableUnignored;
+
+	private static string GetLogType(Log log)
+	{
+		return log switch
+		{
+			Log.Image => VariableImageLog,
+			Log.Mod => VariableModLog,
+			Log.Server => VariableServerLog,
+			_ => throw new ArgumentOutOfRangeException(nameof(log))
+		};
+	}
 }

@@ -37,7 +37,7 @@ public abstract class LogParameterPrecondition : AdvobotParameterPrecondition<IT
 	{
 		var db = GetDatabase(context.Services);
 		var channels = await db.GetLogChannelsAsync(context.Guild.Id).ConfigureAwait(false);
-		if (GetId(channels) == value.Id)
+		if (GetId(channels) == value?.Id)
 		{
 			return Result.Failure(LogParameterPreconditionSummary.Format(
 				value.Format().WithBlock(),

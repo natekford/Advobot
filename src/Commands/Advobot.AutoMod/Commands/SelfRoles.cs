@@ -11,8 +11,6 @@ using Discord;
 using YACCS.Commands.Attributes;
 using YACCS.Localization;
 
-using static Advobot.AutoMod.Responses.SelfRoles;
-
 namespace Advobot.AutoMod.Commands;
 
 [LocalizedCategory(nameof(SelfRoles))]
@@ -24,12 +22,12 @@ public sealed class SelfRoles : AdvobotModuleBase
 	public sealed class AssignSelfRole : AutoModModuleBase
 	{
 		[Command]
-		public async Task<AdvobotResult> Command(SelfRoleState role)
+		public async Task<AdvobotResult> Give(SelfRoleState role)
 		{
 			if (Context.User.RoleIds.Any(x => x == role.Role.Id))
 			{
 				await Context.User.RemoveRoleAsync(role.Role, GetOptions("self role removal")).ConfigureAwait(false);
-				return RemovedRole(role.Role);
+				return Responses.SelfRoles.RemovedRole(role.Role);
 			}
 
 			// Remove roles the user already has from the group if they're targeting an exclusive group
@@ -38,7 +36,7 @@ public sealed class SelfRoles : AdvobotModuleBase
 			if (!conflicting.Any())
 			{
 				await Context.User.AddRoleAsync(role.Role, GetOptions("self role giving")).ConfigureAwait(false);
-				return AddedRole(role.Role);
+				return Responses.SelfRoles.AddedRole(role.Role);
 			}
 
 			await Context.User.ModifyRolesAsync(
@@ -47,7 +45,7 @@ public sealed class SelfRoles : AdvobotModuleBase
 				GetOptions("self role giving and removal of conflicts")
 			).ConfigureAwait(false);
 
-			return AddedRoleAndRemovedOthers(role.Role);
+			return Responses.SelfRoles.AddedRoleAndRemovedOthers(role.Role);
 		}
 	}
 
@@ -57,11 +55,11 @@ public sealed class SelfRoles : AdvobotModuleBase
 	public sealed class DisplaySelfRoles : AutoModModuleBase
 	{
 		[Command]
-		public async Task<AdvobotResult> Command()
+		public async Task<AdvobotResult> All()
 			=> Display(await Db.GetSelfRolesAsync(Context.Guild.Id).ConfigureAwait(false));
 
 		[Command]
-		public async Task<AdvobotResult> Command([NotNegative] int group)
+		public async Task<AdvobotResult> Group([NotNegative] int group)
 			=> Display(await Db.GetSelfRolesAsync(Context.Guild.Id, group).ConfigureAwait(false));
 
 		private AdvobotResult Display(IEnumerable<SelfRole> roles)
@@ -70,7 +68,7 @@ public sealed class SelfRoles : AdvobotModuleBase
 				.Select(x => (x.GroupId, Role: Context.Guild.GetRole(x.RoleId)))
 				.Where(x => x.Role != null)
 				.GroupBy(x => x.GroupId, x => x.Role);
-			return DisplayGroups(grouped);
+			return Responses.SelfRoles.DisplayGroups(grouped);
 		}
 	}
 
@@ -96,14 +94,14 @@ public sealed class SelfRoles : AdvobotModuleBase
 				GroupId = group,
 			});
 			var count = await Db.UpsertSelfRolesAsync(selfRoles).ConfigureAwait(false);
-			return AddedSelfRoles(group, roles.Length);
+			return Responses.SelfRoles.AddedSelfRoles(group, roles.Length);
 		}
 
 		[LocalizedCommand(nameof(Groups.ClearGroup), nameof(Aliases.ClearGroup))]
 		public async Task<AdvobotResult> ClearGroup([NotNegative] int group)
 		{
 			var count = await Db.DeleteSelfRolesGroupAsync(Context.Guild.Id, group).ConfigureAwait(false);
-			return ClearedGroup(group, count);
+			return Responses.SelfRoles.ClearedGroup(group, count);
 		}
 
 		[LocalizedCommand(nameof(Groups.Remove), nameof(Aliases.Remove))]
@@ -114,7 +112,7 @@ public sealed class SelfRoles : AdvobotModuleBase
 			params IRole[] roles)
 		{
 			var count = await Db.DeleteSelfRolesAsync(roles.Select(x => x.Id)).ConfigureAwait(false);
-			return RemovedSelfRoles(count);
+			return Responses.SelfRoles.RemovedSelfRoles(count);
 		}
 	}
 }

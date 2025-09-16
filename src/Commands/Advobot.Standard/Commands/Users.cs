@@ -19,8 +19,6 @@ using YACCS.Commands.Attributes;
 using YACCS.Commands.Building;
 using YACCS.Localization;
 
-using static Discord.ChannelPermission;
-
 namespace Advobot.Standard.Commands;
 
 [LocalizedCategory(nameof(Users))]
@@ -33,25 +31,25 @@ public sealed class Users : AdvobotModuleBase
 	[RequireGuildPermissions(GuildPermission.BanMembers)]
 	public sealed class Ban : AdvobotModuleBase
 	{
-		[LocalizedCommand]
+		[Command]
 		[Priority(1)]
-		public Task<AdvobotResult> Command(
+		public Task<AdvobotResult> Targeted(
 			[CanModifyUser]
 			IGuildUser user,
 			[Remainder]
 			ModerationReason reason = default
-		) => CommandRunner(user, user.Id, reason);
+		) => BanAsync(user, user.Id, reason);
 
 		[Command]
 		[Priority(0)]
-		public Task<AdvobotResult> Command(
+		public Task<AdvobotResult> Targeted(
 			[NotBanned]
 			ulong userId,
 			[Remainder]
 			ModerationReason reason = default
-		) => CommandRunner(null, userId, reason);
+		) => BanAsync(null, userId, reason);
 
-		private async Task<AdvobotResult> CommandRunner(
+		private async Task<AdvobotResult> BanAsync(
 			IUser? user,
 			ulong userId,
 			ModerationReason reason)
@@ -78,7 +76,7 @@ public sealed class Users : AdvobotModuleBase
 	public sealed class Deafen : AdvobotModuleBase
 	{
 		[Command]
-		public async Task<AdvobotResult> Command(
+		public async Task<AdvobotResult> Targeted(
 			IGuildUser user,
 			[Remainder]
 			ModerationReason reason = default
@@ -106,7 +104,7 @@ public sealed class Users : AdvobotModuleBase
 			bool getUnlimitedUsers = false
 		)
 		{
-			return CommandRunner(target, getUnlimitedUsers, (user, options) =>
+			return DoAsync(target, getUnlimitedUsers, (user, options) =>
 			{
 				if (user.Nickname != null)
 				{
@@ -124,7 +122,7 @@ public sealed class Users : AdvobotModuleBase
 			bool getUnlimitedUsers = false
 		)
 		{
-			return CommandRunner(target, getUnlimitedUsers, (user, options) =>
+			return DoAsync(target, getUnlimitedUsers, (user, options) =>
 			{
 				if (user.Nickname != nickname)
 				{
@@ -137,7 +135,9 @@ public sealed class Users : AdvobotModuleBase
 		[LocalizedCommand(nameof(Groups.GiveRole), nameof(Aliases.GiveRole))]
 		public Task<AdvobotResult> GiveRole(
 			IRole target,
-			[CanModifyRole, NotEveryone, NotManaged]
+			[CanModifyRole]
+			[NotEveryone]
+			[NotManaged]
 			IRole give,
 			bool getUnlimitedUsers = false
 		)
@@ -147,7 +147,7 @@ public sealed class Users : AdvobotModuleBase
 				return Responses.Users.CannotGiveGatheredRole();
 			}
 
-			return CommandRunner(target, getUnlimitedUsers, (user, options) =>
+			return DoAsync(target, getUnlimitedUsers, (user, options) =>
 			{
 				if (!user.RoleIds.Contains(give.Id))
 				{
@@ -160,12 +160,14 @@ public sealed class Users : AdvobotModuleBase
 		[LocalizedCommand(nameof(Groups.TakeRole), nameof(Aliases.TakeRole))]
 		public Task<AdvobotResult> TakeRole(
 			IRole target,
-			[CanModifyRole, NotEveryone, NotManaged]
+			[CanModifyRole]
+			[NotEveryone]
+			[NotManaged]
 			IRole take,
 			bool getUnlimitedUsers = false
 		)
 		{
-			return CommandRunner(target, getUnlimitedUsers, (user, options) =>
+			return DoAsync(target, getUnlimitedUsers, (user, options) =>
 			{
 				if (user.RoleIds.Contains(take.Id))
 				{
@@ -175,7 +177,7 @@ public sealed class Users : AdvobotModuleBase
 			});
 		}
 
-		private async Task<AdvobotResult> CommandRunner(
+		private async Task<AdvobotResult> DoAsync(
 			IRole role,
 			bool getUnlimitedUsers,
 			Func<IGuildUser, RequestOptions, Task> update)
@@ -199,7 +201,7 @@ public sealed class Users : AdvobotModuleBase
 	public sealed class Kick : AdvobotModuleBase
 	{
 		[Command]
-		public async Task<AdvobotResult> Command(
+		public async Task<AdvobotResult> Targeted(
 			[CanModifyUser]
 			IGuildUser user,
 			[Remainder]
@@ -222,10 +224,10 @@ public sealed class Users : AdvobotModuleBase
 	public sealed class MoveUser : AdvobotModuleBase
 	{
 		[Command]
-		public async Task<AdvobotResult> Command(
+		public async Task<AdvobotResult> Targeted(
 			[CanBeMoved]
 			IGuildUser user,
-			[CanModifyChannel(MoveMembers)]
+			[CanModifyChannel(ChannelPermission.MoveMembers)]
 			IVoiceChannel channel
 		)
 		{
@@ -246,11 +248,11 @@ public sealed class Users : AdvobotModuleBase
 	[RequireGuildPermissions(GuildPermission.MoveMembers)]
 	public sealed class MoveUsers : MultiUserActionModuleBase
 	{
-		[LocalizedCommand]
-		public async Task<AdvobotResult> Command(
-			[CanModifyChannel(MoveMembers)]
+		[Command]
+		public async Task<AdvobotResult> All(
+			[CanModifyChannel(ChannelPermission.MoveMembers)]
 			IVoiceChannel input,
-			[CanModifyChannel(MoveMembers)]
+			[CanModifyChannel(ChannelPermission.MoveMembers)]
 			IVoiceChannel output,
 			bool getUnlimitedUsers = false
 		)
@@ -282,26 +284,26 @@ public sealed class Users : AdvobotModuleBase
 		private static readonly OverwritePermissions TextPerms = new(
 			0,
 			(ulong)(0
-				| CreateInstantInvite
-				| ManageChannels
-				| ManageRoles
-				| ManageWebhooks
-				| SendMessages
-				| ManageMessages
-				| AddReactions
+				| ChannelPermission.CreateInstantInvite
+				| ChannelPermission.ManageChannels
+				| ChannelPermission.ManageRoles
+				| ChannelPermission.ManageWebhooks
+				| ChannelPermission.SendMessages
+				| ChannelPermission.ManageMessages
+				| ChannelPermission.AddReactions
 			)
 		);
 		private static readonly OverwritePermissions VoicePerms = new(
 			0,
 			(ulong)(0
-				| CreateInstantInvite
-				| ManageChannels
-				| ManageRoles
-				| ManageWebhooks
-				| Speak
-				| MuteMembers
-				| DeafenMembers
-				| MoveMembers
+				| ChannelPermission.CreateInstantInvite
+				| ChannelPermission.ManageChannels
+				| ChannelPermission.ManageRoles
+				| ChannelPermission.ManageWebhooks
+				| ChannelPermission.Speak
+				| ChannelPermission.MuteMembers
+				| ChannelPermission.DeafenMembers
+				| ChannelPermission.MoveMembers
 			)
 		);
 
@@ -309,7 +311,7 @@ public sealed class Users : AdvobotModuleBase
 		public required IGuildSettingsService GuildSettings { get; set; }
 
 		[Command]
-		public async Task<AdvobotResult> Command(
+		public async Task<AdvobotResult> Targeted(
 			IGuildUser user,
 			[Remainder]
 			ModerationReason reason = default
@@ -362,47 +364,47 @@ public sealed class Users : AdvobotModuleBase
 		public required ITimeService Time { get; set; }
 
 		[Command]
-		[RequireChannelPermissions(ManageMessages)]
-		public Task<AdvobotResult> Command(
+		[RequireChannelPermissions(ChannelPermission.ManageMessages)]
+		public Task<AdvobotResult> CurrentChannel(
 			[Positive]
 			int deleteCount
-		) => CommandRunner(deleteCount, Context.Channel, null);
+		) => DeleteAsync(deleteCount, Context.Channel, null);
 
 		[Command]
-		[RequireChannelPermissions(ManageMessages)]
-		public Task<AdvobotResult> Command(
+		[RequireChannelPermissions(ChannelPermission.ManageMessages)]
+		public Task<AdvobotResult> CurrentChannelFromUser(
 			[Positive]
 			int deleteCount,
 			IGuildUser user
-		) => CommandRunner(deleteCount, Context.Channel, user);
+		) => DeleteAsync(deleteCount, Context.Channel, user);
 
 		[Command]
-		public Task<AdvobotResult> Command(
+		public Task<AdvobotResult> TargetedChannel(
 			[Positive]
 			int deleteCount,
-			[CanModifyChannel(ManageMessages)]
+			[CanModifyChannel(ChannelPermission.ManageMessages)]
 			ITextChannel channel
-		) => CommandRunner(deleteCount, channel, null);
+		) => DeleteAsync(deleteCount, channel, null);
 
 		[Command]
-		public Task<AdvobotResult> Command(
+		public Task<AdvobotResult> TargetedChannelFromUser(
 			[Positive]
 			int deleteCount,
 			IGuildUser user,
-			[CanModifyChannel(ManageMessages)]
+			[CanModifyChannel(ChannelPermission.ManageMessages)]
 			ITextChannel channel
-		) => CommandRunner(deleteCount, channel, user);
+		) => DeleteAsync(deleteCount, channel, user);
 
 		[Command]
-		public Task<AdvobotResult> Command(
+		public Task<AdvobotResult> TargetedChannelFromUser(
 			[Positive]
 			int deleteCount,
-			[CanModifyChannel(ManageMessages)]
+			[CanModifyChannel(ChannelPermission.ManageMessages)]
 			ITextChannel channel,
 			IGuildUser user
-		) => CommandRunner(deleteCount, channel, user);
+		) => DeleteAsync(deleteCount, channel, user);
 
-		private async Task<AdvobotResult> CommandRunner(
+		private async Task<AdvobotResult> DeleteAsync(
 			int deleteCount,
 			ITextChannel channel,
 			IUser? user)
@@ -432,15 +434,16 @@ public sealed class Users : AdvobotModuleBase
 	{
 		[Command]
 		[Priority(1)]
-		public Task<AdvobotResult> Command(
+		public Task<AdvobotResult> Targeted(
 			[CanModifyUser]
 			IGuildUser user,
 			[Remainder]
 			ModerationReason reason = default
-		) => Command(user.Id, reason);
+		) => Targeted(user.Id, reason);
 
 		[Command]
-		public async Task<AdvobotResult> Command(
+		[Priority(0)]
+		public async Task<AdvobotResult> Targeted(
 			[NotBanned]
 			ulong userId,
 			[Remainder]
@@ -463,7 +466,7 @@ public sealed class Users : AdvobotModuleBase
 	public sealed class Unban : AdvobotModuleBase
 	{
 		[Command]
-		public async Task<AdvobotResult> Command(
+		public async Task<AdvobotResult> Targeted(
 			IBan ban,
 			[Remainder]
 			ModerationReason reason = default
@@ -485,7 +488,7 @@ public sealed class Users : AdvobotModuleBase
 	public sealed class VoiceMute : AdvobotModuleBase
 	{
 		[Command]
-		public async Task<AdvobotResult> Command(
+		public async Task<AdvobotResult> Targeted(
 			IGuildUser user,
 			[Remainder]
 			ModerationReason reason = default

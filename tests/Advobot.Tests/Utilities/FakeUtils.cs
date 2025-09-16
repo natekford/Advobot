@@ -1,9 +1,6 @@
 ﻿using Advobot.Serilog;
 using Advobot.SQLite;
 using Advobot.Tests.Fakes.Database;
-using Advobot.Tests.Fakes.Discord;
-using Advobot.Tests.Fakes.Discord.Channels;
-using Advobot.Tests.Fakes.Discord.Users;
 
 using Microsoft.Extensions.DependencyInjection;
 

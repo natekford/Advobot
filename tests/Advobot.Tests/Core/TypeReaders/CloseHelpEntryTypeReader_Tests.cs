@@ -1,7 +1,4 @@
-﻿using Advobot.Tests.Fakes.Services.HelpEntries;
-using Advobot.Tests.TestBases;
-
-namespace Advobot.Tests.Core.TypeReaders;
+﻿namespace Advobot.Tests.Core.TypeReaders;
 
 #warning reenable
 /*

@@ -10,8 +10,8 @@ namespace Advobot.AutoMod.Responses;
 
 public sealed class BannedPhrases : AdvobotResult
 {
-	public static AdvobotResult Added(string type, string phrase)
-		=> Modified(type, true, phrase);
+	public static AdvobotResult Added(Phrase phraseType, string phrase)
+		=> Modified(phraseType, true, phrase);
 
 	public static AdvobotResult Display(IEnumerable<BannedPhrase> phrases)
 	{
@@ -24,26 +24,44 @@ public sealed class BannedPhrases : AdvobotResult
 	}
 
 	public static AdvobotResult PunishmentChanged(
-		string type,
+		Phrase phraseType,
 		string phrase,
 		PunishmentType punishment)
 	{
 		return Success(BannedPhraseChangedPunishment.Format(
-			type.WithNoMarkdown(),
+			GetPhraseType(phraseType).WithNoMarkdown(),
 			phrase.WithBlock(),
 			punishment.ToString().WithBlock()
 		));
 	}
 
-	public static AdvobotResult Removed(string type, string phrase)
-		=> Modified(type, false, phrase);
+	public static AdvobotResult Removed(Phrase phraseType, string phrase)
+		=> Modified(phraseType, false, phrase);
 
-	private static AdvobotResult Modified(string type, bool added, string phrase)
+	private static string GetPhraseType(Phrase phrase)
+	{
+		return phrase switch
+		{
+			Phrase.Name => VariableName,
+			Phrase.Regex => VariableRegex,
+			Phrase.String => VariableString,
+			_ => throw new ArgumentOutOfRangeException(nameof(phrase)),
+		};
+	}
+
+	private static AdvobotResult Modified(Phrase phraseType, bool added, string phrase)
 	{
 		var format = added ? BannedPhraseAdded : BannedPhraseRemoved;
 		return Success(format.Format(
-			type.WithNoMarkdown(),
+			GetPhraseType(phraseType).WithNoMarkdown(),
 			phrase.WithBlock()
 		));
 	}
+}
+
+public enum Phrase
+{
+	Name,
+	Regex,
+	String,
 }

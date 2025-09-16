@@ -340,7 +340,7 @@ public sealed class FakeGuild : FakeSnowflake, IGuild
 	public IRole? GetRole(ulong id)
 		=> FakeRoles.SingleOrDefault(x => x.Id == id);
 
-	public Task<IRole> GetRoleAsync(ulong id, RequestOptions options = null)
+	public Task<IRole?> GetRoleAsync(ulong id, RequestOptions options = null)
 		=> Task.FromResult(GetRole(id));
 
 	public Task<ITextChannel> GetRulesChannelAsync(CacheMode mode = CacheMode.AllowDownload, RequestOptions? options = null)

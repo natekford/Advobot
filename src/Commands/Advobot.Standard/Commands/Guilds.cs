@@ -19,14 +19,14 @@ public sealed class Guilds : AdvobotModuleBase
 	[Meta(IsEnabled = true)]
 	public sealed class LeaveGuild : AdvobotModuleBase
 	{
-		[LocalizedCommand]
+		[Command]
 		[RequireGuildOwner]
-		public Task Command()
+		public Task Current()
 			=> Context.Guild.LeaveAsync();
 
-		[LocalizedCommand]
+		[Command]
 		[RequireBotOwner]
-		public async Task<AdvobotResult> Command([Remainder] IGuild guild)
+		public async Task<AdvobotResult> Targeted([Remainder] IGuild guild)
 		{
 			await guild.LeaveAsync().ConfigureAwait(false);
 			return Responses.Guilds.LeftGuild(guild);

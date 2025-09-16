@@ -18,7 +18,6 @@ using System.Net;
 using System.Reflection;
 
 using YACCS.Commands;
-using YACCS.Commands.Models;
 using YACCS.Help;
 using YACCS.Localization;
 using YACCS.Parsing;

@@ -13,8 +13,6 @@ using System.Collections.Concurrent;
 using YACCS.Commands.Attributes;
 using YACCS.Localization;
 
-using static Discord.ChannelPermission;
-
 namespace Advobot.Standard.Commands;
 
 [LocalizedCategory(nameof(Webhooks))]
@@ -27,9 +25,9 @@ public sealed class Webhooks : AdvobotModuleBase
 	[RequireGuildPermissions(GuildPermission.ManageWebhooks)]
 	public sealed class CreateWebhook : AdvobotModuleBase
 	{
-		[LocalizedCommand]
-		public async Task<AdvobotResult> Command(
-			[CanModifyChannel(ManageWebhooks)]
+		[Command]
+		public async Task<AdvobotResult> Create(
+			[CanModifyChannel(ChannelPermission.ManageWebhooks)]
 			[LocalizedSummary(nameof(Summaries.CreateWebhookChannel))]
 			ITextChannel channel,
 			[Remainder]
@@ -51,8 +49,8 @@ public sealed class Webhooks : AdvobotModuleBase
 	{
 		private static readonly ConcurrentDictionary<ulong, DiscordWebhookClient> _Clients = new();
 
-		[LocalizedCommand]
-		public Task Command(
+		[Command]
+		public Task Speak(
 			[LocalizedSummary(nameof(Summaries.SpeakThroughWebhookWebhook))]
 			IWebhook webhook,
 			[Remainder]

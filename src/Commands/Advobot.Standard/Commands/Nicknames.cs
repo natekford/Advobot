@@ -20,8 +20,8 @@ public sealed class Nicknames : AdvobotModuleBase
 	[RequireGuildPermissions(GuildPermission.ManageNicknames)]
 	public sealed class RemoveAllNickNames : MultiUserActionModuleBase
 	{
-		[LocalizedCommand]
-		public async Task<AdvobotResult> Command(bool getUnlimitedUsers = false)
+		[Command]
+		public async Task<AdvobotResult> Remove(bool getUnlimitedUsers = false)
 		{
 			var amountChanged = await ProcessAsync(
 				getUnlimitedUsers,

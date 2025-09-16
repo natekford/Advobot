@@ -1,7 +1,7 @@
-﻿namespace Advobot.Tests.Fakes.Services.HelpEntries;
-
-#warning reenable
+﻿#warning reenable
 /*
+namespace Advobot.Tests.Fakes.Services.HelpEntries;
+
 public sealed record FakeHelpEntry : IHelpModule
 {
 	public bool AbleToBeToggled { get; set; }

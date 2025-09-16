@@ -23,8 +23,8 @@ public sealed class Client : AdvobotModuleBase
 		[InjectService]
 		public required ShutdownApplication Exit { get; set; }
 
-		[LocalizedCommand]
-		public async Task Command()
+		[Command]
+		public async Task Shutdown()
 		{
 			try
 			{
@@ -45,8 +45,8 @@ public sealed class Client : AdvobotModuleBase
 	[RequireBotOwner]
 	public sealed class ModifyBotName : AdvobotModuleBase
 	{
-		[LocalizedCommand]
-		public async Task<AdvobotResult> Command(
+		[Command]
+		public async Task<AdvobotResult> Modify(
 			[Remainder]
 			[Username]
 			string name)

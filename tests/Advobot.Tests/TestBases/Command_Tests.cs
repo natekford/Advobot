@@ -3,14 +3,12 @@ using Advobot.Levels.Service;
 using Advobot.Logging.Resetters;
 using Advobot.Logging.Service;
 using Advobot.Services.Commands;
-using Advobot.Services.Events;
 using Advobot.Services.GuildSettings;
 using Advobot.Services.Punishments;
 using Advobot.Settings.Service;
 using Advobot.SQLite;
 using Advobot.Tests.Fakes.Discord;
 using Advobot.Tests.Fakes.Discord.Channels;
-using Advobot.Tests.Fakes.Services.Events;
 using Advobot.Tests.Utilities;
 
 using Discord;
@@ -21,11 +19,7 @@ using System.Reflection;
 using System.Threading.Channels;
 
 using YACCS.Commands;
-using YACCS.Help;
-using YACCS.Localization;
-using YACCS.Parsing;
 using YACCS.Results;
-using YACCS.TypeReaders;
 
 namespace Advobot.Tests.TestBases;
 
@@ -93,10 +87,7 @@ public abstract class Command_Tests : TestsBase
 		await Context.Client.StartAsync().ConfigureAwait(false);
 		await CommandService.InitializeAsync().ConfigureAwait(false);
 
-		EventProvider.CommandExecuted.Add(async x =>
-		{
-			await ExecutedCommands.Writer.WriteAsync(x).ConfigureAwait(false);
-		});
+		EventProvider.CommandExecuted.Add(async x => await ExecutedCommands.Writer.WriteAsync(x).ConfigureAwait(false));
 
 		OtherTextChannel = new(Context.Guild)
 		{

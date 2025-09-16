@@ -18,6 +18,7 @@ public sealed class RequireGuild(ulong id) : AdvobotPrecondition
 	/// <inheritdoc />
 	public override string Summary => $"Will only work in the guild with the id {Id}";
 
+	/// <inheritdoc />
 	public override ValueTask<IResult> CheckAsync(
 		IImmutableCommand command,
 		IGuildContext context)

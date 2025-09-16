@@ -1,5 +1,4 @@
-﻿using YACCS.Commands.Models;
-using YACCS.Preconditions;
+﻿using YACCS.Preconditions;
 using YACCS.Results;
 
 namespace Advobot.Tests.TestBases;
@@ -9,6 +8,6 @@ public abstract class Precondition_Tests<T> : TestsBase
 {
 	protected abstract T Instance { get; }
 
-	protected ValueTask<IResult> CheckPermissionsAsync(IImmutableCommand? command = null)
-		=> Instance.CheckAsync(command, Context);
+	protected ValueTask<IResult> CheckPermissionsAsync()
+		=> Instance.CheckAsync(null!, Context);
 }

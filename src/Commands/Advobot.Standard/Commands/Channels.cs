@@ -10,13 +10,15 @@ using Discord;
 using YACCS.Commands.Attributes;
 using YACCS.Localization;
 
-using static Discord.ChannelPermission;
-
 namespace Advobot.Standard.Commands;
 
 [LocalizedCategory(nameof(Channels))]
 public sealed class Channels : AdvobotModuleBase
 {
+	public const ChannelPermission ManageChannelPermissions = 0
+		| ChannelPermission.ManageChannels
+		| ChannelPermission.ManageRoles;
+
 	// On mobile this has to be done 1 by 1
 	[LocalizedCommand(nameof(Groups.ClearChannelPerms), nameof(Aliases.ClearChannelPerms))]
 	[LocalizedSummary(nameof(Summaries.ClearChannelPerms))]
@@ -25,9 +27,9 @@ public sealed class Channels : AdvobotModuleBase
 	[RequireGuildPermissions(GuildPermission.ManageChannels | GuildPermission.ManageRoles)]
 	public sealed class ClearChannelPerms : AdvobotModuleBase
 	{
-		[LocalizedCommand]
-		public async Task<AdvobotResult> Command(
-			[CanModifyChannel(ManageChannels | ManageRoles)]
+		[Command]
+		public async Task<AdvobotResult> All(
+			[CanModifyChannel(ManageChannelPermissions)]
 			IGuildChannel channel
 		)
 		{
@@ -44,36 +46,36 @@ public sealed class Channels : AdvobotModuleBase
 	[RequireGuildPermissions(GuildPermission.ManageChannels | GuildPermission.ManageRoles)]
 	public sealed class CopyChannelPerms : AdvobotModuleBase
 	{
-		[LocalizedCommand]
-		public Task<AdvobotResult> Command(
-			[CanModifyChannel(ManageChannels | ManageRoles)]
+		[Command]
+		public Task<AdvobotResult> All(
+			[CanModifyChannel(ManageChannelPermissions)]
 			IGuildChannel input,
-			[CanModifyChannel(ManageChannels | ManageRoles)]
+			[CanModifyChannel(ManageChannelPermissions)]
 			IGuildChannel output
-		) => CommandRunner(input, output, default(IGuildUser));
+		) => CopyAsync(input, output, default);
 
-		[LocalizedCommand]
-		public Task<AdvobotResult> Command(
-			[CanModifyChannel(ManageChannels | ManageRoles)]
+		[Command]
+		public Task<AdvobotResult> Role(
+			[CanModifyChannel(ManageChannelPermissions)]
 			IGuildChannel input,
-			[CanModifyChannel(ManageChannels | ManageRoles)]
+			[CanModifyChannel(ManageChannelPermissions)]
 			IGuildChannel output,
 			IRole role
-		) => CommandRunner(input, output, role);
+		) => CopyAsync(input, output, role);
 
-		[LocalizedCommand]
-		public Task<AdvobotResult> Command(
-			[CanModifyChannel(ManageChannels | ManageRoles)]
+		[Command]
+		public Task<AdvobotResult> User(
+			[CanModifyChannel(ManageChannelPermissions)]
 			IGuildChannel input,
-			[CanModifyChannel(ManageChannels | ManageRoles)]
+			[CanModifyChannel(ManageChannelPermissions)]
 			IGuildChannel output,
 			IGuildUser user
-		) => CommandRunner(input, output, user);
+		) => CopyAsync(input, output, user);
 
-		private async Task<AdvobotResult> CommandRunner(
+		private async Task<AdvobotResult> CopyAsync(
 			IGuildChannel input,
 			IGuildChannel output,
-			ISnowflakeEntity? obj
+			ISnowflakeEntity? entity
 		)
 		{
 			// Make sure channels are the same type
@@ -82,8 +84,8 @@ public sealed class Channels : AdvobotModuleBase
 				return Responses.Channels.MismatchType(input, output);
 			}
 
-			var overwrites = await input.CopyOverwritesAsync(output, obj?.Id, GetOptions()).ConfigureAwait(false);
-			return Responses.Channels.CopiedOverwrites(input, output, obj, overwrites);
+			var overwrites = await input.CopyOverwritesAsync(output, entity?.Id, GetOptions()).ConfigureAwait(false);
+			return Responses.Channels.CopiedOverwrites(input, output, entity, overwrites);
 		}
 	}
 }

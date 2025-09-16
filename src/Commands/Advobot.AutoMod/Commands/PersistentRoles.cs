@@ -11,8 +11,6 @@ using Discord;
 using YACCS.Commands.Attributes;
 using YACCS.Localization;
 
-using static Advobot.AutoMod.Responses.PersistentRoles;
-
 namespace Advobot.AutoMod.Commands;
 
 [LocalizedCategory(nameof(PersistentRoles))]
@@ -25,15 +23,15 @@ public sealed class PersistentRoles : AdvobotModuleBase
 	[RequireGuildPermissions(GuildPermission.ManageRoles)]
 	public sealed class DisplayPersistentRoles : AutoModModuleBase
 	{
-		[LocalizedCommand]
-		public async Task<AdvobotResult> Command()
+		[Command]
+		public async Task<AdvobotResult> Guild()
 		{
 			var roles = await Db.GetPersistentRolesAsync(Context.Guild.Id).ConfigureAwait(false);
 			return await DisplayAsync(roles).ConfigureAwait(false);
 		}
 
-		[LocalizedCommand]
-		public async Task<AdvobotResult> Command(IGuildUser user)
+		[Command]
+		public async Task<AdvobotResult> User(IGuildUser user)
 		{
 			var roles = await Db.GetPersistentRolesAsync(Context.Guild.Id, user.Id).ConfigureAwait(false);
 			return await DisplayAsync(roles).ConfigureAwait(false);
@@ -53,7 +51,7 @@ public sealed class PersistentRoles : AdvobotModuleBase
 			var grouped = retrieved
 				.Where(x => x.Role != null)
 				.GroupBy(x => x.User, x => x.Role);
-			return DisplayPersistentRoles(grouped);
+			return Responses.PersistentRoles.DisplayPersistentRoles(grouped);
 		}
 	}
 
@@ -80,7 +78,7 @@ public sealed class PersistentRoles : AdvobotModuleBase
 			};
 			await Db.AddPersistentRoleAsync(persistentRole).ConfigureAwait(false);
 
-			return GavePersistentRole(user, role);
+			return Responses.PersistentRoles.GavePersistentRole(user, role);
 		}
 
 		[LocalizedCommand(nameof(Groups.Remove), nameof(Aliases.Remove))]
@@ -102,7 +100,7 @@ public sealed class PersistentRoles : AdvobotModuleBase
 			};
 			await Db.DeletePersistentRoleAsync(persistentRole).ConfigureAwait(false);
 
-			return RemovedPersistentRole(user, role);
+			return Responses.PersistentRoles.RemovedPersistentRole(user, role);
 		}
 	}
 }

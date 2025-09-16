@@ -1,8 +1,10 @@
 ﻿using Advobot.Modules;
 
+using System.Reactive.Joins;
 using System.Text;
 using System.Text.RegularExpressions;
 
+using YACCS.Interactivity.Input;
 using YACCS.Preconditions;
 using YACCS.Results;
 
@@ -14,6 +16,8 @@ namespace Advobot.ParameterPreconditions.Strings;
 [AttributeUsage(AttributeTargets.Parameter, AllowMultiple = false, Inherited = true)]
 public sealed class Regex : StringLengthParameterPrecondition
 {
+	private static readonly Random _Rng = new();
+
 	/// <inheritdoc />
 	public override string StringType => "regex";
 
@@ -37,7 +41,7 @@ public sealed class Regex : StringLengthParameterPrecondition
 		System.Text.RegularExpressions.Regex regex;
 		try
 		{
-			regex = new(value);
+			regex = new(value!, RegexOptions.None, TimeSpan.FromMilliseconds(50));
 		}
 		catch (ArgumentException)
 		{
@@ -45,57 +49,42 @@ public sealed class Regex : StringLengthParameterPrecondition
 			return Result.Failure("Invalid regex provided.");
 		}
 
-		var tests = new (string Name, Func<string, bool> Test)[]
+		var tests = new (string Name, string Value)[]
 		{
-			("empty", x => IsMatch("", x)),
-			("space", x => IsMatch(" ", x)),
-			("new line", x =>  IsMatch(Environment.NewLine, x)),
-			("random", x =>
-			{
-				var randomMatchCount = 0;
-				for (var i = 0; i < 10; ++i)
-				{
-					var r = new Random();
-					var p = new StringBuilder();
-					for (var j = 0; j < r.Next(1, 100); ++j)
-					{
-						p.Append((char)r.Next(1, 10000));
-					}
-					if (IsMatch(p.ToString(), x))
-					{
-						++randomMatchCount;
-					}
-				}
-				return randomMatchCount >= 5;
-			}),
+			("empty", ""),
+			("space", " "),
+			("new line", Environment.NewLine),
+			("random", GenerateRandomString()),
 		};
 
-		foreach (var (Name, Test) in tests)
+		foreach (var (Name, Value) in tests)
 		{
-			if (Test.Invoke(value))
+			try
+			{
+				if (regex.IsMatch(Value))
+				{
+					// TODO: singleton?
+					var error = $"Invalid regex; matched {Name} when it should not have.";
+					return Result.Failure(error);
+				}
+			}
+			catch (RegexMatchTimeoutException)
 			{
 				// TODO: singleton?
-				var error = $"Invalid regex; matched {Name} when it should not have.";
+				var error = "Invalid regex; took longer than 50ms.";
 				return Result.Failure(error);
 			}
 		}
 		return CachedResults.Success;
 	}
 
-	private bool IsMatch(string input, string pattern)
+	private static string GenerateRandomString()
 	{
-		try
+		var sb = new StringBuilder();
+		for (var i = 0; i < _Rng.Next(50, 100); ++i)
 		{
-			return System.Text.RegularExpressions.Regex.IsMatch(
-				input: input,
-				pattern: pattern,
-				options: RegexOptions.None,
-				matchTimeout: TimeSpan.FromSeconds(.1)
-			);
+			sb.Append((char)_Rng.Next(1, 10000));
 		}
-		catch (RegexMatchTimeoutException)
-		{
-			return false;
-		}
+		return sb.ToString();
 	}
 }

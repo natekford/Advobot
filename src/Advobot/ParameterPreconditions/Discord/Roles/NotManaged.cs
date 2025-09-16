@@ -22,7 +22,7 @@ public sealed class NotManaged : AdvobotParameterPrecondition<IRole>
 		IGuildContext context,
 		IRole? value)
 	{
-		if (value.IsManaged)
+		if (value is { IsManaged: true })
 		{
 			// TODO: singleton
 			var error = "The role cannot be managed.";

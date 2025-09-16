@@ -11,9 +11,6 @@ using YACCS.Commands.Attributes;
 using YACCS.Commands.Building;
 using YACCS.Localization;
 
-using static Advobot.Logging.Responses.Notifications;
-using static Discord.ChannelPermission;
-
 namespace Advobot.Logging.Commands;
 
 [LocalizedCategory(nameof(Notifications))]
@@ -33,18 +30,18 @@ public sealed class Notifications : AdvobotModuleBase
 
 		[LocalizedCommand(nameof(Groups.Channel), nameof(Aliases.Channel))]
 		public async Task<AdvobotResult> Channel(
-			[CanModifyChannel(ManageChannels | ManageRoles)]
+			[CanModifyChannel(ChannelPermission.ManageChannels)]
 			ITextChannel channel)
 		{
 			await Db.UpsertNotificationChannelAsync(Event, Context.Guild.Id, channel.Id).ConfigureAwait(false);
-			return ModifiedChannel(Event, channel);
+			return Responses.Notifications.ModifiedChannel(Event, channel);
 		}
 
 		[LocalizedCommand(nameof(Groups.Content), nameof(Aliases.Content))]
 		public async Task<AdvobotResult> Content([Remainder] string? content = null)
 		{
 			await Db.UpsertNotificationContentAsync(Event, Context.Guild.Id, content).ConfigureAwait(false);
-			return ModifiedContent(Event, content);
+			return Responses.Notifications.ModifiedContent(Event, content);
 		}
 
 		[LocalizedCommand(nameof(Groups.Default), nameof(Aliases.Default))]
@@ -58,21 +55,21 @@ public sealed class Notifications : AdvobotModuleBase
 		public async Task<AdvobotResult> Disable()
 		{
 			await Db.UpsertNotificationChannelAsync(Event, Context.Guild.Id, null).ConfigureAwait(false);
-			return Disabled(Event);
+			return Responses.Notifications.Disabled(Event);
 		}
 
 		[LocalizedCommand(nameof(Groups.Embed), nameof(Aliases.Embed))]
 		public async Task<AdvobotResult> Embed(CustomEmbed? embed = null)
 		{
 			await Db.UpsertNotificationEmbedAsync(Event, Context.Guild.Id, embed).ConfigureAwait(false);
-			return ModifiedEmbed(Event, embed);
+			return Responses.Notifications.ModifiedEmbed(Event, embed);
 		}
 
 		[LocalizedCommand(nameof(Groups.Send), nameof(Aliases.Send))]
 		public async Task<AdvobotResult> Send()
 		{
 			var notification = await Db.GetAsync(Event, Context.Guild.Id).ConfigureAwait(false);
-			return SendNotification(Event, notification);
+			return Responses.Notifications.SendNotification(Event, notification);
 		}
 	}
 
@@ -89,18 +86,18 @@ public sealed class Notifications : AdvobotModuleBase
 
 		[LocalizedCommand(nameof(Groups.Channel), nameof(Aliases.Channel))]
 		public async Task<AdvobotResult> Channel(
-			[CanModifyChannel(ManageChannels | ManageRoles)]
+			[CanModifyChannel(ChannelPermission.ManageChannels)]
 			ITextChannel channel)
 		{
 			await Db.UpsertNotificationChannelAsync(Event, Context.Guild.Id, channel.Id).ConfigureAwait(false);
-			return ModifiedChannel(Event, channel);
+			return Responses.Notifications.ModifiedChannel(Event, channel);
 		}
 
 		[LocalizedCommand(nameof(Groups.Content), nameof(Aliases.Content))]
 		public async Task<AdvobotResult> Content([Remainder] string? content = null)
 		{
 			await Db.UpsertNotificationContentAsync(Event, Context.Guild.Id, content).ConfigureAwait(false);
-			return ModifiedContent(Event, content);
+			return Responses.Notifications.ModifiedContent(Event, content);
 		}
 
 		[LocalizedCommand(nameof(Groups.Default), nameof(Aliases.Default))]
@@ -114,21 +111,21 @@ public sealed class Notifications : AdvobotModuleBase
 		public async Task<AdvobotResult> Disable()
 		{
 			await Db.UpsertNotificationChannelAsync(Event, Context.Guild.Id, null).ConfigureAwait(false);
-			return Disabled(Event);
+			return Responses.Notifications.Disabled(Event);
 		}
 
 		[LocalizedCommand(nameof(Groups.Embed), nameof(Aliases.Embed))]
 		public async Task<AdvobotResult> Embed(CustomEmbed? embed = null)
 		{
 			await Db.UpsertNotificationEmbedAsync(Event, Context.Guild.Id, embed).ConfigureAwait(false);
-			return ModifiedEmbed(Event, embed);
+			return Responses.Notifications.ModifiedEmbed(Event, embed);
 		}
 
 		[LocalizedCommand(nameof(Groups.Send), nameof(Aliases.Send))]
 		public async Task<AdvobotResult> Send()
 		{
 			var notification = await Db.GetAsync(Event, Context.Guild.Id).ConfigureAwait(false);
-			return SendNotification(Event, notification);
+			return Responses.Notifications.SendNotification(Event, notification);
 		}
 	}
 }

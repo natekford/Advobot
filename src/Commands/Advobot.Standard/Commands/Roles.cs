@@ -24,7 +24,7 @@ public sealed class Roles : AdvobotModuleBase
 	public sealed class ClearRolePerms : AdvobotModuleBase
 	{
 		[Command]
-		public async Task<AdvobotResult> Command([CanModifyRole] IRole role)
+		public async Task<AdvobotResult> All([CanModifyRole] IRole role)
 		{
 			var immovable = role.Permissions.RawValue & ~Context.User.GuildPermissions.RawValue;
 			await role.ModifyAsync(x => x.Permissions = new GuildPermissions(immovable), GetOptions()).ConfigureAwait(false);
@@ -40,14 +40,14 @@ public sealed class Roles : AdvobotModuleBase
 	public sealed class CopyRolePerms : AdvobotModuleBase
 	{
 		[Command]
-		public async Task<AdvobotResult> Command(
+		public async Task<AdvobotResult> All(
 			IRole input,
 			[CanModifyRole]
 			IRole output)
 		{
-			//Perms which the user can copy from the input role
+			// Perms which the user can copy from the input role
 			var copyable = input.Permissions.RawValue & Context.User.GuildPermissions.RawValue;
-			//Output perms which can't be modified by the user
+			// Output perms which can't be modified by the user
 			var immovable = output.Permissions.RawValue & ~Context.User.GuildPermissions.RawValue;
 			var permissions = immovable | copyable;
 
@@ -65,7 +65,7 @@ public sealed class Roles : AdvobotModuleBase
 	public sealed class ModifyRolePosition : AdvobotModuleBase
 	{
 		[Command]
-		public async Task<AdvobotResult> Command(
+		public async Task<AdvobotResult> Modify(
 			[CanModifyRole]
 			IRole role,
 			[Positive]
@@ -84,8 +84,10 @@ public sealed class Roles : AdvobotModuleBase
 	public sealed class SoftDeleteRole : AdvobotModuleBase
 	{
 		[Command]
-		public async Task<AdvobotResult> Command(
-			[CanModifyRole, NotManaged, NotEveryone]
+		public async Task<AdvobotResult> Targeted(
+			[CanModifyRole]
+			[NotManaged]
+			[NotEveryone]
 			IRole role)
 		{
 			await role.DeleteAsync(GetOptions()).ConfigureAwait(false);

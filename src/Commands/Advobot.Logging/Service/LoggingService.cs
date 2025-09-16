@@ -180,8 +180,6 @@ partial class LoggingService
 				Channel = context.Channel.Id,
 				User = context.User.Id,
 				Command = result.Command.Paths[0].Join(" "),
-				// probably shouldn't put user content into logs? idk
-				//Content = context.Message.Content,
 				Elapsed = context is IElapsed elapsed
 					? elapsed.Elapsed.Milliseconds : (int?)null,
 				Error = result.InnerResult.IsSuccess ? null : result.InnerResult.Response,

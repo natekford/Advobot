@@ -10,8 +10,6 @@ using Discord;
 using YACCS.Commands.Attributes;
 using YACCS.Localization;
 
-using static Advobot.Levels.Responses.Levels;
-
 namespace Advobot.Levels.Commands;
 
 [LocalizedCategory(nameof(Levels))]
@@ -24,31 +22,27 @@ public sealed class Levels : AdvobotModuleBase
 	[Meta(IsEnabled = true)]
 	public sealed class Show : LevelModuleBase
 	{
-		[LocalizedCommand]
-		public Task<AdvobotResult> Command()
-			=> Command(new SearchArgs(Context.User.Id, Context.Guild.Id));
-
-		[LocalizedCommand]
-		public Task<AdvobotResult> Command(IGuildUser user)
-			=> Command(new SearchArgs(user.Id, Context.Guild.Id));
-
-		[LocalizedCommand]
-		public Task<AdvobotResult> Command(ulong userId)
-			=> Command(new SearchArgs(userId, Context.Guild.Id));
-
-		[LocalizedCommand]
-		public async Task<AdvobotResult> Command(SearchArgs args)
+		[Command]
+		public async Task<AdvobotResult> ShowAsync(SearchArgs args)
 		{
 			var rank = await Db.GetRankAsync(args).ConfigureAwait(false);
 			var user = await GetUserAsync(rank.UserId).ConfigureAwait(false);
 			if (rank.Experience == 0)
 			{
-				return NoXp(args, rank, user);
+				return Responses.Levels.NoXp(args, rank, user);
 			}
 
 			var level = Service.CalculateLevel(rank.Experience);
-			return Level(args, rank, level, user);
+			return Responses.Levels.Level(args, rank, level, user);
 		}
+
+		[Command]
+		public Task<AdvobotResult> User(ulong userId)
+			=> ShowAsync(new(userId, Context.Guild.Id));
+
+		[Command]
+		public Task<AdvobotResult> User(IGuildUser? user = null)
+			=> ShowAsync(new((user ?? Context.User).Id, Context.Guild.Id));
 	}
 
 	[LocalizedCommand(nameof(Groups.Top), nameof(Aliases.Top))]
@@ -59,22 +53,19 @@ public sealed class Levels : AdvobotModuleBase
 	{
 		public const int PAGE_LENGTH = 15;
 
-		private ulong ChannelId => Context.Channel.Id;
-		private ulong GuildId => Context.Guild.Id;
-
 		[LocalizedCommand(nameof(Groups.Channel), nameof(Aliases.Channel))]
 		public Task<AdvobotResult> Channel([Positive] int page = 1)
-			=> Command(new SearchArgs(guildId: GuildId, channelId: ChannelId), page);
+			=> ShowAsync(new(guildId: Context.Guild.Id, channelId: Context.Channel.Id), page);
 
 		[LocalizedCommand(nameof(Groups.Global), nameof(Aliases.Global))]
 		public Task<AdvobotResult> Global([Positive] int page = 1)
-			=> Command(new SearchArgs(), page);
+			=> ShowAsync(new(), page);
 
-		[LocalizedCommand]
+		[Command]
 		public Task<AdvobotResult> Guild([Positive] int page = 1)
-			=> Command(new SearchArgs(guildId: GuildId), page);
+			=> ShowAsync(new(guildId: Context.Guild.Id), page);
 
-		private async Task<AdvobotResult> Command(SearchArgs args, int page)
+		private async Task<AdvobotResult> ShowAsync(SearchArgs args, int page)
 		{
 			var offset = PAGE_LENGTH * (page - 1);
 			var ranks = await Db.GetRanksAsync(args, offset, PAGE_LENGTH).ConfigureAwait(false);

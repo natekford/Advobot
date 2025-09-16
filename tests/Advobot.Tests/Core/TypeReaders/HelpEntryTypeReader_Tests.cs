@@ -1,10 +1,7 @@
-﻿using Advobot.Tests.Fakes.Services.HelpEntries;
-using Advobot.Tests.TestBases;
-
+﻿#warning reenable
+/*
 namespace Advobot.Tests.Core.TypeReaders;
 
-#warning reenable
-/*
 [TestClass]
 public sealed class HelpEntryTypeReader_Tests : TypeReader_Tests<HelpEntryTypeReader>
 {

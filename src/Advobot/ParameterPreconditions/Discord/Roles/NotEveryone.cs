@@ -16,6 +16,7 @@ public sealed class NotEveryone : AdvobotParameterPrecondition<IRole>
 	/// <inheritdoc />
 	public override string Summary => "Not everyone";
 
+	/// <inheritdoc />
 	public override ValueTask<IResult> CheckAsync(
 		CommandMeta meta,
 		IGuildContext context,

@@ -33,7 +33,7 @@ public sealed partial class TwitchStream : StringLengthParameterPrecondition
 			return result;
 		}
 
-		if (GetTwitchRegex().IsMatch(value))
+		if (GetTwitchRegex().IsMatch(value ?? ""))
 		{
 			return CachedResults.Success;
 		}

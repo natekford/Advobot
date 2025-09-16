@@ -49,6 +49,7 @@ public abstract class RequirePermissions(IEnumerable<Enum> permissions)
 		return perms?.Join(" & ") ?? "";
 	}).Join(" | ");
 
+	/// <inheritdoc />
 	public override async ValueTask<IResult> CheckAsync(
 		IImmutableCommand command,
 		IGuildContext context)

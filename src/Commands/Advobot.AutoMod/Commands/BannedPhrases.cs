@@ -1,5 +1,6 @@
 ﻿using Advobot.AutoMod.Database.Models;
 using Advobot.AutoMod.ParameterPreconditions;
+using Advobot.AutoMod.Responses;
 using Advobot.AutoMod.TypeReaders;
 using Advobot.Modules;
 using Advobot.ParameterPreconditions.Strings;
@@ -9,9 +10,6 @@ using Advobot.Resources;
 
 using YACCS.Commands.Attributes;
 using YACCS.Localization;
-
-using static Advobot.AutoMod.Responses.BannedPhrases;
-using static Advobot.Resources.Responses;
 
 namespace Advobot.AutoMod.Commands;
 
@@ -24,26 +22,26 @@ public sealed class BannedPhrases : AdvobotModuleBase
 	[RequireGuildPermissions]
 	public sealed class DisplayBannedPhrases : AutoModModuleBase
 	{
-		[LocalizedCommand]
-		public Task<AdvobotResult> Command()
-			=> CommandRunner(true, true, true);
+		[Command]
+		public Task<AdvobotResult> All()
+			=> DisplayAsync(true, true, true);
 
 		[LocalizedCommand(nameof(Groups.Names), nameof(Aliases.Names))]
 		public Task<AdvobotResult> Names()
-			=> CommandRunner(false, false, true);
+			=> DisplayAsync(false, false, true);
 
 		[LocalizedCommand(nameof(Groups.Regex), nameof(Aliases.Regex))]
 		public Task<AdvobotResult> Regex()
-			=> CommandRunner(false, true, false);
+			=> DisplayAsync(false, true, false);
 
 		[LocalizedCommand(nameof(Groups.Strings), nameof(Aliases.Strings))]
 		public Task<AdvobotResult> Strings()
-			=> CommandRunner(true, false, false);
+			=> DisplayAsync(true, false, false);
 
-		private async Task<AdvobotResult> CommandRunner(bool @string, bool regex, bool name)
+		private async Task<AdvobotResult> DisplayAsync(bool @string, bool regex, bool name)
 		{
 			var phrases = await Db.GetBannedPhrasesAsync(Context.Guild.Id).ConfigureAwait(false);
-			return Display(phrases.Where(x =>
+			return Responses.BannedPhrases.Display(phrases.Where(x =>
 			{
 				return (regex && x.IsRegex)
 					|| (name && x.IsName)
@@ -73,7 +71,7 @@ public sealed class BannedPhrases : AdvobotModuleBase
 				Phrase: name,
 				PunishmentType: punishment
 			)).ConfigureAwait(false);
-			return Added(VariableName, name);
+			return Responses.BannedPhrases.Added(Phrase.Name, name);
 		}
 
 		[LocalizedCommand(nameof(Groups.ChangePunishment), nameof(Aliases.ChangePunishment))]
@@ -86,7 +84,7 @@ public sealed class BannedPhrases : AdvobotModuleBase
 			{
 				PunishmentType = punishment
 			}).ConfigureAwait(false);
-			return PunishmentChanged(VariableName, name.Phrase, punishment);
+			return Responses.BannedPhrases.PunishmentChanged(Phrase.Name, name.Phrase, punishment);
 		}
 
 		[LocalizedCommand(nameof(Groups.Remove), nameof(Aliases.Remove))]
@@ -95,7 +93,7 @@ public sealed class BannedPhrases : AdvobotModuleBase
 			BannedPhrase name)
 		{
 			await Db.DeletedBannedPhraseAsync(name).ConfigureAwait(false);
-			return Removed(VariableName, name.Phrase);
+			return Responses.BannedPhrases.Removed(Phrase.Name, name.Phrase);
 		}
 	}
 
@@ -121,7 +119,7 @@ public sealed class BannedPhrases : AdvobotModuleBase
 				Phrase: regex,
 				PunishmentType: punishment
 			)).ConfigureAwait(false);
-			return Added(VariableRegex, regex);
+			return Responses.BannedPhrases.Added(Phrase.Regex, regex);
 		}
 
 		[LocalizedCommand(nameof(Groups.ChangePunishment), nameof(Aliases.ChangePunishment))]
@@ -134,7 +132,7 @@ public sealed class BannedPhrases : AdvobotModuleBase
 			{
 				PunishmentType = punishment
 			}).ConfigureAwait(false);
-			return PunishmentChanged(VariableRegex, regex.Phrase, punishment);
+			return Responses.BannedPhrases.PunishmentChanged(Phrase.Regex, regex.Phrase, punishment);
 		}
 
 		[LocalizedCommand(nameof(Groups.Remove), nameof(Aliases.Remove))]
@@ -143,7 +141,7 @@ public sealed class BannedPhrases : AdvobotModuleBase
 			BannedPhrase regex)
 		{
 			await Db.DeletedBannedPhraseAsync(regex).ConfigureAwait(false);
-			return Removed(VariableRegex, regex.Phrase);
+			return Responses.BannedPhrases.Removed(Phrase.Regex, regex.Phrase);
 		}
 	}
 
@@ -168,7 +166,7 @@ public sealed class BannedPhrases : AdvobotModuleBase
 				Phrase: phrase,
 				PunishmentType: punishment
 			)).ConfigureAwait(false);
-			return Added(VariableString, phrase);
+			return Responses.BannedPhrases.Added(Phrase.String, phrase);
 		}
 
 		[LocalizedCommand(nameof(Groups.ChangePunishment), nameof(Aliases.ChangePunishment))]
@@ -181,7 +179,7 @@ public sealed class BannedPhrases : AdvobotModuleBase
 			{
 				PunishmentType = punishment
 			}).ConfigureAwait(false);
-			return PunishmentChanged(VariableString, phrase.Phrase, punishment);
+			return Responses.BannedPhrases.PunishmentChanged(Phrase.String, phrase.Phrase, punishment);
 		}
 
 		[LocalizedCommand(nameof(Groups.Remove), nameof(Aliases.Remove))]
@@ -190,7 +188,7 @@ public sealed class BannedPhrases : AdvobotModuleBase
 			BannedPhrase phrase)
 		{
 			await Db.DeletedBannedPhraseAsync(phrase).ConfigureAwait(false);
-			return Removed(VariableString, phrase.Phrase);
+			return Responses.BannedPhrases.Removed(Phrase.String, phrase.Phrase);
 		}
 	}
 }

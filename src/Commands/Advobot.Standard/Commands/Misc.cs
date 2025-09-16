@@ -25,7 +25,7 @@ public sealed class Misc : AdvobotModuleBase
 		public Task<AdvobotResult> Ban([Remainder] IBan ban)
 			=> Responses.Misc.InfoBan(ban);
 
-		[LocalizedCommand]
+		[Command]
 		[Hidden]
 		public Task<AdvobotResult> BanImplicit([Remainder] IBan ban)
 			=> Responses.Misc.InfoBan(ban);
@@ -40,7 +40,7 @@ public sealed class Misc : AdvobotModuleBase
 		public Task<AdvobotResult> Channel([Remainder] IGuildChannel channel)
 			=> Responses.Misc.InfoChannel(channel);
 
-		[LocalizedCommand]
+		[Command]
 		[Hidden]
 		public Task<AdvobotResult> ChannelImplicit([Remainder] IGuildChannel channel)
 			=> Responses.Misc.InfoChannel(channel);
@@ -50,12 +50,12 @@ public sealed class Misc : AdvobotModuleBase
 		public Task<AdvobotResult> Emote([Remainder] Emote emote)
 			=> Responses.Misc.InfoEmote(emote);
 
-		[LocalizedCommand]
+		[Command]
 		[Hidden]
 		public Task<AdvobotResult> EmoteImplicit([Remainder] Emote emote)
 			=> Responses.Misc.InfoEmote(emote);
 
-		[LocalizedCommand]
+		[Command]
 		[Hidden]
 		[Priority(-1)]
 		public Task<AdvobotResult> FailureImplicit([Remainder] string _)
@@ -71,7 +71,7 @@ public sealed class Misc : AdvobotModuleBase
 		public Task<AdvobotResult> Invite([Remainder] IInviteMetadata invite)
 			=> Responses.Misc.InfoInvite(invite);
 
-		[LocalizedCommand]
+		[Command]
 		[Hidden]
 		public Task<AdvobotResult> InviteImplicit([Remainder] IInviteMetadata invite)
 			=> Responses.Misc.InfoInvite(invite);
@@ -81,7 +81,7 @@ public sealed class Misc : AdvobotModuleBase
 		public Task<AdvobotResult> Role([Remainder] IRole role)
 			=> Responses.Misc.InfoRole(role);
 
-		[LocalizedCommand]
+		[Command]
 		[Hidden]
 		public Task<AdvobotResult> RoleImplicit([Remainder] IRole role)
 			=> Responses.Misc.InfoRole(role);
@@ -91,7 +91,7 @@ public sealed class Misc : AdvobotModuleBase
 		public Task<AdvobotResult> User([Remainder] IGuildUser? user = null)
 			=> Responses.Misc.InfoUser(user ?? Context.User);
 
-		[LocalizedCommand]
+		[Command]
 		[Hidden]
 		public Task<AdvobotResult> UserImplicit([Remainder] IGuildUser user)
 			=> Responses.Misc.InfoUser(user);
@@ -101,7 +101,7 @@ public sealed class Misc : AdvobotModuleBase
 		public Task<AdvobotResult> Webhook([Remainder] IWebhook webhook)
 			=> Responses.Misc.InfoWebhook(webhook);
 
-		[LocalizedCommand]
+		[Command]
 		[Hidden]
 		public Task<AdvobotResult> WebhookImplicit([Remainder] IWebhook webhook)
 			=> Responses.Misc.InfoWebhook(webhook);
@@ -117,7 +117,7 @@ public sealed class Misc : AdvobotModuleBase
 		public required IGuildSettingsService GuildSettings { get; set; }
 		public required IHelpService HelpEntries { get; set; }
 
-		[LocalizedCommand]
+		[Command]
 		[LocalizedSummary(nameof(Summaries.HelpGeneralHelp))]
 		public async Task<AdvobotResult> Command()
 		{
@@ -126,7 +126,7 @@ public sealed class Misc : AdvobotModuleBase
 			return Responses.Misc.Help(categories, prefix);
 		}
 
-		[LocalizedCommand]
+		[Command]
 		[Priority(1)]
 		[LocalizedSummary(nameof(Summaries.HelpModuleHelp))]
 		public Task<AdvobotResult> Command(
@@ -136,7 +136,7 @@ public sealed class Misc : AdvobotModuleBase
 			IImmutableCommand module
 		) => Responses.Misc.Help(module);
 
-		[LocalizedCommand]
+		[Command]
 		[Priority(1)]
 		public Task<AdvobotResult> Command(
 			[LocalizedSummary(nameof(Summaries.HelpVariableCategory))]
@@ -150,7 +150,7 @@ public sealed class Misc : AdvobotModuleBase
 			return Responses.Misc.Help(entries, category.Name);
 		}
 
-		[LocalizedCommand]
+		[Command]
 		[Priority(2)]
 		[LocalizedSummary(nameof(Summaries.HelpCommandHelp))]
 		public Task<AdvobotResult> Command(
@@ -171,7 +171,7 @@ public sealed class Misc : AdvobotModuleBase
 			return Responses.Misc.Help(module.Commands[position - 1]);
 		}
 
-		[LocalizedCommand]
+		[Command]
 		[Priority(0)]
 		[Hidden]
 		public async Task<AdvobotResult> Command(
@@ -197,7 +197,7 @@ public sealed class Misc : AdvobotModuleBase
 	public sealed class Test : AdvobotModuleBase
 	{
 		[Command]
-		public Task Command()
+		public Task Do()
 			=> Task.CompletedTask;
 	}
 }
