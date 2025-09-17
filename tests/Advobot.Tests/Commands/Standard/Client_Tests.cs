@@ -14,7 +14,7 @@ public sealed class Client_Tests : Command_Tests
 		const string INPUT = nameof(Client.DisconnectBot);
 
 		var result = await ExecuteWithResultAsync(INPUT).ConfigureAwait(false);
-		Assert.IsTrue(result.IsSuccess);
+		Assert.IsTrue(result.InnerResult.IsSuccess);
 		Assert.IsTrue(HasBeenShutdown);
 	}
 
@@ -27,7 +27,7 @@ public sealed class Client_Tests : Command_Tests
 		var input = $"{nameof(Client.ModifyBotName)} {NAME}";
 
 		var result = await ExecuteWithResultAsync(input).ConfigureAwait(false);
-		Assert.IsTrue(result.IsSuccess);
+		Assert.IsTrue(result.InnerResult.IsSuccess);
 		Assert.AreEqual(NAME, Context.Client.CurrentUser.Username);
 	}
 }

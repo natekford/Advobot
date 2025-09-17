@@ -1,5 +1,5 @@
-﻿using Advobot.Tests.TestBases;
-using Advobot.Tests.Utilities;
+﻿using Advobot.Tests.Fakes.Discord;
+using Advobot.Tests.TestBases;
 using Advobot.TypeReaders.Discord;
 
 using Discord;
@@ -9,7 +9,7 @@ namespace Advobot.Tests.Core.TypeReaders;
 [TestClass]
 public sealed class EmoteTypeReader_Tests : TypeReader_Tests<EmoteTypeReader>
 {
-	private readonly GuildEmote _Emote = new EmoteCreationArgs
+	private readonly GuildEmote _Emote = new FakeGuildEmoji
 	{
 		Id = 73UL,
 		Name = "emote name",

@@ -1,10 +1,12 @@
-﻿using Discord;
+﻿using Advobot.Tests.Utilities;
+
+using Discord;
 
 using System.Reflection;
 
-namespace Advobot.Tests.Utilities;
+namespace Advobot.Tests.Fakes.Discord;
 
-public sealed record EmoteCreationArgs
+public sealed record FakeGuildEmoji
 {
 	private static readonly ConstructorInfo _Constructor = typeof(GuildEmote)
 		.GetConstructors(BindingFlags.Instance | BindingFlags.NonPublic)

@@ -15,7 +15,7 @@ public sealed class Guilds_Tests : Command_Tests
 		const string INPUT = nameof(Guilds.LeaveGuild);
 
 		var result = await ExecuteWithResultAsync(INPUT).ConfigureAwait(false);
-		Assert.IsTrue(result.IsSuccess);
+		Assert.IsTrue(result.InnerResult.IsSuccess);
 		Assert.IsEmpty(Context.Client.FakeGuilds);
 	}
 
@@ -28,7 +28,7 @@ public sealed class Guilds_Tests : Command_Tests
 		var input = $"{nameof(Guilds.LeaveGuild)} {newGuild}";
 
 		var result = await ExecuteWithResultAsync(input).ConfigureAwait(false);
-		Assert.IsTrue(result.IsSuccess);
+		Assert.IsTrue(result.InnerResult.IsSuccess);
 		Assert.DoesNotContain(newGuild, Context.Client.FakeGuilds);
 		Assert.HasCount(1, Context.Client.FakeGuilds);
 	}

@@ -15,7 +15,7 @@ public sealed class Invites_Tests : Command_Tests
 		var input = $"{nameof(Invites.DeleteInvite)} {invite}";
 
 		var result = await ExecuteWithResultAsync(input).ConfigureAwait(false);
-		Assert.IsTrue(result.IsSuccess);
+		Assert.IsTrue(result.InnerResult.IsSuccess);
 		Assert.IsEmpty(Context.Guild.FakeInvites);
 	}
 }

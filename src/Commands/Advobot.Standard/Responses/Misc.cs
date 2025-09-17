@@ -469,8 +469,7 @@ public sealed partial class Misc : AdvobotResult
 			var channelSb = new StringBuilder()
 				.AppendHeaderAndValue(GetsTitleDefaultChannel, (await guild.GetDefaultChannelAsync().ConfigureAwait(false)).Format())
 				.AppendHeaderAndValue(GetsTitleAfkChannel, (await guild.GetAFKChannelAsync().ConfigureAwait(false)).Format())
-				.AppendHeaderAndValue(GetsTitleSystemChannel, (await guild.GetSystemChannelAsync().ConfigureAwait(false)).Format())
-				.AppendHeaderAndValue(GetsTitleEmbedChannel, (await guild.GetWidgetChannelAsync().ConfigureAwait(false)).Format());
+				.AppendHeaderAndValue(GetsTitleSystemChannel, (await guild.GetSystemChannelAsync().ConfigureAwait(false)).Format());
 			embed.TryAddField(GetsTitleChannels, channelSb.ToString(), false, out _);
 		}
 

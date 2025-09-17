@@ -14,7 +14,7 @@ public sealed class Channels_Tests : Command_Tests
 		var input = $"{nameof(Channels.ClearChannelPerms)} {Context.Channel}";
 
 		var result = await ExecuteWithResultAsync(input).ConfigureAwait(false);
-		Assert.IsTrue(result.IsSuccess);
+		Assert.IsTrue(result.InnerResult.IsSuccess);
 	}
 
 	[TestMethod]
@@ -29,7 +29,7 @@ public sealed class Channels_Tests : Command_Tests
 		Assert.IsNotEmpty(Context.Channel.PermissionOverwrites);
 
 		var result = await ExecuteWithResultAsync(input).ConfigureAwait(false);
-		Assert.IsTrue(result.IsSuccess);
+		Assert.IsTrue(result.InnerResult.IsSuccess);
 		Assert.IsEmpty(Context.Channel.PermissionOverwrites);
 	}
 
@@ -49,7 +49,7 @@ public sealed class Channels_Tests : Command_Tests
 		Assert.IsEmpty(OtherTextChannel.PermissionOverwrites);
 
 		var result = await ExecuteWithResultAsync(input).ConfigureAwait(false);
-		Assert.IsTrue(result.IsSuccess);
+		Assert.IsTrue(result.InnerResult.IsSuccess);
 		Assert.HasCount(2, OtherTextChannel.PermissionOverwrites);
 	}
 
@@ -59,7 +59,7 @@ public sealed class Channels_Tests : Command_Tests
 		var input = $"{nameof(Channels.CopyChannelPerms)} {Context.Channel} {VoiceChannel}";
 
 		var result = await ExecuteWithResultAsync(input).ConfigureAwait(false);
-		Assert.IsFalse(result.IsSuccess);
+		Assert.IsFalse(result.InnerResult.IsSuccess);
 	}
 
 	[TestMethod]
@@ -78,7 +78,7 @@ public sealed class Channels_Tests : Command_Tests
 		Assert.IsEmpty(OtherTextChannel.PermissionOverwrites);
 
 		var result = await ExecuteWithResultAsync(input).ConfigureAwait(false);
-		Assert.IsTrue(result.IsSuccess);
+		Assert.IsTrue(result.InnerResult.IsSuccess);
 		Assert.AreEqual(AdminRole.Id, OtherTextChannel.PermissionOverwrites.Single().TargetId);
 	}
 
@@ -98,7 +98,7 @@ public sealed class Channels_Tests : Command_Tests
 		Assert.IsEmpty(OtherTextChannel.PermissionOverwrites);
 
 		var result = await ExecuteWithResultAsync(input).ConfigureAwait(false);
-		Assert.IsTrue(result.IsSuccess);
+		Assert.IsTrue(result.InnerResult.IsSuccess);
 		Assert.AreEqual(Context.User.Id, OtherTextChannel.PermissionOverwrites.Single().TargetId);
 	}
 }

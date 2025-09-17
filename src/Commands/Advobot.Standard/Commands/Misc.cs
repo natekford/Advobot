@@ -58,7 +58,7 @@ public sealed class Misc : AdvobotModuleBase
 		[Command]
 		[Hidden]
 		[Priority(-1)]
-		public Task<AdvobotResult> FailureImplicit([Remainder] string _)
+		public Task<AdvobotResult> Failure([Remainder] string _)
 			=> Responses.Misc.InfoNotFound();
 
 		[LocalizedCommand(nameof(Groups.Guild), nameof(Aliases.Guild))]

@@ -2,9 +2,9 @@
 
 using System.Reflection;
 
-namespace Advobot.Tests.Utilities;
+namespace Advobot.Tests.Fakes.Discord;
 
-public sealed record GuildFeaturesCreationArgs
+public sealed record FakeGuildFeatures
 {
 	private static readonly ConstructorInfo _Constructor = typeof(GuildFeatures)
 		.GetConstructors(BindingFlags.Instance | BindingFlags.NonPublic)

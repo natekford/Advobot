@@ -1,17 +1,17 @@
 ﻿using Advobot.Tests.Fakes.Discord.Channels;
 using Advobot.Tests.Fakes.Discord.Users;
-using Advobot.Tests.Utilities;
 
 using Discord;
 using Discord.Audio;
 
 using System.Globalization;
+using System.Reflection.Metadata.Ecma335;
 
 namespace Advobot.Tests.Fakes.Discord;
 
 public sealed class FakeGuild : FakeSnowflake, IGuild
 {
-	public ulong? AFKChannelId => throw new NotImplementedException();
+	public ulong? AFKChannelId => FakeAFKChannel?.Id;
 	public int AFKTimeout => throw new NotImplementedException();
 	public ulong? ApplicationId => throw new NotImplementedException();
 	public int? ApproximateMemberCount => throw new NotImplementedException();
@@ -20,27 +20,30 @@ public sealed class FakeGuild : FakeSnowflake, IGuild
 	public bool Available => throw new NotImplementedException();
 	public string BannerId => throw new NotImplementedException();
 	public string BannerUrl => throw new NotImplementedException();
-	public ulong DefaultChannelId => throw new NotImplementedException();
-	public DefaultMessageNotifications DefaultMessageNotifications => throw new NotImplementedException();
+	public ulong DefaultChannelId => FakeDefaultChannel.Id;
+	public DefaultMessageNotifications DefaultMessageNotifications { get; set; } = DefaultMessageNotifications.MentionsOnly;
 	public string Description => throw new NotImplementedException();
 	public string DiscoverySplashId => throw new NotImplementedException();
 	public string DiscoverySplashUrl => throw new NotImplementedException();
 	public ulong? EmbedChannelId => throw new NotImplementedException();
 	public List<GuildEmote> Emotes { get; } = [];
 	public ExplicitContentFilterLevel ExplicitContentFilter => throw new NotImplementedException();
+	public FakeVoiceChannel FakeAFKChannel { get; set; }
 	public List<FakeBan> FakeBans { get; } = [];
 	public List<FakeGuildChannel> FakeChannels { get; } = [];
 	public FakeClient FakeClient { get; }
 	public FakeGuildUser FakeCurrentUser { get; }
+	public FakeTextChannel FakeDefaultChannel { get; set; }
 	public FakeRole FakeEveryoneRole { get; }
 	public List<FakeInviteMetadata> FakeInvites { get; } = [];
 	public FakeGuildUser FakeOwner { get; set; }
 	public List<FakeRole> FakeRoles { get; } = [];
+	public FakeTextChannel FakeSystemChannel { get; set; }
 	public List<FakeGuildUser> FakeUsers { get; } = [];
 	public List<FakeWebhook> FakeWebhooks { get; } = [];
-	public GuildFeatures Features { get; set; } = new GuildFeaturesCreationArgs().Build();
+	public GuildFeatures Features { get; set; } = new FakeGuildFeatures().Build();
 	public string IconId => throw new NotImplementedException();
-	public string IconUrl => throw new NotImplementedException();
+	public string IconUrl { get; set; } = "https://google.com";
 	public override ulong Id
 	{
 		get => base.Id;
@@ -62,7 +65,7 @@ public sealed class FakeGuild : FakeSnowflake, IGuild
 	public ulong MaxUploadLimit => throw new NotImplementedException();
 	public int? MaxVideoChannelUsers => throw new NotImplementedException();
 	public MfaLevel MfaLevel => throw new NotImplementedException();
-	public string Name => "Fake Guild";
+	public string Name { get; set; } = "Fake Guild";
 	public NsfwLevel NsfwLevel => throw new NotImplementedException();
 	public ulong OwnerId => FakeOwner.Id;
 	public CultureInfo PreferredCulture => throw new NotImplementedException();
@@ -82,9 +85,9 @@ public sealed class FakeGuild : FakeSnowflake, IGuild
 	public string SplashUrl => throw new NotImplementedException();
 	public IReadOnlyCollection<ICustomSticker> Stickers => throw new NotImplementedException();
 	public SystemChannelMessageDeny SystemChannelFlags => throw new NotImplementedException();
-	public ulong? SystemChannelId => throw new NotImplementedException();
+	public ulong? SystemChannelId => FakeSystemChannel?.Id;
 	public string VanityURLCode => throw new NotImplementedException();
-	public VerificationLevel VerificationLevel => throw new NotImplementedException();
+	public VerificationLevel VerificationLevel { get; set; } = VerificationLevel.Low;
 	public string VoiceRegionId => throw new NotImplementedException();
 	public ulong? WidgetChannelId => throw new NotImplementedException();
 	IReadOnlyCollection<GuildEmote> IGuild.Emotes => Emotes;
@@ -95,6 +98,7 @@ public sealed class FakeGuild : FakeSnowflake, IGuild
 	{
 		FakeClient = client;
 		FakeClient.FakeGuilds.Add(this);
+		FakeDefaultChannel = new(this);
 		// The role to go before the two created users so they can get it.
 		FakeEveryoneRole = new(this)
 		{
@@ -150,7 +154,7 @@ public sealed class FakeGuild : FakeSnowflake, IGuild
 
 	public Task<GuildEmote> CreateEmoteAsync(string name, Image image, Optional<IEnumerable<IRole>> roles = default, RequestOptions? options = null)
 	{
-		var args = new EmoteCreationArgs
+		var args = new FakeGuildEmoji
 		{
 			Name = name,
 			RoleIds = [.. roles.GetValueOrDefault([]).Select(x => x.Id)],
@@ -185,11 +189,19 @@ public sealed class FakeGuild : FakeSnowflake, IGuild
 		return Task.FromResult<IRole>(role);
 	}
 
-	public Task<IRole> CreateRoleAsync(string name, GuildPermissions? permissions = null, Color? color = null, bool isHoisted = false, bool isMentionable = false, RequestOptions? options = null)
-		=> throw new NotImplementedException();
-
 	public Task<IRole> CreateRoleAsync(string name, GuildPermissions? permissions = null, Color? color = null, bool isHoisted = false, bool isMentionable = false, RequestOptions options = null, Image? icon = null, Emoji emoji = null)
-		=> throw new NotImplementedException();
+	{
+		var role = new FakeRole(this)
+		{
+			Name = name,
+			Permissions = permissions.GetValueOrDefault(),
+			Color = color.GetValueOrDefault(),
+			IsHoisted = isHoisted,
+			IsMentionable = isMentionable,
+			Emoji = emoji,
+		};
+		return Task.FromResult<IRole>(role);
+	}
 
 	public Task<IStageChannel> CreateStageChannelAsync(string name, Action<VoiceChannelProperties> func = null, RequestOptions options = null)
 		=> throw new NotImplementedException();
@@ -246,8 +258,8 @@ public sealed class FakeGuild : FakeSnowflake, IGuild
 	public Task DownloadUsersAsync()
 		=> Task.CompletedTask;
 
-	public async Task<IVoiceChannel> GetAFKChannelAsync(CacheMode mode = CacheMode.AllowDownload, RequestOptions? options = null)
-		=> (IVoiceChannel)await GetChannelAsync(AFKChannelId ?? 0).ConfigureAwait(false);
+	public Task<IVoiceChannel> GetAFKChannelAsync(CacheMode mode = CacheMode.AllowDownload, RequestOptions? options = null)
+		=> Task.FromResult<IVoiceChannel>(FakeAFKChannel);
 
 	public Task<IApplicationCommand> GetApplicationCommandAsync(ulong id, CacheMode mode = CacheMode.AllowDownload, RequestOptions options = null)
 		=> throw new NotImplementedException();
@@ -296,7 +308,7 @@ public sealed class FakeGuild : FakeSnowflake, IGuild
 		=> Task.FromResult<IGuildUser>(FakeCurrentUser);
 
 	public Task<ITextChannel> GetDefaultChannelAsync(CacheMode mode = CacheMode.AllowDownload, RequestOptions? options = null)
-		=> throw new NotImplementedException();
+		=> Task.FromResult<ITextChannel>(FakeDefaultChannel);
 
 	public Task<GuildEmote> GetEmoteAsync(ulong id, RequestOptions? options = null)
 		=> throw new NotImplementedException();
@@ -359,13 +371,13 @@ public sealed class FakeGuild : FakeSnowflake, IGuild
 		=> throw new NotImplementedException();
 
 	public Task<ITextChannel> GetSystemChannelAsync(CacheMode mode = CacheMode.AllowDownload, RequestOptions? options = null)
-		=> throw new NotImplementedException();
+		=> Task.FromResult<ITextChannel>(FakeSystemChannel);
 
 	public Task<ITextChannel> GetTextChannelAsync(ulong id, CacheMode mode = CacheMode.AllowDownload, RequestOptions? options = null)
-		=> throw new NotImplementedException();
+		=> Task.FromResult(FakeChannels.OfType<ITextChannel>().SingleOrDefault(x => x.Id == id)!);
 
 	public Task<IReadOnlyCollection<ITextChannel>> GetTextChannelsAsync(CacheMode mode = CacheMode.AllowDownload, RequestOptions? options = null)
-		=> throw new NotImplementedException();
+		=> Task.FromResult<IReadOnlyCollection<ITextChannel>>([.. FakeChannels.OfType<ITextChannel>()]);
 
 	public Task<IThreadChannel> GetThreadChannelAsync(ulong id, CacheMode mode = CacheMode.AllowDownload, RequestOptions options = null)
 		=> throw new NotImplementedException();
@@ -383,10 +395,10 @@ public sealed class FakeGuild : FakeSnowflake, IGuild
 		=> throw new NotImplementedException();
 
 	public Task<IVoiceChannel> GetVoiceChannelAsync(ulong id, CacheMode mode = CacheMode.AllowDownload, RequestOptions? options = null)
-		=> throw new NotImplementedException();
+		=> Task.FromResult(FakeChannels.OfType<IVoiceChannel>().SingleOrDefault(x => x.Id == id)!);
 
 	public Task<IReadOnlyCollection<IVoiceChannel>> GetVoiceChannelsAsync(CacheMode mode = CacheMode.AllowDownload, RequestOptions? options = null)
-		=> throw new NotImplementedException();
+		=> Task.FromResult<IReadOnlyCollection<IVoiceChannel>>([.. FakeChannels.OfType<IVoiceChannel>()]);
 
 	public Task<IReadOnlyCollection<IVoiceRegion>> GetVoiceRegionsAsync(RequestOptions? options = null)
 		=> FakeClient.GetVoiceRegionsAsync(options);

@@ -19,7 +19,6 @@ using System.Reflection;
 using System.Threading.Channels;
 
 using YACCS.Commands;
-using YACCS.Results;
 
 namespace Advobot.Tests.TestBases;
 
@@ -49,7 +48,7 @@ public abstract class Command_Tests : TestsBase
 		await CommandService.ExecuteAsync(Context, Context.Message.Content).ConfigureAwait(false);
 	}
 
-	protected virtual async Task<IResult> ExecuteWithResultAsync(string input)
+	protected virtual async Task<CommandExecutedResult> ExecuteWithResultAsync(string input)
 	{
 		await ExecuteAsync(input).ConfigureAwait(false);
 		return await ExecutedCommands.Reader.ReadAsync(CancellationToken.None).ConfigureAwait(false);

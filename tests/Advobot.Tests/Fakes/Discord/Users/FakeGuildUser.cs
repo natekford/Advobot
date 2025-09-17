@@ -24,7 +24,7 @@ public class FakeGuildUser : FakeUser, IGuildUser
 	public bool IsStreaming { get; set; }
 	public bool IsSuppressed => false;
 	public bool IsVideoing => throw new NotImplementedException();
-	public DateTimeOffset? JoinedAt => throw new NotImplementedException();
+	public DateTimeOffset? JoinedAt { get; set; } = DateTimeOffset.UtcNow;
 	public string Nickname { get; set; }
 	public DateTimeOffset? PremiumSince => throw new NotImplementedException();
 	public DateTimeOffset? RequestToSpeakTimestamp => throw new NotImplementedException();

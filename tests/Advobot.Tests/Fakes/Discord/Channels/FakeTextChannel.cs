@@ -39,7 +39,10 @@ public sealed class FakeTextChannel(FakeGuild guild) : FakeGuildChannel(guild), 
 
 	public Task<IWebhook> CreateWebhookAsync(string name, Stream? avatar = null, RequestOptions? options = null)
 	{
-		var wh = new FakeWebhook(this, FakeGuild.FakeCurrentUser);
+		var wh = new FakeWebhook(this, FakeGuild.FakeCurrentUser)
+		{
+			Name = name,
+		};
 		FakeGuild.FakeWebhooks.Add(wh);
 		return Task.FromResult<IWebhook>(wh);
 	}

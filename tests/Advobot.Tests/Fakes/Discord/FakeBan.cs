@@ -21,4 +21,7 @@ public sealed class FakeBan : IBan
 			Id = id,
 		};
 	}
+
+	public override string ToString()
+		=> User.Id.ToString();
 }

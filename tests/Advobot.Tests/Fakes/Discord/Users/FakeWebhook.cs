@@ -4,10 +4,10 @@ using Discord;
 
 namespace Advobot.Tests.Fakes.Discord.Users;
 
-public sealed class FakeWebhook(FakeTextChannel channel, FakeUser user) : FakeSnowflake, IWebhook
+public sealed class FakeWebhook(FakeTextChannel channel, FakeUser user)
+	: FakeUser, IWebhook
 {
 	public ulong? ApplicationId => throw new NotImplementedException();
-	public string AvatarId => throw new NotImplementedException();
 	public ulong? ChannelId => FakeChannel.Id;
 	public FakeTextChannel FakeChannel { get; private set; } = channel;
 	public FakeGuild FakeGuild { get; } = channel.FakeGuild;
@@ -21,9 +21,6 @@ public sealed class FakeWebhook(FakeTextChannel channel, FakeUser user) : FakeSn
 	IGuild IWebhook.Guild => FakeGuild;
 
 	public Task DeleteAsync(RequestOptions? options = null)
-		=> throw new NotImplementedException();
-
-	public string GetAvatarUrl(ImageFormat format = ImageFormat.Auto, ushort size = 128)
 		=> throw new NotImplementedException();
 
 	public Task ModifyAsync(Action<WebhookProperties> func, RequestOptions? options = null)
