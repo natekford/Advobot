@@ -11,6 +11,7 @@ public abstract class EventProvider : StartableService
 {
 #pragma warning disable CS1591 // Missing XML comment for publicly visible type or member
 	public AsyncEvent<Func<CommandExecutedResult, Task>> CommandExecuted { get; } = new();
+	public AsyncEvent<Func<CommandScore, Task>> CommandNotExecuted { get; } = new();
 	public AsyncEvent<Func<IGuild, Task>> GuildAvailable { get; } = new();
 	public AsyncEvent<Func<IGuild, Task>> GuildJoined { get; } = new();
 	public AsyncEvent<Func<IGuild, Task>> GuildLeft { get; } = new();

@@ -90,12 +90,12 @@ public sealed class InviteCache
 
 	private async Task<IReadOnlyCollection<IInviteMetadata>?> SafeGetInvitesAsync(IGuild guild)
 	{
-		var currentUser = await guild.GetCurrentUserAsync().ConfigureAwait(false);
-		if (currentUser.GuildPermissions.ManageGuild)
+		var bot = await guild.GetCurrentUserAsync().ConfigureAwait(false);
+		if (bot.GuildPermissions.ManageGuild)
 		{
 			try
 			{
-				return await guild.GetInvitesAsync(new RequestOptions { Timeout = 250, }).ConfigureAwait(false);
+				return await guild.GetInvitesAsync(new() { Timeout = 250, }).ConfigureAwait(false);
 			}
 			catch (HttpException e) when (e.HttpCode == HttpStatusCode.InternalServerError)
 			{

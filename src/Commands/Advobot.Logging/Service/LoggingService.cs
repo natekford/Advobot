@@ -23,6 +23,8 @@ using System.Net.WebSockets;
 using System.Text;
 
 using YACCS.Commands;
+using YACCS.Commands.Models;
+using YACCS.Results;
 
 using static Advobot.Resources.Responses;
 
@@ -44,6 +46,7 @@ public sealed partial class LoggingService(
 	protected override Task StartAsyncImpl()
 	{
 		eventProvider.CommandExecuted.Add(OnCommandExecuted);
+		eventProvider.CommandNotExecuted.Add(OnCommandNotExecuted);
 		eventProvider.Log.Add(OnLog);
 		eventProvider.Ready.Add(OnReady);
 
@@ -91,6 +94,7 @@ public sealed partial class LoggingService(
 	protected override Task StopAsyncImpl()
 	{
 		eventProvider.CommandExecuted.Remove(OnCommandExecuted);
+		eventProvider.CommandNotExecuted.Remove(OnCommandNotExecuted);
 		eventProvider.Log.Remove(OnLog);
 		eventProvider.Ready.Remove(OnReady);
 
@@ -164,11 +168,11 @@ public sealed partial class LoggingService(
 /// </summary>
 partial class LoggingService
 {
-	public async Task OnCommandExecuted(CommandExecutedResult result)
+	public Task OnCommandExecuted(CommandExecutedResult result)
 	{
 		if (result.Context is not IGuildContext context)
 		{
-			return;
+			return Task.CompletedTask;
 		}
 
 		logger.LogInformation(
@@ -185,40 +189,32 @@ partial class LoggingService
 			}
 		);
 
-		if (result.InnerResult is AdvobotResult advobotResult)
+		return OnCommand(context, result.InnerResult);
+	}
+
+	public Task OnCommandNotExecuted(CommandScore score)
+	{
+		if (score.Context is not IGuildContext context
+			|| score.Command is not IImmutableCommand command)
 		{
-			await advobotResult.SendAsync(context).ConfigureAwait(false);
+			return Task.CompletedTask;
 		}
-		else if (!result.InnerResult.IsSuccess)
-		{
-			await context.Channel.SendMessageAsync(new SendMessageArgs
+
+		logger.LogInformation(
+			message: "Command not executed. {@Info}",
+			args: new
 			{
-				Content = result.InnerResult.Response,
-			}).ConfigureAwait(false);
-		}
+				Guild = context.Guild.Id,
+				Channel = context.Channel.Id,
+				User = context.User.Id,
+				Command = command.Paths[0].Join(" "),
+				Elapsed = context is IElapsed elapsed
+					? elapsed.Elapsed.Milliseconds : (int?)null,
+				Error = score.InnerResult.Response,
+			}
+		);
 
-		var ignoredChannels = await db.GetIgnoredChannelsAsync(context.Guild.Id).ConfigureAwait(false);
-		if (ignoredChannels.Contains(context.Channel.Id))
-		{
-			return;
-		}
-
-		var channels = await db.GetLogChannelsAsync(context.Guild.Id).ConfigureAwait(false);
-		var modLog = await context.Guild.GetTextChannelAsync(channels.ModLogId).ConfigureAwait(false);
-		if (modLog is null)
-		{
-			return;
-		}
-
-		await modLog.SendMessageAsync(new EmbedWrapper
-		{
-			Description = context.Message.Content,
-			Author = context.User.CreateAuthor(),
-			Footer = new()
-			{
-				Text = TitleCommandExecuted,
-			},
-		}.ToMessageArgs()).ConfigureAwait(false);
+		return OnCommand(context, score.InnerResult);
 	}
 
 	public Task OnGuildAvailable(IGuild guild)
@@ -305,6 +301,44 @@ partial class LoggingService
 			$"Prefix: {botConfig.Prefix}; " +
 			$"Launch Time: {launchDuration.TotalMilliseconds:n}ms");
 		return Task.CompletedTask;
+	}
+
+	private async Task OnCommand(IGuildContext context, IResult result)
+	{
+		if (result is AdvobotResult advobotResult)
+		{
+			await advobotResult.SendAsync(context).ConfigureAwait(false);
+		}
+		else if (!result.IsSuccess)
+		{
+			await context.Channel.SendMessageAsync(new SendMessageArgs
+			{
+				Content = result.Response,
+			}).ConfigureAwait(false);
+		}
+
+		var ignoredChannels = await db.GetIgnoredChannelsAsync(context.Guild.Id).ConfigureAwait(false);
+		if (ignoredChannels.Contains(context.Channel.Id))
+		{
+			return;
+		}
+
+		var channels = await db.GetLogChannelsAsync(context.Guild.Id).ConfigureAwait(false);
+		var modLog = await context.Guild.GetTextChannelAsync(channels.ModLogId).ConfigureAwait(false);
+		if (modLog is null)
+		{
+			return;
+		}
+
+		await modLog.SendMessageAsync(new EmbedWrapper
+		{
+			Description = context.Message.Content,
+			Author = context.User.CreateAuthor(),
+			Footer = new()
+			{
+				Text = TitleCommandExecuted,
+			},
+		}.ToMessageArgs()).ConfigureAwait(false);
 	}
 }
 

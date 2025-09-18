@@ -9,6 +9,7 @@ using YACCS.Commands;
 using YACCS.Commands.Models;
 using YACCS.Localization;
 using YACCS.Parsing;
+using YACCS.Results;
 using YACCS.Trie;
 using YACCS.TypeReaders;
 
@@ -65,8 +66,26 @@ public sealed class NaiveCommandService : CommandService
 	/// <inheritdoc />
 	protected override async Task CommandExecutedAsync(CommandExecutedResult result)
 	{
-		await _EventProvider.CommandExecuted.InvokeAsync(result).ConfigureAwait(false);
-		await base.CommandExecutedAsync(result).ConfigureAwait(false);
+		try
+		{
+			await _EventProvider.CommandExecuted.InvokeAsync(result).ConfigureAwait(false);
+		}
+		finally
+		{
+			await base.CommandExecutedAsync(result).ConfigureAwait(false);
+		}
+	}
+
+	protected override async Task CommandNotExecutedAsync(CommandScore score)
+	{
+		try
+		{
+			await _EventProvider.CommandNotExecuted.InvokeAsync(score).ConfigureAwait(false);
+		}
+		finally
+		{
+			await base.CommandNotExecutedAsync(score).ConfigureAwait(false);
+		}
 	}
 
 	private async Task PrivateInitialize()

@@ -36,7 +36,7 @@ public static class PreconditionUtils
 	/// <returns></returns>
 	public static Task<IResult> ValidateChannel(
 		this IGuildUser invoker,
-		IGuildChannel? target,
+		IGuildChannel target,
 		IEnumerable<ChannelPermission> permissions)
 	{
 		return invoker.ValidateAsync(target, (i, t) =>
@@ -73,7 +73,7 @@ public static class PreconditionUtils
 	/// <returns></returns>
 	public static Task<IResult> ValidateRole(
 		this IGuildUser invoker,
-		IRole? target)
+		IRole target)
 		=> invoker.ValidateAsync(target, CanModify);
 
 	/// <summary>
@@ -84,7 +84,7 @@ public static class PreconditionUtils
 	/// <returns></returns>
 	public static Task<IResult> ValidateUser(
 		this IGuildUser invoker,
-		IGuildUser? target)
+		IGuildUser target)
 		=> invoker.ValidateAsync(target, CanModify);
 
 	private static int GetHierarchy(this IGuildUser user)
@@ -102,7 +102,7 @@ public static class PreconditionUtils
 
 	private static async Task<IResult> ValidateAsync<T>(
 		this IGuildUser invoker,
-		T? target,
+		T target,
 		Func<IGuildUser, T, bool> permissionsCallback)
 		where T : ISnowflakeEntity
 	{
@@ -111,13 +111,11 @@ public static class PreconditionUtils
 			return Result.NullParameter;
 		}
 
-		var bot = await invoker.Guild.GetCurrentUserAsync().ConfigureAwait(false)
-			?? throw new InvalidOperationException($"Invalid bot during {typeof(T).Name} validation.");
-
 		if (!permissionsCallback(invoker, target))
 		{
 			return Result.Failure($"`{invoker.Format()}` can't modify `{target.Format()}`.");
 		}
+		var bot = await invoker.Guild.GetCurrentUserAsync().ConfigureAwait(false);
 		if (!permissionsCallback(bot, target))
 		{
 			return Result.Failure($"`{bot.Format()}` can't modify `{target.Format()}`.");
