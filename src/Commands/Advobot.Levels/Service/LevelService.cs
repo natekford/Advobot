@@ -19,7 +19,7 @@ public sealed class LevelService(
 	LevelServiceConfig config,
 	LevelDatabase db,
 	EventProvider eventProvider,
-	ITimeService time
+	TimeProvider time
 ) : StartableService
 {
 	private readonly ConcurrentDictionary<UserKey, ConcurrentQueue<MessageHash>> _Hashes = new();
@@ -57,7 +57,7 @@ public sealed class LevelService(
 			return;
 		}
 
-		var now = time.UtcNow;
+		var now = time.GetUtcNow();
 		if (_Time.TryGetValue(context.Key, out var xpLastAdded)
 			&& xpLastAdded + config.WaitDuration > now)
 		{

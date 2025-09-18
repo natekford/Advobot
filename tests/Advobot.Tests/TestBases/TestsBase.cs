@@ -51,7 +51,7 @@ public abstract class TestsBase
 		var services = new ServiceCollection()
 			.AddSingleton(Rng)
 			.AddSingleton<IDiscordClient>(client)
-			.AddSingleton<ITimeService>(Time)
+			.AddSingleton<TimeProvider>(Time)
 			.AddSingleton<IConfig>(Config)
 			.AddSingleton<IRuntimeConfig>(Config)
 			.AddSingleton<ILocalizer>(Localize.Instance)

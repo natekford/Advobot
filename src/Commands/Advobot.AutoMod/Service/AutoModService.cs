@@ -21,7 +21,7 @@ public sealed class AutoModService(
 	IDiscordClient client,
 	EventProvider eventProvider,
 	AutoModDatabase db,
-	ITimeService time,
+	TimeProvider time,
 	IPunishmentService punishmentService
 ) : StartableService
 {
@@ -230,7 +230,7 @@ public sealed class AutoModService(
 
 		var context = new AutoModMessageContext(user, channel, userMessage);
 		var settings = await db.GetAutoModSettingsAsync(context.Guild.Id).ConfigureAwait(false);
-		var ts = time.UtcNow - message.CreatedAt.UtcDateTime;
+		var ts = time.GetUtcNow() - message.CreatedAt.UtcDateTime;
 		if (!await settings.ShouldScanMessageAsync(message, ts).ConfigureAwait(false))
 		{
 			return;

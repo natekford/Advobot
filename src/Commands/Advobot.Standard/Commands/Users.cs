@@ -361,7 +361,7 @@ public sealed class Users : AdvobotModuleBase
 	public sealed class RemoveMessages : AdvobotModuleBase
 	{
 		[InjectService]
-		public required ITimeService Time { get; set; }
+		public required TimeProvider Time { get; set; }
 
 		[Command]
 		[RequireChannelPermissions(ChannelPermission.ManageMessages)]
@@ -411,7 +411,7 @@ public sealed class Users : AdvobotModuleBase
 		{
 			var deleted = await channel.DeleteMessagesAsync(new DeleteMessageArgs
 			{
-				Now = Time.UtcNow,
+				Now = Time.GetUtcNow(),
 				DeleteCount = deleteCount,
 				Options = GetOptions(),
 				FromMessage = Context.Message.Channel.Id == channel.Id

@@ -66,17 +66,17 @@ public sealed class RateLimit(TimeUnit unit, double value) : AdvobotPrecondition
 	{
 		var time = GetTime(context.Services);
 		var key = (context.Guild.Id, context.User.Id);
-		if (_Times.TryGetValue(key, out var next) && time.UtcNow < next)
+		if (_Times.TryGetValue(key, out var next) && time.GetUtcNow() < next)
 		{
 			var error = $"Command can be next used at `{next.DateTime:F}`.";
 			return new(Result.Failure(error));
 		}
 
-		_Times[key] = time.UtcNow.Add(Time);
+		_Times[key] = time.GetUtcNow().Add(Time);
 		return new(CachedResults.Success);
 	}
 
 	[GetServiceMethod]
-	private static ITimeService GetTime(IServiceProvider services)
-		=> services.GetRequiredService<ITimeService>();
+	private static TimeProvider GetTime(IServiceProvider services)
+		=> services.GetRequiredService<TimeProvider>();
 }

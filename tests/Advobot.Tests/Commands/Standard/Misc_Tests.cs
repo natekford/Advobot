@@ -167,6 +167,16 @@ public sealed class Misc_Tests : Command_Tests
 	}
 
 	[TestMethod]
+	public async Task GetUserSelf_Test()
+	{
+		var input = $"{nameof(Misc.Get)} {nameof(Misc.Get.User)}";
+
+		var result = await ExecuteWithResultAsync(input).ConfigureAwait(false);
+		Assert.IsTrue(result.InnerResult.IsSuccess);
+		Assert.AreEqual(typeof(IGuildUser), result.Command.Parameters.Single().ParameterType);
+	}
+
+	[TestMethod]
 	public async Task GetWebhook_Test()
 	{
 		var input = $"{nameof(Misc.Get)} {nameof(Misc.Get.Webhook)} {Webhook}";

@@ -18,7 +18,7 @@ public sealed class TimedPunishmentService(
 	ILogger<TimedPunishmentService> logger,
 	TimedPunishmentDatabase db,
 	IDiscordClient client,
-	ITimeService time
+	TimeProvider time
 ) : StartableService, IPunishmentService
 {
 	public async Task PunishAsync(IPunishment punishment, RequestOptions? options = null)
@@ -31,7 +31,7 @@ public sealed class TimedPunishmentService(
 				UserId = context.UserId,
 				RoleId = context.RoleId,
 				PunishmentType = context.Type,
-				EndTimeTicks = (time.UtcNow + context.Duration)?.Ticks ?? -1
+				EndTimeTicks = (time.GetUtcNow() + context.Duration)?.Ticks ?? -1
 			};
 		}
 
@@ -71,7 +71,7 @@ public sealed class TimedPunishmentService(
 		{
 			while (IsRunning)
 			{
-				var values = await db.GetExpiredPunishmentsAsync(time.UtcNow.Ticks).ConfigureAwait(false);
+				var values = await db.GetExpiredPunishmentsAsync(time.GetUtcNow().Ticks).ConfigureAwait(false);
 
 				var handled = new List<TimedPunishment>();
 				foreach (var punishment in values)

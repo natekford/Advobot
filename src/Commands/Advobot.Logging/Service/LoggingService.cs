@@ -36,7 +36,7 @@ public sealed partial class LoggingService(
 	EventProvider eventProvider,
 	IRuntimeConfig botConfig,
 	MessageQueue messageQueue,
-	ITimeService time
+	TimeProvider time
 ) : StartableService, IConfigurableService
 {
 	private readonly ConcurrentDictionary<ulong, InviteCache> _InviteCaches = new();
@@ -598,7 +598,7 @@ partial class LoggingService
 			sb.AppendHeaderAndValue(TitleInvite, invite);
 		}
 
-		var age = time.UtcNow - context.User.CreatedAt.ToUniversalTime();
+		var age = time.GetUtcNow() - context.User.CreatedAt.ToUniversalTime();
 		if (age.TotalHours < 24)
 		{
 			sb.AppendHeaderAndValue(TitleNewAccount, age.ToString("hh:mm:ss"));
@@ -632,7 +632,7 @@ partial class LoggingService
 
 		if (context.User is IGuildUser { JoinedAt: DateTimeOffset joinedAt })
 		{
-			var length = time.UtcNow - joinedAt.ToUniversalTime();
+			var length = time.GetUtcNow() - joinedAt.ToUniversalTime();
 			sb.AppendHeaderAndValue(TitleStayedFor, length.ToString("d:hh:mm:ss"));
 		}
 

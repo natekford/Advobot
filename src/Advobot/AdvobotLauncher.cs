@@ -145,7 +145,7 @@ public sealed class AdvobotLauncher
 			.AddSingleton<IReadOnlyDictionary<Type, ITypeReader>, TypeReaderRegistry>()
 			.AddSingleton<IReadOnlyDictionary<Type, string>, TypeNameRegistry>()
 			.AddSingleton<DiscordCommandService>()
-			.AddSingleton<ITimeService, NaiveTimeService>()
+			.AddSingleton<TimeProvider, NaiveTimeProvider>()
 			.AddSingleton<IPunishmentService, NaivePunishmentService>()
 			.AddSingleton<IGuildSettingsService, NaiveGuildSettingsService>();
 

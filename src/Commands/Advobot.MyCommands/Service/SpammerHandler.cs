@@ -17,7 +17,7 @@ public sealed class SpammerHandler(
 	ILogger<SpammerHandler> logger,
 	MyCommandsDatabase db,
 	EventProvider eventProvider,
-	ITimeService time
+	TimeProvider time
 ) : StartableService
 {
 	private static readonly TimeSpan _DontBanIfOlderThan = TimeSpan.FromDays(7);
@@ -54,7 +54,7 @@ public sealed class SpammerHandler(
 
 		var config = await db.GetDetectLanguageConfigAsync().ConfigureAwait(false);
 		if (config.APIKey is null
-			|| config.CooldownStart?.Day == time.UtcNow.Day)
+			|| config.CooldownStart?.Day == time.GetUtcNow().Day)
 		{
 			// If no API key set, nothing we can do
 			// If rate limited, wait until next day
@@ -78,7 +78,7 @@ public sealed class SpammerHandler(
 		{
 			await db.UpsertDetectLanguageConfigAsync(config with
 			{
-				CooldownStartTicks = time.UtcNow.Ticks,
+				CooldownStartTicks = time.GetUtcNow().Ticks,
 			}).ConfigureAwait(false);
 
 			logger.LogWarning(
