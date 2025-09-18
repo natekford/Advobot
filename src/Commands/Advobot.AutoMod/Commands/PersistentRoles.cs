@@ -16,7 +16,7 @@ namespace Advobot.AutoMod.Commands;
 [LocalizedCategory(nameof(PersistentRoles))]
 public sealed class PersistentRoles : AdvobotModuleBase
 {
-	[LocalizedCommand(nameof(Groups.DisplayPersistentRoles), nameof(Aliases.DisplayPersistentRoles))]
+	[LocalizedCommand(nameof(Names.DisplayPersistentRoles), nameof(Names.DisplayPersistentRolesAlias))]
 	[LocalizedSummary(nameof(Summaries.DisplayPersistentRoles))]
 	[Id("c4ab3f40-c245-4cd1-963b-7cd55a55d494")]
 	[Meta(IsEnabled = false)]
@@ -55,14 +55,14 @@ public sealed class PersistentRoles : AdvobotModuleBase
 		}
 	}
 
-	[LocalizedCommand(nameof(Groups.ModifyPersistentRoles), nameof(Aliases.ModifyPersistentRoles))]
+	[LocalizedCommand(nameof(Names.ModifyPersistentRoles), nameof(Names.ModifyPersistentRolesAlias))]
 	[LocalizedSummary(nameof(Summaries.ModifyPersistentRoles))]
 	[Id("b4a8b2d4-c6cc-4d6c-9671-91943e9079fc")]
 	[Meta(IsEnabled = false)]
 	[RequireGuildPermissions(GuildPermission.ManageRoles)]
 	public sealed class ModifyPersistentRoles : AutoModModuleBase
 	{
-		[LocalizedCommand(nameof(Groups.Give), nameof(Aliases.Give))]
+		[LocalizedCommand(nameof(Names.Give), nameof(Names.GiveAlias))]
 		public async Task<AdvobotResult> Give(
 			IGuildUser user,
 			[Remainder, CanModifyRole, NotEveryone, NotManaged]
@@ -81,7 +81,7 @@ public sealed class PersistentRoles : AdvobotModuleBase
 			return Responses.PersistentRoles.GavePersistentRole(user, role);
 		}
 
-		[LocalizedCommand(nameof(Groups.Remove), nameof(Aliases.Remove))]
+		[LocalizedCommand(nameof(Names.Remove), nameof(Names.RemoveAlias))]
 		public async Task<AdvobotResult> Remove(
 			IGuildUser user,
 			[Remainder, CanModifyRole, NotEveryone, NotManaged]

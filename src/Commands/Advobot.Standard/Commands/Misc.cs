@@ -14,13 +14,13 @@ namespace Advobot.Standard.Commands;
 [LocalizedCategory(nameof(Misc))]
 public sealed class Misc : AdvobotModuleBase
 {
-	[LocalizedCommand(nameof(Groups.Get), nameof(Aliases.Get))]
+	[LocalizedCommand(nameof(Names.Get), nameof(Names.GetAlias))]
 	[LocalizedSummary(nameof(Summaries.GetInfo))]
 	[Id("99dcd5e7-6bb2-49cf-b8b7-66b8e063fd18")]
 	[Meta(IsEnabled = true)]
 	public sealed class Get : AdvobotModuleBase
 	{
-		[LocalizedCommand(nameof(Groups.Ban), nameof(Aliases.Ban))]
+		[LocalizedCommand(nameof(Names.Ban), nameof(Names.BanAlias))]
 		[Priority(1)]
 		public Task<AdvobotResult> Ban([Remainder] IBan ban)
 			=> Responses.Misc.InfoBan(ban);
@@ -30,12 +30,12 @@ public sealed class Misc : AdvobotModuleBase
 		public Task<AdvobotResult> BanImplicit([Remainder] IBan ban)
 			=> Responses.Misc.InfoBan(ban);
 
-		[LocalizedCommand(nameof(Groups.Bot), nameof(Aliases.Bot))]
+		[LocalizedCommand(nameof(Names.Bot), nameof(Names.BotAlias))]
 		[Priority(1)]
 		public Task<AdvobotResult> Bot()
 			=> Responses.Misc.InfoBot(Context.Client);
 
-		[LocalizedCommand(nameof(Groups.Channel), nameof(Aliases.ChangePunishment))]
+		[LocalizedCommand(nameof(Names.Channel), nameof(Names.ChangePunishmentAlias))]
 		[Priority(1)]
 		public Task<AdvobotResult> Channel([Remainder] IGuildChannel channel)
 			=> Responses.Misc.InfoChannel(channel);
@@ -45,7 +45,7 @@ public sealed class Misc : AdvobotModuleBase
 		public Task<AdvobotResult> ChannelImplicit([Remainder] IGuildChannel channel)
 			=> Responses.Misc.InfoChannel(channel);
 
-		[LocalizedCommand(nameof(Groups.Emote), nameof(Aliases.Emote))]
+		[LocalizedCommand(nameof(Names.Emote), nameof(Names.EmoteAlias))]
 		[Priority(1)]
 		public Task<AdvobotResult> Emote([Remainder] Emote emote)
 			=> Responses.Misc.InfoEmote(emote);
@@ -61,12 +61,12 @@ public sealed class Misc : AdvobotModuleBase
 		public Task<AdvobotResult> Failure([Remainder] string _)
 			=> Responses.Misc.InfoNotFound();
 
-		[LocalizedCommand(nameof(Groups.Guild), nameof(Aliases.Guild))]
+		[LocalizedCommand(nameof(Names.Guild), nameof(Names.GuildAlias))]
 		[Priority(1)]
 		public Task<AdvobotResult> Guild()
 			=> Responses.Misc.InfoGuild(Context.Guild);
 
-		[LocalizedCommand(nameof(Groups.Invite), nameof(Aliases.Invite))]
+		[LocalizedCommand(nameof(Names.Invite), nameof(Names.InviteAlias))]
 		[Priority(1)]
 		public Task<AdvobotResult> Invite([Remainder] IInviteMetadata invite)
 			=> Responses.Misc.InfoInvite(invite);
@@ -76,7 +76,7 @@ public sealed class Misc : AdvobotModuleBase
 		public Task<AdvobotResult> InviteImplicit([Remainder] IInviteMetadata invite)
 			=> Responses.Misc.InfoInvite(invite);
 
-		[LocalizedCommand(nameof(Groups.Role), nameof(Aliases.Role))]
+		[LocalizedCommand(nameof(Names.Role), nameof(Names.RoleAlias))]
 		[Priority(1)]
 		public Task<AdvobotResult> Role([Remainder] IRole role)
 			=> Responses.Misc.InfoRole(role);
@@ -86,7 +86,7 @@ public sealed class Misc : AdvobotModuleBase
 		public Task<AdvobotResult> RoleImplicit([Remainder] IRole role)
 			=> Responses.Misc.InfoRole(role);
 
-		[LocalizedCommand(nameof(Groups.User), nameof(Aliases.User))]
+		[LocalizedCommand(nameof(Names.User), nameof(Names.UserAlias))]
 		[Priority(1)]
 		public Task<AdvobotResult> User([Remainder] IGuildUser? user = null)
 			=> Responses.Misc.InfoUser(user ?? Context.User);
@@ -96,7 +96,7 @@ public sealed class Misc : AdvobotModuleBase
 		public Task<AdvobotResult> UserImplicit([Remainder] IGuildUser user)
 			=> Responses.Misc.InfoUser(user);
 
-		[LocalizedCommand(nameof(Groups.Webhook), nameof(Aliases.Webhook))]
+		[LocalizedCommand(nameof(Names.Webhook), nameof(Names.WebhookAlias))]
 		[Priority(1)]
 		public Task<AdvobotResult> Webhook([Remainder] IWebhook webhook)
 			=> Responses.Misc.InfoWebhook(webhook);
@@ -108,7 +108,7 @@ public sealed class Misc : AdvobotModuleBase
 	}
 
 	/*
-	[LocalizedCommand(nameof(Groups.Help), nameof(Aliases.Help))]
+	[LocalizedCommand(nameof(Names.Help), nameof(Names.HelpAlias))]
 	[LocalizedSummary(nameof(Summaries.Help))]
 	[Id("0e89a6fd-5c9c-4008-a912-7c719ea7827d")]
 	[Meta(IsEnabled = true, CanToggle = false)]
@@ -189,7 +189,7 @@ public sealed class Misc : AdvobotModuleBase
 		}
 	}*/
 
-	[LocalizedCommand(nameof(Groups.Test), nameof(Aliases.Test))]
+	[LocalizedCommand(nameof(Names.Test), nameof(Names.TestAlias))]
 	[LocalizedSummary(nameof(Summaries.Test))]
 	[Id("6c0b693e-e3ac-421e-910e-3178110d791d")]
 	[Meta(IsEnabled = true)]

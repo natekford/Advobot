@@ -13,7 +13,7 @@ namespace Advobot.Standard.Commands;
 [LocalizedCategory(nameof(Nicknames))]
 public sealed class Nicknames : AdvobotModuleBase
 {
-	[LocalizedCommand(nameof(Groups.RemoveAllNickNames), nameof(Aliases.RemoveAllNickNames))]
+	[LocalizedCommand(nameof(Names.RemoveAllNickNames), nameof(Names.RemoveAllNickNamesAlias))]
 	[LocalizedSummary(nameof(Summaries.RemoveAllNickNames))]
 	[Id("d31a48de-ad5d-4f15-b216-299b8b8c66dd")]
 	[Meta(IsEnabled = true)]

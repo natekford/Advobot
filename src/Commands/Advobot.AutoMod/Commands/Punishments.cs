@@ -10,7 +10,7 @@ namespace Advobot.AutoMod.Commands;
 [LocalizedCategory(nameof(Punishments))]
 public sealed class Punishments : AdvobotModuleBase
 {
-	[LocalizedCommand(nameof(Groups.ModifyPunishments), nameof(Aliases.ModifyPunishments))]
+	[LocalizedCommand(nameof(Names.ModifyPunishments), nameof(Names.ModifyPunishmentsAlias))]
 	[LocalizedSummary(nameof(Summaries.ModifyPunishments))]
 	[Id("4b4584ae-2b60-4aff-92a1-fb2c929f3daf")]
 	[RequireGuildPermissions]

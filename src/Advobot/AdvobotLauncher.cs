@@ -1,4 +1,5 @@
-﻿using Advobot.Services;
+﻿using Advobot.Resources;
+using Advobot.Services;
 using Advobot.Services.BotConfig;
 using Advobot.Services.Commands;
 using Advobot.Services.Events;
@@ -84,6 +85,14 @@ public sealed class AdvobotLauncher
 
 	private static async Task<IServiceProvider> CreateServicesAsync(StartupConfig config)
 	{
+		Localize.Instance.Append(new ResourceManagerLocalizer(Names.ResourceManager));
+		Localize.Instance.Append(new ResourceManagerLocalizer(Parameters.ResourceManager));
+		Localize.Instance.Append(new ResourceManagerLocalizer(Responses.ResourceManager));
+		Localize.Instance.Append(new ResourceManagerLocalizer(Summaries.ResourceManager));
+
+		Localize.Instance.Append(new ResourceManagerLocalizer(BotSettingNames.ResourceManager));
+		Localize.Instance.Append(new ResourceManagerLocalizer(GuildSettingNames.ResourceManager));
+
 		var botConfig = NaiveRuntimeConfig.CreateOrLoad(config);
 		var discordClient = new DiscordShardedClient(new DiscordSocketConfig
 		{

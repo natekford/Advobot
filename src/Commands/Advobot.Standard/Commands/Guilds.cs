@@ -13,7 +13,7 @@ namespace Advobot.Standard.Commands;
 [LocalizedCategory(nameof(Guilds))]
 public sealed class Guilds : AdvobotModuleBase
 {
-	[LocalizedCommand(nameof(Groups.LeaveGuild), nameof(Aliases.LeaveGuild))]
+	[LocalizedCommand(nameof(Names.LeaveGuild), nameof(Names.LeaveGuildAlias))]
 	[LocalizedSummary(nameof(Summaries.LeaveGuild))]
 	[Id("3090730c-1377-4a56-b379-485baed393e7")]
 	[Meta(IsEnabled = true)]

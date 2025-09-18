@@ -16,7 +16,7 @@ namespace Advobot.AutoMod.Commands;
 [LocalizedCategory(nameof(SelfRoles))]
 public sealed class SelfRoles : AdvobotModuleBase
 {
-	[LocalizedCommand(nameof(Groups.AssignSelfRole), nameof(Aliases.AssignSelfRole))]
+	[LocalizedCommand(nameof(Names.AssignSelfRole), nameof(Names.AssignSelfRoleAlias))]
 	[LocalizedSummary(nameof(Summaries.AssignSelfRole))]
 	[Id("6c574af7-31a7-4733-9f10-badfe1e72f4c")]
 	public sealed class AssignSelfRole : AutoModModuleBase
@@ -49,7 +49,7 @@ public sealed class SelfRoles : AdvobotModuleBase
 		}
 	}
 
-	[LocalizedCommand(nameof(Groups.DisplaySelfRoles), nameof(Aliases.DisplaySelfRoles))]
+	[LocalizedCommand(nameof(Names.DisplaySelfRoles), nameof(Names.DisplaySelfRolesAlias))]
 	[LocalizedSummary(nameof(Summaries.DisplaySelfRoles))]
 	[Id("3e3487e0-691a-45fa-9974-9d345b5337b7")]
 	public sealed class DisplaySelfRoles : AutoModModuleBase
@@ -72,13 +72,13 @@ public sealed class SelfRoles : AdvobotModuleBase
 		}
 	}
 
-	[LocalizedCommand(nameof(Groups.ModifySelfRoles), nameof(Aliases.ModifySelfRoles))]
+	[LocalizedCommand(nameof(Names.ModifySelfRoles), nameof(Names.ModifySelfRolesAlias))]
 	[LocalizedSummary(nameof(Summaries.ModifySelfRoles))]
 	[Id("2cb8f177-dc52-404c-a7f4-a63c84d976ba")]
 	[RequireGuildPermissions]
 	public sealed class ModifySelfRoles : AutoModModuleBase
 	{
-		[LocalizedCommand(nameof(Groups.Add), nameof(Aliases.Add))]
+		[LocalizedCommand(nameof(Names.Add), nameof(Names.AddAlias))]
 		public async Task<AdvobotResult> Add(
 			[NotNegative]
 			int group,
@@ -97,14 +97,14 @@ public sealed class SelfRoles : AdvobotModuleBase
 			return Responses.SelfRoles.AddedSelfRoles(group, roles.Length);
 		}
 
-		[LocalizedCommand(nameof(Groups.ClearGroup), nameof(Aliases.ClearGroup))]
+		[LocalizedCommand(nameof(Names.ClearGroup), nameof(Names.ClearGroupAlias))]
 		public async Task<AdvobotResult> ClearGroup([NotNegative] int group)
 		{
 			var count = await Db.DeleteSelfRolesGroupAsync(Context.Guild.Id, group).ConfigureAwait(false);
 			return Responses.SelfRoles.ClearedGroup(group, count);
 		}
 
-		[LocalizedCommand(nameof(Groups.Remove), nameof(Aliases.Remove))]
+		[LocalizedCommand(nameof(Names.Remove), nameof(Names.RemoveAlias))]
 		public async Task<AdvobotResult> Remove(
 			[CanModifyRole]
 			[NotEveryone]

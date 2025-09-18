@@ -18,7 +18,7 @@ namespace Advobot.Standard.Commands;
 [LocalizedCategory(nameof(Webhooks))]
 public sealed class Webhooks : AdvobotModuleBase
 {
-	[LocalizedCommand(nameof(Groups.CreateWebhook), nameof(Aliases.CreateWebhook))]
+	[LocalizedCommand(nameof(Names.CreateWebhook), nameof(Names.CreateWebhookAlias))]
 	[LocalizedSummary(nameof(Summaries.CreateWebhook))]
 	[Id("a177bff8-5ade-4c21-8e6a-97a254c26331")]
 	[Meta(IsEnabled = true)]
@@ -41,7 +41,7 @@ public sealed class Webhooks : AdvobotModuleBase
 		}
 	}
 
-	[LocalizedCommand(nameof(Groups.SpeakThroughWebhook), nameof(Aliases.SpeakThroughWebhook))]
+	[LocalizedCommand(nameof(Names.SpeakThroughWebhook), nameof(Names.SpeakThroughWebhookAlias))]
 	[LocalizedSummary(nameof(Summaries.SpeakThroughWebhook))]
 	[Id("d830df02-b33b-4e95-88d7-8acb029506f6")]
 	[RequireGuildPermissions(GuildPermission.ManageWebhooks)]

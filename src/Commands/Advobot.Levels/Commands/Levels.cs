@@ -13,10 +13,10 @@ using YACCS.Localization;
 namespace Advobot.Levels.Commands;
 
 [LocalizedCategory(nameof(Levels))]
-[LocalizedCommand(nameof(Groups.Levels), nameof(Aliases.Levels))]
+[LocalizedCommand(nameof(Names.Levels), nameof(Names.LevelsAlias))]
 public sealed class Levels : AdvobotModuleBase
 {
-	[LocalizedCommand(nameof(Groups.Show), nameof(Aliases.Show))]
+	[LocalizedCommand(nameof(Names.Show), nameof(Names.ShowAlias))]
 	[LocalizedSummary(nameof(Summaries.LevelsShow))]
 	[Id("bebda6ba-6fbf-4278-94e0-408dcdc77d3c")]
 	[Meta(IsEnabled = true)]
@@ -45,7 +45,7 @@ public sealed class Levels : AdvobotModuleBase
 			=> ShowAsync(new((user ?? Context.User).Id, Context.Guild.Id));
 	}
 
-	[LocalizedCommand(nameof(Groups.Top), nameof(Aliases.Top))]
+	[LocalizedCommand(nameof(Names.Top), nameof(Names.TopAlias))]
 	[LocalizedSummary(nameof(Summaries.LevelsTop))]
 	[Id("649ec476-4043-48b0-9802-62a9288d007b")]
 	[Meta(IsEnabled = true)]
@@ -53,11 +53,11 @@ public sealed class Levels : AdvobotModuleBase
 	{
 		public const int PAGE_LENGTH = 15;
 
-		[LocalizedCommand(nameof(Groups.Channel), nameof(Aliases.Channel))]
+		[LocalizedCommand(nameof(Names.Channel), nameof(Names.ChannelAlias))]
 		public Task<AdvobotResult> Channel([Positive] int page = 1)
 			=> ShowAsync(new(guildId: Context.Guild.Id, channelId: Context.Channel.Id), page);
 
-		[LocalizedCommand(nameof(Groups.Global), nameof(Aliases.Global))]
+		[LocalizedCommand(nameof(Names.Global), nameof(Names.GlobalAlias))]
 		public Task<AdvobotResult> Global([Positive] int page = 1)
 			=> ShowAsync(new(), page);
 

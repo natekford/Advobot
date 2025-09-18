@@ -24,7 +24,7 @@ namespace Advobot.Standard.Commands;
 [LocalizedCategory(nameof(Users))]
 public sealed class Users : AdvobotModuleBase
 {
-	[LocalizedCommand(nameof(Groups.Ban), nameof(Aliases.Ban))]
+	[LocalizedCommand(nameof(Names.Ban), nameof(Names.BanAlias))]
 	[LocalizedSummary(nameof(Summaries.Ban))]
 	[Id("b798e679-3ca7-4af1-9544-585672ec9936")]
 	[Meta(IsEnabled = true)]
@@ -68,7 +68,7 @@ public sealed class Users : AdvobotModuleBase
 		}
 	}
 
-	[LocalizedCommand(nameof(Groups.Deafen), nameof(Aliases.Deafen))]
+	[LocalizedCommand(nameof(Names.Deafen), nameof(Names.DeafenAlias))]
 	[LocalizedSummary(nameof(Summaries.Deafen))]
 	[Id("99aa7f17-5710-41ce-ba12-291c2971c0a4")]
 	[Meta(IsEnabled = true)]
@@ -91,14 +91,14 @@ public sealed class Users : AdvobotModuleBase
 		}
 	}
 
-	[LocalizedCommand(nameof(Groups.ForAllWithRole), nameof(Aliases.ForAllWithRole))]
+	[LocalizedCommand(nameof(Names.ForAllWithRole), nameof(Names.ForAllWithRoleAlias))]
 	[LocalizedSummary(nameof(Summaries.ForAllWithRole))]
 	[Id("0dd92f6d-e4ad-4c80-82f0-da6c3e02743c")]
 	[Meta(IsEnabled = true)]
 	[RequireGuildPermissions]
 	public sealed class ForAllWithRole : MultiUserActionModuleBase
 	{
-		[LocalizedCommand(nameof(Groups.ClearNickname), nameof(Aliases.ClearNickname))]
+		[LocalizedCommand(nameof(Names.ClearNickname), nameof(Names.ClearNicknameAlias))]
 		public Task<AdvobotResult> ClearNickname(
 			IRole target,
 			bool getUnlimitedUsers = false
@@ -114,7 +114,7 @@ public sealed class Users : AdvobotModuleBase
 			});
 		}
 
-		[LocalizedCommand(nameof(Groups.GiveNickname), nameof(Aliases.GiveNickname))]
+		[LocalizedCommand(nameof(Names.GiveNickname), nameof(Names.GiveNicknameAlias))]
 		public Task<AdvobotResult> GiveNickname(
 			IRole target,
 			[Nickname]
@@ -132,7 +132,7 @@ public sealed class Users : AdvobotModuleBase
 			});
 		}
 
-		[LocalizedCommand(nameof(Groups.GiveRole), nameof(Aliases.GiveRole))]
+		[LocalizedCommand(nameof(Names.GiveRole), nameof(Names.GiveRoleAlias))]
 		public Task<AdvobotResult> GiveRole(
 			IRole target,
 			[CanModifyRole]
@@ -157,7 +157,7 @@ public sealed class Users : AdvobotModuleBase
 			});
 		}
 
-		[LocalizedCommand(nameof(Groups.TakeRole), nameof(Aliases.TakeRole))]
+		[LocalizedCommand(nameof(Names.TakeRole), nameof(Names.TakeRoleAlias))]
 		public Task<AdvobotResult> TakeRole(
 			IRole target,
 			[CanModifyRole]
@@ -193,7 +193,7 @@ public sealed class Users : AdvobotModuleBase
 		}
 	}
 
-	[LocalizedCommand(nameof(Groups.Kick), nameof(Aliases.Kick))]
+	[LocalizedCommand(nameof(Names.Kick), nameof(Names.KickAlias))]
 	[LocalizedSummary(nameof(Summaries.Kick))]
 	[Id("1d86aa7d-da06-478c-861b-a62ca279523b")]
 	[Meta(IsEnabled = true)]
@@ -216,7 +216,7 @@ public sealed class Users : AdvobotModuleBase
 		}
 	}
 
-	[LocalizedCommand(nameof(Groups.MoveUser), nameof(Aliases.MoveUser))]
+	[LocalizedCommand(nameof(Names.MoveUser), nameof(Names.MoveUserAlias))]
 	[LocalizedSummary(nameof(Summaries.MoveUser))]
 	[Id("158dca6d-fc89-43b3-a6b5-d055f6672547")]
 	[Meta(IsEnabled = true)]
@@ -241,7 +241,7 @@ public sealed class Users : AdvobotModuleBase
 		}
 	}
 
-	[LocalizedCommand(nameof(Groups.MoveUsers), nameof(Aliases.MoveUsers))]
+	[LocalizedCommand(nameof(Names.MoveUsers), nameof(Names.MoveUsersAlias))]
 	[LocalizedSummary(nameof(Summaries.MoveUsers))]
 	[Id("4e8439fa-cc29-4acb-9049-89865be825c8")]
 	[Meta(IsEnabled = true)]
@@ -270,7 +270,7 @@ public sealed class Users : AdvobotModuleBase
 		}
 	}
 
-	[LocalizedCommand(nameof(Groups.Mute), nameof(Aliases.Mute))]
+	[LocalizedCommand(nameof(Names.Mute), nameof(Names.MuteAlias))]
 	[LocalizedSummary(nameof(Summaries.Mute))]
 	[Id("b9f305d4-d343-4350-a140-c54a42af8d8d")]
 	[Meta(IsEnabled = true)]
@@ -353,7 +353,7 @@ public sealed class Users : AdvobotModuleBase
 		}
 	}
 
-	[LocalizedCommand(nameof(Groups.RemoveMessages), nameof(Aliases.RemoveMessages))]
+	[LocalizedCommand(nameof(Names.RemoveMessages), nameof(Names.RemoveMessagesAlias))]
 	[LocalizedSummary(nameof(Summaries.RemoveMessages))]
 	[Id("a4f3959e-1f56-4bf0-b377-dc98ef017906")]
 	[Meta(IsEnabled = true)]
@@ -425,7 +425,7 @@ public sealed class Users : AdvobotModuleBase
 		}
 	}
 
-	[LocalizedCommand(nameof(Groups.SoftBan), nameof(Aliases.SoftBan))]
+	[LocalizedCommand(nameof(Names.SoftBan), nameof(Names.SoftBanAlias))]
 	[LocalizedSummary(nameof(Summaries.SoftBan))]
 	[Id("a6084728-77bf-469c-af09-41e53ac021d9")]
 	[Meta(IsEnabled = true)]
@@ -458,7 +458,7 @@ public sealed class Users : AdvobotModuleBase
 		}
 	}
 
-	[LocalizedCommand(nameof(Groups.Unban), nameof(Aliases.Unban))]
+	[LocalizedCommand(nameof(Names.Unban), nameof(Names.UnbanAlias))]
 	[LocalizedSummary(nameof(Summaries.Unban))]
 	[Id("417e9dd0-306b-4d1f-8b62-0427f01f921a")]
 	[Meta(IsEnabled = true)]
@@ -480,7 +480,7 @@ public sealed class Users : AdvobotModuleBase
 		}
 	}
 
-	[LocalizedCommand(nameof(Groups.VoiceMute), nameof(Aliases.VoiceMute))]
+	[LocalizedCommand(nameof(Names.VoiceMute), nameof(Names.VoiceMuteAlias))]
 	[LocalizedSummary(nameof(Summaries.VoiceMute))]
 	[Id("a51ea911-10be-4e40-8995-a507015a7e57")]
 	[Meta(IsEnabled = true)]

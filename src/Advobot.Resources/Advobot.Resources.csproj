@@ -1,14 +1,9 @@
 <Project Sdk="Microsoft.NET.Sdk">
 	<ItemGroup>
-		<Compile Update="Aliases.Designer.cs">
+		<Compile Update="Names.Designer.cs">
 			<DesignTime>True</DesignTime>
 			<AutoGen>True</AutoGen>
-			<DependentUpon>Aliases.resx</DependentUpon>
-		</Compile>
-		<Compile Update="Groups.Designer.cs">
-			<DesignTime>True</DesignTime>
-			<AutoGen>True</AutoGen>
-			<DependentUpon>Groups.resx</DependentUpon>
+			<DependentUpon>Names.resx</DependentUpon>
 		</Compile>
 		<Compile Update="Parameters.Designer.cs">
 			<DesignTime>True</DesignTime>
@@ -37,9 +32,9 @@
 			<Generator>PublicResXFileCodeGenerator</Generator>
 			<LastGenOutput>Aliases.Designer.cs</LastGenOutput>
 		</EmbeddedResource>
-		<EmbeddedResource Update="Groups.resx">
+		<EmbeddedResource Update="Names.resx">
 			<Generator>PublicResXFileCodeGenerator</Generator>
-			<LastGenOutput>Groups.Designer.cs</LastGenOutput>
+			<LastGenOutput>Names.Designer.cs</LastGenOutput>
 		</EmbeddedResource>
 		<EmbeddedResource Update="Parameters.resx">
 			<Generator>PublicResXFileCodeGenerator</Generator>

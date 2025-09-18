@@ -20,7 +20,7 @@ public sealed class Channels : AdvobotModuleBase
 		| ChannelPermission.ManageRoles;
 
 	// On mobile this has to be done 1 by 1
-	[LocalizedCommand(nameof(Groups.ClearChannelPerms), nameof(Aliases.ClearChannelPerms))]
+	[LocalizedCommand(nameof(Names.ClearChannelPerms), nameof(Names.ClearChannelPermsAlias))]
 	[LocalizedSummary(nameof(Summaries.ClearChannelPerms))]
 	[Id("5710430c-ce62-4474-9296-071eca65c9b1")]
 	[Meta(IsEnabled = true)]
@@ -39,7 +39,7 @@ public sealed class Channels : AdvobotModuleBase
 	}
 
 	// Can copy an entire channel on mobile, but not individual overwrites
-	[LocalizedCommand(nameof(Groups.CopyChannelPerms), nameof(Aliases.CopyChannelPerms))]
+	[LocalizedCommand(nameof(Names.CopyChannelPerms), nameof(Names.CopyChannelPermsAlias))]
 	[LocalizedSummary(nameof(Summaries.CopyChannelPerms))]
 	[Id("621f61a8-f3ba-41d1-b9b8-9e2075bcfa11")]
 	[Meta(IsEnabled = true)]
