@@ -3,11 +3,9 @@ using Advobot.Settings.Database.Models;
 using Advobot.TypeReaders.Discord;
 
 using Discord;
-using Discord.Commands;
 
 using MorseCode.ITask;
 
-using YACCS.Results;
 using YACCS.TypeReaders;
 
 namespace Advobot.Settings.TypeReaders;
@@ -53,7 +51,6 @@ public class EntityTypeReader : DiscordTypeReader<CommandOverrideEntity>
 			return Success(new(context.Guild));
 		}
 
-		// TODO: singleton?
 		return TypeReaderResult<CommandOverrideEntity>.NotFound.Result;
 	}
 }

@@ -23,8 +23,6 @@ public sealed class RequireGuildOwner : AdvobotPrecondition
 		{
 			return new(Result.EmptySuccess);
 		}
-		// TODO: singleton
-		var error = "You are not the guild owner.";
-		return new(Result.Failure(error));
+		return new(Result.Failure("You are not the guild owner."));
 	}
 }

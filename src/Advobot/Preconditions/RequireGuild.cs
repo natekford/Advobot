@@ -27,8 +27,6 @@ public sealed class RequireGuild(ulong id) : AdvobotPrecondition
 		{
 			return new(Result.EmptySuccess);
 		}
-		// TODO: singleton
-		var error = $"This guild does not have the id {Id}.";
-		return new(Result.Failure(error));
+		return new(Result.Failure($"This guild does not have the id `{Id}`."));
 	}
 }

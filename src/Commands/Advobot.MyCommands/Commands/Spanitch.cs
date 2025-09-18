@@ -154,7 +154,6 @@ public sealed class Spanitch : AutoModModuleBase
 			{
 				return new(Result.EmptySuccess);
 			}
-			// TODO: singleton
 			return new(Result.Failure("one of the roles doesn't exist anymore."));
 		}
 	}

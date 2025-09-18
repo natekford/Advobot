@@ -33,12 +33,11 @@ public sealed partial class TwitchStream : StringLengthParameterPrecondition
 			return result;
 		}
 
-		if (GetTwitchRegex().IsMatch(value ?? ""))
+		if (GetTwitchRegex().IsMatch(value))
 		{
 			return Result.EmptySuccess;
 		}
-		// TODO: singleton
-		return Result.Failure("Invalid Twitch username supplied.");
+		return Result.Failure($"`{value}` is not a valid Twitch username.");
 	}
 
 	[GeneratedRegex("^[a-zA-Z0-9_]{4,25}$", RegexOptions.Compiled)]

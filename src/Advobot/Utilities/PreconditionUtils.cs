@@ -1,7 +1,6 @@
 ﻿using Discord;
 
 using YACCS.Results;
-using YACCS.TypeReaders;
 
 namespace Advobot.Utilities;
 
@@ -117,11 +116,11 @@ public static class PreconditionUtils
 
 		if (!permissionsCallback(invoker, target))
 		{
-			return Result.Failure($"{invoker.Format()} can't modify {target.Format()}.");
+			return Result.Failure($"`{invoker.Format()}` can't modify `{target.Format()}`.");
 		}
 		if (!permissionsCallback(bot, target))
 		{
-			return Result.Failure($"{bot.Format()} can't modify {target.Format()}.");
+			return Result.Failure($"`{bot.Format()}` can't modify `{target.Format()}`.");
 		}
 
 		return Result.EmptySuccess;

@@ -43,8 +43,7 @@ public sealed class Regex : StringLengthParameterPrecondition
 		}
 		catch (ArgumentException)
 		{
-			// TODO: singleton
-			return Result.Failure("Invalid regex provided.");
+			return Result.Failure($"`{value}` has invalid regex syntax.");
 		}
 
 		var tests = new (string Name, string Value)[]
@@ -61,16 +60,12 @@ public sealed class Regex : StringLengthParameterPrecondition
 			{
 				if (regex.IsMatch(Value))
 				{
-					// TODO: singleton?
-					var error = $"Invalid regex; matched {Name} when it should not have.";
-					return Result.Failure(error);
+					return Result.Failure($"`{value}` is not a good regex; matched `{Name}`.");
 				}
 			}
 			catch (RegexMatchTimeoutException)
 			{
-				// TODO: singleton?
-				var error = "Invalid regex; took longer than 50ms.";
-				return Result.Failure(error);
+				return Result.Failure($"`{value}` is not a good regex; took longer than 50ms.");
 			}
 		}
 		return Result.EmptySuccess;

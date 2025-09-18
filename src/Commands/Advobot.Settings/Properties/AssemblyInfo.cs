@@ -1,8 +1,8 @@
 ﻿using Advobot;
 using Advobot.Services;
 using Advobot.Services.GuildSettings;
-using Advobot.Settings;
 using Advobot.Settings.Database;
+using Advobot.Settings.Properties;
 using Advobot.Settings.Service;
 using Advobot.SQLite;
 
@@ -47,7 +47,7 @@ using YACCS.Plugins;
 [assembly: SettingsInstantiator(SupportedCultures = ["en-US"])]
 [assembly: InternalsVisibleTo("Advobot.Tests")]
 
-namespace Advobot.Settings;
+namespace Advobot.Settings.Properties;
 
 public sealed class SettingsInstantiator : PluginAttribute<IServiceCollection>
 {

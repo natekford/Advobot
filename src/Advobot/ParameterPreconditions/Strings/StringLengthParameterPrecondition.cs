@@ -37,7 +37,6 @@ public abstract class StringLengthParameterPrecondition(int min, int max)
 		{
 			return new(Result.EmptySuccess);
 		}
-		// TODO: singleton?
-		return new(Result.Failure($"Invalid {StringType} supplied, must have a length in `{Range}`"));
+		return new(Result.Failure($"`{value}` is an invalid {StringType}, must have a length in `{Range}`"));
 	}
 }

@@ -14,11 +14,11 @@ public sealed class PermissionsTypeReader<T>()
 
 	private static bool TryParse(string s, out T result)
 	{
-		// TODO: span?
 		s = s.Trim(_TrimChars);
 		foreach (var replaceChar in _ReplaceChars)
 		{
-			// TODO: does culture list separator matter?
+			// EnumSeparatorChar is a const char = ','
+			// so I don't think localization matters for this
 			s = s.Replace(replaceChar, ',');
 		}
 

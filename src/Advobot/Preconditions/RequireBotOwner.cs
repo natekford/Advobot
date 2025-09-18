@@ -24,7 +24,6 @@ public sealed class RequireBotOwner : AdvobotPrecondition
 		{
 			return Result.EmptySuccess;
 		}
-		// TODO: singleton?
 		return Result.Failure("You are not the bot owner.");
 	}
 }

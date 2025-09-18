@@ -1,7 +1,6 @@
 ﻿using Advobot.MyCommands.Database;
 using Advobot.Services;
 using Advobot.Services.Events;
-using Advobot.Services.Time;
 
 using DetectLanguage;
 

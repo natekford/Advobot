@@ -3,7 +3,6 @@ using Advobot.AutoMod.Database.Models;
 using Advobot.Punishments;
 using Advobot.Services;
 using Advobot.Services.Punishments;
-using Advobot.Services.Time;
 
 using Discord;
 using Discord.Net;

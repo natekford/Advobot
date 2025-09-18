@@ -1,4 +1,8 @@
 <Project Sdk="Microsoft.NET.Sdk">
+	<PropertyGroup>
+		<Deterministic>false</Deterministic>
+	</PropertyGroup>
+	
 	<ItemGroup>
 		<Compile Update="Names.Designer.cs">
 			<DesignTime>True</DesignTime>

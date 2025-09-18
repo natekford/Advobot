@@ -26,12 +26,12 @@ public sealed class CanBeMoved : AdvobotParameterPrecondition<IGuildUser>
 	protected override ValueTask<IResult> CheckNotNullAsync(
 		CommandMeta meta,
 		IGuildContext context,
-		IGuildUser? value)
+		IGuildUser value)
 	{
-		if (value?.VoiceChannel is not IVoiceChannel voiceChannel)
+		if (value.VoiceChannel is IVoiceChannel voiceChannel)
 		{
-			return new(Result.Failure("The user is not in a voice channel."));
+			return new(context.User.ValidateChannel(voiceChannel, _MoveMembers));
 		}
-		return new(context.User.ValidateChannel(voiceChannel, _MoveMembers));
+		return new(Result.Failure($"`{value.Format()}` is not in a voice channel."));
 	}
 }

@@ -5,7 +5,6 @@ using Discord;
 using Discord.Audio;
 
 using System.Globalization;
-using System.Reflection.Metadata.Ecma335;
 
 namespace Advobot.Tests.Fakes.Discord;
 

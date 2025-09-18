@@ -10,7 +10,6 @@ using Advobot.Preconditions.Permissions;
 using Advobot.Punishments;
 using Advobot.Resources;
 using Advobot.Services.GuildSettings;
-using Advobot.Services.Time;
 using Advobot.Utilities;
 
 using Discord;

@@ -1,4 +1,5 @@
 ﻿using Advobot.Modules;
+using Advobot.Utilities;
 
 using Discord;
 
@@ -22,12 +23,10 @@ public sealed class NotEveryone : AdvobotParameterPrecondition<IRole>
 		IGuildContext context,
 		IRole value)
 	{
-		if (context.Guild.EveryoneRole.Id == value.Id)
+		if (context.Guild.EveryoneRole.Id != value.Id)
 		{
-			// TODO: singleton
-			var error = "The role cannot be the everyone role.";
-			return new(Result.Failure(error));
+			return new(Result.EmptySuccess);
 		}
-		return new(Result.EmptySuccess);
+		return new(Result.Failure($"`{value.Format()}` is the everyone role."));
 	}
 }

@@ -25,7 +25,6 @@ public sealed class NotBanned : AdvobotParameterPrecondition<ulong>
 		{
 			return Result.EmptySuccess;
 		}
-		// TODO: singleton
-		return Result.Failure("User is already banned.");
+		return Result.Failure($"`{value}` is already banned.");
 	}
 }

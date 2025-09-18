@@ -5,7 +5,7 @@ using YACCS.Commands.Attributes;
 
 namespace Advobot.Logging.Database.Models;
 
-//TODO: validate lengths when parsing
+// TODO: validate lengths when parsing
 [GenerateNamedArguments]
 public record CustomEmbed(
 	[OverrideTypeReader<UriTypeReader>]

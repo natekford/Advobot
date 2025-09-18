@@ -1,4 +1,5 @@
 ﻿using Advobot.Modules;
+using Advobot.Utilities;
 
 using Discord;
 
@@ -26,7 +27,6 @@ public sealed class FromThisGuild : AdvobotParameterPrecondition<IInviteMetadata
 		{
 			return new(Result.EmptySuccess);
 		}
-		// TODO: singleton
-		return new(Result.Failure("The invite must belong to this guild."));
+		return new(Result.Failure($"`{value.Id}` does not belong to this guild."));
 	}
 }

@@ -9,7 +9,6 @@ using Advobot.Modules;
 using Advobot.Services;
 using Advobot.Services.BotConfig;
 using Advobot.Services.Events;
-using Advobot.Services.Time;
 using Advobot.Utilities;
 
 using Discord;

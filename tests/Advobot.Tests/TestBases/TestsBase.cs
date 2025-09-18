@@ -4,7 +4,6 @@ using Advobot.Logging.Database;
 using Advobot.MyCommands.Database;
 using Advobot.Services.BotConfig;
 using Advobot.Services.Events;
-using Advobot.Services.Time;
 using Advobot.Settings.Database;
 using Advobot.Tests.Fakes.Discord;
 using Advobot.Tests.Fakes.Discord.Channels;

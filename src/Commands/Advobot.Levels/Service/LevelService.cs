@@ -2,7 +2,6 @@
 using Advobot.Levels.Utilities;
 using Advobot.Services;
 using Advobot.Services.Events;
-using Advobot.Services.Time;
 
 using Discord;
 

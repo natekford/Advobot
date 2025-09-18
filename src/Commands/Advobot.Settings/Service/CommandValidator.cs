@@ -24,8 +24,7 @@ public class CommandValidator(SettingsDatabase db) : ICommandValidator
 			{
 				return Result.EmptySuccess;
 			}
-			// TODO: singleton
-			return Result.Failure("Command is disabled by default.");
+			return Result.Failure("This command is disabled by default.");
 		}
 
 		// If we can't get an id, return success since the command isn't designed to work with this
@@ -54,9 +53,7 @@ public class CommandValidator(SettingsDatabase db) : ICommandValidator
 			{
 				return Result.EmptySuccess;
 			}
-			// TODO: singleton?
-			var error = $"Command is not enabled for `{entity.Format()}`.";
-			return Result.Failure(error);
+			return Result.Failure($"`{entity.Format()}` is not allowed to execute this command.");
 		}
 		return MetaResult(meta);
 	}

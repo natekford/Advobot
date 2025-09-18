@@ -5,7 +5,6 @@ using Advobot.Punishments;
 using Advobot.Services;
 using Advobot.Services.Events;
 using Advobot.Services.Punishments;
-using Advobot.Services.Time;
 using Advobot.Utilities;
 
 using Discord;

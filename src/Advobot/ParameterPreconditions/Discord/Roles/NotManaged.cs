@@ -1,4 +1,5 @@
 ﻿using Advobot.Modules;
+using Advobot.Utilities;
 
 using Discord;
 
@@ -22,12 +23,10 @@ public sealed class NotManaged : AdvobotParameterPrecondition<IRole>
 		IGuildContext context,
 		IRole value)
 	{
-		if (value.IsManaged)
+		if (!value.IsManaged)
 		{
-			// TODO: singleton
-			var error = "The role cannot be managed.";
-			return new(Result.Failure(error));
+			return new(Result.EmptySuccess);
 		}
-		return new(Result.EmptySuccess);
+		return new(Result.Failure($"`{value.Format()}` is a managed role."));
 	}
 }

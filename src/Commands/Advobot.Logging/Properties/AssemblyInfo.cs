@@ -1,6 +1,6 @@
 ﻿using Advobot;
-using Advobot.Logging;
 using Advobot.Logging.Database;
+using Advobot.Logging.Properties;
 using Advobot.Logging.Resetters;
 using Advobot.Logging.Service;
 using Advobot.Serilog;
@@ -47,7 +47,7 @@ using YACCS.Plugins;
 [assembly: LoggingInstantiator(SupportedCultures = ["en-US"])]
 [assembly: InternalsVisibleTo("Advobot.Tests")]
 
-namespace Advobot.Logging;
+namespace Advobot.Logging.Properties;
 
 public sealed class LoggingInstantiator : PluginAttribute<IServiceCollection>
 {

@@ -4,13 +4,11 @@ using Advobot.Modules;
 using Advobot.TypeReaders.Discord;
 
 using Discord;
-using Discord.Commands;
 
 using Microsoft.Extensions.DependencyInjection;
 
 using MorseCode.ITask;
 
-using YACCS.Results;
 using YACCS.TypeReaders;
 
 namespace Advobot.AutoMod.TypeReaders;

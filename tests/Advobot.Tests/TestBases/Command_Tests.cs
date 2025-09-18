@@ -1,12 +1,18 @@
-﻿using Advobot.AutoMod.Service;
+﻿using Advobot.AutoMod.Properties;
+using Advobot.AutoMod.Service;
+using Advobot.Levels.Properties;
 using Advobot.Levels.Service;
+using Advobot.Logging.Properties;
 using Advobot.Logging.Resetters;
 using Advobot.Logging.Service;
+using Advobot.MyCommands.Properties;
 using Advobot.Services.Commands;
 using Advobot.Services.GuildSettings;
 using Advobot.Services.Punishments;
+using Advobot.Settings.Properties;
 using Advobot.Settings.Service;
 using Advobot.SQLite;
+using Advobot.Standard.Properties;
 using Advobot.Tests.Fakes.Discord;
 using Advobot.Tests.Fakes.Discord.Channels;
 using Advobot.Tests.Utilities;
@@ -26,12 +32,12 @@ public abstract class Command_Tests : TestsBase
 {
 	protected virtual FakeRole AdminRole { get; set; }
 	protected virtual List<Assembly> CommandAssemblies { get; set; } = [
-		typeof(AutoMod.AutoModInstantiator).Assembly,
-		typeof(Levels.LevelInstantiator).Assembly,
-		typeof(Logging.LoggingInstantiator).Assembly,
-		typeof(MyCommands.MyCommandsInstantiator).Assembly,
-		typeof(Settings.SettingsInstantiator).Assembly,
-		typeof(Standard.StandardInstantiator).Assembly,
+		typeof(AutoModInstantiator).Assembly,
+		typeof(LevelInstantiator).Assembly,
+		typeof(LoggingInstantiator).Assembly,
+		typeof(MyCommandsInstantiator).Assembly,
+		typeof(SettingsInstantiator).Assembly,
+		typeof(StandardInstantiator).Assembly,
 		typeof(AdvobotLauncher).Assembly,
 	];
 	protected virtual NaiveCommandService CommandService { get; set; }

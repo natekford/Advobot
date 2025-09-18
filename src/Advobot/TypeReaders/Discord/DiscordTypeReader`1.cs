@@ -1,6 +1,5 @@
 ﻿using Advobot.Modules;
 
-using YACCS.Results;
 using YACCS.TypeReaders;
 
 namespace Advobot.TypeReaders.Discord;

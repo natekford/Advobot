@@ -1,6 +1,6 @@
 ﻿using Advobot;
-using Advobot.AutoMod;
 using Advobot.AutoMod.Database;
+using Advobot.AutoMod.Properties;
 using Advobot.AutoMod.Service;
 using Advobot.Serilog;
 using Advobot.Services;
@@ -48,7 +48,7 @@ using YACCS.Plugins;
 [assembly: AutoModInstantiator(SupportedCultures = ["en-US"])]
 [assembly: InternalsVisibleTo("Advobot.Tests")]
 
-namespace Advobot.AutoMod;
+namespace Advobot.AutoMod.Properties;
 
 public sealed class AutoModInstantiator : PluginAttribute<IServiceCollection>
 {

@@ -1,18 +1,9 @@
 ﻿using Advobot;
-using Advobot.Levels.Database;
-using Advobot.Levels.Properties;
-using Advobot.Levels.Service;
-using Advobot.Serilog;
-using Advobot.SQLite;
-
-using Microsoft.Extensions.DependencyInjection;
 
 using System.Reflection;
-using System.Resources;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
-
-using YACCS.Plugins;
+using System.Resources;
 
 // General Information about an assembly is controlled through the following
 // set of attributes. Change these attribute values to modify the information
@@ -20,9 +11,9 @@ using YACCS.Plugins;
 [assembly: AssemblyCompany(Constants.ASSEMBLY_COMPANY)]
 [assembly: AssemblyConfiguration(Constants.ASSEMBLY_CONFIGURATION)]
 [assembly: AssemblyCopyright(Constants.ASSEMBLY_COPYRIGHT)]
-[assembly: AssemblyDescription("Commands for chat XP.")]
+[assembly: AssemblyDescription("Logging for Advobot.")]
 [assembly: AssemblyProduct(Constants.ASSEMBLY_PRODUCT)]
-[assembly: AssemblyTitle("Advobot.Levels")]
+[assembly: AssemblyTitle("Advobot.Serilog")]
 [assembly: NeutralResourcesLanguage(Constants.ASSEMBLY_LANGUAGE)]
 
 // Setting ComVisible to false makes the types in this assembly not visible
@@ -31,7 +22,7 @@ using YACCS.Plugins;
 [assembly: ComVisible(false)]
 
 // The following GUID is for the ID of the typelib if this project is exposed to COM
-[assembly: Guid("b90908a6-da2d-42d5-9557-9e5003ee0017")]
+[assembly: Guid("43387e05-1f5b-4b56-83ac-2b1e46c25cc1")]
 
 // Version information for an assembly consists of the following four values:
 //
@@ -41,22 +32,4 @@ using YACCS.Plugins;
 //      Revision
 //
 [assembly: AssemblyVersion(Constants.ASSEMBLY_VERSION)]
-
-// Indicates the assembly has commands in it for the bot to use
-[assembly: LevelInstantiator(SupportedCultures = ["en-US"])]
 [assembly: InternalsVisibleTo("Advobot.Tests")]
-
-namespace Advobot.Levels.Properties;
-
-public sealed class LevelInstantiator : PluginAttribute<IServiceCollection>
-{
-	public override Task AddServicesAsync(IServiceCollection services)
-	{
-		services
-			.AddSQLiteDatabase<LevelDatabase>("Levels")
-			.AddSingletonWithLogger<LevelService>("Levels")
-			.AddSingleton<LevelServiceConfig>();
-
-		return Task.CompletedTask;
-	}
-}

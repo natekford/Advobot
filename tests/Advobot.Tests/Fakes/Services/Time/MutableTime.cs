@@ -1,6 +1,4 @@
-﻿using Advobot.Services.Time;
-
-namespace Advobot.Tests.Fakes.Services.Time;
+﻿namespace Advobot.Tests.Fakes.Services.Time;
 
 public sealed class MutableTime : TimeProvider
 {

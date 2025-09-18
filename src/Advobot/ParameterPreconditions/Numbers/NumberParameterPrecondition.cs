@@ -18,7 +18,7 @@ public abstract class NumberParameterPrecondition : AdvobotParameterPrecondition
 	/// <summary>
 	/// Allowed numbers. If the range method is used this will be contain all of the values between the 2.
 	/// </summary>
-	public ValidateNumber<int> Range { get; }
+	public virtual ValidateNumber<int> Range { get; }
 	/// <inheritdoc />
 	public override string Summary => $"Valid {NumberType} ({Range})";
 
@@ -52,8 +52,7 @@ public abstract class NumberParameterPrecondition : AdvobotParameterPrecondition
 		{
 			return new(Result.EmptySuccess);
 		}
-		// TODO: singleton?
-		return new(Result.Failure($"Invalid {meta.Parameter?.ParameterName} supplied, must be in `{Range}`"));
+		return new(Result.Failure($"`{value}` is an invalid {NumberType}, must be in `{Range}`."));
 	}
 
 	/// <summary>

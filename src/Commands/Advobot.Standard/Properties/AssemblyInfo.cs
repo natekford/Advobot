@@ -1,5 +1,5 @@
 ﻿using Advobot;
-using Advobot.Standard;
+using Advobot.Standard.Properties;
 
 using System.Reflection;
 using System.Resources;
@@ -40,6 +40,6 @@ using YACCS.Plugins;
 [assembly: StandardInstantiator(SupportedCultures = ["en-US"])]
 [assembly: InternalsVisibleTo("Advobot.Tests")]
 
-namespace Advobot.Standard;
+namespace Advobot.Standard.Properties;
 
 public sealed class StandardInstantiator : PluginAttribute;

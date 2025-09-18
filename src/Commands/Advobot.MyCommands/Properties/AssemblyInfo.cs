@@ -1,6 +1,6 @@
 using Advobot;
-using Advobot.MyCommands;
 using Advobot.MyCommands.Database;
+using Advobot.MyCommands.Properties;
 using Advobot.MyCommands.Service;
 using Advobot.Serilog;
 using Advobot.SQLite;
@@ -46,7 +46,7 @@ using YACCS.Plugins;
 [assembly: MyCommandsInstantiator(SupportedCultures = ["en-US"])]
 [assembly: InternalsVisibleTo("Advobot.Tests")]
 
-namespace Advobot.MyCommands;
+namespace Advobot.MyCommands.Properties;
 
 public sealed class MyCommandsInstantiator : PluginAttribute<IServiceCollection>
 {
