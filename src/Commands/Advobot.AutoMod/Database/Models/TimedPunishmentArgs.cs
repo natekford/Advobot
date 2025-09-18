@@ -1,4 +1,5 @@
-﻿using Advobot.Punishments;
+﻿using Advobot.ParameterPreconditions.Numbers;
+using Advobot.Punishments;
 
 using YACCS.NamedArguments;
 
@@ -7,15 +8,13 @@ namespace Advobot.AutoMod.Database.Models;
 [GenerateNamedArguments]
 public sealed class TimedPunishmentArgs
 {
-	//[OverrideTypeReader(typeof(PositiveNullableIntTypeReader))]
-#warning positive precondition
+	[Positive(AllowNull = true)]
 	public int? Instances { get; set; }
 	public TimeSpan? Interval { get; set; }
 	public TimeSpan? Length { get; set; }
 	public PunishmentType? PunishmentType { get; set; }
 	public ulong? RoleId { get; set; }
-	//[OverrideTypeReader(typeof(PositiveNullableIntTypeReader))]
-#warning positive precondition
+	[Positive(AllowNull = true)]
 	public int? Size { get; set; }
 
 	public T Create<T>(TimedPrevention? original) where T : TimedPrevention, new()

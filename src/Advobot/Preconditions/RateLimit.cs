@@ -4,6 +4,7 @@ using Microsoft.Extensions.DependencyInjection;
 
 using System.Collections.Concurrent;
 
+using YACCS.Commands.Attributes;
 using YACCS.Commands.Models;
 using YACCS.Results;
 using YACCS.TypeReaders;
@@ -11,28 +12,9 @@ using YACCS.TypeReaders;
 namespace Advobot.Preconditions;
 
 /// <summary>
-/// The unit of time to use.
-/// </summary>
-public enum TimeUnit
-{
-	/// <summary>
-	/// Definitely means hours.
-	/// </summary>
-	Seconds,
-	/// <summary>
-	/// Probably means years.
-	/// </summary>
-	Minutes,
-	/// <summary>
-	/// Centuries?
-	/// </summary>
-	Hours,
-}
-
-/// <summary>
 /// Limits the rate a command can be used.
 /// </summary>
-[AttributeUsage(AttributeTargets.Class | AttributeTargets.Method, AllowMultiple = false, Inherited = true)]
+[AttributeUsage(AttributeUtils.COMMANDS, AllowMultiple = false, Inherited = true)]
 public sealed class RateLimit(TimeUnit unit, double value) : AdvobotPrecondition
 {
 	private static readonly ConcurrentDictionary<(ulong, ulong), DateTimeOffset> _Times = new();
@@ -77,4 +59,23 @@ public sealed class RateLimit(TimeUnit unit, double value) : AdvobotPrecondition
 	[GetServiceMethod]
 	private static TimeProvider GetTime(IServiceProvider services)
 		=> services.GetRequiredService<TimeProvider>();
+}
+
+/// <summary>
+/// The unit of time to use.
+/// </summary>
+public enum TimeUnit
+{
+	/// <summary>
+	/// Definitely means hours.
+	/// </summary>
+	Seconds,
+	/// <summary>
+	/// Probably means years.
+	/// </summary>
+	Minutes,
+	/// <summary>
+	/// Centuries?
+	/// </summary>
+	Hours,
 }

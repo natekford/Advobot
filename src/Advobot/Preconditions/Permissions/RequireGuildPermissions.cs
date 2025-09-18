@@ -2,6 +2,8 @@
 
 using Discord;
 
+using YACCS.Commands.Attributes;
+
 namespace Advobot.Preconditions.Permissions;
 
 /// <summary>
@@ -10,7 +12,7 @@ namespace Advobot.Preconditions.Permissions;
 /// <remarks>
 /// Admin will always be added to the list of valid permissions.
 /// </remarks>
-[AttributeUsage(AttributeTargets.Class | AttributeTargets.Method, AllowMultiple = false, Inherited = true)]
+[AttributeUsage(AttributeUtils.COMMANDS, AllowMultiple = false, Inherited = true)]
 public class RequireGuildPermissions(params GuildPermission[] permissions)
 	: RequirePermissions(permissions.Cast<Enum>().Append(_Admin))
 {

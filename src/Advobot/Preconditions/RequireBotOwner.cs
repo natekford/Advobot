@@ -1,5 +1,6 @@
 ﻿using Advobot.Modules;
 
+using YACCS.Commands.Attributes;
 using YACCS.Commands.Models;
 using YACCS.Results;
 
@@ -8,7 +9,7 @@ namespace Advobot.Preconditions;
 /// <summary>
 /// Requires bot owner before this command will execute.
 /// </summary>
-[AttributeUsage(AttributeTargets.Class | AttributeTargets.Method, AllowMultiple = false, Inherited = true)]
+[AttributeUsage(AttributeUtils.COMMANDS, AllowMultiple = false, Inherited = true)]
 public sealed class RequireBotOwner : AdvobotPrecondition
 {
 	/// <inheritdoc />

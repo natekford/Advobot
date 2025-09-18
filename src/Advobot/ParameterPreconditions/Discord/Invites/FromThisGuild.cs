@@ -1,8 +1,8 @@
 ﻿using Advobot.Modules;
-using Advobot.Utilities;
 
 using Discord;
 
+using YACCS.Commands.Attributes;
 using YACCS.Preconditions;
 using YACCS.Results;
 
@@ -11,7 +11,7 @@ namespace Advobot.ParameterPreconditions.Discord.Invites;
 /// <summary>
 /// Only allows invites from this guild.
 /// </summary>
-[AttributeUsage(AttributeTargets.Parameter, AllowMultiple = false, Inherited = true)]
+[AttributeUsage(AttributeUtils.PARAMETERS, AllowMultiple = false, Inherited = true)]
 public sealed class FromThisGuild : AdvobotParameterPrecondition<IInviteMetadata>
 {
 	/// <inheritdoc />

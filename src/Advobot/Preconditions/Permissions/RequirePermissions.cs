@@ -5,6 +5,7 @@ using Discord;
 
 using System.Collections.Immutable;
 
+using YACCS.Commands.Attributes;
 using YACCS.Commands.Models;
 using YACCS.Results;
 
@@ -14,7 +15,7 @@ namespace Advobot.Preconditions.Permissions;
 /// For verifying a user's permissions.
 /// </summary>
 /// <param name="permissions"></param>
-[AttributeUsage(AttributeTargets.Class | AttributeTargets.Method, AllowMultiple = false, Inherited = true)]
+[AttributeUsage(AttributeUtils.COMMANDS, AllowMultiple = false, Inherited = true)]
 public abstract class RequirePermissions(IEnumerable<Enum> permissions)
 	: AdvobotPrecondition
 {

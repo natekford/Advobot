@@ -77,17 +77,17 @@ public sealed class NotificationDatabase(IConnectionString<NotificationDatabase>
 		{
 			GuildId = guildId.ToString(),
 			Event = GetNotificationName(notification),
-			embed?.AuthorIconUrl,
-			embed?.AuthorName,
-			embed?.AuthorUrl,
+			AuthorIconUrl = embed?.AuthorIconUrl?.ToString(),
+			AuthorName = embed?.AuthorName,
+			AuthorUrl = embed?.AuthorUrl?.ToString(),
 			Color = embed?.Color ?? 0,
-			embed?.Description,
-			embed?.Footer,
-			embed?.FooterIconUrl,
-			embed?.ImageUrl,
-			embed?.ThumbnailUrl,
-			embed?.Title,
-			embed?.Url,
+			Description = embed?.Description,
+			Footer = embed?.Footer,
+			FooterIconUrl = embed?.FooterIconUrl?.ToString(),
+			ImageUrl = embed?.ImageUrl?.ToString(),
+			ThumbnailUrl = embed?.ThumbnailUrl?.ToString(),
+			Title = embed?.Title,
+			Url = embed?.Url?.ToString(),
 		};
 		return ModifyAsync(@"
 			INSERT OR IGNORE INTO Notification

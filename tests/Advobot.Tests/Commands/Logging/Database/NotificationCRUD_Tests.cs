@@ -37,17 +37,17 @@ public sealed class NotificationCRUD_Tests : Database_Tests<NotificationDatabase
 
 		var embed = new CustomEmbed
 		{
-			AuthorIconUrl = "https://www.google.com",
+			AuthorIconUrl = new("https://www.google.com"),
 			AuthorName = "steven",
-			AuthorUrl = "https://www.youtube.com",
+			AuthorUrl = new("https://www.youtube.com"),
 			Color = 1234,
 			Description = "le monkey",
 			Footer = "have foot",
-			FooterIconUrl = "https://www.reddit.com",
-			ImageUrl = "https://www.twitter.com",
-			ThumbnailUrl = "https://www.discordapp.com",
+			FooterIconUrl = new("https://www.reddit.com"),
+			ImageUrl = new("https://www.twitter.com"),
+			ThumbnailUrl = new("https://www.discordapp.com"),
 			Title = "title is me",
-			Url = "https://www.website.com",
+			Url = new("https://www.website.com"),
 		};
 		await Db.UpsertNotificationEmbedAsync(EVENT, GUILD_ID, embed).ConfigureAwait(false);
 		{

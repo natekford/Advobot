@@ -1,28 +1,34 @@
 ﻿using Discord;
 
+using YACCS.Commands.Attributes;
+
 namespace Advobot.Preconditions.Permissions;
 
 /// <summary>
 /// Verifies the invoker user has permissions which would allow them to use most commands.
 /// </summary>
-[AttributeUsage(AttributeTargets.Class | AttributeTargets.Method, AllowMultiple = false, Inherited = true)]
+[AttributeUsage(AttributeUtils.COMMANDS, AllowMultiple = false, Inherited = true)]
 public sealed class RequireGenericGuildPermissions : RequireGuildPermissions
 {
 	private static readonly GuildPermission[] _GenericPerms =
 	[
-		GuildPermission.KickMembers,
-		GuildPermission.BanMembers,
 		GuildPermission.Administrator,
+		GuildPermission.BanMembers,
+		GuildPermission.CreateEvents,
+		GuildPermission.CreateGuildExpressions,
+		GuildPermission.DeafenMembers,
+		GuildPermission.KickMembers,
 		GuildPermission.ManageChannels,
+		GuildPermission.ManageEmojisAndStickers,
+		GuildPermission.ManageEvents,
 		GuildPermission.ManageGuild,
 		GuildPermission.ManageMessages,
-		GuildPermission.MuteMembers,
-		GuildPermission.DeafenMembers,
-		GuildPermission.MoveMembers,
 		GuildPermission.ManageNicknames,
 		GuildPermission.ManageRoles,
+		GuildPermission.ManageThreads,
 		GuildPermission.ManageWebhooks,
-		GuildPermission.ManageEmojisAndStickers,
+		GuildPermission.MoveMembers,
+		GuildPermission.MuteMembers,
 	];
 
 	/// <inheritdoc />

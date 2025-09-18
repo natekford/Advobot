@@ -3,6 +3,7 @@ using Advobot.Utilities;
 
 using Discord;
 
+using YACCS.Commands.Attributes;
 using YACCS.Preconditions;
 using YACCS.Results;
 
@@ -11,7 +12,7 @@ namespace Advobot.ParameterPreconditions.Discord.Roles;
 /// <summary>
 /// Does not allow managed roles but does allow the everyone role.
 /// </summary>
-[AttributeUsage(AttributeTargets.Parameter, AllowMultiple = false, Inherited = true)]
+[AttributeUsage(AttributeUtils.PARAMETERS, AllowMultiple = false, Inherited = true)]
 public sealed class NotManaged : AdvobotParameterPrecondition<IRole>
 {
 	/// <inheritdoc />

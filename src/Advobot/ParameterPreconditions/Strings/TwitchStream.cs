@@ -2,6 +2,7 @@
 
 using System.Text.RegularExpressions;
 
+using YACCS.Commands.Attributes;
 using YACCS.Preconditions;
 using YACCS.Results;
 
@@ -10,16 +11,11 @@ namespace Advobot.ParameterPreconditions.Strings;
 /// <summary>
 /// Validates the Twitch stream name by making sure it is between 4 and 25 characters and matches a Regex for Twitch usernames.
 /// </summary>
-[AttributeUsage(AttributeTargets.Parameter, AllowMultiple = false, Inherited = true)]
-public sealed partial class TwitchStream : StringLengthParameterPrecondition
+[AttributeUsage(AttributeUtils.PARAMETERS, AllowMultiple = false, Inherited = true)]
+public sealed partial class TwitchStream() : StringLengthParameterPrecondition(4, 25)
 {
 	/// <inheritdoc />
 	public override string StringType => "Twitch stream name";
-
-	/// <summary>
-	/// Creates an instance of <see cref="TwitchStream"/>.
-	/// </summary>
-	public TwitchStream() : base(4, 25) { }
 
 	/// <inheritdoc />
 	protected override async ValueTask<IResult> CheckNotNullAsync(

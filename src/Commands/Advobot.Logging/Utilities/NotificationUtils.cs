@@ -19,12 +19,12 @@ public static class NotificationUtils
 			Title = custom.Title,
 			Description = custom.Description,
 			Color = new(custom.Color),
-			ImageUrl = custom.ImageUrl,
-			Url = custom.Url,
-			ThumbnailUrl = custom.ThumbnailUrl,
+			ImageUrl = custom.ImageUrl?.ToString(),
+			Url = custom.Url?.ToString(),
+			ThumbnailUrl = custom.ThumbnailUrl?.ToString(),
 		};
-		embed.TrySetAuthor(custom.AuthorName, custom.AuthorUrl, custom.AuthorIconUrl, out _);
-		embed.TrySetFooter(custom.Footer, custom.FooterIconUrl, out _);
+		embed.TrySetAuthor(custom.AuthorName, custom.AuthorUrl?.ToString(), custom.AuthorIconUrl?.ToString(), out _);
+		embed.TrySetFooter(custom.Footer, custom.FooterIconUrl?.ToString(), out _);
 
 		return embed;
 	}
@@ -34,7 +34,7 @@ public static class NotificationUtils
 		return custom.AuthorIconUrl is null
 			&& custom.AuthorName is null
 			&& custom.AuthorUrl is null
-			&& custom.Color is 0
+			&& custom.Color.RawValue is 0
 			&& custom.Description is null
 			&& custom.Footer is null
 			&& custom.FooterIconUrl is null

@@ -3,6 +3,7 @@ using Advobot.Utilities;
 
 using Discord;
 
+using YACCS.Commands.Attributes;
 using YACCS.Preconditions;
 using YACCS.Results;
 
@@ -11,7 +12,7 @@ namespace Advobot.ParameterPreconditions.Discord.Users;
 /// <summary>
 /// Validates the passed in <see cref="IGuildUser"/>.
 /// </summary>
-[AttributeUsage(AttributeTargets.Parameter, AllowMultiple = false, Inherited = true)]
+[AttributeUsage(AttributeUtils.PARAMETERS, AllowMultiple = false, Inherited = true)]
 public sealed class CanModifyUser : AdvobotParameterPrecondition<IGuildUser>
 {
 	/// <inheritdoc />

@@ -5,6 +5,7 @@ using Discord;
 
 using System.Collections.Immutable;
 
+using YACCS.Commands.Attributes;
 using YACCS.Preconditions;
 using YACCS.Results;
 
@@ -13,7 +14,7 @@ namespace Advobot.ParameterPreconditions.Discord.Channels;
 /// <summary>
 /// Validates the passed in <see cref="IGuildChannel"/>.
 /// </summary>
-[AttributeUsage(AttributeTargets.Parameter, AllowMultiple = false, Inherited = true)]
+[AttributeUsage(AttributeUtils.PARAMETERS, AllowMultiple = false, Inherited = true)]
 public sealed class CanModifyChannel(params ChannelPermission[] permissions) : AdvobotParameterPrecondition<IGuildChannel>
 {
 	/// <summary>

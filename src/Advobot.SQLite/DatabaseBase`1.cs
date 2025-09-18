@@ -32,6 +32,9 @@ public abstract class DatabaseBase<T>(IConnectionString connection)
 		// Simply removing the type map causes issues, we need to overwrite it with string
 		SqlMapper.AddTypeMap(typeof(ulong), DbType.String);
 		SqlMapper.AddTypeMap(typeof(ulong?), DbType.String);
+
+		SqlMapper.AddTypeHandler(new ColorHandler());
+		SqlMapper.AddTypeHandler(new UriHandler());
 	}
 
 	/// <summary>

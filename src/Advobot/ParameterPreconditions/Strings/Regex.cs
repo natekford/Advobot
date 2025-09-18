@@ -3,6 +3,7 @@
 using System.Text;
 using System.Text.RegularExpressions;
 
+using YACCS.Commands.Attributes;
 using YACCS.Preconditions;
 using YACCS.Results;
 
@@ -11,18 +12,13 @@ namespace Advobot.ParameterPreconditions.Strings;
 /// <summary>
 /// Validates a regex with various test cases.
 /// </summary>
-[AttributeUsage(AttributeTargets.Parameter, AllowMultiple = false, Inherited = true)]
-public sealed class Regex : StringLengthParameterPrecondition
+[AttributeUsage(AttributeUtils.PARAMETERS, AllowMultiple = false, Inherited = true)]
+public sealed class Regex() : StringLengthParameterPrecondition(1, 100)
 {
 	private static readonly Random _Rng = new();
 
 	/// <inheritdoc />
 	public override string StringType => "regex";
-
-	/// <summary>
-	/// Creates an instance of <see cref="Regex"/>.
-	/// </summary>
-	public Regex() : base(1, 100) { }
 
 	/// <inheritdoc />
 	protected override async ValueTask<IResult> CheckNotNullAsync(

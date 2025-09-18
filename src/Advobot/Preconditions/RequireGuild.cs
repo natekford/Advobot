@@ -1,5 +1,6 @@
 ﻿using Advobot.Modules;
 
+using YACCS.Commands.Attributes;
 using YACCS.Commands.Models;
 using YACCS.Results;
 
@@ -8,7 +9,7 @@ namespace Advobot.Preconditions;
 /// <summary>
 /// Specifies that the command will only work in the passed in guild.
 /// </summary>
-[AttributeUsage(AttributeTargets.Class | AttributeTargets.Method, AllowMultiple = false, Inherited = true)]
+[AttributeUsage(AttributeUtils.COMMANDS, AllowMultiple = false, Inherited = true)]
 public sealed class RequireGuild(ulong id) : AdvobotPrecondition
 {
 	/// <summary>

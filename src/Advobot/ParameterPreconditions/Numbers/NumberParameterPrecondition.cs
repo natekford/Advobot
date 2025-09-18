@@ -1,5 +1,6 @@
 ﻿using Advobot.Modules;
 
+using YACCS.Commands.Attributes;
 using YACCS.Preconditions;
 using YACCS.Results;
 
@@ -8,7 +9,7 @@ namespace Advobot.ParameterPreconditions.Numbers;
 /// <summary>
 /// Makes sure the passed in number is in the supplied list.
 /// </summary>
-[AttributeUsage(AttributeTargets.Parameter, AllowMultiple = false, Inherited = true)]
+[AttributeUsage(AttributeUtils.PARAMETERS, AllowMultiple = false, Inherited = true)]
 public abstract class NumberParameterPrecondition : AdvobotParameterPrecondition<int>
 {
 	/// <summary>
