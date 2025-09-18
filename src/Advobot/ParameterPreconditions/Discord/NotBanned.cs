@@ -15,7 +15,7 @@ public sealed class NotBanned : AdvobotParameterPrecondition<ulong>
 	public override string Summary => "Not already banned";
 
 	/// <inheritdoc />
-	public override async ValueTask<IResult> CheckAsync(
+	protected override async ValueTask<IResult> CheckNotNullAsync(
 		CommandMeta meta,
 		IGuildContext context,
 		ulong value)
@@ -23,9 +23,9 @@ public sealed class NotBanned : AdvobotParameterPrecondition<ulong>
 		var ban = await context.Guild.GetBanAsync(value).ConfigureAwait(false);
 		if (ban is null)
 		{
-			return CachedResults.Success;
+			return Result.EmptySuccess;
 		}
 		// TODO: singleton
-		return Result.Failure($"User is already banned.");
+		return Result.Failure("User is already banned.");
 	}
 }

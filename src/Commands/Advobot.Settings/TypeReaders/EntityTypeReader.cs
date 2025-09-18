@@ -3,6 +3,7 @@ using Advobot.Settings.Database.Models;
 using Advobot.TypeReaders.Discord;
 
 using Discord;
+using Discord.Commands;
 
 using MorseCode.ITask;
 
@@ -53,6 +54,6 @@ public class EntityTypeReader : DiscordTypeReader<CommandOverrideEntity>
 		}
 
 		// TODO: singleton?
-		return CachedResults<CommandOverrideEntity>.NotFound.Result;
+		return TypeReaderResult<CommandOverrideEntity>.NotFound.Result;
 	}
 }

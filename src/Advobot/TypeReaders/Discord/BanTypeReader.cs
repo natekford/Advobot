@@ -30,6 +30,6 @@ public sealed class BanTypeReader : DiscordTypeReader<IBan>
 			}
 		}
 
-		return CachedResults<IBan>.ParseFailed.Result;
+		return TypeReaderResult<IBan>.ParseFailed.Result;
 	}
 }

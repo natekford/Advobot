@@ -17,17 +17,17 @@ public sealed class NotManaged : AdvobotParameterPrecondition<IRole>
 	public override string Summary => "Not managed";
 
 	/// <inheritdoc />
-	public override ValueTask<IResult> CheckAsync(
+	protected override ValueTask<IResult> CheckNotNullAsync(
 		CommandMeta meta,
 		IGuildContext context,
-		IRole? value)
+		IRole value)
 	{
-		if (value is { IsManaged: true })
+		if (value.IsManaged)
 		{
 			// TODO: singleton
 			var error = "The role cannot be managed.";
 			return new(Result.Failure(error));
 		}
-		return new(CachedResults.Success);
+		return new(Result.EmptySuccess);
 	}
 }

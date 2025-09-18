@@ -4,6 +4,7 @@ using Advobot.Modules;
 using Advobot.TypeReaders.Discord;
 
 using Discord;
+using Discord.Commands;
 
 using Microsoft.Extensions.DependencyInjection;
 
@@ -30,14 +31,14 @@ public sealed class SelfRoleStateTypeReader : DiscordTypeReader<SelfRoleState>
 		}
 		if (result.Value is not IRole role)
 		{
-			return CachedResults<SelfRoleState>.ParseFailed.Result;
+			return TypeReaderResult<SelfRoleState>.ParseFailed.Result;
 		}
 
 		var db = GetDatabase(context.Services);
 		var selfRole = await db.GetSelfRoleAsync(role.Id).ConfigureAwait(false);
 		if (selfRole is null)
 		{
-			return CachedResults<SelfRoleState>.NotFound.Result;
+			return TypeReaderResult<SelfRoleState>.NotFound.Result;
 		}
 
 		IReadOnlyList<IRole> conflicting = [];

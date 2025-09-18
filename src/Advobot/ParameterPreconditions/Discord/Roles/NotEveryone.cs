@@ -17,17 +17,17 @@ public sealed class NotEveryone : AdvobotParameterPrecondition<IRole>
 	public override string Summary => "Not everyone";
 
 	/// <inheritdoc />
-	public override ValueTask<IResult> CheckAsync(
+	protected override ValueTask<IResult> CheckNotNullAsync(
 		CommandMeta meta,
 		IGuildContext context,
-		IRole? value)
+		IRole value)
 	{
-		if (context.Guild.EveryoneRole.Id == value?.Id)
+		if (context.Guild.EveryoneRole.Id == value.Id)
 		{
 			// TODO: singleton
 			var error = "The role cannot be the everyone role.";
 			return new(Result.Failure(error));
 		}
-		return new(CachedResults.Success);
+		return new(Result.EmptySuccess);
 	}
 }

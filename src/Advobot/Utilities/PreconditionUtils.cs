@@ -1,6 +1,7 @@
 ﻿using Discord;
 
 using YACCS.Results;
+using YACCS.TypeReaders;
 
 namespace Advobot.Utilities;
 
@@ -108,7 +109,7 @@ public static class PreconditionUtils
 	{
 		if (target is null)
 		{
-			return CachedResults<T>.NotFound.Result.InnerResult;
+			return Result.NullParameter;
 		}
 
 		var bot = await invoker.Guild.GetCurrentUserAsync().ConfigureAwait(false)
@@ -123,6 +124,6 @@ public static class PreconditionUtils
 			return Result.Failure($"{bot.Format()} can't modify {target.Format()}.");
 		}
 
-		return CachedResults.Success;
+		return Result.EmptySuccess;
 	}
 }

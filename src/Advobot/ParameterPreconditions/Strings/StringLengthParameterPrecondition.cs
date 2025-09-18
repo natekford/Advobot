@@ -28,14 +28,14 @@ public abstract class StringLengthParameterPrecondition(int min, int max)
 		=> $"Valid {StringType} ({Range} long)";
 
 	/// <inheritdoc />
-	public override ValueTask<IResult> CheckAsync(
+	protected override ValueTask<IResult> CheckNotNullAsync(
 		CommandMeta meta,
 		IGuildContext context,
-		string? value)
+		string value)
 	{
-		if (Range.Contains(value?.Length ?? 0))
+		if (Range.Contains(value.Length))
 		{
-			return new(CachedResults.Success);
+			return new(Result.EmptySuccess);
 		}
 		// TODO: singleton?
 		return new(Result.Failure($"Invalid {StringType} supplied, must have a length in `{Range}`"));

@@ -17,15 +17,16 @@ public sealed class FromThisGuild : AdvobotParameterPrecondition<IInviteMetadata
 	public override string Summary => "From this guild";
 
 	/// <inheritdoc />
-	public override ValueTask<IResult> CheckAsync(
+	protected override ValueTask<IResult> CheckNotNullAsync(
 		CommandMeta meta,
 		IGuildContext context,
-		IInviteMetadata? value)
+		IInviteMetadata value)
 	{
-		if (context.Guild.Id == value?.GuildId)
+		if (context.Guild.Id == value.GuildId)
 		{
-			return new(CachedResults.Success);
+			return new(Result.EmptySuccess);
 		}
+		// TODO: singleton
 		return new(Result.Failure("The invite must belong to this guild."));
 	}
 }

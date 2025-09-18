@@ -29,10 +29,10 @@ public abstract class NotAlreadyBannedPhraseParameterPrecondition
 	protected abstract string BannedPhraseName { get; }
 
 	/// <inheritdoc />
-	public override async ValueTask<IResult> CheckAsync(
+	protected override async ValueTask<IResult> CheckNotNullAsync(
 		CommandMeta meta,
 		IGuildContext context,
-		string? value)
+		string value)
 	{
 		var db = GetDatabase(context.Services);
 		var phrases = await db.GetBannedPhrasesAsync(context.Guild.Id).ConfigureAwait(false);
@@ -43,7 +43,7 @@ public abstract class NotAlreadyBannedPhraseParameterPrecondition
 				BannedPhraseName.WithNoMarkdown()
 			));
 		}
-		return CachedResults.Success;
+		return Result.EmptySuccess;
 	}
 
 	/// <summary>

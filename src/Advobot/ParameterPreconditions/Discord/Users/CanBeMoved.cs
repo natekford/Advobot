@@ -23,7 +23,7 @@ public sealed class CanBeMoved : AdvobotParameterPrecondition<IGuildUser>
 	public override string Summary => "Can be moved from their current channel";
 
 	/// <inheritdoc />
-	public override ValueTask<IResult> CheckAsync(
+	protected override ValueTask<IResult> CheckNotNullAsync(
 		CommandMeta meta,
 		IGuildContext context,
 		IGuildUser? value)

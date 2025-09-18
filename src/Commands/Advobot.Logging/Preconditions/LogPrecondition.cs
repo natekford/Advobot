@@ -41,7 +41,7 @@ public abstract class LogPrecondition : AdvobotPrecondition
 				LogName.WithNoMarkdown()
 			));
 		}
-		return CachedResults.Success;
+		return Result.EmptySuccess;
 	}
 
 	/// <summary>

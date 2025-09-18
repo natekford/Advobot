@@ -22,7 +22,7 @@ public class CommandValidator(SettingsDatabase db) : ICommandValidator
 		{
 			if (meta.IsEnabled)
 			{
-				return CachedResults.Success;
+				return Result.EmptySuccess;
 			}
 			// TODO: singleton
 			return Result.Failure("Command is disabled by default.");
@@ -31,7 +31,7 @@ public class CommandValidator(SettingsDatabase db) : ICommandValidator
 		// If we can't get an id, return success since the command isn't designed to work with this
 		if (command.Attributes.SingleOrDefault(x => x is MetaAttribute) is not MetaAttribute meta)
 		{
-			return CachedResults.Success;
+			return Result.EmptySuccess;
 		}
 		// Can't toggle, so will always be default
 		// If changed from toggleable to not toggle, we also want to use the default value
@@ -52,7 +52,7 @@ public class CommandValidator(SettingsDatabase db) : ICommandValidator
 			}
 			if (@override.Enabled)
 			{
-				return CachedResults.Success;
+				return Result.EmptySuccess;
 			}
 			// TODO: singleton?
 			var error = $"Command is not enabled for `{entity.Format()}`.";

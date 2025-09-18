@@ -30,6 +30,6 @@ public sealed class ExtendableCommandValidation : AdvobotPrecondition
 				return result;
 			}
 		}
-		return CachedResults.Success;
+		return Result.EmptySuccess;
 	}
 }

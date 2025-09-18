@@ -28,9 +28,9 @@ public sealed class CanModifyChannel(params ChannelPermission[] permissions) : A
 	public override string Summary => "Can be modified by the bot and invoking user";
 
 	/// <inheritdoc />
-	public override ValueTask<IResult> CheckAsync(
+	protected override ValueTask<IResult> CheckNotNullAsync(
 		CommandMeta meta,
 		IGuildContext context,
-		IGuildChannel? value)
-		=> new(context.User.ValidateChannel(value, Permissions));
+		IGuildChannel value
+	) => new(context.User.ValidateChannel(value, Permissions));
 }

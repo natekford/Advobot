@@ -42,7 +42,7 @@ public abstract class NumberParameterPrecondition : AdvobotParameterPrecondition
 	}
 
 	/// <inheritdoc />
-	public override ValueTask<IResult> CheckAsync(
+	protected override ValueTask<IResult> CheckNotNullAsync(
 		CommandMeta meta,
 		IGuildContext context,
 		int value)
@@ -50,7 +50,7 @@ public abstract class NumberParameterPrecondition : AdvobotParameterPrecondition
 		var numbers = GetRange(meta, context);
 		if (numbers.Contains(value))
 		{
-			return new(CachedResults.Success);
+			return new(Result.EmptySuccess);
 		}
 		// TODO: singleton?
 		return new(Result.Failure($"Invalid {meta.Parameter?.ParameterName} supplied, must be in `{Range}`"));

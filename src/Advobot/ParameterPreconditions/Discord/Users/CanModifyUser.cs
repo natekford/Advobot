@@ -18,9 +18,9 @@ public sealed class CanModifyUser : AdvobotParameterPrecondition<IGuildUser>
 	public override string Summary => "Can be modified by the bot and invoking user";
 
 	/// <inheritdoc />
-	public override ValueTask<IResult> CheckAsync(
+	protected override ValueTask<IResult> CheckNotNullAsync(
 		CommandMeta meta,
 		IGuildContext context,
-		IGuildUser? value
+		IGuildUser value
 	) => new(context.User.ValidateUser(value));
 }

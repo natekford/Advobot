@@ -22,12 +22,12 @@ public sealed partial class TwitchStream : StringLengthParameterPrecondition
 	public TwitchStream() : base(4, 25) { }
 
 	/// <inheritdoc />
-	public override async ValueTask<IResult> CheckAsync(
+	protected override async ValueTask<IResult> CheckNotNullAsync(
 		CommandMeta meta,
 		IGuildContext context,
-		string? value)
+		string value)
 	{
-		var result = await base.CheckAsync(meta, context, value).ConfigureAwait(false);
+		var result = await base.CheckNotNullAsync(meta, context, value).ConfigureAwait(false);
 		if (!result.IsSuccess)
 		{
 			return result;
@@ -35,7 +35,7 @@ public sealed partial class TwitchStream : StringLengthParameterPrecondition
 
 		if (GetTwitchRegex().IsMatch(value ?? ""))
 		{
-			return CachedResults.Success;
+			return Result.EmptySuccess;
 		}
 		// TODO: singleton
 		return Result.Failure("Invalid Twitch username supplied.");

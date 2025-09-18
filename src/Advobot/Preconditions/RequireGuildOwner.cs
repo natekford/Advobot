@@ -21,7 +21,7 @@ public sealed class RequireGuildOwner : AdvobotPrecondition
 	{
 		if (context.Guild.OwnerId == context.User.Id)
 		{
-			return new(CachedResults.Success);
+			return new(Result.EmptySuccess);
 		}
 		// TODO: singleton
 		var error = "You are not the guild owner.";

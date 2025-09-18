@@ -117,7 +117,7 @@ public sealed class Spanitch : AutoModModuleBase
 			}
 			if (context.User.Id == MIJE_ID)
 			{
-				return CachedResults.Success;
+				return Result.EmptySuccess;
 			}
 			return result;
 		}
@@ -152,7 +152,7 @@ public sealed class Spanitch : AutoModModuleBase
 
 			if (hasMute && hasSpan)
 			{
-				return new(CachedResults.Success);
+				return new(Result.EmptySuccess);
 			}
 			// TODO: singleton
 			return new(Result.Failure("one of the roles doesn't exist anymore."));

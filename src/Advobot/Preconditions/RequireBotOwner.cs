@@ -22,7 +22,7 @@ public sealed class RequireBotOwner : AdvobotPrecondition
 		var application = await context.Client.GetApplicationInfoAsync().ConfigureAwait(false);
 		if (application.Owner.Id == context.User.Id)
 		{
-			return CachedResults.Success;
+			return Result.EmptySuccess;
 		}
 		// TODO: singleton?
 		return Result.Failure("You are not the bot owner.");

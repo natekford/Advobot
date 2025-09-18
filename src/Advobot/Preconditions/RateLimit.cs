@@ -73,7 +73,7 @@ public sealed class RateLimit(TimeUnit unit, double value) : AdvobotPrecondition
 		}
 
 		_Times[key] = time.GetUtcNow().Add(Time);
-		return new(CachedResults.Success);
+		return new(Result.EmptySuccess);
 	}
 
 	[GetServiceMethod]

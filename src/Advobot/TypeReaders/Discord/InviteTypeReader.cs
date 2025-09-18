@@ -1,6 +1,7 @@
 ﻿using Advobot.Modules;
 
 using Discord;
+using Discord.Commands;
 
 using MorseCode.ITask;
 
@@ -33,6 +34,6 @@ public sealed class InviteTypeReader : DiscordTypeReader<IInviteMetadata>
 			}
 		}
 
-		return CachedResults<IInviteMetadata>.ParseFailed.Result;
+		return TypeReaderResult<IInviteMetadata>.ParseFailed.Result;
 	}
 }

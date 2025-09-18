@@ -25,12 +25,12 @@ public sealed class Regex : StringLengthParameterPrecondition
 	public Regex() : base(1, 100) { }
 
 	/// <inheritdoc />
-	public override async ValueTask<IResult> CheckAsync(
+	protected override async ValueTask<IResult> CheckNotNullAsync(
 		CommandMeta meta,
 		IGuildContext context,
-		string? value)
+		string value)
 	{
-		var result = await base.CheckAsync(meta, context, value).ConfigureAwait(false);
+		var result = await base.CheckNotNullAsync(meta, context, value).ConfigureAwait(false);
 		if (!result.IsSuccess)
 		{
 			return result;
@@ -73,7 +73,7 @@ public sealed class Regex : StringLengthParameterPrecondition
 				return Result.Failure(error);
 			}
 		}
-		return CachedResults.Success;
+		return Result.EmptySuccess;
 	}
 
 	private static string GenerateRandomString()

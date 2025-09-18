@@ -30,21 +30,21 @@ public abstract class LogParameterPrecondition : AdvobotParameterPrecondition<IT
 	/// </summary>
 	protected abstract string LogName { get; }
 
-	public override async ValueTask<IResult> CheckAsync(
+	protected override async ValueTask<IResult> CheckNotNullAsync(
 		CommandMeta meta,
 		IGuildContext context,
-		ITextChannel? value)
+		ITextChannel value)
 	{
 		var db = GetDatabase(context.Services);
 		var channels = await db.GetLogChannelsAsync(context.Guild.Id).ConfigureAwait(false);
-		if (GetId(channels) == value?.Id)
+		if (GetId(channels) == value.Id)
 		{
 			return Result.Failure(LogParameterPreconditionSummary.Format(
 				value.Format().WithBlock(),
 				LogName.WithNoMarkdown()
 			));
 		}
-		return CachedResults.Success;
+		return Result.EmptySuccess;
 	}
 
 	/// <summary>

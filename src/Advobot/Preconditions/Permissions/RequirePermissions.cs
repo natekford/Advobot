@@ -65,7 +65,7 @@ public abstract class RequirePermissions(IEnumerable<Enum> permissions)
 			{
 				return Result.Failure($"`{user.Format()}` does not have any suitable permissions.");
 			}
-			return CachedResults.Success;
+			return Result.EmptySuccess;
 		}
 
 		if (AppliesToInvoker)
@@ -85,7 +85,7 @@ public abstract class RequirePermissions(IEnumerable<Enum> permissions)
 				return result;
 			}
 		}
-		return CachedResults.Success;
+		return Result.EmptySuccess;
 	}
 
 	/// <summary>

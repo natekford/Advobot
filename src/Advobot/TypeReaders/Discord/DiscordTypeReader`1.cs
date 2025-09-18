@@ -20,12 +20,12 @@ public abstract class DiscordTypeReader<T> : TypeReader<IGuildContext, T>
 	{
 		if (matches.Count == 1)
 		{
-			return TypeReaderResult<T>.FromSuccess(matches.Single());
+			return TypeReaderResult<T>.Success(matches.Single());
 		}
 		else if (matches.Count > 1)
 		{
-			return CachedResults<T>.TooManyMatches.Result;
+			return TypeReaderResult<T>.TooManyMatches.Result;
 		}
-		return CachedResults<T>.ParseFailed.Result;
+		return TypeReaderResult<T>.ParseFailed.Result;
 	}
 }
