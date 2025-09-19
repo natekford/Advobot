@@ -7,7 +7,7 @@ using YACCS.Localization;
 
 namespace Advobot.AutoMod.Commands;
 
-[LocalizedCategory(nameof(Punishments))]
+[LocalizedCategory(nameof(Names.PunishmentsCategory))]
 public sealed class Punishments : AdvobotModuleBase
 {
 	[LocalizedCommand(nameof(Names.ModifyPunishments), nameof(Names.ModifyPunishmentsAlias))]

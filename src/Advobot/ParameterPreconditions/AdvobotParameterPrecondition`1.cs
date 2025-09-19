@@ -21,6 +21,10 @@ public abstract class AdvobotParameterPrecondition<T>
 	public abstract string Summary { get; }
 
 	/// <inheritdoc />
+	public override string ToString()
+		=> Summary;
+
+	/// <inheritdoc />
 	protected override ValueTask<IResult> CheckNullAsync(CommandMeta meta, IGuildContext context)
 	{
 		if (AllowNull)

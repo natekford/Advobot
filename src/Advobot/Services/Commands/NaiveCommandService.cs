@@ -52,7 +52,7 @@ public sealed class NaiveCommandService : CommandService
 		_EventProvider = eventProvider;
 
 		_Commands = new(_ => new CommandTrie(readers, config.Separator, config.CommandNameComparer));
-		_Initialize = new(_ => new(() => PrivateInitialize()));
+		_Initialize = new(c => new(() => PrivateInitialize(c)));
 	}
 
 	/// <summary>
@@ -88,7 +88,7 @@ public sealed class NaiveCommandService : CommandService
 		}
 	}
 
-	private async Task PrivateInitialize()
+	private async Task PrivateInitialize(CultureInfo culture)
 	{
 		foreach (var assembly in _CommandAssemblies)
 		{
@@ -101,12 +101,7 @@ public sealed class NaiveCommandService : CommandService
 		await _EventProvider.Log.InvokeAsync(new(
 			severity: LogSeverity.Info,
 			source: nameof(InitializeAsync),
-			message: $"Successfully loaded {Commands.Count} commands."
-		/*
-		message: $"Successfully loaded {categories.Count} categories " +
-			$"containing {commandCount} commands " +
-			$"({helpEntryCount} were given help entries) " +
-			$"from {assembly.GetName().Name} in the {culture} culture."*/
+			message: $"Successfully loaded {Commands.Count} commands in the {culture} culture."
 		)).ConfigureAwait(false);
 	}
 }

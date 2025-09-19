@@ -15,7 +15,7 @@ using YACCS.Localization;
 
 namespace Advobot.Standard.Commands;
 
-[LocalizedCategory(nameof(Webhooks))]
+[LocalizedCategory(nameof(Names.WebhooksCategory))]
 public sealed class Webhooks : AdvobotModuleBase
 {
 	[LocalizedCommand(nameof(Names.CreateWebhook), nameof(Names.CreateWebhookAlias))]

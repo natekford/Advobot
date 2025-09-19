@@ -11,7 +11,7 @@ using YACCS.Localization;
 
 namespace Advobot.Standard.Commands;
 
-[LocalizedCategory(nameof(Invites))]
+[LocalizedCategory(nameof(Names.InvitesCategory))]
 public sealed class Invites : AdvobotModuleBase
 {
 	// This can be done in mobile, but if there are too many invites it could be annoying

@@ -1,8 +1,9 @@
 ﻿using Advobot.Modules;
+using Advobot.Resources;
 
 using YACCS.Localization;
 
 namespace Advobot.Settings.Commands;
 
-[LocalizedCategory(nameof(BotSettings))]
+[LocalizedCategory(nameof(Names.BotSettingsCategory))]
 public sealed class BotSettings : AdvobotModuleBase;

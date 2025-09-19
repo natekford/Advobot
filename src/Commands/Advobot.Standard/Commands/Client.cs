@@ -10,7 +10,7 @@ using YACCS.Localization;
 
 namespace Advobot.Standard.Commands;
 
-[LocalizedCategory(nameof(Client))]
+[LocalizedCategory(nameof(Names.ClientCategory))]
 public sealed class Client : AdvobotModuleBase
 {
 	[LocalizedCommand(nameof(Names.DisconnectBot), nameof(Names.DisconnectBot), nameof(Names.RunescapeServersAlias))]

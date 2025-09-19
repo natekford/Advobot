@@ -151,6 +151,15 @@ namespace Advobot.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to BannedPhrases.
+        /// </summary>
+        public static string BannedPhrasesCategory {
+            get {
+                return ResourceManager.GetString("BannedPhrasesCategory", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Bot.
         /// </summary>
         public static string Bot {
@@ -165,6 +174,15 @@ namespace Advobot.Resources {
         public static string BotAlias {
             get {
                 return ResourceManager.GetString("BotAlias", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to BotSettings.
+        /// </summary>
+        public static string BotSettingsCategory {
+            get {
+                return ResourceManager.GetString("BotSettingsCategory", resourceCulture);
             }
         }
         
@@ -237,6 +255,15 @@ namespace Advobot.Resources {
         public static string ChannelAlias {
             get {
                 return ResourceManager.GetString("ChannelAlias", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Channels.
+        /// </summary>
+        public static string ChannelsCategory {
+            get {
+                return ResourceManager.GetString("ChannelsCategory", resourceCulture);
             }
         }
         
@@ -345,6 +372,15 @@ namespace Advobot.Resources {
         public static string ClearRolePermsAlias {
             get {
                 return ResourceManager.GetString("ClearRolePermsAlias", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Client.
+        /// </summary>
+        public static string ClientCategory {
+            get {
+                return ResourceManager.GetString("ClientCategory", resourceCulture);
             }
         }
         
@@ -1411,6 +1447,15 @@ namespace Advobot.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Guilds.
+        /// </summary>
+        public static string GuildsCategory {
+            get {
+                return ResourceManager.GetString("GuildsCategory", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to GuildUsers.
         /// </summary>
         public static string GuildUsers {
@@ -1519,6 +1564,15 @@ namespace Advobot.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Invites.
+        /// </summary>
+        public static string InvitesCategory {
+            get {
+                return ResourceManager.GetString("InvitesCategory", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Json.
         /// </summary>
         public static string Json {
@@ -1591,6 +1645,15 @@ namespace Advobot.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Levels.
+        /// </summary>
+        public static string LevelsCategory {
+            get {
+                return ResourceManager.GetString("LevelsCategory", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Local.
         /// </summary>
         public static string Local {
@@ -1623,6 +1686,15 @@ namespace Advobot.Resources {
         public static string LoggingAlias {
             get {
                 return ResourceManager.GetString("LoggingAlias", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Logging.
+        /// </summary>
+        public static string LoggingCategory {
+            get {
+                return ResourceManager.GetString("LoggingCategory", resourceCulture);
             }
         }
         
@@ -1767,6 +1839,15 @@ namespace Advobot.Resources {
         public static string MessageWelcomeAlias {
             get {
                 return ResourceManager.GetString("MessageWelcomeAlias", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Misc.
+        /// </summary>
+        public static string MiscCategory {
+            get {
+                return ResourceManager.GetString("MiscCategory", resourceCulture);
             }
         }
         
@@ -2779,6 +2860,15 @@ namespace Advobot.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Nicknames.
+        /// </summary>
+        public static string NicknamesCategory {
+            get {
+                return ResourceManager.GetString("NicknamesCategory", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Notifications.
         /// </summary>
         public static string Notifications {
@@ -2793,6 +2883,24 @@ namespace Advobot.Resources {
         public static string NotificationsAlias {
             get {
                 return ResourceManager.GetString("NotificationsAlias", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Notifications.
+        /// </summary>
+        public static string NotificationsCategory {
+            get {
+                return ResourceManager.GetString("NotificationsCategory", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to PersistentRoles.
+        /// </summary>
+        public static string PersistentRolesCategory {
+            get {
+                return ResourceManager.GetString("PersistentRolesCategory", resourceCulture);
             }
         }
         
@@ -2874,6 +2982,15 @@ namespace Advobot.Resources {
         public static string PruneUsersAlias {
             get {
                 return ResourceManager.GetString("PruneUsersAlias", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Punishments.
+        /// </summary>
+        public static string PunishmentsCategory {
+            get {
+                return ResourceManager.GetString("PunishmentsCategory", resourceCulture);
             }
         }
         
@@ -3103,6 +3220,15 @@ namespace Advobot.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Roles.
+        /// </summary>
+        public static string RolesCategory {
+            get {
+                return ResourceManager.GetString("RolesCategory", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Roll.
         /// </summary>
         public static string Roll {
@@ -3162,6 +3288,15 @@ namespace Advobot.Resources {
         public static string SendAlias {
             get {
                 return ResourceManager.GetString("SendAlias", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Settings.
+        /// </summary>
+        public static string SettingsCategory {
+            get {
+                return ResourceManager.GetString("SettingsCategory", resourceCulture);
             }
         }
         
@@ -3526,6 +3661,15 @@ namespace Advobot.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Users.
+        /// </summary>
+        public static string UsersCategory {
+            get {
+                return ResourceManager.GetString("UsersCategory", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Voice.
         /// </summary>
         public static string Voice {
@@ -3576,6 +3720,15 @@ namespace Advobot.Resources {
         public static string WebhookAlias {
             get {
                 return ResourceManager.GetString("WebhookAlias", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Webhooks.
+        /// </summary>
+        public static string WebhooksCategory {
+            get {
+                return ResourceManager.GetString("WebhooksCategory", resourceCulture);
             }
         }
         

@@ -15,7 +15,7 @@ using YACCS.Localization;
 
 namespace Advobot.Logging.Commands;
 
-[LocalizedCategory(nameof(Logging))]
+[LocalizedCategory(nameof(Names.LoggingCategory))]
 [LocalizedCommand(nameof(Names.Logging), nameof(Names.LoggingAlias))]
 public sealed class Logging : AdvobotModuleBase
 {

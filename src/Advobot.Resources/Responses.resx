@@ -635,7 +635,7 @@ Type {1} for help with a command.</value>
     <value>Categories</value>
   </data>
   <data name="MiscTitleCategoryCommands" xml:space="preserve">
-    <value>Commands In {0}</value>
+    <value>Commands In Category</value>
   </data>
   <data name="MiscTitleCommands" xml:space="preserve">
     <value>Commands</value>

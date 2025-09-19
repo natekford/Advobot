@@ -6,7 +6,14 @@ using Discord;
 using Discord.Rest;
 using Discord.WebSocket;
 
+using System.Reflection;
 using System.Text;
+
+using YACCS.Commands.Linq;
+using YACCS.Commands.Models;
+using YACCS.Help.Attributes;
+using YACCS.Localization;
+using YACCS.Preconditions;
 
 using static Advobot.Resources.Responses;
 using static Advobot.Utilities.FormattingUtils;
@@ -15,28 +22,29 @@ namespace Advobot.Standard.Responses;
 
 public sealed partial class Misc : AdvobotResult
 {
-	/*
 	private static readonly Type _Help = typeof(Commands.Misc.Help);
 
-	public static AdvobotResult Help(IImmutableCommand module)
+	public static AdvobotResult Help(IReadOnlyCollection<IImmutableCommand> commands)
 	{
-		var enabled = module.EnabledByDefault.ToString();
-		if (!module.AbleToBeToggled)
+		return Help(commands.First());
+		/*
+		var enabled = commands.EnabledByDefault.ToString();
+		if (!commands.AbleToBeToggled)
 		{
 			enabled += MiscCannotBeDisabled;
 		}
 
 		var sb = new StringBuilder()
-			.AppendHeaderAndValue(MiscTitleAliases, module.Aliases.Join())
-			.AppendHeaderAndValue(MiscTitleBasePermissions, FormatPreconditions(module.Preconditions))
+			.AppendHeaderAndValue(MiscTitleAliases, commands.Aliases.Join())
+			.AppendHeaderAndValue(MiscTitleBasePermissions, FormatPreconditions(commands.Preconditions))
 			.AppendHeaderAndValue(MiscTitleEnabledByDefault, enabled);
 
 		sb.AppendCategorySeparator()
-			.AppendHeaderAndValue(MiscTitleDescription, module.Summary);
+			.AppendHeaderAndValue(MiscTitleDescription, commands.Summary);
 
-		if (module.Submodules.Count != 0)
+		if (commands.Submodules.Count != 0)
 		{
-			var submodules = module.Submodules
+			var submodules = commands.Submodules
 				.Select((x, i) => $"{i + 1}. {x.Name}")
 				.Join("\n")
 				.WithBigBlock();
@@ -44,9 +52,9 @@ public sealed partial class Misc : AdvobotResult
 				.AppendHeaderAndValue(MiscTitleSubmodules, submodules);
 		}
 
-		if (module.Commands.Count != 0)
+		if (commands.Commands.Count != 0)
 		{
-			var commands = module.Commands.Select((x, i) =>
+			var commands = commands.Commands.Select((x, i) =>
 			{
 				var parameters = x.Parameters.Select(FormatParameter).Join();
 				var name = string.IsNullOrWhiteSpace(x.Name) ? "" : x.Name + " ";
@@ -56,48 +64,46 @@ public sealed partial class Misc : AdvobotResult
 				.AppendHeaderAndValue(MiscTitleCommands, commands);
 		}
 
-		return Success(CreateHelpEmbed(module.Aliases[0], sb.ToString()));
+		return Success(CreateHelpEmbed(commands.Aliases[0], sb.ToString()));*/
 	}
 
 	public static AdvobotResult Help(IImmutableCommand command)
 	{
 		var sb = new StringBuilder()
-			.AppendHeaderAndValue(MiscTitleAliases, command.Aliases.Select(x => x.WithBlock().Current).Join())
+			.AppendHeaderAndValue(MiscTitleAliases, FormatAliases(command.Paths))
 			.AppendHeaderAndValue(MiscTitleBasePermissions, FormatPreconditions(command.Preconditions))
 			.AppendCategorySeparator()
-			.AppendHeaderAndValue(MiscTitleDescription, command.Summary);
+			.AppendHeaderAndValue(MiscTitleDescription, GetSummary(command));
 
-		var embed = CreateHelpEmbed(command.Aliases[0], sb.ToString());
+		var embed = CreateHelpEmbed(command.Paths[0].Join(" "), sb.ToString());
 		foreach (var parameter in command.Parameters)
 		{
 			var paramSb = new StringBuilder()
 				.AppendHeaderAndValue(MiscTitleBasePermissions, FormatPreconditions(parameter.Preconditions))
-				.AppendHeaderAndValue(MiscTitleDescription, parameter.Summary)
-				.AppendHeaderAndValue(MiscTitleNamedArguments, parameter.NamedArguments.Join());
+				.AppendHeaderAndValue(MiscTitleDescription, GetSummary(parameter));
+			// TODO: show named arguments
+			//.AppendHeaderAndValue(MiscTitleNamedArguments, parameter.Join());
 
 			embed.TryAddField(FormatParameter(parameter), paramSb.ToString(), true, out _);
 		}
 		return Success(embed);
 	}
 
-	public static AdvobotResult Help(IEnumerable<IImmutableCommand> entries, string category)
+	public static AdvobotResult HelpCategory(IEnumerable<IImmutableCommand> commands)
 	{
-		var title = MiscTitleCategoryCommands.Format(
-			category.WithTitleCase()
-		);
-		var description = entries
-			.Select(x => x.Name)
+		var description = commands
+			.Select(x => x.Paths[0].Join(" "))
 			.Join()
 			.WithBigBlock()
 			.Current;
 		return Success(new EmbedWrapper
 		{
-			Title = title,
+			Title = MiscTitleCategoryCommands,
 			Description = description,
 		});
 	}
 
-	public static AdvobotResult Help(IEnumerable<string> categories, string prefix)
+	public static AdvobotResult HelpGeneral(IEnumerable<string> categories, string prefix)
 	{
 		var description = MiscGeneralHelp.Format(
 			GetPrefixedCommand(prefix, _Help, VariableCategoryParameter),
@@ -149,11 +155,11 @@ public sealed partial class Misc : AdvobotResult
 		});
 	}
 
-	public static AdvobotResult HelpInvalidPosition(IHelpModule module, int position)
+	public static AdvobotResult HelpInvalidPosition(IImmutableCommand command, int position)
 	{
 		return Failure(MiscInvalidHelpEntryNumber.Format(
 			position.ToString().WithBlock(),
-			module.Name.WithBlock()
+			command.Paths[0].Join(" ").WithBlock()
 		));
 	}
 
@@ -170,42 +176,91 @@ public sealed partial class Misc : AdvobotResult
 		};
 	}
 
-	private static string FormatParameter(IHelpParameter p)
+	private static string FormatAliases(IReadOnlyList<IReadOnlyList<string>> aliases)
 	{
-		var left = p.IsOptional ? VariableOptionalLeft : VariableRequiredLeft;
-		var right = p.IsOptional ? VariableOptionalRight : VariableRequiredRight;
-		return left + p.Name + right;
+		var sb = new StringBuilder();
+		for (var i = 0; i < aliases[0].Count; ++i)
+		{
+			if (sb.Length > 0)
+			{
+				sb.Append(' ');
+			}
+
+			var alreadyUsed = new HashSet<string>();
+			foreach (var path in aliases)
+			{
+				if (!alreadyUsed.Add(path[i]))
+				{
+					continue;
+				}
+
+				if (sb.Length > 0 && sb[^1] != ' ')
+				{
+					sb.Append('|');
+				}
+				sb.Append(path[i]);
+			}
+		}
+		return sb.ToString();
 	}
 
-	private static string FormatPreconditions(IEnumerable<IHelpPrecondition> preconditions)
+	private static string FormatParameter(IImmutableParameter p)
+	{
+		var left = p.HasDefaultValue ? VariableOptionalLeft : VariableRequiredLeft;
+		var right = p.HasDefaultValue ? VariableOptionalRight : VariableRequiredRight;
+		return left + p.ParameterName + right;
+	}
+
+	private static string FormatPreconditions(
+		IReadOnlyDictionary<string, IReadOnlyList<IPrecondition>> preconditions)
 	{
 		if (!preconditions.Any())
 		{
 			return VariableNotApplicable;
 		}
-		if (preconditions.Any(x => x.Group is null))
+
+		var groups = new List<string>(preconditions.Count);
+		foreach (var (_, values) in preconditions)
 		{
-			return preconditions.Select(x => x.Summary).Join(VariableAnd);
+			var formatted = new List<string>();
+			foreach (var value in values)
+			{
+				formatted.Add(value.ToString()!);
+			}
+			groups.Add(formatted.Join(VariableOr));
 		}
 
-		var groups = preconditions
-			.GroupBy(x => x.Group)
-			.Select(g => g.Select(x => x.Summary).Join(VariableOr))
-			.ToArray();
-		if (groups.Length == 1)
+		if (groups.Count == 1)
 		{
 			return groups[0];
 		}
 		return groups.Select(x => $"({x})").Join(VariableAnd);
 	}
 
-	private static string FormatPreconditions(IEnumerable<IHelpParameterPrecondition> preconditions)
+	private static string FormatPreconditions(
+		IReadOnlyDictionary<string, IReadOnlyList<IParameterPrecondition>> preconditions)
 	{
 		if (!preconditions.Any())
 		{
 			return VariableNotApplicable;
 		}
-		return preconditions.Select(x => x.Summary).Join(VariableAnd);
+
+		var groups = new List<string>(preconditions.Count);
+		foreach (var (_, values) in preconditions)
+		{
+			var formatted = new List<string>();
+			foreach (var value in values)
+			{
+				formatted.Add(value.ToString()!);
+			}
+			groups.Add(formatted.Join(VariableOr));
+		}
+
+		if (groups.Count == 1)
+		{
+			return groups[0];
+		}
+		return groups.Select(x => $"({x})").Join(VariableAnd);
 	}
 
 	private static MarkdownString GetPrefixedCommand(
@@ -213,11 +268,20 @@ public sealed partial class Misc : AdvobotResult
 		Type command,
 		string args = "")
 	{
-		var attr = command.GetCustomAttribute<GroupAttribute>()
+		var attr = command.GetCustomAttribute<LocalizedCommandAttribute>()
 			?? throw new ArgumentException("Group is null.", nameof(command));
-		return (prefix + attr.Prefix + (string.IsNullOrEmpty(args) ? "" : " ") + args).WithBlock();
+		return (prefix + attr.Names[0] + (string.IsNullOrEmpty(args) ? "" : " ") + args).WithBlock();
 	}
-	*/
+
+	private static string? GetSummary(IQueryableEntity entity)
+	{
+		var (_, Value) = entity.Attributes
+			.Select(x => (x.Distance, x.Value))
+			.Where(x => x.Value is ISummaryAttribute)
+			.OrderBy(x => x.Distance)
+			.FirstOrDefault();
+		return ((ISummaryAttribute)Value)?.Summary;
+	}
 }
 
 public sealed partial class Misc : AdvobotResult

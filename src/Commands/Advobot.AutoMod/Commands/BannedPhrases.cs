@@ -13,7 +13,7 @@ using YACCS.Localization;
 
 namespace Advobot.AutoMod.Commands;
 
-[LocalizedCategory(nameof(BannedPhrases))]
+[LocalizedCategory(nameof(Names.BannedPhrasesCategory))]
 public sealed class BannedPhrases : AdvobotModuleBase
 {
 	[LocalizedCommand(nameof(Names.DisplayBannedPhrases), nameof(Names.DisplayBannedPhrasesAlias))]

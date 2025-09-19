@@ -20,7 +20,7 @@ using YACCS.Localization;
 
 namespace Advobot.Standard.Commands;
 
-[LocalizedCategory(nameof(Users))]
+[LocalizedCategory(nameof(Names.UsersCategory))]
 public sealed class Users : AdvobotModuleBase
 {
 	[LocalizedCommand(nameof(Names.Ban), nameof(Names.BanAlias))]

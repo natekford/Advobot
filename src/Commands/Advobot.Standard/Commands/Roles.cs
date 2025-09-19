@@ -13,7 +13,7 @@ using YACCS.Localization;
 
 namespace Advobot.Standard.Commands;
 
-[LocalizedCategory(nameof(Roles))]
+[LocalizedCategory(nameof(Names.RolesCategory))]
 public sealed class Roles : AdvobotModuleBase
 {
 	[LocalizedCommand(nameof(Names.ClearRolePerms), nameof(Names.ClearRolePermsAlias))]

@@ -78,9 +78,8 @@ public class CloseWords<T>(IEnumerable<T> source, Func<T, string> getName)
 		static void Swap<T2>(ref T2 arg1, ref T2 arg2)
 			=> (arg2, arg1) = (arg1, arg2);
 
-		/* Damerau Levenshtein Distance: https://en.wikipedia.org/wiki/Damerau–Levenshtein_distance
-		 * Copied nearly verbatim from: https://stackoverflow.com/a/9454016
-		 */
+		// Damerau Levenshtein Distance: https://en.wikipedia.org/wiki/Damerau–Levenshtein_distance
+		// Copied nearly verbatim from: https://stackoverflow.com/a/9454016
 		var length1 = source.Length;
 		var length2 = target.Length;
 

@@ -13,7 +13,7 @@ using YACCS.TypeReaders;
 
 namespace Advobot.Settings.Commands;
 
-[LocalizedCategory(nameof(Settings))]
+[LocalizedCategory(nameof(Names.SettingsCategory))]
 public sealed class Settings : AdvobotModuleBase
 {
 	[LocalizedCommand(nameof(Names.ModifyCommands), nameof(Names.ModifyCommandsAlias))]

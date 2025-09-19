@@ -13,7 +13,7 @@ using YACCS.Localization;
 
 namespace Advobot.AutoMod.Commands;
 
-[LocalizedCategory(nameof(PersistentRoles))]
+[LocalizedCategory(nameof(Names.PersistentRolesCategory))]
 public sealed class PersistentRoles : AdvobotModuleBase
 {
 	[LocalizedCommand(nameof(Names.DisplayPersistentRoles), nameof(Names.DisplayPersistentRolesAlias))]

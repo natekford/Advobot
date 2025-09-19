@@ -13,7 +13,7 @@ using YACCS.Localization;
 
 namespace Advobot.Logging.Commands;
 
-[LocalizedCategory(nameof(Notifications))]
+[LocalizedCategory(nameof(Names.NotificationsCategory))]
 [LocalizedCommand(nameof(Names.Notifications), nameof(Names.NotificationsAlias))]
 public sealed class Notifications : AdvobotModuleBase
 {

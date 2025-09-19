@@ -1296,4 +1296,55 @@
   <data name="GlobalAlias" xml:space="preserve">
     <value>g</value>
   </data>
+  <data name="BannedPhrasesCategory" xml:space="preserve">
+    <value>BannedPhrases</value>
+  </data>
+  <data name="PersistentRolesCategory" xml:space="preserve">
+    <value>PersistentRoles</value>
+  </data>
+  <data name="PunishmentsCategory" xml:space="preserve">
+    <value>Punishments</value>
+  </data>
+  <data name="LevelsCategory" xml:space="preserve">
+    <value>Levels</value>
+  </data>
+  <data name="LoggingCategory" xml:space="preserve">
+    <value>Logging</value>
+  </data>
+  <data name="NotificationsCategory" xml:space="preserve">
+    <value>Notifications</value>
+  </data>
+  <data name="BotSettingsCategory" xml:space="preserve">
+    <value>BotSettings</value>
+  </data>
+  <data name="SettingsCategory" xml:space="preserve">
+    <value>Settings</value>
+  </data>
+  <data name="ChannelsCategory" xml:space="preserve">
+    <value>Channels</value>
+  </data>
+  <data name="ClientCategory" xml:space="preserve">
+    <value>Client</value>
+  </data>
+  <data name="GuildsCategory" xml:space="preserve">
+    <value>Guilds</value>
+  </data>
+  <data name="InvitesCategory" xml:space="preserve">
+    <value>Invites</value>
+  </data>
+  <data name="MiscCategory" xml:space="preserve">
+    <value>Misc</value>
+  </data>
+  <data name="NicknamesCategory" xml:space="preserve">
+    <value>Nicknames</value>
+  </data>
+  <data name="RolesCategory" xml:space="preserve">
+    <value>Roles</value>
+  </data>
+  <data name="UsersCategory" xml:space="preserve">
+    <value>Users</value>
+  </data>
+  <data name="WebhooksCategory" xml:space="preserve">
+    <value>Webhooks</value>
+  </data>
 </root>

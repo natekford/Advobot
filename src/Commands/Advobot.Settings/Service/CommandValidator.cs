@@ -7,6 +7,7 @@ using Advobot.Utilities;
 
 using Discord;
 
+using YACCS.Commands.Linq;
 using YACCS.Commands.Models;
 using YACCS.Results;
 
@@ -28,7 +29,7 @@ public class CommandValidator(SettingsDatabase db) : ICommandValidator
 		}
 
 		// If we can't get an id, return success since the command isn't designed to work with this
-		if (command.Attributes.SingleOrDefault(x => x is MetaAttribute) is not MetaAttribute meta)
+		if (command.GetAttributes<MetaAttribute>().SingleOrDefault() is not MetaAttribute meta)
 		{
 			return Result.EmptySuccess;
 		}

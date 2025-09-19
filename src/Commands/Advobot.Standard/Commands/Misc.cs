@@ -1,17 +1,22 @@
 ﻿using Advobot.Attributes;
 using Advobot.Modules;
+using Advobot.ParameterPreconditions.Numbers;
 using Advobot.Preconditions;
 using Advobot.Resources;
+using Advobot.Services.GuildSettings;
 
 using Discord;
 
+using YACCS.Commands;
 using YACCS.Commands.Attributes;
+using YACCS.Commands.Building;
 using YACCS.Commands.Models;
 using YACCS.Localization;
+using YACCS.TypeReaders;
 
 namespace Advobot.Standard.Commands;
 
-[LocalizedCategory(nameof(Misc))]
+[LocalizedCategory(nameof(Names.MiscCategory))]
 public sealed class Misc : AdvobotModuleBase
 {
 	[LocalizedCommand(nameof(Names.Get), nameof(Names.GetAlias))]
@@ -107,75 +112,23 @@ public sealed class Misc : AdvobotModuleBase
 			=> Responses.Misc.InfoWebhook(webhook);
 	}
 
-	/*
 	[LocalizedCommand(nameof(Names.Help), nameof(Names.HelpAlias))]
 	[LocalizedSummary(nameof(Summaries.Help))]
 	[Id("0e89a6fd-5c9c-4008-a912-7c719ea7827d")]
 	[Meta(IsEnabled = true, CanToggle = false)]
 	public sealed class Help : AdvobotModuleBase
 	{
+		[InjectService]
 		public required IGuildSettingsService GuildSettings { get; set; }
-		public required IHelpService HelpEntries { get; set; }
+		[InjectService]
+		public required CommandService HelpEntries { get; set; }
 
-		[Command]
-		[LocalizedSummary(nameof(Summaries.HelpGeneralHelp))]
-		public async Task<AdvobotResult> Command()
-		{
-			var prefix = await GuildSettings.GetPrefixAsync(Context.Guild).ConfigureAwait(false);
-			var categories = HelpEntries.GetCategories();
-			return Responses.Misc.Help(categories, prefix);
-		}
-
-		[Command]
-		[Priority(1)]
-		[LocalizedSummary(nameof(Summaries.HelpModuleHelp))]
-		public Task<AdvobotResult> Command(
-			[LocalizedSummary(nameof(Summaries.HelpVariableCommand))]
-			[LocalizedName(nameof(Parameters.Command))]
-			[Remainder]
-			IImmutableCommand module
-		) => Responses.Misc.Help(module);
-
-		[Command]
-		[Priority(1)]
-		public Task<AdvobotResult> Command(
-			[LocalizedSummary(nameof(Summaries.HelpVariableCategory))]
-			[LocalizedName(nameof(Parameters.Category))]
-			Category category
-		)
-		{
-			var entries = HelpEntries
-				.GetHelpModules(includeSubmodules: false)
-				.Where(x => x.Category.CaseInsEquals(category.Name));
-			return Responses.Misc.Help(entries, category.Name);
-		}
-
-		[Command]
-		[Priority(2)]
-		[LocalizedSummary(nameof(Summaries.HelpCommandHelp))]
-		public Task<AdvobotResult> Command(
-			[LocalizedSummary(nameof(Summaries.HelpVariableCommandPosition))]
-			[LocalizedName(nameof(Parameters.Position))]
-			[Positive]
-			int position,
-			[LocalizedSummary(nameof(Summaries.HelpVariableExactCommand))]
-			[LocalizedName(nameof(Parameters.Command))]
-			[Remainder]
-			IImmutableCommand module
-		)
-		{
-			if (module.Commands.Count < position)
-			{
-				return Responses.Misc.HelpInvalidPosition(module, position);
-			}
-			return Responses.Misc.Help(module.Commands[position - 1]);
-		}
-
+		/*
 		[Command]
 		[Priority(0)]
 		[Hidden]
 		public async Task<AdvobotResult> Command(
-			[CommandsNameTypeReader]
+			//[CommandsNameTypeReader]
 			[Remainder]
 			IReadOnlyList<IImmutableCommand> modules
 		)
@@ -185,9 +138,61 @@ public sealed class Misc : AdvobotModuleBase
 			{
 				return Responses.Misc.Help(entry.Value);
 			}
-			return AdvobotResult.IgnoreFailure;
+			return AdvobotResult.Failure("REMOVE ME");
+		}*/
+
+		[Command]
+		[Priority(1)]
+		public Task<AdvobotResult> Category(
+			[LocalizedSummary(nameof(Summaries.HelpVariableCategory))]
+			[LocalizedName(nameof(Parameters.Category))]
+			[OverrideTypeReader<CommandsCategoryTypeReader>]
+			[Remainder]
+			IReadOnlyCollection<IImmutableCommand> commands
+		) => Responses.Misc.HelpCategory(commands.DistinctBy(x => x.PrimaryId));
+
+		[Command]
+		[LocalizedSummary(nameof(Summaries.HelpGeneralHelp))]
+		public async Task<AdvobotResult> General()
+		{
+			var prefix = await GuildSettings.GetPrefixAsync(Context.Guild).ConfigureAwait(false);
+			var categories = HelpEntries.Commands.SelectMany(x => x.Categories).ToHashSet();
+			return Responses.Misc.HelpGeneral(categories, prefix);
 		}
-	}*/
+
+		[Command]
+		[Priority(1)]
+		[LocalizedSummary(nameof(Summaries.HelpModuleHelp))]
+		public Task<AdvobotResult> Name(
+			[LocalizedSummary(nameof(Summaries.HelpVariableCommand))]
+			[LocalizedName(nameof(Parameters.Command))]
+			[OverrideTypeReader<CommandsNameTypeReader>]
+			[Remainder]
+			IReadOnlyCollection<IImmutableCommand> commands
+		) => Responses.Misc.Help(commands);
+
+		[Command]
+		[Priority(2)]
+		[LocalizedSummary(nameof(Summaries.HelpCommandHelp))]
+		public Task<AdvobotResult> Name(
+			[LocalizedSummary(nameof(Summaries.HelpVariableCommandPosition))]
+			[LocalizedName(nameof(Parameters.Position))]
+			[Positive]
+			int position,
+			[LocalizedSummary(nameof(Summaries.HelpVariableExactCommand))]
+			[LocalizedName(nameof(Parameters.Command))]
+			[OverrideTypeReader<CommandsNameTypeReader>]
+			[Remainder]
+			IReadOnlyCollection<IImmutableCommand> commands
+		)
+		{
+			if (commands.Count < position)
+			{
+				return Responses.Misc.HelpInvalidPosition(commands.First(), position);
+			}
+			return Responses.Misc.Help(commands.ElementAt(position - 1));
+		}
+	}
 
 	[LocalizedCommand(nameof(Names.Test), nameof(Names.TestAlias))]
 	[LocalizedSummary(nameof(Summaries.Test))]

@@ -1781,7 +1781,7 @@ namespace Advobot.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Commands In {0}.
+        ///   Looks up a localized string similar to Commands In Category.
         /// </summary>
         public static string MiscTitleCategoryCommands {
             get {

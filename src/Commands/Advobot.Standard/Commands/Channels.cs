@@ -12,7 +12,7 @@ using YACCS.Localization;
 
 namespace Advobot.Standard.Commands;
 
-[LocalizedCategory(nameof(Channels))]
+[LocalizedCategory(nameof(Names.ChannelsCategory))]
 public sealed class Channels : AdvobotModuleBase
 {
 	public const ChannelPermission ManageChannelPermissions = 0

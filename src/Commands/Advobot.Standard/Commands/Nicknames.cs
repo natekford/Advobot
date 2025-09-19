@@ -10,7 +10,7 @@ using YACCS.Localization;
 
 namespace Advobot.Standard.Commands;
 
-[LocalizedCategory(nameof(Nicknames))]
+[LocalizedCategory(nameof(Names.NicknamesCategory))]
 public sealed class Nicknames : AdvobotModuleBase
 {
 	[LocalizedCommand(nameof(Names.RemoveAllNickNames), nameof(Names.RemoveAllNickNamesAlias))]

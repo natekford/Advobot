@@ -12,7 +12,7 @@ using YACCS.Localization;
 
 namespace Advobot.Levels.Commands;
 
-[LocalizedCategory(nameof(Levels))]
+[LocalizedCategory(nameof(Names.LevelsCategory))]
 [LocalizedCommand(nameof(Names.Levels), nameof(Names.LevelsAlias))]
 public sealed class Levels : AdvobotModuleBase
 {

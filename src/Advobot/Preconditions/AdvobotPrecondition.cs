@@ -13,4 +13,8 @@ public abstract class AdvobotPrecondition : Precondition<IGuildContext>
 	public string Name => Summary;
 	/// <inheritdoc />
 	public abstract string Summary { get; }
+
+	/// <inheritdoc />
+	public override string ToString()
+		=> Summary;
 }
