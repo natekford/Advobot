@@ -1,4 +1,8 @@
-﻿using Discord;
+﻿using Advobot.Utilities;
+
+using Discord;
+
+using System.Diagnostics;
 
 namespace Advobot.Punishments;
 
@@ -8,6 +12,7 @@ namespace Advobot.Punishments;
 /// <param name="guild"></param>
 /// <param name="userId"></param>
 /// <param name="isGive"></param>
+[DebuggerDisplay(Constants.DEBUGGER_DISPLAY)]
 public abstract class PunishmentBase(IGuild guild, ulong userId, bool isGive)
 	: IPunishment
 {
@@ -23,6 +28,8 @@ public abstract class PunishmentBase(IGuild guild, ulong userId, bool isGive)
 	public abstract PunishmentType Type { get; }
 	/// <inheritdoc />
 	public ulong UserId { get; init; } = userId;
+
+	private string DebuggerDisplay => $"Type = {Type}, Guild = {Guild.Format()}";
 
 	/// <inheritdoc />
 	public abstract Task ExecuteAsync(RequestOptions? options = null);

@@ -3,6 +3,8 @@ using Advobot.Utilities;
 
 using Discord;
 
+using System.Diagnostics;
+
 using YACCS.Results;
 
 namespace Advobot.Modules;
@@ -10,6 +12,7 @@ namespace Advobot.Modules;
 /// <summary>
 /// A result which should only be logged once.
 /// </summary>
+[DebuggerDisplay(Constants.DEBUGGER_DISPLAY)]
 public class AdvobotResult : IResult
 {
 	/// <summary>
@@ -32,6 +35,10 @@ public class AdvobotResult : IResult
 	/// How long to let this message stay up for.
 	/// </summary>
 	public TimeSpan? Time { get; set; }
+
+	private string DebuggerDisplay => $"Text = {!string.IsNullOrWhiteSpace(Response)}, " +
+		$"Embed = {Embed != null}, " +
+		$"File = {File != null}";
 
 	/// <summary>
 	/// Creates an error result.

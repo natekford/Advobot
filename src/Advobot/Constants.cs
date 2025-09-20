@@ -56,6 +56,10 @@ public static class Constants
 	[EditorBrowsable(EditorBrowsableState.Never)]
 	public const string ASSEMBLY_VERSION = "3.2.*";
 	/// <summary>
+	/// Debugger display string/
+	/// </summary>
+	public const string DEBUGGER_DISPLAY = "{DebuggerDisplay,nq}";
+	/// <summary>
 	/// The emoji to use for a denied permission. ❌
 	/// </summary>
 	public const string DENIED = "\u274C";

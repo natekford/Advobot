@@ -1,4 +1,6 @@
-﻿using Discord;
+﻿using Advobot.Utilities;
+
+using Discord;
 
 using System.Diagnostics;
 
@@ -10,11 +12,12 @@ namespace Advobot.Modules;
 /// <param name="services"></param>
 /// <param name="client"></param>
 /// <param name="msg"></param>
+[DebuggerDisplay(Constants.DEBUGGER_DISPLAY)]
 public class GuildContext(
 	IServiceProvider services,
 	IDiscordClient client,
 	IUserMessage msg
-) : IGuildContext, IElapsed
+) : IGuildContext
 {
 	private readonly Stopwatch _Stopwatch = Stopwatch.StartNew();
 
@@ -38,4 +41,6 @@ public class GuildContext(
 	public object Source => Message;
 	/// <inheritdoc />
 	public IGuildUser User { get; } = (msg.Author as IGuildUser)!;
+
+	private string DebuggerDisplay => $"Guild = {Guild.Format()}, User = {User.Format()}";
 }

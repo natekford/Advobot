@@ -183,8 +183,7 @@ partial class LoggingService
 				Channel = context.Channel.Id,
 				User = context.User.Id,
 				Command = result.Command.Paths[0].Join(" "),
-				Elapsed = context is IElapsed elapsed
-					? elapsed.Elapsed.Milliseconds : (int?)null,
+				Elapsed = context.Elapsed.Milliseconds,
 				Error = result.InnerResult.IsSuccess ? null : result.InnerResult.Response,
 			}
 		);
@@ -208,8 +207,7 @@ partial class LoggingService
 				Channel = context.Channel.Id,
 				User = context.User.Id,
 				Command = command.Paths[0].Join(" "),
-				Elapsed = context is IElapsed elapsed
-					? elapsed.Elapsed.Milliseconds : (int?)null,
+				Elapsed = context.Elapsed.Milliseconds,
 				Error = score.InnerResult.Response,
 			}
 		);

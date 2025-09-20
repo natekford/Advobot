@@ -1,5 +1,6 @@
 ﻿using Discord;
 
+using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Runtime.CompilerServices;
 using System.Text;
@@ -10,6 +11,7 @@ namespace Advobot.Embeds;
 /// Wrapper class for <see cref="EmbedBuilder"/>.
 /// Allows for preemptive error checking and error swallowing.
 /// </summary>
+[DebuggerDisplay(Constants.DEBUGGER_DISPLAY)]
 public sealed class EmbedWrapper
 {
 	private readonly EmbedBuilder _Embed;
@@ -184,6 +186,8 @@ public sealed class EmbedWrapper
 			}
 		}
 	}
+
+	private string DebuggerDisplay => $"Length = {_Embed.Length}, Errors = {Errors.Count}";
 
 	/// <summary>
 	/// Creates an instance of <see cref="EmbedWrapper"/>.

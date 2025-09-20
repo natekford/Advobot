@@ -25,10 +25,13 @@ public sealed class SimilarCommandsTypeReader
 		var commands = GetCommands(context.Services);
 
 		var joined = Join(context, input);
-		var found = new SimilarCommands(commands.Commands)
-			.FindSimilar(joined)
-			.Select(x => x.Value)
-			.ToArray();
+		var found = Similarity<IImmutableCommand>.Get(
+			source: commands.Commands,
+			search: joined,
+			getNames: x => x.Paths.Select(x => x.Join(" "))
+		)
+		.Select(x => x.Value)
+		.ToArray();
 
 		if (found.Length == 0)
 		{
@@ -40,26 +43,4 @@ public sealed class SimilarCommandsTypeReader
 	[GetServiceMethod]
 	private static ICommandService GetCommands(IServiceProvider services)
 		=> services.GetRequiredService<ICommandService>();
-
-	private sealed class SimilarCommands(IEnumerable<IImmutableCommand> source)
-		: Similar<IImmutableCommand>(source)
-	{
-		protected override Similarity<IImmutableCommand> FindSimilarity(
-			string search,
-			IImmutableCommand item)
-		{
-			var name = "";
-			var distance = int.MaxValue;
-			foreach (var path in item.Paths.Select(x => x.Join(" ")))
-			{
-				var cDistance = FindCloseness(path, search, Threshold);
-				if (distance > cDistance)
-				{
-					name = path;
-					distance = cDistance;
-				}
-			}
-			return new(name, search, distance, item);
-		}
-	}
 }

@@ -13,6 +13,10 @@ public interface IGuildContext : IContext
 	ITextChannel Channel { get; }
 	/// <inheritdoc cref="Discord.Commands.ICommandContext.Client" />
 	IDiscordClient Client { get; }
+	/// <summary>
+	/// Time elapsed between receiving the message starting this command and ending it.
+	/// </summary>
+	TimeSpan Elapsed { get; }
 	/// <inheritdoc cref="Discord.Commands.ICommandContext.Guild" />
 	IGuild Guild { get; }
 	/// <inheritdoc cref="Discord.Commands.ICommandContext.Message" />

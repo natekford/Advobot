@@ -1,43 +1,65 @@
-﻿using System.Runtime.InteropServices;
+﻿using System.Diagnostics;
+using System.Runtime.InteropServices;
 
 namespace Advobot.Similar;
 
 /// <summary>
-/// Gathers objects with similar names to the passed in input.
+/// Holds an object which has a name and text and its similarity.
 /// </summary>
 /// <typeparam name="T"></typeparam>
-/// <param name="source"></param>
-public abstract class Similar<T>(IEnumerable<T> source)
+/// <param name="Name">The name being compared.</param>
+/// <param name="Search">The search term.</param>
+/// <param name="Distance">
+/// The Damerau Levenshtein distance between <see cref="Name"/> and <see cref="Search"/>.
+/// </param>
+/// <param name="Value">The object this is coming from.</param>
+[DebuggerDisplay(Constants.DEBUGGER_DISPLAY)]
+public readonly record struct Similarity<T>(
+	string Name,
+	string Search,
+	int Distance,
+	T Value
+) : IComparable<Similarity<T>>
 {
-	/// <summary>
-	/// How many matches can be found.
-	/// </summary>
-	public int MaxOutput { get; set; } = 5;
-	/// <summary>
-	/// How dissimilar a string can be to be considered a match.
-	/// </summary>
-	public int Threshold { get; set; } = 4;
-	/// <summary>
-	/// What to search through.
-	/// </summary>
-	protected IEnumerable<T> Source { get; } = source;
+	private string DebuggerDisplay => $"Name = {Name}, Distance = {Distance}";
 
 	/// <summary>
-	/// Returns matches.
+	/// Gets items with similar names to <paramref name="search"/>.
 	/// </summary>
+	/// <param name="source"></param>
 	/// <param name="search"></param>
+	/// <param name="getNames"></param>
+	/// <param name="threshold"></param>
+	/// <param name="maxOutput"></param>
 	/// <returns></returns>
-	public virtual IReadOnlyList<Similarity<T>> FindSimilar(string search)
+	public static IReadOnlyList<Similarity<T>> Get(
+		IEnumerable<T> source,
+		string search,
+		Func<T, IEnumerable<string>> getNames,
+		int threshold = 4,
+		int maxOutput = 5)
 	{
-		var list = new List<Similarity<T>>(MaxOutput);
-		foreach (var item in Source)
+		var list = new List<Similarity<T>>(maxOutput);
+		foreach (var item in source)
 		{
-			var similar = FindSimilarity(search, item);
-			if (similar.Distance > Threshold)
+			var name = "";
+			var distance = int.MaxValue;
+			foreach (var path in getNames(item))
+			{
+				var cDistance = GetDistance(path, search, threshold);
+				if (distance > cDistance)
+				{
+					name = path;
+					distance = cDistance;
+				}
+			}
+
+			var similar = new Similarity<T>(name, search, distance, item);
+			if (similar.Distance > threshold)
 			{
 				continue;
 			}
-			if (MaxOutput > list.Count)
+			if (maxOutput > list.Count)
 			{
 				list.Add(similar);
 				continue;
@@ -45,9 +67,9 @@ public abstract class Similar<T>(IEnumerable<T> source)
 
 			for (var j = 0; j < list.Count; ++j)
 			{
-				if (similar.CompareTo(list[j]) < 0 && j < MaxOutput)
+				if (similar.CompareTo(list[j]) < 0 && j < maxOutput)
 				{
-					list.RemoveAt(MaxOutput - 1);
+					list.RemoveAt(maxOutput - 1);
 					list.Insert(j, similar);
 					break;
 				}
@@ -56,14 +78,7 @@ public abstract class Similar<T>(IEnumerable<T> source)
 		return list;
 	}
 
-	/// <summary>
-	/// Returns a value gotten from using Damerau Levenshtein distance to compare the source and target.
-	/// </summary>
-	/// <param name="source"></param>
-	/// <param name="search"></param>
-	/// <param name="threshold"></param>
-	/// <returns></returns>
-	protected static int FindCloseness(string source, string search, int threshold)
+	private static int GetDistance(string source, string search, int threshold)
 	{
 		static void Swap<T2>(ref T2 arg1, ref T2 arg2)
 			=> (arg2, arg1) = (arg1, arg2);
@@ -157,11 +172,15 @@ public abstract class Similar<T>(IEnumerable<T> source)
 		return result > threshold ? int.MaxValue : result;
 	}
 
-	/// <summary>
-	/// Finds the closeness of this object to the search string.
-	/// </summary>
-	/// <param name="search"></param>
-	/// <param name="item"></param>
-	/// <returns></returns>
-	protected abstract Similarity<T> FindSimilarity(string search, T item);
+	/// <inheritdoc />
+	public int CompareTo(Similarity<T> other)
+	{
+		var distance = Distance.CompareTo(other.Distance);
+		if (distance != 0)
+		{
+			return distance;
+		}
+
+		return Name.CompareTo(other.Name);
+	}
 }
