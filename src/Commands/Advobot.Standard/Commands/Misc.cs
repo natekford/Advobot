@@ -182,13 +182,18 @@ public sealed class Misc : AdvobotModuleBase
 		public async Task<IResult> Similar(
 			[OverrideTypeReader<SimilarCommandsTypeReader>]
 			[Remainder]
-			IReadOnlyList<IImmutableCommand> commands
+			IReadOnlyList<SimilarCommands> commands
 		)
 		{
-			var entry = await NextItemAtIndexAsync(commands, x => x.Paths[0].Join(" ")).ConfigureAwait(false);
+			var entry = await NextItemAtIndexAsync(commands, x => x.Path).ConfigureAwait(false);
 			if (entry.HasValue)
 			{
-				return Responses.Misc.Help(entry.Value);
+				var list = entry.Value.Commands;
+				if (list.Count == 1)
+				{
+					return Responses.Misc.Help(list[0]);
+				}
+				return Responses.Misc.Help(list);
 			}
 			return Result.EmptySuccess;
 		}

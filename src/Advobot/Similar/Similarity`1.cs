@@ -28,37 +28,28 @@ public readonly record struct Similarity<T>(
 	/// </summary>
 	/// <param name="source"></param>
 	/// <param name="search"></param>
-	/// <param name="getNames"></param>
+	/// <param name="getName"></param>
 	/// <param name="threshold"></param>
 	/// <param name="maxOutput"></param>
 	/// <returns></returns>
 	public static IReadOnlyList<Similarity<T>> Get(
 		IEnumerable<T> source,
 		string search,
-		Func<T, IEnumerable<string>> getNames,
+		Func<T, string> getName,
 		int threshold = 4,
 		int maxOutput = 5)
 	{
 		var list = new List<Similarity<T>>(maxOutput);
 		foreach (var item in source)
 		{
-			var name = "";
-			var distance = int.MaxValue;
-			foreach (var path in getNames(item))
-			{
-				var cDistance = GetDistance(path, search, threshold);
-				if (distance > cDistance)
-				{
-					name = path;
-					distance = cDistance;
-				}
-			}
-
-			var similar = new Similarity<T>(name, search, distance, item);
-			if (similar.Distance > threshold)
+			var name = getName(item);
+			var distance = GetDistance(name, search, threshold);
+			if (distance > threshold)
 			{
 				continue;
 			}
+
+			var similar = new Similarity<T>(name, search, distance, item);
 			if (maxOutput > list.Count)
 			{
 				list.Add(similar);
