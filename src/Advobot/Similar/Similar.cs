@@ -1,33 +1,22 @@
-﻿using Advobot.Utilities;
+﻿using System.Runtime.InteropServices;
 
-using System.Diagnostics.CodeAnalysis;
-
-namespace Advobot.CloseWords;
+namespace Advobot.Similar;
 
 /// <summary>
 /// Gathers objects with similar names to the passed in input.
 /// </summary>
 /// <typeparam name="T"></typeparam>
 /// <param name="source"></param>
-/// <param name="getName"></param>
-public class CloseWords<T>(IEnumerable<T> source, Func<T, string> getName)
+public abstract class Similar<T>(IEnumerable<T> source)
 {
 	/// <summary>
-	/// Mark as close if the supplied text is within searched text.
-	/// </summary>
-	public bool IncludeWhenContains { get; set; } = true;
-	/// <summary>
-	/// How similar a string has to be to match.
-	/// </summary>
-	public int MaxAllowedCloseness { get; set; } = 4;
-	/// <summary>
-	/// How many closewords can be found.
+	/// How many matches can be found.
 	/// </summary>
 	public int MaxOutput { get; set; } = 5;
 	/// <summary>
-	/// Gets the name of the object.
+	/// How dissimilar a string can be to be considered a match.
 	/// </summary>
-	protected Func<T, string> GetName { get; } = getName;
+	public int Threshold { get; set; } = 4;
 	/// <summary>
 	/// What to search through.
 	/// </summary>
@@ -38,27 +27,28 @@ public class CloseWords<T>(IEnumerable<T> source, Func<T, string> getName)
 	/// </summary>
 	/// <param name="search"></param>
 	/// <returns></returns>
-	public virtual IReadOnlyList<CloseWord<T>> FindMatches(string search)
+	public virtual IReadOnlyList<Similarity<T>> FindSimilar(string search)
 	{
-		var list = new List<CloseWord<T>>(MaxOutput);
+		var list = new List<Similarity<T>>(MaxOutput);
 		foreach (var item in Source)
 		{
-			if (!IsCloseWord(search, item, out var closeWord))
+			var similar = FindSimilarity(search, item);
+			if (similar.Distance > Threshold)
 			{
 				continue;
 			}
 			if (MaxOutput > list.Count)
 			{
-				list.Add(closeWord);
+				list.Add(similar);
 				continue;
 			}
 
 			for (var j = 0; j < list.Count; ++j)
 			{
-				if (closeWord.CompareTo(list[j]) < 0 && j < MaxOutput)
+				if (similar.CompareTo(list[j]) < 0 && j < MaxOutput)
 				{
 					list.RemoveAt(MaxOutput - 1);
-					list.Insert(j, closeWord);
+					list.Insert(j, similar);
 					break;
 				}
 			}
@@ -70,18 +60,25 @@ public class CloseWords<T>(IEnumerable<T> source, Func<T, string> getName)
 	/// Returns a value gotten from using Damerau Levenshtein distance to compare the source and target.
 	/// </summary>
 	/// <param name="source"></param>
-	/// <param name="target"></param>
+	/// <param name="search"></param>
 	/// <param name="threshold"></param>
 	/// <returns></returns>
-	protected static int FindCloseness(string source, string target, int threshold = 10)
+	protected static int FindCloseness(string source, string search, int threshold)
 	{
 		static void Swap<T2>(ref T2 arg1, ref T2 arg2)
 			=> (arg2, arg1) = (arg1, arg2);
 
+		static bool CharsEqual(char a, char b)
+		{
+			var spanA = MemoryMarshal.CreateReadOnlySpan(ref a, 1);
+			var spanB = MemoryMarshal.CreateReadOnlySpan(ref b, 1);
+			return spanA.CompareTo(spanB, StringComparison.OrdinalIgnoreCase) == 0;
+		}
+
 		// Damerau Levenshtein Distance: https://en.wikipedia.org/wiki/Damerau–Levenshtein_distance
 		// Copied nearly verbatim from: https://stackoverflow.com/a/9454016
 		var length1 = source.Length;
-		var length2 = target.Length;
+		var length2 = search.Length;
 
 		// Return trivial case - difference in string lengths exceeds threshhold
 		if (Math.Abs(length1 - length2) > threshold)
@@ -92,7 +89,7 @@ public class CloseWords<T>(IEnumerable<T> source, Func<T, string> getName)
 		// Ensure arrays [i] / length1 use shorter length
 		if (length1 > length2)
 		{
-			Swap(ref target, ref source);
+			Swap(ref search, ref source);
 			Swap(ref length1, ref length2);
 		}
 
@@ -127,7 +124,7 @@ public class CloseWords<T>(IEnumerable<T> source, Func<T, string> getName)
 
 			for (var i = 1; i <= maxi; i++)
 			{
-				var cost = source[im1] == target[jm1] ? 0 : 1;
+				var cost = CharsEqual(source[im1], search[jm1]) ? 0 : 1;
 
 				var del = dCurrent[im1] + 1;
 				var ins = dMinus1[i] + 1;
@@ -136,7 +133,7 @@ public class CloseWords<T>(IEnumerable<T> source, Func<T, string> getName)
 				//Fastest execution for min value of 3 integers
 				var min = del > ins ? ins > sub ? sub : ins : del > sub ? sub : del;
 
-				if (i > 1 && j > 1 && source[im2] == target[jm1] && source[im1] == target[j - 2])
+				if (i > 1 && j > 1 && CharsEqual(source[im2], search[jm1]) && CharsEqual(source[im1], search[j - 2]))
 				{
 					min = Math.Min(min, dMinus2[im2] + cost);
 				}
@@ -164,28 +161,7 @@ public class CloseWords<T>(IEnumerable<T> source, Func<T, string> getName)
 	/// Finds the closeness of this object to the search string.
 	/// </summary>
 	/// <param name="search"></param>
-	/// <param name="obj"></param>
+	/// <param name="item"></param>
 	/// <returns></returns>
-	protected virtual CloseWord<T> FindCloseness(string search, T obj)
-	{
-		var name = GetName(obj);
-		var distance = FindCloseness(name, search);
-		return new(name, search, distance, obj);
-	}
-
-	/// <summary>
-	/// Determines whether this is a close word.
-	/// </summary>
-	/// <param name="search"></param>
-	/// <param name="obj"></param>
-	/// <param name="closeWord"></param>
-	/// <returns></returns>
-	protected bool IsCloseWord(string search, T obj, [NotNullWhen(true)] out CloseWord<T> closeWord)
-	{
-		var closeness = FindCloseness(search, obj);
-		var success = closeness.Distance < MaxAllowedCloseness
-			|| (IncludeWhenContains && closeness.Name.CaseInsContains(search));
-		closeWord = success ? closeness : default;
-		return success;
-	}
+	protected abstract Similarity<T> FindSimilarity(string search, T item);
 }

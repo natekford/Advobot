@@ -1,4 +1,5 @@
-﻿using Advobot.Embeds;
+﻿using Advobot.Attributes;
+using Advobot.Embeds;
 using Advobot.Modules;
 using Advobot.Utilities;
 
@@ -9,6 +10,7 @@ using Discord.WebSocket;
 using System.Reflection;
 using System.Text;
 
+using YACCS.Commands.Attributes;
 using YACCS.Commands.Linq;
 using YACCS.Commands.Models;
 using YACCS.Help.Attributes;
@@ -26,22 +28,24 @@ public sealed partial class Misc : AdvobotResult
 
 	public static AdvobotResult Help(IReadOnlyCollection<IImmutableCommand> commands)
 	{
-		return Help(commands.First());
-		/*
-		var enabled = commands.EnabledByDefault.ToString();
-		if (!commands.AbleToBeToggled)
+		var command = commands.First();
+		var meta = command.GetAttributes<MetaAttribute>().Single();
+
+		var enabled = meta.IsEnabled.ToString();
+		if (!meta.CanToggle)
 		{
 			enabled += MiscCannotBeDisabled;
 		}
 
 		var sb = new StringBuilder()
-			.AppendHeaderAndValue(MiscTitleAliases, commands.Aliases.Join())
-			.AppendHeaderAndValue(MiscTitleBasePermissions, FormatPreconditions(commands.Preconditions))
+			.AppendHeaderAndValue(MiscTitleAliases, FormatAliases(command.Paths))
+			.AppendHeaderAndValue(MiscTitleBasePermissions, FormatPreconditions(command.Preconditions))
 			.AppendHeaderAndValue(MiscTitleEnabledByDefault, enabled);
 
 		sb.AppendCategorySeparator()
-			.AppendHeaderAndValue(MiscTitleDescription, commands.Summary);
+			.AppendHeaderAndValue(MiscTitleDescription, GetSummary(command));
 
+		/*
 		if (commands.Submodules.Count != 0)
 		{
 			var submodules = commands.Submodules
@@ -50,21 +54,22 @@ public sealed partial class Misc : AdvobotResult
 				.WithBigBlock();
 			sb.AppendCategorySeparator()
 				.AppendHeaderAndValue(MiscTitleSubmodules, submodules);
-		}
+		}*/
 
-		if (commands.Commands.Count != 0)
+		/*
+		if (commands.Count != 0)
 		{
-			var commands = commands.Commands.Select((x, i) =>
+			var c = commands.Select((x, i) =>
 			{
 				var parameters = x.Parameters.Select(FormatParameter).Join();
 				var name = string.IsNullOrWhiteSpace(x.Name) ? "" : x.Name + " ";
 				return $"{i + 1}. {name}({parameters})";
 			}).Join("\n").WithBigBlock();
 			sb.AppendCategorySeparator()
-				.AppendHeaderAndValue(MiscTitleCommands, commands);
-		}
+				.AppendHeaderAndValue(MiscTitleCommands, c);
+		}*/
 
-		return Success(CreateHelpEmbed(commands.Aliases[0], sb.ToString()));*/
+		return Success(CreateHelpEmbed(command.Paths[0].Join(" "), sb.ToString()));
 	}
 
 	public static AdvobotResult Help(IImmutableCommand command)
@@ -91,8 +96,41 @@ public sealed partial class Misc : AdvobotResult
 
 	public static AdvobotResult HelpCategory(IEnumerable<IImmutableCommand> commands)
 	{
+		static string GetPath(IImmutableCommand command, int length)
+			=> command.Paths[0].Take(length).Join(" ");
+
+		static string GetModulePath(IGrouping<string, IImmutableCommand> x)
+		{
+			// (get, g) (get ban, g b) => get
+
+			var i = 0;
+			for (; ; ++i)
+			{
+				var part = default(string);
+				foreach (var command in x)
+				{
+					if (part is null)
+					{
+						part = command.Paths.FirstOrDefault(x => x.Count > i)?[i];
+						if (part is null)
+						{
+							return GetPath(command, i);
+						}
+						continue;
+					}
+
+					if (!command.Paths.Any(x => x.Count > i && x[i] == part))
+					{
+						return GetPath(command, i);
+					}
+				}
+			}
+		}
+
 		var description = commands
-			.Select(x => x.Paths[0].Join(" "))
+			.Where(NotHidden)
+			.GroupBy(x => x.PrimaryId)
+			.Select(GetModulePath)
 			.Join()
 			.WithBigBlock()
 			.Current;
@@ -282,6 +320,9 @@ public sealed partial class Misc : AdvobotResult
 			.FirstOrDefault();
 		return ((ISummaryAttribute)Value)?.Summary;
 	}
+
+	private static bool NotHidden(IImmutableCommand command)
+		=> !command.GetAttributes<HiddenAttribute>().Any();
 }
 
 public sealed partial class Misc : AdvobotResult

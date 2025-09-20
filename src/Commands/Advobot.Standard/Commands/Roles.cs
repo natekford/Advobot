@@ -18,8 +18,7 @@ public sealed class Roles : AdvobotModuleBase
 {
 	[LocalizedCommand(nameof(Names.ClearRolePerms), nameof(Names.ClearRolePermsAlias))]
 	[LocalizedSummary(nameof(Summaries.ClearRolePerms))]
-	[Id("bb5e3639-7287-45d4-a3fe-22359dd25073")]
-	[Meta(IsEnabled = true)]
+	[Meta("bb5e3639-7287-45d4-a3fe-22359dd25073", IsEnabled = true)]
 	[RequireGuildPermissions(GuildPermission.ManageRoles)]
 	public sealed class ClearRolePerms : AdvobotModuleBase
 	{
@@ -34,8 +33,7 @@ public sealed class Roles : AdvobotModuleBase
 
 	[LocalizedCommand(nameof(Names.CopyRolePerms), nameof(Names.CopyRolePermsAlias))]
 	[LocalizedSummary(nameof(Summaries.CopyRolePerms))]
-	[Id("bbf7898b-fcb6-4c04-a04a-f343fa129008")]
-	[Meta(IsEnabled = true)]
+	[Meta("bbf7898b-fcb6-4c04-a04a-f343fa129008", IsEnabled = true)]
 	[RequireGuildPermissions(GuildPermission.ManageRoles)]
 	public sealed class CopyRolePerms : AdvobotModuleBase
 	{
@@ -59,8 +57,7 @@ public sealed class Roles : AdvobotModuleBase
 	// Moving roles on mobile sucks
 	[LocalizedCommand(nameof(Names.ModifyRolePosition), nameof(Names.ModifyRolePositionAlias))]
 	[LocalizedSummary(nameof(Summaries.ModifyRolePosition))]
-	[Id("efb2d8e5-b5d5-4c77-b0f6-66b9c378080d")]
-	[Meta(IsEnabled = true)]
+	[Meta("efb2d8e5-b5d5-4c77-b0f6-66b9c378080d", IsEnabled = true)]
 	[RequireGuildPermissions(GuildPermission.ManageRoles)]
 	public sealed class ModifyRolePosition : AdvobotModuleBase
 	{
@@ -78,8 +75,7 @@ public sealed class Roles : AdvobotModuleBase
 
 	[LocalizedCommand(nameof(Names.SoftDeleteRole), nameof(Names.SoftDeleteRoleAlias))]
 	[LocalizedSummary(nameof(Summaries.SoftDeleteRole))]
-	[Id("4cecc4b9-9d25-44d2-9de3-3b5fe5bd33c5")]
-	[Meta(IsEnabled = true)]
+	[Meta("4cecc4b9-9d25-44d2-9de3-3b5fe5bd33c5", IsEnabled = true)]
 	[RequireGuildPermissions(GuildPermission.ManageRoles)]
 	public sealed class SoftDeleteRole : AdvobotModuleBase
 	{

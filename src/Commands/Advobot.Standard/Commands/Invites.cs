@@ -17,8 +17,7 @@ public sealed class Invites : AdvobotModuleBase
 	// This can be done in mobile, but if there are too many invites it could be annoying
 	[LocalizedCommand(nameof(Names.DeleteInvite), nameof(Names.DeleteInviteAlias))]
 	[LocalizedSummary(nameof(Summaries.DeleteInvite))]
-	[Id("993e5613-6cdb-4ff3-925d-98e3a534ddc8")]
-	[Meta(IsEnabled = true)]
+	[Meta("993e5613-6cdb-4ff3-925d-98e3a534ddc8", IsEnabled = true)]
 	[RequireGuildPermissions(GuildPermission.ManageChannels)]
 	public sealed class DeleteInvite : AdvobotModuleBase
 	{

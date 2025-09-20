@@ -114,7 +114,7 @@ public abstract class AdvobotModuleBase : CommandGroup<IGuildContext>
 	/// <param name="options"></param>
 	/// <returns></returns>
 	/// <remarks>Heavily taken from https://github.com/foxbot/Discord.Addons.Interactive/blob/master/Discord.Addons.Interactive/InteractiveService.cs</remarks>
-	public async Task<InteractiveResult<T>> NextValueAsync<T>(
+	public Task<InteractiveResult<T>> NextValueAsync<T>(
 		IMessageTryParser<T> tryParser,
 		InteractivityOptions? options = null)
 	{

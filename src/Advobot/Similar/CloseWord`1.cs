@@ -1,6 +1,6 @@
 ﻿using System.Diagnostics;
 
-namespace Advobot.CloseWords;
+namespace Advobot.Similar;
 
 /// <summary>
 /// Holds an object which has a name and text and its closeness.
@@ -13,17 +13,17 @@ namespace Advobot.CloseWords;
 /// </param>
 /// <param name="Value">The object this is coming from.</param>
 [DebuggerDisplay("{DebuggerDisplay,nq}")]
-public readonly record struct CloseWord<T>(
+public readonly record struct Similarity<T>(
 	string Name,
 	string Search,
 	int Distance,
 	T Value
-) : IComparable<CloseWord<T>>
+) : IComparable<Similarity<T>>
 {
 	private string DebuggerDisplay => $"Name = {Name}, Distance = {Distance}";
 
 	/// <inheritdoc />
-	public int CompareTo(CloseWord<T> other)
+	public int CompareTo(Similarity<T> other)
 	{
 		var distance = Distance.CompareTo(other.Distance);
 		if (distance != 0)

@@ -18,8 +18,7 @@ public sealed class Levels : AdvobotModuleBase
 {
 	[LocalizedCommand(nameof(Names.Show), nameof(Names.ShowAlias))]
 	[LocalizedSummary(nameof(Summaries.LevelsShow))]
-	[Id("bebda6ba-6fbf-4278-94e0-408dcdc77d3c")]
-	[Meta(IsEnabled = true)]
+	[Meta("bebda6ba-6fbf-4278-94e0-408dcdc77d3c", IsEnabled = true)]
 	public sealed class Show : LevelModuleBase
 	{
 		[Command]
@@ -47,8 +46,7 @@ public sealed class Levels : AdvobotModuleBase
 
 	[LocalizedCommand(nameof(Names.Top), nameof(Names.TopAlias))]
 	[LocalizedSummary(nameof(Summaries.LevelsTop))]
-	[Id("649ec476-4043-48b0-9802-62a9288d007b")]
-	[Meta(IsEnabled = true)]
+	[Meta("649ec476-4043-48b0-9802-62a9288d007b", IsEnabled = true)]
 	public sealed class Top : LevelModuleBase
 	{
 		public const int PAGE_LENGTH = 15;

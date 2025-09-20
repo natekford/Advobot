@@ -4,6 +4,8 @@ using Advobot.ParameterPreconditions.Numbers;
 using Advobot.Preconditions;
 using Advobot.Resources;
 using Advobot.Services.GuildSettings;
+using Advobot.TypeReaders;
+using Advobot.Utilities;
 
 using Discord;
 
@@ -12,6 +14,7 @@ using YACCS.Commands.Attributes;
 using YACCS.Commands.Building;
 using YACCS.Commands.Models;
 using YACCS.Localization;
+using YACCS.Results;
 using YACCS.TypeReaders;
 
 namespace Advobot.Standard.Commands;
@@ -21,8 +24,7 @@ public sealed class Misc : AdvobotModuleBase
 {
 	[LocalizedCommand(nameof(Names.Get), nameof(Names.GetAlias))]
 	[LocalizedSummary(nameof(Summaries.GetInfo))]
-	[Id("99dcd5e7-6bb2-49cf-b8b7-66b8e063fd18")]
-	[Meta(IsEnabled = true)]
+	[Meta("99dcd5e7-6bb2-49cf-b8b7-66b8e063fd18", IsEnabled = true)]
 	public sealed class Get : AdvobotModuleBase
 	{
 		[LocalizedCommand(nameof(Names.Ban), nameof(Names.BanAlias))]
@@ -114,32 +116,13 @@ public sealed class Misc : AdvobotModuleBase
 
 	[LocalizedCommand(nameof(Names.Help), nameof(Names.HelpAlias))]
 	[LocalizedSummary(nameof(Summaries.Help))]
-	[Id("0e89a6fd-5c9c-4008-a912-7c719ea7827d")]
-	[Meta(IsEnabled = true, CanToggle = false)]
+	[Meta("0e89a6fd-5c9c-4008-a912-7c719ea7827d", IsEnabled = true, CanToggle = false)]
 	public sealed class Help : AdvobotModuleBase
 	{
 		[InjectService]
 		public required IGuildSettingsService GuildSettings { get; set; }
 		[InjectService]
 		public required CommandService HelpEntries { get; set; }
-
-		/*
-		[Command]
-		[Priority(0)]
-		[Hidden]
-		public async Task<AdvobotResult> Command(
-			//[CommandsNameTypeReader]
-			[Remainder]
-			IReadOnlyList<IImmutableCommand> modules
-		)
-		{
-			var entry = await NextItemAtIndexAsync(modules, x => x.Paths[0].Join(" ")).ConfigureAwait(false);
-			if (entry.HasValue)
-			{
-				return Responses.Misc.Help(entry.Value);
-			}
-			return AdvobotResult.Failure("REMOVE ME");
-		}*/
 
 		[Command]
 		[Priority(1)]
@@ -149,7 +132,7 @@ public sealed class Misc : AdvobotModuleBase
 			[OverrideTypeReader<CommandsCategoryTypeReader>]
 			[Remainder]
 			IReadOnlyCollection<IImmutableCommand> commands
-		) => Responses.Misc.HelpCategory(commands.DistinctBy(x => x.PrimaryId));
+		) => Responses.Misc.HelpCategory(commands);
 
 		[Command]
 		[LocalizedSummary(nameof(Summaries.HelpGeneralHelp))]
@@ -192,12 +175,28 @@ public sealed class Misc : AdvobotModuleBase
 			}
 			return Responses.Misc.Help(commands.ElementAt(position - 1));
 		}
+
+		[Command]
+		[Priority(-1)]
+		[Hidden]
+		public async Task<IResult> Similar(
+			[OverrideTypeReader<SimilarCommandsTypeReader>]
+			[Remainder]
+			IReadOnlyList<IImmutableCommand> commands
+		)
+		{
+			var entry = await NextItemAtIndexAsync(commands, x => x.Paths[0].Join(" ")).ConfigureAwait(false);
+			if (entry.HasValue)
+			{
+				return Responses.Misc.Help(entry.Value);
+			}
+			return Result.EmptySuccess;
+		}
 	}
 
 	[LocalizedCommand(nameof(Names.Test), nameof(Names.TestAlias))]
 	[LocalizedSummary(nameof(Summaries.Test))]
-	[Id("6c0b693e-e3ac-421e-910e-3178110d791d")]
-	[Meta(IsEnabled = true)]
+	[Meta("6c0b693e-e3ac-421e-910e-3178110d791d", IsEnabled = true)]
 	[RequireBotOwner]
 	public sealed class Test : AdvobotModuleBase
 	{
