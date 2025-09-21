@@ -5,7 +5,6 @@ using Advobot.Preconditions;
 using Advobot.Resources;
 using Advobot.Services.GuildSettings;
 using Advobot.TypeReaders;
-using Advobot.Utilities;
 
 using Discord;
 
@@ -186,9 +185,8 @@ public sealed class Misc : AdvobotModuleBase
 		)
 		{
 			var entry = await NextItemAtIndexAsync(commands, x => x.Path).ConfigureAwait(false);
-			if (entry.HasValue)
+			if (entry.Value?.Commands is IReadOnlyList<IImmutableCommand> list)
 			{
-				var list = entry.Value.Commands;
 				if (list.Count == 1)
 				{
 					return Responses.Misc.Help(list[0]);

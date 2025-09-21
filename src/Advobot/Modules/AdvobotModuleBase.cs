@@ -1,6 +1,5 @@
 ﻿using Advobot.Interactivity;
-using Advobot.Interactivity.Criterions;
-using Advobot.Interactivity.TryParsers;
+using Advobot.ParameterPreconditions.Numbers;
 using Advobot.Preconditions;
 using Advobot.Services.BotConfig;
 using Advobot.Services.Events;
@@ -11,6 +10,8 @@ using Discord;
 
 using YACCS.Commands;
 using YACCS.Commands.Building;
+using YACCS.Interactivity;
+using YACCS.TypeReaders;
 
 namespace Advobot.Modules;
 
@@ -20,7 +21,7 @@ namespace Advobot.Modules;
 [ExtendableCommandValidation]
 public abstract class AdvobotModuleBase : CommandGroup<IGuildContext>
 {
-	private static readonly ICriterion<IMessage>[] _NextIndexCriteria =
+	private static readonly ICriterion<IGuildContext, IMessage>[] _NextIndexCriteria =
 	[
 		new EnsureSourceChannelCriterion(),
 		new EnsureSourceUserCriterion(),
@@ -36,6 +37,11 @@ public abstract class AdvobotModuleBase : CommandGroup<IGuildContext>
 	/// </summary>
 	[InjectService]
 	public required EventProvider EventProvider { get; set; }
+	/// <summary>
+	/// The service to use for getting additional input from users.
+	/// </summary>
+	[InjectService]
+	public required DiscordMessageInput MessageInput { get; set; }
 	/// <summary>
 	/// The service to use for giving punishments.
 	/// </summary>
@@ -70,100 +76,44 @@ public abstract class AdvobotModuleBase : CommandGroup<IGuildContext>
 		=> Context.Client.GetUserAsync(userId);
 
 	/// <summary>
-	/// Gets the next valid index supplied by the user. This is blocking.
+	/// Gets the next valid index supplied by the invoker.
 	/// </summary>
-	/// <param name="minVal"></param>
-	/// <param name="maxVal"></param>
-	/// <param name="options"></param>
+	/// <param name="min"></param>
+	/// <param name="max"></param>
 	/// <returns></returns>
-	public Task<InteractiveResult<int>> NextIndexAsync(
-		int minVal,
-		int maxVal,
-		InteractivityOptions? options = null)
+	public Task<ITypeReaderResult<int>> NextIndexAsync(int min, int max)
 	{
-		var tryParser = new IndexTryParser(minVal, maxVal);
-		options ??= new();
-		options.Criteria = _NextIndexCriteria;
-		return NextValueAsync(tryParser, options);
+		return MessageInput.GetAsync<int>(Context, new()
+		{
+			Criteria = _NextIndexCriteria,
+			Preconditions = [new NumberParameterPrecondition(min, max)],
+		});
 	}
 
 	/// <summary>
-	/// Uses user input to get the item at a specified index. This is blocking.
+	/// Processes invoker message input to get the item at a specified index.
 	/// </summary>
 	/// <typeparam name="T"></typeparam>
 	/// <param name="source"></param>
 	/// <param name="format"></param>
-	/// <param name="options"></param>
 	/// <returns></returns>
-	public async Task<InteractiveResult<T>> NextItemAtIndexAsync<T>(
+	public async Task<ITypeReaderResult<T>> NextItemAtIndexAsync<T>(
 		IReadOnlyList<T> source,
-		Func<T, string> format,
-		InteractivityOptions? options = null)
+		Func<T, string> format)
 	{
 		var list = source.Select(format).FormatNumberedList();
 		var message = await ReplyAsync($"Did you mean any of the following:\n{list}").ConfigureAwait(false);
-		var index = await NextIndexAsync(0, source.Count - 1, options).ConfigureAwait(false);
+		var index = await NextIndexAsync(1, source.Count).ConfigureAwait(false);
 		await message.DeleteAsync(GetOptions()).ConfigureAwait(false);
-		return index.HasValue ? source[index.Value] : InteractiveResult<T>.PropagateError(index);
-	}
 
-	/// <summary>
-	/// Gets the next message which makes <paramref name="tryParser"/> return true. This is blocking.
-	/// </summary>
-	/// <param name="tryParser"></param>
-	/// <param name="options"></param>
-	/// <returns></returns>
-	/// <remarks>Heavily taken from https://github.com/foxbot/Discord.Addons.Interactive/blob/master/Discord.Addons.Interactive/InteractiveService.cs</remarks>
-	public Task<InteractiveResult<T>> NextValueAsync<T>(
-		IMessageTryParser<T> tryParser,
-		InteractivityOptions? options = null)
-	{
-		throw new NotImplementedException();
-		/*
-		var timeout = options?.Timeout ?? DefaultInteractivityTime;
-
-		var eventTrigger = new TaskCompletionSource<T>();
-		var cancelTrigger = new TaskCompletionSource<bool>();
-		if (options?.Token is CancellationToken token)
+		if (index.InnerResult.IsSuccess)
 		{
-			token.Register(() => cancelTrigger.SetResult(true));
+			return TypeReaderResult<T>.Success(source[index.Value - 1]);
 		}
-
-		var criteria = options?.Criteria ?? [];
-		async Task Handler(IMessage message)
+		else
 		{
-			foreach (var criterion in criteria)
-			{
-				var result = await criterion.JudgeAsync(Context, message).ConfigureAwait(false);
-				if (!result)
-				{
-					return;
-				}
-			}
-
-			var parsed = await tryParser.TryParseAsync(message).ConfigureAwait(false);
-			if (parsed.IsSpecified)
-			{
-				eventTrigger.SetResult(parsed.Value);
-			}
+			return TypeReaderResult<T>.Error(index.InnerResult);
 		}
-
-		EventProvider.MessageReceived.Add(Handler);
-		var @event = eventTrigger.Task;
-		var cancel = cancelTrigger.Task;
-		var delay = Task.Delay(timeout);
-		var task = await Task.WhenAny(@event, delay, cancel).ConfigureAwait(false);
-		EventProvider.MessageReceived.Remove(Handler);
-
-		if (task == cancel)
-		{
-			return InteractiveResult<T>.Canceled;
-		}
-		else if (task == delay)
-		{
-			return InteractiveResult<T>.TimedOut;
-		}
-		return await @event.ConfigureAwait(false);*/
 	}
 
 	/// <inheritdoc />

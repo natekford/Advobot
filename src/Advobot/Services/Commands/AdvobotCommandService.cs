@@ -17,7 +17,7 @@ namespace Advobot.Services.Commands;
 /// <summary>
 /// Handles command creation.
 /// </summary>
-public sealed class NaiveCommandService : CommandService
+public sealed class AdvobotCommandService : CommandService
 {
 	private readonly IEnumerable<Assembly> _CommandAssemblies;
 	private readonly Localized<CommandTrie> _Commands;
@@ -30,7 +30,7 @@ public sealed class NaiveCommandService : CommandService
 		=> _Commands.GetCurrent();
 
 	/// <summary>
-	/// Creates an instance of <see cref="NaiveCommandService"/>.
+	/// Creates an instance of <see cref="AdvobotCommandService"/>.
 	/// </summary>
 	/// <param name="config"></param>
 	/// <param name="argumentHandler"></param>
@@ -38,7 +38,7 @@ public sealed class NaiveCommandService : CommandService
 	/// <param name="services"></param>
 	/// <param name="commandAssemblies"></param>
 	/// <param name="eventProvider"></param>
-	public NaiveCommandService(
+	public AdvobotCommandService(
 		CommandServiceConfig config,
 		IArgumentHandler argumentHandler,
 		IReadOnlyDictionary<Type, ITypeReader> readers,

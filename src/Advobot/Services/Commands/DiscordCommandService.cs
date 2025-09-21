@@ -21,7 +21,7 @@ namespace Advobot.Services.Commands;
 /// <param name="guildSettings"></param>
 public class DiscordCommandService(
 	IServiceProvider services,
-	NaiveCommandService commandService,
+	AdvobotCommandService commandService,
 	IDiscordClient client,
 	EventProvider eventProvider,
 	IRuntimeConfig botConfig,

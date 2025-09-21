@@ -1,4 +1,5 @@
-﻿using Advobot.Resources;
+﻿using Advobot.Interactivity;
+using Advobot.Resources;
 using Advobot.Services;
 using Advobot.Services.BotConfig;
 using Advobot.Services.Commands;
@@ -130,9 +131,9 @@ public sealed class AdvobotLauncher
 			.AddSingleton<IEnumerable<Assembly>>(pluginAssemblies)
 			.AddSingleton<ILocalizer>(Localize.Instance)
 			.AddSingleton(CommandServiceConfig.Default)
-			.AddSingleton<NaiveCommandService>()
-			.AddSingleton<CommandService>(x => x.GetRequiredService<NaiveCommandService>())
-			.AddSingleton<ICommandService>(x => x.GetRequiredService<NaiveCommandService>())
+			.AddSingleton<AdvobotCommandService>()
+			.AddSingleton<CommandService>(x => x.GetRequiredService<AdvobotCommandService>())
+			.AddSingleton<ICommandService>(x => x.GetRequiredService<AdvobotCommandService>())
 			.AddSingleton<IArgumentHandler>(x =>
 			{
 				var config = x.GetRequiredService<CommandServiceConfig>();
@@ -145,6 +146,7 @@ public sealed class AdvobotLauncher
 			.AddSingleton<IReadOnlyDictionary<Type, ITypeReader>, TypeReaderRegistry>()
 			.AddSingleton<IReadOnlyDictionary<Type, string>, TypeNameRegistry>()
 			.AddSingleton<DiscordCommandService>()
+			.AddSingleton<DiscordMessageInput>()
 			.AddSingleton<TimeProvider, NaiveTimeProvider>()
 			.AddSingleton<IPunishmentService, NaivePunishmentService>()
 			.AddSingleton<IGuildSettingsService, NaiveGuildSettingsService>();
@@ -154,7 +156,7 @@ public sealed class AdvobotLauncher
 			createServiceProvider: x => x.BuildServiceProvider()
 		);
 
-		var commandService = services.GetRequiredService<NaiveCommandService>();
+		var commandService = services.GetRequiredService<AdvobotCommandService>();
 		await commandService.InitializeAsync().ConfigureAwait(false);
 
 		foreach (var service in collection)

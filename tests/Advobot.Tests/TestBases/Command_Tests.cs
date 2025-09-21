@@ -40,7 +40,7 @@ public abstract class Command_Tests : TestsBase
 		typeof(StandardInstantiator).Assembly,
 		typeof(AdvobotLauncher).Assembly,
 	];
-	protected virtual NaiveCommandService CommandService { get; set; }
+	protected virtual AdvobotCommandService CommandService { get; set; }
 	protected virtual Channel<CommandExecutedResult> ExecutedCommands { get; set; }
 		= Channel.CreateUnbounded<CommandExecutedResult>();
 	protected virtual bool HasBeenShutdown { get; set; }
@@ -64,9 +64,9 @@ public abstract class Command_Tests : TestsBase
 	{
 		services
 			.AddSingleton<IEnumerable<Assembly>>(CommandAssemblies)
-			.AddSingleton<NaiveCommandService>()
-			.AddSingleton<CommandService>(x => x.GetRequiredService<NaiveCommandService>())
-			.AddSingleton<ICommandService>(x => x.GetRequiredService<NaiveCommandService>())
+			.AddSingleton<AdvobotCommandService>()
+			.AddSingleton<CommandService>(x => x.GetRequiredService<AdvobotCommandService>())
+			.AddSingleton<ICommandService>(x => x.GetRequiredService<AdvobotCommandService>())
 
 			.AddSingleton<ShutdownApplication>(_ => HasBeenShutdown = true)
 			.AddSingleton<IGuildSettingsService, NaiveGuildSettingsService>()
@@ -87,7 +87,7 @@ public abstract class Command_Tests : TestsBase
 
 	protected override async Task SetupAsync()
 	{
-		CommandService = Services.GetRequiredService<NaiveCommandService>();
+		CommandService = Services.GetRequiredService<AdvobotCommandService>();
 
 		await Context.Client.StartAsync().ConfigureAwait(false);
 		await CommandService.InitializeAsync().ConfigureAwait(false);

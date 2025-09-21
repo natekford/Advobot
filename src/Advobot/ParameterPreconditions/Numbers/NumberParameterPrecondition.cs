@@ -10,12 +10,12 @@ namespace Advobot.ParameterPreconditions.Numbers;
 /// Makes sure the passed in number is in the supplied list.
 /// </summary>
 [AttributeUsage(AttributeUtils.PARAMETERS, AllowMultiple = false, Inherited = true)]
-public abstract class NumberParameterPrecondition : AdvobotParameterPrecondition<int>
+public class NumberParameterPrecondition : AdvobotParameterPrecondition<int>
 {
 	/// <summary>
 	/// The type of number this is targetting.
 	/// </summary>
-	public abstract string NumberType { get; }
+	public virtual string NumberType { get; } = "number";
 	/// <summary>
 	/// Allowed numbers. If the range method is used this will be contain all of the values between the 2.
 	/// </summary>
@@ -27,7 +27,7 @@ public abstract class NumberParameterPrecondition : AdvobotParameterPrecondition
 	/// Valid numbers which are the randomly supplied values.
 	/// </summary>
 	/// <param name="numbers"></param>
-	protected NumberParameterPrecondition(int[] numbers)
+	public NumberParameterPrecondition(int[] numbers)
 	{
 		Range = new(numbers);
 	}
@@ -37,7 +37,7 @@ public abstract class NumberParameterPrecondition : AdvobotParameterPrecondition
 	/// </summary>
 	/// <param name="start"></param>
 	/// <param name="end"></param>
-	protected NumberParameterPrecondition(int start, int end)
+	public NumberParameterPrecondition(int start, int end)
 	{
 		Range = new(start, end);
 	}

@@ -4,6 +4,8 @@ using Advobot.Tests.Fakes.Discord.Users;
 
 using Discord;
 
+using System.Diagnostics;
+
 namespace Advobot.Tests.Fakes.Discord;
 
 public class FakeCommandContext : IGuildContext
@@ -11,11 +13,13 @@ public class FakeCommandContext : IGuildContext
 	public FakeGuildUser Bot => Guild.FakeCurrentUser;
 	public FakeTextChannel Channel { get; }
 	public FakeClient Client { get; }
+	public TimeSpan Elapsed => Stopwatch.Elapsed;
 	public FakeGuild Guild { get; }
 	public Guid Id { get; } = Guid.NewGuid();
 	public FakeUserMessage Message { get; }
 	public IServiceProvider Services { get; }
 	public object Source => Message;
+	public Stopwatch Stopwatch { get; set; } = Stopwatch.StartNew();
 	public FakeGuildUser User { get; }
 	ITextChannel IGuildContext.Channel => Channel;
 	IDiscordClient IGuildContext.Client => Client;
