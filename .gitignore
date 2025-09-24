@@ -265,3 +265,6 @@ __pycache__/
 
 # lcov files
 lcov.info
+/src/Advobot.Resources/Names.Designer.cs
+/src/Advobot.Resources/Responses.Designer.cs
+/src/Advobot.Resources/Summaries.Designer.cs
