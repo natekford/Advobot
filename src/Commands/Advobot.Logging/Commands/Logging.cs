@@ -20,7 +20,7 @@ namespace Advobot.Logging.Commands;
 public sealed class Logging : AdvobotModuleBase
 {
 	[LocalizedCommand(nameof(Names.ModifyActions), nameof(Names.ModifyActionsAlias))]
-	[LocalizedSummary(nameof(Summaries.ModifyActions))]
+	[LocalizedSummary(nameof(Summaries.ModifyActionsSummary))]
 	[Id("1457fb28-6510-47f1-998f-3bdca737f9b9")]
 	[RequireGuildPermissions]
 	public sealed class ModifyActions : LoggingModuleBase
@@ -67,7 +67,7 @@ public sealed class Logging : AdvobotModuleBase
 	}
 
 	[LocalizedCommand(nameof(Names.ModifyIgnoredChannels), nameof(Names.ModifyIgnoredChannelsAlias))]
-	[LocalizedSummary(nameof(Summaries.ModifyIgnoredChannels))]
+	[LocalizedSummary(nameof(Summaries.ModifyIgnoredChannelsSummary))]
 	[Id("c348ba6c-7112-4a36-b0b9-3a546d8efd68")]
 	[RequireGuildPermissions]
 	public sealed class ModifyIgnoredChannels : LoggingModuleBase
@@ -96,7 +96,7 @@ public sealed class Logging : AdvobotModuleBase
 	}
 
 	[LocalizedCommand(nameof(Names.ModifyImageLog), nameof(Names.ModifyImageLogAlias))]
-	[LocalizedSummary(nameof(Summaries.ModifyImageLog))]
+	[LocalizedSummary(nameof(Summaries.ModifyImageLogSummary))]
 	[Id("dd36f347-a33b-490a-a751-8d671e50abe1")]
 	[RequireGuildPermissions]
 	public sealed class ModifyImageLog : LoggingModuleBase
@@ -123,7 +123,7 @@ public sealed class Logging : AdvobotModuleBase
 	}
 
 	[LocalizedCommand(nameof(Names.ModifyModLog), nameof(Names.ModifyModLogAlias))]
-	[LocalizedSummary(nameof(Summaries.ModifyModLog))]
+	[LocalizedSummary(nameof(Summaries.ModifyModLogSummary))]
 	[Id("00199443-02f9-4873-ba21-d6d462a0052a")]
 	[RequireGuildPermissions]
 	public sealed class ModifyModLog : LoggingModuleBase
@@ -150,7 +150,7 @@ public sealed class Logging : AdvobotModuleBase
 	}
 
 	[LocalizedCommand(nameof(Names.ModifyServerLog), nameof(Names.ModifyServerLogAlias))]
-	[LocalizedSummary(nameof(Summaries.ModifyServerLog))]
+	[LocalizedSummary(nameof(Summaries.ModifyServerLogSummary))]
 	[Id("58abc6df-6814-4946-9f04-b99b024ec8ac")]
 	[RequireGuildPermissions]
 	public sealed class ModifyServerLog : LoggingModuleBase

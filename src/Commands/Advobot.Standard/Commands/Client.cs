@@ -14,7 +14,7 @@ namespace Advobot.Standard.Commands;
 public sealed class Client : AdvobotModuleBase
 {
 	[LocalizedCommand(nameof(Names.DisconnectBot), nameof(Names.DisconnectBot), nameof(Names.RunescapeServersAlias))]
-	[LocalizedSummary(nameof(Summaries.DisconnectBot))]
+	[LocalizedSummary(nameof(Summaries.DisconnectBotSummary))]
 	[Meta("10f3bf15-0652-4bd7-a29f-630136d0164a", IsEnabled = true)]
 	[RequireBotOwner]
 	public sealed class DisconnectBot : AdvobotModuleBase
@@ -38,7 +38,7 @@ public sealed class Client : AdvobotModuleBase
 	}
 
 	[LocalizedCommand(nameof(Names.ModifyBotName), nameof(Names.ModifyBotNameAlias))]
-	[LocalizedSummary(nameof(Summaries.ModifyBotName))]
+	[LocalizedSummary(nameof(Summaries.ModifyBotNameSummary))]
 	[Meta("6882dc55-3557-4366-8c4c-2954b46cfb2b", IsEnabled = true)]
 	[RequireBotOwner]
 	public sealed class ModifyBotName : AdvobotModuleBase

@@ -117,496 +117,496 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
-  <data name="CreateRoleRestrictedChannel" xml:space="preserve">
+  <data name="CreateRoleRestrictedChannelSummary" xml:space="preserve">
     <value>Creates a voice channel and a role which restricts access to that voice channel.</value>
   </data>
-  <data name="AssignSelfRole" xml:space="preserve">
+  <data name="AssignSelfRoleSummary" xml:space="preserve">
     <value>Gives or takes a role depending on if the user already has it. Removes all other roles in the same group unless the group is 0.</value>
   </data>
-  <data name="Ban" xml:space="preserve">
+  <data name="BanSummary" xml:space="preserve">
     <value>Bans the user from the guild.</value>
   </data>
-  <data name="Bump" xml:space="preserve">
+  <data name="BumpSummary" xml:space="preserve">
     <value>Bumps the invite on the guild.</value>
   </data>
-  <data name="ClearChannelPerms" xml:space="preserve">
+  <data name="ClearChannelPermsSummary" xml:space="preserve">
     <value>Clears the permission overwrites from a channel.</value>
   </data>
-  <data name="ClearRolePerms" xml:space="preserve">
+  <data name="ClearRolePermsSummary" xml:space="preserve">
     <value>Removes all permissions from a role.</value>
   </data>
-  <data name="Commands" xml:space="preserve">
+  <data name="CommandsSummary" xml:space="preserve">
     <value>Displays the names and categories of commands.</value>
   </data>
-  <data name="CopyChannelPerms" xml:space="preserve">
+  <data name="CopyChannelPermsSummary" xml:space="preserve">
     <value>Copies the permissions overwrites from one channel to another.</value>
   </data>
-  <data name="CopyRolePerms" xml:space="preserve">
+  <data name="CopyRolePermsSummary" xml:space="preserve">
     <value>Copies the permissions from one role to another.</value>
   </data>
-  <data name="CreateChannel" xml:space="preserve">
+  <data name="CreateChannelSummary" xml:space="preserve">
     <value>Creates a channel.</value>
   </data>
-  <data name="CreateEmote" xml:space="preserve">
+  <data name="CreateEmoteSummary" xml:space="preserve">
     <value>Creates an emote.</value>
   </data>
-  <data name="CreateGuild" xml:space="preserve">
+  <data name="CreateGuildSummary" xml:space="preserve">
     <value>Creates a guild with the bot as owner.</value>
   </data>
-  <data name="CreateInvite" xml:space="preserve">
+  <data name="CreateInviteSummary" xml:space="preserve">
     <value>Creates an invite.</value>
   </data>
-  <data name="CreateRole" xml:space="preserve">
+  <data name="CreateRoleSummary" xml:space="preserve">
     <value>Creates a role.</value>
   </data>
-  <data name="CreateWebhook" xml:space="preserve">
+  <data name="CreateWebhookSummary" xml:space="preserve">
     <value>Creates a webhook for the guild.</value>
   </data>
-  <data name="CreateWebhookChannel" xml:space="preserve">
+  <data name="CreateWebhookChannelSummary" xml:space="preserve">
     <value>The text channel to create a webhook on.</value>
   </data>
-  <data name="CreateWebhookName" xml:space="preserve">
+  <data name="CreateWebhookNameSummary" xml:space="preserve">
     <value>The name to give the webhook.</value>
   </data>
-  <data name="Deafen" xml:space="preserve">
+  <data name="DeafenSummary" xml:space="preserve">
     <value>Prevents a user from hearing in voice chat.</value>
   </data>
-  <data name="DeleteChannel" xml:space="preserve">
+  <data name="DeleteChannelSummary" xml:space="preserve">
     <value>Deletes a channel.</value>
   </data>
-  <data name="DeleteEmote" xml:space="preserve">
+  <data name="DeleteEmoteSummary" xml:space="preserve">
     <value>Deletes an emote.</value>
   </data>
-  <data name="DeleteGuild" xml:space="preserve">
+  <data name="DeleteGuildSummary" xml:space="preserve">
     <value>If the bot is the current owner of the guild, this command will delete the guild.</value>
   </data>
-  <data name="DeleteInvite" xml:space="preserve">
+  <data name="DeleteInviteSummary" xml:space="preserve">
     <value>Deletes an invite.</value>
   </data>
-  <data name="DeleteMultipleInvites" xml:space="preserve">
+  <data name="DeleteMultipleInvitesSummary" xml:space="preserve">
     <value>Deletes multiple invites matching specified criteria.</value>
   </data>
-  <data name="DeleteRole" xml:space="preserve">
+  <data name="DeleteRoleSummary" xml:space="preserve">
     <value>Deletes a role.</value>
   </data>
-  <data name="DeleteWebhook" xml:space="preserve">
+  <data name="DeleteWebhookSummary" xml:space="preserve">
     <value>Deletes a webhook from the guild.</value>
   </data>
-  <data name="DeleteWebhookWebhook" xml:space="preserve">
+  <data name="DeleteWebhookWebhookSummary" xml:space="preserve">
     <value>The webhook to delete.</value>
   </data>
-  <data name="DisconnectBot" xml:space="preserve">
+  <data name="DisconnectBotSummary" xml:space="preserve">
     <value>Turns the bot off.</value>
   </data>
-  <data name="DisplayBannedPhrases" xml:space="preserve">
+  <data name="DisplayBannedPhrasesSummary" xml:space="preserve">
     <value>Displays all of the banned phrases in this guild.</value>
   </data>
-  <data name="DisplayChannelPerms" xml:space="preserve">
+  <data name="DisplayChannelPermsSummary" xml:space="preserve">
     <value>Displays the permission overwrites on a channel.</value>
   </data>
-  <data name="DisplayChannelPosition" xml:space="preserve">
+  <data name="DisplayChannelPositionSummary" xml:space="preserve">
     <value>Displays the positions of each channel.</value>
   </data>
-  <data name="DisplayCurrentBanList" xml:space="preserve">
+  <data name="DisplayCurrentBanListSummary" xml:space="preserve">
     <value>Displays all the bans on the guild.</value>
   </data>
-  <data name="DisplayEmotes" xml:space="preserve">
+  <data name="DisplayEmotesSummary" xml:space="preserve">
     <value>Displays all the emotes matching a specified criteria.</value>
   </data>
-  <data name="DisplayInvites" xml:space="preserve">
+  <data name="DisplayInvitesSummary" xml:space="preserve">
     <value>Displays all the invites.</value>
   </data>
-  <data name="DisplayRolePerms" xml:space="preserve">
+  <data name="DisplayRolePermsSummary" xml:space="preserve">
     <value>Displays the permissions </value>
   </data>
-  <data name="DisplayRolePositions" xml:space="preserve">
+  <data name="DisplayRolePositionsSummary" xml:space="preserve">
     <value>Displays the positions of each role.</value>
   </data>
-  <data name="DisplaySelfRoles" xml:space="preserve">
+  <data name="DisplaySelfRolesSummary" xml:space="preserve">
     <value>Displays the groups and roles which can be self assigned.</value>
   </data>
-  <data name="DisplayWebhooks" xml:space="preserve">
+  <data name="DisplayWebhooksSummary" xml:space="preserve">
     <value>Lists all the webhooks on the guild or the specified channel.</value>
   </data>
-  <data name="DisplayWebhooksChannel" xml:space="preserve">
+  <data name="DisplayWebhooksChannelSummary" xml:space="preserve">
     <value>The channel to get webhooks from.</value>
   </data>
-  <data name="ForAllWithRole" xml:space="preserve">
+  <data name="ForAllWithRoleSummary" xml:space="preserve">
     <value>Does an action on many users at once.</value>
   </data>
-  <data name="GenericChannelArgument" xml:space="preserve">
+  <data name="GenericChannelArgumentSummary" xml:space="preserve">
     <value>A channel on the guild which you can see.</value>
   </data>
-  <data name="Get" xml:space="preserve">
+  <data name="GetSummary" xml:space="preserve">
     <value>Gets an invite meeting the given criteria.</value>
   </data>
-  <data name="GetBanReason" xml:space="preserve">
+  <data name="GetBanReasonSummary" xml:space="preserve">
     <value>Lists the given reason for a user being banned.</value>
   </data>
-  <data name="GetEnumNames" xml:space="preserve">
+  <data name="GetEnumNamesSummary" xml:space="preserve">
     <value>Displays all the value of an enum.</value>
   </data>
-  <data name="GetGuilds" xml:space="preserve">
+  <data name="GetGuildsSummary" xml:space="preserve">
     <value>Displays the guilds the bot is in.</value>
   </data>
-  <data name="GetInfo" xml:space="preserve">
+  <data name="GetInfoSummary" xml:space="preserve">
     <value>Shows information about specified things.</value>
   </data>
-  <data name="GetMessages" xml:space="preserve">
+  <data name="GetMessagesSummary" xml:space="preserve">
     <value>Downloads the past specified amount of messages.</value>
   </data>
-  <data name="GetPermNamesFromValue" xml:space="preserve">
+  <data name="GetPermNamesFromValueSummary" xml:space="preserve">
     <value>Displays all the permissions that come from a specified value.</value>
   </data>
-  <data name="GetUserAvatar" xml:space="preserve">
+  <data name="GetUserAvatarSummary" xml:space="preserve">
     <value>Displays the url for a user's avatar.</value>
   </data>
-  <data name="GetUserJoinedAt" xml:space="preserve">
+  <data name="GetUserJoinedAtSummary" xml:space="preserve">
     <value>Shows the user which joined the guild at a specified position.</value>
   </data>
-  <data name="GetUserJoinList" xml:space="preserve">
+  <data name="GetUserJoinListSummary" xml:space="preserve">
     <value>Displays the users in the guild and the order they have joined.</value>
   </data>
-  <data name="GetUsersWithReason" xml:space="preserve">
+  <data name="GetUsersWithReasonSummary" xml:space="preserve">
     <value>Finds users matching some criteria.</value>
   </data>
-  <data name="GiveRole" xml:space="preserve">
+  <data name="GiveRoleSummary" xml:space="preserve">
     <value>Gives roles to a user.</value>
   </data>
-  <data name="Help" xml:space="preserve">
+  <data name="HelpSummary" xml:space="preserve">
     <value>Displays information about commands.</value>
   </data>
-  <data name="HelpCommandHelp" xml:space="preserve">
+  <data name="HelpCommandHelpSummary" xml:space="preserve">
     <value>Prints out help information for a specific command in a specified module.</value>
   </data>
-  <data name="HelpGeneralHelp" xml:space="preserve">
+  <data name="HelpGeneralHelpSummary" xml:space="preserve">
     <value>Prints out general help information for the bot.</value>
   </data>
-  <data name="HelpModuleHelp" xml:space="preserve">
+  <data name="HelpModuleHelpSummary" xml:space="preserve">
     <value>Prints out help information for a module.</value>
   </data>
-  <data name="HelpVariableCommand" xml:space="preserve">
+  <data name="HelpVariableCommandSummary" xml:space="preserve">
     <value>The name of a command. This does not need to be exact; commands with similar names will be found.</value>
   </data>
-  <data name="HelpVariableCommandPosition" xml:space="preserve">
+  <data name="HelpVariableCommandPositionSummary" xml:space="preserve">
     <value>The number of a command overload.</value>
   </data>
-  <data name="HelpVariableExactCommand" xml:space="preserve">
+  <data name="HelpVariableExactCommandSummary" xml:space="preserve">
     <value>The name of a command. This does need to be the exact name of a command and in quotes.</value>
   </data>
-  <data name="Kick" xml:space="preserve">
+  <data name="KickSummary" xml:space="preserve">
     <value>Removed a user from the guild.</value>
   </data>
-  <data name="LeaveGuild" xml:space="preserve">
+  <data name="LeaveGuildSummary" xml:space="preserve">
     <value>Makes the bot leave the guild. Settings will be preserved.</value>
   </data>
-  <data name="MakeAnEmbed" xml:space="preserve">
+  <data name="MakeAnEmbedSummary" xml:space="preserve">
     <value>Displays an embed with user supplied everything except fields.</value>
   </data>
-  <data name="MessageBotOwner" xml:space="preserve">
+  <data name="MessageBotOwnerSummary" xml:space="preserve">
     <value>Messages the bot owner.</value>
   </data>
-  <data name="MessageRole" xml:space="preserve">
+  <data name="MessageRoleSummary" xml:space="preserve">
     <value>Mentions an unmentionable role with a message.</value>
   </data>
-  <data name="Modify" xml:space="preserve">
+  <data name="ModifySummary" xml:space="preserve">
     <value>Adds or removes a guild from the public guild list.</value>
   </data>
-  <data name="ModifyActions" xml:space="preserve">
+  <data name="ModifyActionsSummary" xml:space="preserve">
     <value>The server log will send messages when these events happen.</value>
   </data>
-  <data name="ModifyBannedNames" xml:space="preserve">
+  <data name="ModifyBannedNamesSummary" xml:space="preserve">
     <value>Adds or removes banned names.</value>
   </data>
-  <data name="ModifyBannedRegex" xml:space="preserve">
+  <data name="ModifyBannedRegexSummary" xml:space="preserve">
     <value>Adds or removes banned regex.</value>
   </data>
-  <data name="ModifyBannedStrings" xml:space="preserve">
+  <data name="ModifyBannedStringsSummary" xml:space="preserve">
     <value>Adds or removes banned strings.</value>
   </data>
-  <data name="ModifyBotIcon" xml:space="preserve">
+  <data name="ModifyBotIconSummary" xml:space="preserve">
     <value>Modifies the bot's icon.</value>
   </data>
-  <data name="ModifyBotName" xml:space="preserve">
+  <data name="ModifyBotNameSummary" xml:space="preserve">
     <value>Modifies the bot's name.</value>
   </data>
-  <data name="ModifyChannelBitRate" xml:space="preserve">
+  <data name="ModifyChannelBitRateSummary" xml:space="preserve">
     <value>Modifies the bit rate on a voice channel.</value>
   </data>
-  <data name="ModifyChannelLimit" xml:space="preserve">
+  <data name="ModifyChannelLimitSummary" xml:space="preserve">
     <value>Modifies the amount of people who can be in a voice channel.</value>
   </data>
-  <data name="ModifyChannelName" xml:space="preserve">
+  <data name="ModifyChannelNameSummary" xml:space="preserve">
     <value>Modifies a channel's name.</value>
   </data>
-  <data name="ModifyChannelNsfw" xml:space="preserve">
+  <data name="ModifyChannelNsfwSummary" xml:space="preserve">
     <value>Toggles the nsfw option on a channel.</value>
   </data>
-  <data name="ModifyChannelPerms" xml:space="preserve">
+  <data name="ModifyChannelPermsSummary" xml:space="preserve">
     <value>Modifies the permission overwrites on a channel.</value>
   </data>
-  <data name="ModifyChannelPosition" xml:space="preserve">
+  <data name="ModifyChannelPositionSummary" xml:space="preserve">
     <value>Modifies the position of a channel.</value>
   </data>
-  <data name="ModifyChannelTopic" xml:space="preserve">
+  <data name="ModifyChannelTopicSummary" xml:space="preserve">
     <value>Modifies a channel's topic.</value>
   </data>
-  <data name="ModifyCommands" xml:space="preserve">
+  <data name="ModifyCommandsSummary" xml:space="preserve">
     <value>Turns commands on and off.</value>
   </data>
-  <data name="ModifyEmoteName" xml:space="preserve">
+  <data name="ModifyEmoteNameSummary" xml:space="preserve">
     <value>Modifies an emote name.</value>
   </data>
-  <data name="ModifyEmoteRoles" xml:space="preserve">
+  <data name="ModifyEmoteRolesSummary" xml:space="preserve">
     <value>Modifies the roles required to use an emote. Discord clients will need to be restarted before you can use the emote again.</value>
   </data>
-  <data name="ModifyGoodbyeMessage" xml:space="preserve">
+  <data name="ModifyGoodbyeMessageSummary" xml:space="preserve">
     <value>Modifies a message sent when a user leaves the server.</value>
   </data>
-  <data name="ModifyGuildAfkChannel" xml:space="preserve">
+  <data name="ModifyGuildAfkChannelSummary" xml:space="preserve">
     <value>Modifies which channel is the afk channel.</value>
   </data>
-  <data name="ModifyGuildAfkTimer" xml:space="preserve">
+  <data name="ModifyGuildAfkTimerSummary" xml:space="preserve">
     <value>Modifies how long it takes to get moved to the afk channel.</value>
   </data>
-  <data name="ModifyGuildExplicitContentFilter" xml:space="preserve">
+  <data name="ModifyGuildExplicitContentFilterSummary" xml:space="preserve">
     <value>Modified the guild's explicit content filter level.</value>
   </data>
-  <data name="ModifyGuildIcon" xml:space="preserve">
+  <data name="ModifyGuildIconSummary" xml:space="preserve">
     <value>Modifies the guild's icon.</value>
   </data>
-  <data name="ModifyGuildMsgNotif" xml:space="preserve">
+  <data name="ModifyGuildMsgNotifSummary" xml:space="preserve">
     <value>Modifies the guild's default message notification setting.</value>
   </data>
-  <data name="ModifyGuildName" xml:space="preserve">
+  <data name="ModifyGuildNameSummary" xml:space="preserve">
     <value>Modifies the guild's name.</value>
   </data>
-  <data name="ModifyGuildRegion" xml:space="preserve">
+  <data name="ModifyGuildRegionSummary" xml:space="preserve">
     <value>Modifies the guild's region.</value>
   </data>
-  <data name="ModifyGuildSplash" xml:space="preserve">
+  <data name="ModifyGuildSplashSummary" xml:space="preserve">
     <value>Modifies the guild's splash.</value>
   </data>
-  <data name="ModifyGuildSystemChannel" xml:space="preserve">
+  <data name="ModifyGuildSystemChannelSummary" xml:space="preserve">
     <value>Modifies which channel is the system channel.</value>
   </data>
-  <data name="ModifyGuildVerif" xml:space="preserve">
+  <data name="ModifyGuildVerifSummary" xml:space="preserve">
     <value>Modifies the guild's verification level.</value>
   </data>
-  <data name="ModifyIgnoredChannels" xml:space="preserve">
+  <data name="ModifyIgnoredChannelsSummary" xml:space="preserve">
     <value>Ignores all logging info that would have been gotten from a channel.</value>
   </data>
-  <data name="ModifyIgnoredCommandChannels" xml:space="preserve">
+  <data name="ModifyIgnoredCommandChannelsSummary" xml:space="preserve">
     <value>The bot will ignore commands said on these channels. If a command is input then the bot will instead ignore only that command on the given channel.</value>
   </data>
-  <data name="ModifyImageLog" xml:space="preserve">
+  <data name="ModifyImageLogSummary" xml:space="preserve">
     <value>Modifies which channel is designated as the image log.</value>
   </data>
-  <data name="ModifyModLog" xml:space="preserve">
+  <data name="ModifyModLogSummary" xml:space="preserve">
     <value>Modifies which channel is designated as the mod log.</value>
   </data>
-  <data name="ModifyNickName" xml:space="preserve">
+  <data name="ModifyNickNameSummary" xml:space="preserve">
     <value>Modifies a user's nickname.</value>
   </data>
-  <data name="ModifyPunishments" xml:space="preserve">
+  <data name="ModifyPunishmentsSummary" xml:space="preserve">
     <value>Adds or removes banned phrase punishments.</value>
   </data>
-  <data name="ModifyQuotes" xml:space="preserve">
+  <data name="ModifyQuotesSummary" xml:space="preserve">
     <value>Adds the given text to a list that can be called through the SayQuote command</value>
   </data>
-  <data name="ModifyRoleColor" xml:space="preserve">
+  <data name="ModifyRoleColorSummary" xml:space="preserve">
     <value>Modifies a role color.</value>
   </data>
-  <data name="ModifyRoleHoist" xml:space="preserve">
+  <data name="ModifyRoleHoistSummary" xml:space="preserve">
     <value>Modifies the hoist status of a role (whether is shows up in the user list separately).</value>
   </data>
-  <data name="ModifyRoleMentionability" xml:space="preserve">
+  <data name="ModifyRoleMentionabilitySummary" xml:space="preserve">
     <value>Modifies the mentionability status of a role.</value>
   </data>
-  <data name="ModifyRoleName" xml:space="preserve">
+  <data name="ModifyRoleNameSummary" xml:space="preserve">
     <value>Modifies a role name.</value>
   </data>
-  <data name="ModifyRolePerms" xml:space="preserve">
+  <data name="ModifyRolePermsSummary" xml:space="preserve">
     <value>Modifies the permissions a role has.</value>
   </data>
-  <data name="ModifyRolePosition" xml:space="preserve">
+  <data name="ModifyRolePositionSummary" xml:space="preserve">
     <value>Moves a role.</value>
   </data>
-  <data name="ModifyRuleCategories" xml:space="preserve">
+  <data name="ModifyRuleCategoriesSummary" xml:space="preserve">
     <value>Modifies the categories which contain rules.</value>
   </data>
-  <data name="ModifyRules" xml:space="preserve">
+  <data name="ModifyRulesSummary" xml:space="preserve">
     <value>Modifies the rules which are saved in guild settings.</value>
   </data>
-  <data name="ModifySelfRoles" xml:space="preserve">
+  <data name="ModifySelfRolesSummary" xml:space="preserve">
     <value>Modifies self assignable roles.</value>
   </data>
-  <data name="ModifyServerLog" xml:space="preserve">
+  <data name="ModifyServerLogSummary" xml:space="preserve">
     <value>Modifies which channel is designated as the server log.</value>
   </data>
-  <data name="ModifyWebhookChannel" xml:space="preserve">
+  <data name="ModifyWebhookChannelSummary" xml:space="preserve">
     <value>Changes the channel of a webhook.</value>
   </data>
-  <data name="ModifyWebhookChannelChannel" xml:space="preserve">
+  <data name="ModifyWebhookChannelChannelSummary" xml:space="preserve">
     <value>The channel to move the webhook to.</value>
   </data>
-  <data name="ModifyWebhookChannelWebhook" xml:space="preserve">
+  <data name="ModifyWebhookChannelWebhookSummary" xml:space="preserve">
     <value>The webhook to move.</value>
   </data>
-  <data name="ModifyWebhookIcon" xml:space="preserve">
+  <data name="ModifyWebhookIconSummary" xml:space="preserve">
     <value>Changes the icon of a webhook.</value>
   </data>
-  <data name="ModifyWebhookIconUrl" xml:space="preserve">
+  <data name="ModifyWebhookIconUrlSummary" xml:space="preserve">
     <value>A link to an image.</value>
   </data>
-  <data name="ModifyWebhookIconWebhook" xml:space="preserve">
+  <data name="ModifyWebhookIconWebhookSummary" xml:space="preserve">
     <value>The webhook to modify the icon of.</value>
   </data>
-  <data name="ModifyWebhookName" xml:space="preserve">
+  <data name="ModifyWebhookNameSummary" xml:space="preserve">
     <value>Changes the name of a webhook.</value>
   </data>
-  <data name="ModifyWebhookNameName" xml:space="preserve">
+  <data name="ModifyWebhookNameNameSummary" xml:space="preserve">
     <value>The name to give the webhook.</value>
   </data>
-  <data name="ModifyWebhookNameWebhook" xml:space="preserve">
+  <data name="ModifyWebhookNameWebhookSummary" xml:space="preserve">
     <value>The webhook to modify the name of.</value>
   </data>
-  <data name="ModifyWelcomeMessage" xml:space="preserve">
+  <data name="ModifyWelcomeMessageSummary" xml:space="preserve">
     <value>Modifies a message sent when a user joins the server.</value>
   </data>
-  <data name="MoveUser" xml:space="preserve">
+  <data name="MoveUserSummary" xml:space="preserve">
     <value>Moves a user to a different voice channel.</value>
   </data>
-  <data name="MoveUsers" xml:space="preserve">
+  <data name="MoveUsersSummary" xml:space="preserve">
     <value>Moves all users in a specific channel to a different voice channel.</value>
   </data>
-  <data name="Mute" xml:space="preserve">
+  <data name="MuteSummary" xml:space="preserve">
     <value>Prevents a user from typing and speaking in the guild.</value>
   </data>
-  <data name="PreventRaid" xml:space="preserve">
+  <data name="PreventRaidSummary" xml:space="preserve">
     <value>Sets up a system protecting the guild from raiding.</value>
   </data>
-  <data name="PreventSpam" xml:space="preserve">
+  <data name="PreventSpamSummary" xml:space="preserve">
     <value>Sets up a system protecting the guild from spam.</value>
   </data>
-  <data name="PrintOutRules" xml:space="preserve">
+  <data name="PrintOutRulesSummary" xml:space="preserve">
     <value>Displays the rules with user specified formatting.</value>
   </data>
-  <data name="PruneUsers" xml:space="preserve">
+  <data name="PruneUsersSummary" xml:space="preserve">
     <value>Removes all users who have no roles and have not been seen in a specified amount of days.</value>
   </data>
-  <data name="Remind" xml:space="preserve">
+  <data name="RemindSummary" xml:space="preserve">
     <value>Sends a message after a specified amount of time.</value>
   </data>
-  <data name="RemindMe" xml:space="preserve">
+  <data name="RemindMeSummary" xml:space="preserve">
     <value>Sends you a reminder after the specified time.</value>
   </data>
-  <data name="RemoveAllNickNames" xml:space="preserve">
+  <data name="RemoveAllNickNamesSummary" xml:space="preserve">
     <value>Removes the nicknames of every user.</value>
   </data>
-  <data name="RemoveMessages" xml:space="preserve">
+  <data name="RemoveMessagesSummary" xml:space="preserve">
     <value>Removes the specified number of messages from a channel.</value>
   </data>
-  <data name="ReplaceByUtf16" xml:space="preserve">
+  <data name="ReplaceByUtf16Summary" xml:space="preserve">
     <value>Gives all users who have any character in their name above a specified Utf16 limit a new nickname.</value>
   </data>
-  <data name="ReplaceWordsInNames" xml:space="preserve">
+  <data name="ReplaceWordsInNamesSummary" xml:space="preserve">
     <value>Gives all users who have a specified string in their name or nickname a new nickname.</value>
   </data>
-  <data name="ResetGuildSettings" xml:space="preserve">
+  <data name="ResetGuildSettingsSummary" xml:space="preserve">
     <value>Sets settings back to their default values.</value>
   </data>
-  <data name="RestartBot" xml:space="preserve">
+  <data name="RestartBotSummary" xml:space="preserve">
     <value>Restarts the bot.</value>
   </data>
-  <data name="SayQuote" xml:space="preserve">
+  <data name="SayQuoteSummary" xml:space="preserve">
     <value>Shows the content for the given quote.</value>
   </data>
-  <data name="ShowBotSettings" xml:space="preserve">
+  <data name="ShowBotSettingsSummary" xml:space="preserve">
     <value>Shows information about the bot settings.</value>
   </data>
-  <data name="ShowGuildSettings" xml:space="preserve">
+  <data name="ShowGuildSettingsSummary" xml:space="preserve">
     <value>Shows information about guild settings.</value>
   </data>
-  <data name="SoftBan" xml:space="preserve">
+  <data name="SoftBanSummary" xml:space="preserve">
     <value>Removes a user from the guild and deletes any recent messages from them.</value>
   </data>
-  <data name="SoftDeleteChannel" xml:space="preserve">
+  <data name="SoftDeleteChannelSummary" xml:space="preserve">
     <value>Makes everyone except admins unable to see a channel.</value>
   </data>
-  <data name="SoftDeleteRole" xml:space="preserve">
+  <data name="SoftDeleteRoleSummary" xml:space="preserve">
     <value>Deletes a role then creates a role with the exact same information.</value>
   </data>
-  <data name="SpeakThroughWebhook" xml:space="preserve">
+  <data name="SpeakThroughWebhookSummary" xml:space="preserve">
     <value>Sends a message through a webhook. Use this command if you're annoying.</value>
   </data>
-  <data name="SpeakThroughWebhookText" xml:space="preserve">
+  <data name="SpeakThroughWebhookTextSummary" xml:space="preserve">
     <value>The text to say through the webhook.</value>
   </data>
-  <data name="SpeakThroughWebhookWebhook" xml:space="preserve">
+  <data name="SpeakThroughWebhookWebhookSummary" xml:space="preserve">
     <value>The webhook to speak with.</value>
   </data>
-  <data name="SwapGuildOwner" xml:space="preserve">
+  <data name="SwapGuildOwnerSummary" xml:space="preserve">
     <value>If the bot is the current owner of the guild, this command will give you owner.</value>
   </data>
-  <data name="TakeRole" xml:space="preserve">
+  <data name="TakeRoleSummary" xml:space="preserve">
     <value>Takes roles from a user.</value>
   </data>
-  <data name="Test" xml:space="preserve">
+  <data name="TestSummary" xml:space="preserve">
     <value>Mainly makes the bot say test.</value>
   </data>
-  <data name="TestGuildNotifs" xml:space="preserve">
+  <data name="TestGuildNotifsSummary" xml:space="preserve">
     <value>Sends the given guild notification in order to test it.</value>
   </data>
-  <data name="Unban" xml:space="preserve">
+  <data name="UnbanSummary" xml:space="preserve">
     <value>Unbans the user from the guild.</value>
   </data>
-  <data name="VoiceMute" xml:space="preserve">
+  <data name="VoiceMuteSummary" xml:space="preserve">
     <value>Prevents a user from speaking in voice chat.</value>
   </data>
-  <data name="GachaCharacter" xml:space="preserve">
+  <data name="GachaCharacterSummary" xml:space="preserve">
     <value>Displays information about the specified character.</value>
   </data>
-  <data name="GachaGive" xml:space="preserve">
+  <data name="GachaGiveSummary" xml:space="preserve">
     <value>Gifts a character to a different user.</value>
   </data>
-  <data name="GachaHarem" xml:space="preserve">
+  <data name="GachaHaremSummary" xml:space="preserve">
     <value>Displays the characters you have claimed</value>
   </data>
-  <data name="GachaRoll" xml:space="preserve">
+  <data name="GachaRollSummary" xml:space="preserve">
     <value>Rolls a random character that you can claim.</value>
   </data>
-  <data name="GachaSource" xml:space="preserve">
+  <data name="GachaSourceSummary" xml:space="preserve">
     <value>Displays information about the specified source.</value>
   </data>
-  <data name="GachaTrade" xml:space="preserve">
+  <data name="GachaTradeSummary" xml:space="preserve">
     <value>Trade characters with a different user.</value>
   </data>
-  <data name="LevelsShow" xml:space="preserve">
+  <data name="LevelsShowSummary" xml:space="preserve">
     <value>Displays the level of yourself or a different user.</value>
   </data>
-  <data name="LevelsTop" xml:space="preserve">
+  <data name="LevelsTopSummary" xml:space="preserve">
     <value>Displays the highest leveled people in the server.</value>
   </data>
-  <data name="ModifyCommandsEnable" xml:space="preserve">
+  <data name="ModifyCommandsEnableSummary" xml:space="preserve">
     <value>Creates or modifies a command override to an 'allowed' state with the supplied priority on the specified entity. A higher priority is used first.</value>
   </data>
-  <data name="ModifyCommandsDisable" xml:space="preserve">
+  <data name="ModifyCommandsDisableSummary" xml:space="preserve">
     <value>Creates or modifies a command override to a 'disallowed' state with the supplied priority on the specified entity. A higher priority is used first.</value>
   </data>
-  <data name="ModifyCommandsClear" xml:space="preserve">
+  <data name="ModifyCommandsClearSummary" xml:space="preserve">
     <value>Clears the command overrides on the specified entity.</value>
   </data>
-  <data name="ModifyPersistentRoles" xml:space="preserve">
+  <data name="ModifyPersistentRolesSummary" xml:space="preserve">
     <value>Adds or removes roles which stay on users if they leave and rejoin the guild.</value>
   </data>
-  <data name="DisplayPersistentRoles" xml:space="preserve">
+  <data name="DisplayPersistentRolesSummary" xml:space="preserve">
     <value>Displays the persistent roles which exist in this guild.</value>
   </data>
-  <data name="GetLogCounters" xml:space="preserve">
+  <data name="GetLogCountersSummary" xml:space="preserve">
     <value>Displays the count of each item being logged.</value>
   </data>
-  <data name="HelpVariableCategory" xml:space="preserve">
+  <data name="HelpVariableCategorySummary" xml:space="preserve">
     <value>The name of a category. This does need to be exact.</value>
   </data>
 </root>

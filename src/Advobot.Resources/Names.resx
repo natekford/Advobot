@@ -1347,4 +1347,13 @@
   <data name="WebhooksCategory" xml:space="preserve">
     <value>Webhooks</value>
   </data>
+  <data name="CategoryParameter" xml:space="preserve">
+    <value>Category</value>
+  </data>
+  <data name="CommandParameter" xml:space="preserve">
+    <value>Command</value>
+  </data>
+  <data name="PositionParameter" xml:space="preserve">
+    <value>Position</value>
+  </data>
 </root>

@@ -87,12 +87,8 @@ public sealed class AdvobotLauncher
 	private static async Task<IServiceProvider> CreateServicesAsync(StartupConfig config)
 	{
 		Localize.Instance.Append(new ResourceManagerLocalizer(Names.ResourceManager));
-		Localize.Instance.Append(new ResourceManagerLocalizer(Parameters.ResourceManager));
 		Localize.Instance.Append(new ResourceManagerLocalizer(Responses.ResourceManager));
 		Localize.Instance.Append(new ResourceManagerLocalizer(Summaries.ResourceManager));
-
-		Localize.Instance.Append(new ResourceManagerLocalizer(BotSettingNames.ResourceManager));
-		Localize.Instance.Append(new ResourceManagerLocalizer(GuildSettingNames.ResourceManager));
 
 		var botConfig = NaiveRuntimeConfig.CreateOrLoad(config);
 		var discordClient = new DiscordShardedClient(new DiscordSocketConfig
@@ -173,9 +169,7 @@ public sealed class AdvobotLauncher
 			}
 		}
 
-		services
-			.GetRequiredService<IReadOnlyDictionary<Type, ITypeReader>>()
-			.ThrowIfUnregisteredServices(services);
+		services.ThrowIfUnregisteredServices();
 
 		Localize.Instance.KeyNotFound += (key, culture) =>
 		{

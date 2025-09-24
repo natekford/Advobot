@@ -18,7 +18,7 @@ namespace Advobot.Logging.Commands;
 public sealed class Notifications : AdvobotModuleBase
 {
 	[LocalizedCommand(nameof(Names.ModifyGoodbyeMessage), nameof(Names.ModifyGoodbyeMessageAlias))]
-	[LocalizedSummary(nameof(Summaries.ModifyGoodbyeMessage))]
+	[LocalizedSummary(nameof(Summaries.ModifyGoodbyeMessageSummary))]
 	[Id("c59f41ec-5892-496e-beaa-eabceca4bded")]
 	[RequireGuildPermissions]
 	public sealed class ModifyGoodbyeMessage : NotificationModuleBase
@@ -74,7 +74,7 @@ public sealed class Notifications : AdvobotModuleBase
 	}
 
 	[LocalizedCommand(nameof(Names.ModifyWelcomeMessage), nameof(Names.ModifyWelcomeMessageAlias))]
-	[LocalizedSummary(nameof(Summaries.ModifyWelcomeMessage))]
+	[LocalizedSummary(nameof(Summaries.ModifyWelcomeMessageSummary))]
 	[Id("e95c8444-6a9a-40e7-a287-91e59200d4b6")]
 	[RequireGuildPermissions]
 	public sealed class ModifyWelcomeMessage : NotificationModuleBase

@@ -14,7 +14,7 @@ namespace Advobot.Standard.Commands;
 public sealed class Guilds : AdvobotModuleBase
 {
 	[LocalizedCommand(nameof(Names.LeaveGuild), nameof(Names.LeaveGuildAlias))]
-	[LocalizedSummary(nameof(Summaries.LeaveGuild))]
+	[LocalizedSummary(nameof(Summaries.LeaveGuildSummary))]
 	[Meta("3090730c-1377-4a56-b379-485baed393e7", IsEnabled = true)]
 	public sealed class LeaveGuild : AdvobotModuleBase
 	{

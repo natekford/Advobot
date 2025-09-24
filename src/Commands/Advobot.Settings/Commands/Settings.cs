@@ -17,13 +17,13 @@ namespace Advobot.Settings.Commands;
 public sealed class Settings : AdvobotModuleBase
 {
 	[LocalizedCommand(nameof(Names.ModifyCommands), nameof(Names.ModifyCommandsAlias))]
-	[LocalizedSummary(nameof(Summaries.ModifyCommands))]
+	[LocalizedSummary(nameof(Summaries.ModifyCommandsSummary))]
 	[Meta("6fb02198-9eab-4e44-a59a-7ba7f7317c10", IsEnabled = true, CanToggle = false)]
 	[RequireGuildPermissions]
 	public sealed class ModifyCommands : AdvobotModuleBase
 	{
 		[LocalizedCommand(nameof(Names.Clear), nameof(Names.ClearAlias))]
-		[LocalizedSummary(nameof(Summaries.ModifyCommandsClear))]
+		[LocalizedSummary(nameof(Summaries.ModifyCommandsClearSummary))]
 		public sealed class Clear() : ModifyCommandsModuleBase(null)
 		{
 			[Command]
@@ -40,7 +40,7 @@ public sealed class Settings : AdvobotModuleBase
 		}
 
 		[LocalizedCommand(nameof(Names.Disable), nameof(Names.DisableAlias))]
-		[LocalizedSummary(nameof(Summaries.ModifyCommandsDisable))]
+		[LocalizedSummary(nameof(Summaries.ModifyCommandsDisableSummary))]
 		public sealed class Disable() : ModifyCommandsModuleBase(false)
 		{
 			[Command]
@@ -60,7 +60,7 @@ public sealed class Settings : AdvobotModuleBase
 		}
 
 		[LocalizedCommand(nameof(Names.Enable), nameof(Names.EnableAlias))]
-		[LocalizedSummary(nameof(Summaries.ModifyCommandsEnable))]
+		[LocalizedSummary(nameof(Summaries.ModifyCommandsEnableSummary))]
 		public sealed class Enable() : ModifyCommandsModuleBase(true)
 		{
 			[Command]

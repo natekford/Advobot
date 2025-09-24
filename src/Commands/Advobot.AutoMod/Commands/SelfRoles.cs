@@ -17,7 +17,7 @@ namespace Advobot.AutoMod.Commands;
 public sealed class SelfRoles : AdvobotModuleBase
 {
 	[LocalizedCommand(nameof(Names.AssignSelfRole), nameof(Names.AssignSelfRoleAlias))]
-	[LocalizedSummary(nameof(Summaries.AssignSelfRole))]
+	[LocalizedSummary(nameof(Summaries.AssignSelfRoleSummary))]
 	[Id("6c574af7-31a7-4733-9f10-badfe1e72f4c")]
 	public sealed class AssignSelfRole : AutoModModuleBase
 	{
@@ -50,7 +50,7 @@ public sealed class SelfRoles : AdvobotModuleBase
 	}
 
 	[LocalizedCommand(nameof(Names.DisplaySelfRoles), nameof(Names.DisplaySelfRolesAlias))]
-	[LocalizedSummary(nameof(Summaries.DisplaySelfRoles))]
+	[LocalizedSummary(nameof(Summaries.DisplaySelfRolesSummary))]
 	[Id("3e3487e0-691a-45fa-9974-9d345b5337b7")]
 	public sealed class DisplaySelfRoles : AutoModModuleBase
 	{
@@ -73,7 +73,7 @@ public sealed class SelfRoles : AdvobotModuleBase
 	}
 
 	[LocalizedCommand(nameof(Names.ModifySelfRoles), nameof(Names.ModifySelfRolesAlias))]
-	[LocalizedSummary(nameof(Summaries.ModifySelfRoles))]
+	[LocalizedSummary(nameof(Summaries.ModifySelfRolesSummary))]
 	[Id("2cb8f177-dc52-404c-a7f4-a63c84d976ba")]
 	[RequireGuildPermissions]
 	public sealed class ModifySelfRoles : AutoModModuleBase

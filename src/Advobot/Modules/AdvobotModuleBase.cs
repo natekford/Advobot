@@ -102,7 +102,10 @@ public abstract class AdvobotModuleBase : CommandGroup<IGuildContext>
 		Func<T, string> format)
 	{
 		var list = source.Select(format).FormatNumberedList();
-		var message = await ReplyAsync($"Did you mean any of the following:\n{list}").ConfigureAwait(false);
+		var message = await Context.Channel.SendMessageAsync(new SendMessageArgs()
+		{
+			Content = $"Did you mean any of the following:\n{list}",
+		}).ConfigureAwait(false);
 		var index = await NextIndexAsync(1, source.Count).ConfigureAwait(false);
 		await message.DeleteAsync(GetOptions()).ConfigureAwait(false);
 
@@ -114,37 +117,5 @@ public abstract class AdvobotModuleBase : CommandGroup<IGuildContext>
 		{
 			return TypeReaderResult<T>.Error(index.InnerResult);
 		}
-	}
-
-	/// <inheritdoc />
-	protected Task<IUserMessage> ReplyAsync(
-		string? message = null,
-		bool isTTS = false,
-		Embed? embed = null,
-		RequestOptions? options = null,
-		AllowedMentions? allowedMentions = null,
-		Embed[]? embeds = null)
-	{
-		if (embed is not null)
-		{
-			if (embeds is null)
-			{
-				embeds = [embed];
-			}
-			else
-			{
-				Array.Resize(ref embeds, embeds.Length + 1);
-				embeds[^1] = embed;
-			}
-		}
-
-		return Context.Channel.SendMessageAsync(new SendMessageArgs
-		{
-			Content = message,
-			IsTTS = isTTS,
-			Embeds = embeds,
-			Options = options,
-			AllowedMentions = allowedMentions ?? AllowedMentions.None,
-		});
 	}
 }

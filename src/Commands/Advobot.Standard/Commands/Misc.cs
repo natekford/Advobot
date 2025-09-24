@@ -22,7 +22,7 @@ namespace Advobot.Standard.Commands;
 public sealed class Misc : AdvobotModuleBase
 {
 	[LocalizedCommand(nameof(Names.Get), nameof(Names.GetAlias))]
-	[LocalizedSummary(nameof(Summaries.GetInfo))]
+	[LocalizedSummary(nameof(Summaries.GetInfoSummary))]
 	[Meta("99dcd5e7-6bb2-49cf-b8b7-66b8e063fd18", IsEnabled = true)]
 	public sealed class Get : AdvobotModuleBase
 	{
@@ -114,7 +114,7 @@ public sealed class Misc : AdvobotModuleBase
 	}
 
 	[LocalizedCommand(nameof(Names.Help), nameof(Names.HelpAlias))]
-	[LocalizedSummary(nameof(Summaries.Help))]
+	[LocalizedSummary(nameof(Summaries.HelpSummary))]
 	[Meta("0e89a6fd-5c9c-4008-a912-7c719ea7827d", IsEnabled = true, CanToggle = false)]
 	public sealed class Help : AdvobotModuleBase
 	{
@@ -126,15 +126,15 @@ public sealed class Misc : AdvobotModuleBase
 		[Command]
 		[Priority(1)]
 		public Task<AdvobotResult> Category(
-			[LocalizedSummary(nameof(Summaries.HelpVariableCategory))]
-			[LocalizedName(nameof(Parameters.Category))]
+			[LocalizedSummary(nameof(Summaries.HelpVariableCategorySummary))]
+			[LocalizedName(nameof(Names.CategoryParameter))]
 			[OverrideTypeReader<CommandsCategoryTypeReader>]
 			[Remainder]
-			IReadOnlyCollection<IImmutableCommand> commands
+			IReadOnlyList<IImmutableCommand> commands
 		) => Responses.Misc.HelpCategory(commands);
 
 		[Command]
-		[LocalizedSummary(nameof(Summaries.HelpGeneralHelp))]
+		[LocalizedSummary(nameof(Summaries.HelpGeneralHelpSummary))]
 		public async Task<AdvobotResult> General()
 		{
 			var prefix = await GuildSettings.GetPrefixAsync(Context.Guild).ConfigureAwait(false);
@@ -144,35 +144,35 @@ public sealed class Misc : AdvobotModuleBase
 
 		[Command]
 		[Priority(1)]
-		[LocalizedSummary(nameof(Summaries.HelpModuleHelp))]
+		[LocalizedSummary(nameof(Summaries.HelpModuleHelpSummary))]
 		public Task<AdvobotResult> Name(
-			[LocalizedSummary(nameof(Summaries.HelpVariableCommand))]
-			[LocalizedName(nameof(Parameters.Command))]
+			[LocalizedSummary(nameof(Summaries.HelpVariableCommandSummary))]
+			[LocalizedName(nameof(Names.CommandParameter))]
 			[OverrideTypeReader<CommandsNameTypeReader>]
 			[Remainder]
-			IReadOnlyCollection<IImmutableCommand> commands
+			IReadOnlyList<IImmutableCommand> commands
 		) => Responses.Misc.Help(commands);
 
 		[Command]
 		[Priority(2)]
-		[LocalizedSummary(nameof(Summaries.HelpCommandHelp))]
+		[LocalizedSummary(nameof(Summaries.HelpCommandHelpSummary))]
 		public Task<AdvobotResult> Name(
-			[LocalizedSummary(nameof(Summaries.HelpVariableCommandPosition))]
-			[LocalizedName(nameof(Parameters.Position))]
+			[LocalizedSummary(nameof(Summaries.HelpVariableCommandPositionSummary))]
+			[LocalizedName(nameof(Names.PositionParameter))]
 			[Positive]
 			int position,
-			[LocalizedSummary(nameof(Summaries.HelpVariableExactCommand))]
-			[LocalizedName(nameof(Parameters.Command))]
+			[LocalizedSummary(nameof(Summaries.HelpVariableExactCommandSummary))]
+			[LocalizedName(nameof(Names.CommandParameter))]
 			[OverrideTypeReader<CommandsNameTypeReader>]
 			[Remainder]
-			IReadOnlyCollection<IImmutableCommand> commands
+			IReadOnlyList<IImmutableCommand> commands
 		)
 		{
 			if (commands.Count < position)
 			{
-				return Responses.Misc.HelpInvalidPosition(commands.First(), position);
+				return Responses.Misc.HelpInvalidPosition(commands[0], position);
 			}
-			return Responses.Misc.Help(commands.ElementAt(position - 1));
+			return Responses.Misc.Help(commands[position - 1]);
 		}
 
 		[Command]
@@ -198,7 +198,7 @@ public sealed class Misc : AdvobotModuleBase
 	}
 
 	[LocalizedCommand(nameof(Names.Test), nameof(Names.TestAlias))]
-	[LocalizedSummary(nameof(Summaries.Test))]
+	[LocalizedSummary(nameof(Summaries.TestSummary))]
 	[Meta("6c0b693e-e3ac-421e-910e-3178110d791d", IsEnabled = true)]
 	[RequireBotOwner]
 	public sealed class Test : AdvobotModuleBase

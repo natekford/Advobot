@@ -24,7 +24,7 @@ namespace Advobot.Standard.Commands;
 public sealed class Users : AdvobotModuleBase
 {
 	[LocalizedCommand(nameof(Names.Ban), nameof(Names.BanAlias))]
-	[LocalizedSummary(nameof(Summaries.Ban))]
+	[LocalizedSummary(nameof(Summaries.BanSummary))]
 	[Meta("b798e679-3ca7-4af1-9544-585672ec9936", IsEnabled = true)]
 	[RequireGuildPermissions(GuildPermission.BanMembers)]
 	public sealed class Ban : AdvobotModuleBase
@@ -67,7 +67,7 @@ public sealed class Users : AdvobotModuleBase
 	}
 
 	[LocalizedCommand(nameof(Names.Deafen), nameof(Names.DeafenAlias))]
-	[LocalizedSummary(nameof(Summaries.Deafen))]
+	[LocalizedSummary(nameof(Summaries.DeafenSummary))]
 	[Meta("99aa7f17-5710-41ce-ba12-291c2971c0a4", IsEnabled = true)]
 	[RequireGuildPermissions(GuildPermission.DeafenMembers)]
 	public sealed class Deafen : AdvobotModuleBase
@@ -89,7 +89,7 @@ public sealed class Users : AdvobotModuleBase
 	}
 
 	[LocalizedCommand(nameof(Names.ForAllWithRole), nameof(Names.ForAllWithRoleAlias))]
-	[LocalizedSummary(nameof(Summaries.ForAllWithRole))]
+	[LocalizedSummary(nameof(Summaries.ForAllWithRoleSummary))]
 	[Meta("0dd92f6d-e4ad-4c80-82f0-da6c3e02743c", IsEnabled = true)]
 	[RequireGuildPermissions]
 	public sealed class ForAllWithRole : MultiUserActionModuleBase
@@ -190,7 +190,7 @@ public sealed class Users : AdvobotModuleBase
 	}
 
 	[LocalizedCommand(nameof(Names.Kick), nameof(Names.KickAlias))]
-	[LocalizedSummary(nameof(Summaries.Kick))]
+	[LocalizedSummary(nameof(Summaries.KickSummary))]
 	[Meta("1d86aa7d-da06-478c-861b-a62ca279523b", IsEnabled = true)]
 	[RequireGuildPermissions(GuildPermission.KickMembers)]
 	public sealed class Kick : AdvobotModuleBase
@@ -212,7 +212,7 @@ public sealed class Users : AdvobotModuleBase
 	}
 
 	[LocalizedCommand(nameof(Names.MoveUser), nameof(Names.MoveUserAlias))]
-	[LocalizedSummary(nameof(Summaries.MoveUser))]
+	[LocalizedSummary(nameof(Summaries.MoveUserSummary))]
 	[Meta("158dca6d-fc89-43b3-a6b5-d055f6672547", IsEnabled = true)]
 	[RequireGuildPermissions(GuildPermission.MoveMembers)]
 	public sealed class MoveUser : AdvobotModuleBase
@@ -236,7 +236,7 @@ public sealed class Users : AdvobotModuleBase
 	}
 
 	[LocalizedCommand(nameof(Names.MoveUsers), nameof(Names.MoveUsersAlias))]
-	[LocalizedSummary(nameof(Summaries.MoveUsers))]
+	[LocalizedSummary(nameof(Summaries.MoveUsersSummary))]
 	[Meta("4e8439fa-cc29-4acb-9049-89865be825c8", IsEnabled = true)]
 	[RequireGuildPermissions(GuildPermission.MoveMembers)]
 	public sealed class MoveUsers : MultiUserActionModuleBase
@@ -264,7 +264,7 @@ public sealed class Users : AdvobotModuleBase
 	}
 
 	[LocalizedCommand(nameof(Names.Mute), nameof(Names.MuteAlias))]
-	[LocalizedSummary(nameof(Summaries.Mute))]
+	[LocalizedSummary(nameof(Summaries.MuteSummary))]
 	[Meta("b9f305d4-d343-4350-a140-c54a42af8d8d", IsEnabled = true)]
 	[RequireGuildPermissions(GuildPermission.ManageRoles, GuildPermission.ManageMessages)]
 	public sealed class Mute : AdvobotModuleBase
@@ -346,7 +346,7 @@ public sealed class Users : AdvobotModuleBase
 	}
 
 	[LocalizedCommand(nameof(Names.RemoveMessages), nameof(Names.RemoveMessagesAlias))]
-	[LocalizedSummary(nameof(Summaries.RemoveMessages))]
+	[LocalizedSummary(nameof(Summaries.RemoveMessagesSummary))]
 	[Meta("a4f3959e-1f56-4bf0-b377-dc98ef017906", IsEnabled = true)]
 	[RequireGuildPermissions(GuildPermission.ManageMessages)]
 	public sealed class RemoveMessages : AdvobotModuleBase
@@ -417,7 +417,7 @@ public sealed class Users : AdvobotModuleBase
 	}
 
 	[LocalizedCommand(nameof(Names.SoftBan), nameof(Names.SoftBanAlias))]
-	[LocalizedSummary(nameof(Summaries.SoftBan))]
+	[LocalizedSummary(nameof(Summaries.SoftBanSummary))]
 	[Meta("a6084728-77bf-469c-af09-41e53ac021d9", IsEnabled = true)]
 	[RequireGuildPermissions(GuildPermission.BanMembers, GuildPermission.KickMembers)]
 	public sealed class SoftBan : AdvobotModuleBase
@@ -449,7 +449,7 @@ public sealed class Users : AdvobotModuleBase
 	}
 
 	[LocalizedCommand(nameof(Names.Unban), nameof(Names.UnbanAlias))]
-	[LocalizedSummary(nameof(Summaries.Unban))]
+	[LocalizedSummary(nameof(Summaries.UnbanSummary))]
 	[Meta("417e9dd0-306b-4d1f-8b62-0427f01f921a", IsEnabled = true)]
 	[RequireGuildPermissions(GuildPermission.BanMembers)]
 	public sealed class Unban : AdvobotModuleBase
@@ -470,7 +470,7 @@ public sealed class Users : AdvobotModuleBase
 	}
 
 	[LocalizedCommand(nameof(Names.VoiceMute), nameof(Names.VoiceMuteAlias))]
-	[LocalizedSummary(nameof(Summaries.VoiceMute))]
+	[LocalizedSummary(nameof(Summaries.VoiceMuteSummary))]
 	[Meta("a51ea911-10be-4e40-8995-a507015a7e57", IsEnabled = true)]
 	[RequireGuildPermissions(GuildPermission.MuteMembers)]
 	public sealed class VoiceMute : AdvobotModuleBase

@@ -17,7 +17,7 @@ namespace Advobot.AutoMod.Commands;
 public sealed class PersistentRoles : AdvobotModuleBase
 {
 	[LocalizedCommand(nameof(Names.DisplayPersistentRoles), nameof(Names.DisplayPersistentRolesAlias))]
-	[LocalizedSummary(nameof(Summaries.DisplayPersistentRoles))]
+	[LocalizedSummary(nameof(Summaries.DisplayPersistentRolesSummary))]
 	[Meta("c4ab3f40-c245-4cd1-963b-7cd55a55d494", IsEnabled = false)]
 	[RequireGuildPermissions(GuildPermission.ManageRoles)]
 	public sealed class DisplayPersistentRoles : AutoModModuleBase
@@ -55,7 +55,7 @@ public sealed class PersistentRoles : AdvobotModuleBase
 	}
 
 	[LocalizedCommand(nameof(Names.ModifyPersistentRoles), nameof(Names.ModifyPersistentRolesAlias))]
-	[LocalizedSummary(nameof(Summaries.ModifyPersistentRoles))]
+	[LocalizedSummary(nameof(Summaries.ModifyPersistentRolesSummary))]
 	[Meta("b4a8b2d4-c6cc-4d6c-9671-91943e9079fc", IsEnabled = false)]
 	[RequireGuildPermissions(GuildPermission.ManageRoles)]
 	public sealed class ModifyPersistentRoles : AutoModModuleBase

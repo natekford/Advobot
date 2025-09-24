@@ -17,7 +17,7 @@ namespace Advobot.AutoMod.Commands;
 public sealed class BannedPhrases : AdvobotModuleBase
 {
 	[LocalizedCommand(nameof(Names.DisplayBannedPhrases), nameof(Names.DisplayBannedPhrasesAlias))]
-	[LocalizedSummary(nameof(Summaries.DisplayBannedPhrases))]
+	[LocalizedSummary(nameof(Summaries.DisplayBannedPhrasesSummary))]
 	[Id("5beb670b-e6ff-40c6-a884-66a17f95209d")]
 	[RequireGuildPermissions]
 	public sealed class DisplayBannedPhrases : AutoModModuleBase
@@ -51,7 +51,7 @@ public sealed class BannedPhrases : AdvobotModuleBase
 	}
 
 	[LocalizedCommand(nameof(Names.ModifyBannedNames), nameof(Names.ModifyBannedNamesAlias))]
-	[LocalizedSummary(nameof(Summaries.ModifyBannedNames))]
+	[LocalizedSummary(nameof(Summaries.ModifyBannedNamesSummary))]
 	[Id("c19c7402-4206-48ce-b109-ab11da476ac2")]
 	[RequireGuildPermissions]
 	public sealed class ModifyBannedNames : AutoModModuleBase
@@ -98,7 +98,7 @@ public sealed class BannedPhrases : AdvobotModuleBase
 	}
 
 	[LocalizedCommand(nameof(Names.ModifyBannedRegex), nameof(Names.ModifyBannedRegexAlias))]
-	[LocalizedSummary(nameof(Summaries.ModifyBannedRegex))]
+	[LocalizedSummary(nameof(Summaries.ModifyBannedRegexSummary))]
 	[Id("3438fb1e-e78b-44d2-960f-f19c73113879")]
 	[RequireGuildPermissions]
 	public sealed class ModifyBannedRegex : AutoModModuleBase
@@ -146,7 +146,7 @@ public sealed class BannedPhrases : AdvobotModuleBase
 	}
 
 	[LocalizedCommand(nameof(Names.ModifyBannedStrings), nameof(Names.ModifyBannedStringsAlias))]
-	[LocalizedSummary(nameof(Summaries.ModifyBannedStrings))]
+	[LocalizedSummary(nameof(Summaries.ModifyBannedStringsSummary))]
 	[Id("6e494bca-519e-41ce-998a-f71f0677dfb0")]
 	[RequireGuildPermissions]
 	public sealed class ModifyBannedStrings : AutoModModuleBase

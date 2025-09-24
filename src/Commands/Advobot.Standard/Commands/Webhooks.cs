@@ -19,7 +19,7 @@ namespace Advobot.Standard.Commands;
 public sealed class Webhooks : AdvobotModuleBase
 {
 	[LocalizedCommand(nameof(Names.CreateWebhook), nameof(Names.CreateWebhookAlias))]
-	[LocalizedSummary(nameof(Summaries.CreateWebhook))]
+	[LocalizedSummary(nameof(Summaries.CreateWebhookSummary))]
 	[Meta("a177bff8-5ade-4c21-8e6a-97a254c26331", IsEnabled = true)]
 	[RequireGuildPermissions(GuildPermission.ManageWebhooks)]
 	public sealed class CreateWebhook : AdvobotModuleBase
@@ -27,11 +27,11 @@ public sealed class Webhooks : AdvobotModuleBase
 		[Command]
 		public async Task<AdvobotResult> Create(
 			[CanModifyChannel(ChannelPermission.ManageWebhooks)]
-			[LocalizedSummary(nameof(Summaries.CreateWebhookChannel))]
+			[LocalizedSummary(nameof(Summaries.CreateWebhookChannelSummary))]
 			ITextChannel channel,
 			[Remainder]
 			[Username]
-			[LocalizedSummary(nameof(Summaries.CreateWebhookName))]
+			[LocalizedSummary(nameof(Summaries.CreateWebhookNameSummary))]
 			string name
 		)
 		{
@@ -41,7 +41,7 @@ public sealed class Webhooks : AdvobotModuleBase
 	}
 
 	[LocalizedCommand(nameof(Names.SpeakThroughWebhook), nameof(Names.SpeakThroughWebhookAlias))]
-	[LocalizedSummary(nameof(Summaries.SpeakThroughWebhook))]
+	[LocalizedSummary(nameof(Summaries.SpeakThroughWebhookSummary))]
 	[Id("d830df02-b33b-4e95-88d7-8acb029506f6")]
 	[RequireGuildPermissions(GuildPermission.ManageWebhooks)]
 	public sealed class SpeakThroughWebhook : AdvobotModuleBase
@@ -50,10 +50,10 @@ public sealed class Webhooks : AdvobotModuleBase
 
 		[Command]
 		public Task Speak(
-			[LocalizedSummary(nameof(Summaries.SpeakThroughWebhookWebhook))]
+			[LocalizedSummary(nameof(Summaries.SpeakThroughWebhookWebhookSummary))]
 			IWebhook webhook,
 			[Remainder]
-			[LocalizedSummary(nameof(Summaries.SpeakThroughWebhookText))]
+			[LocalizedSummary(nameof(Summaries.SpeakThroughWebhookTextSummary))]
 			string text
 		)
 		{
