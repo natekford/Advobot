@@ -11,9 +11,9 @@ using YACCS.Localization;
 namespace Advobot.Standard.Commands;
 
 [LocalizedCategory(nameof(Names.GuildsCategory))]
-public sealed class Guilds : AdvobotModuleBase
+public sealed class Guilds
 {
-	[LocalizedCommand(nameof(Names.LeaveGuild), nameof(Names.LeaveGuildAlias))]
+	[Command(nameof(Names.LeaveGuild), nameof(Names.LeaveGuildAlias))]
 	[LocalizedSummary(nameof(Summaries.LeaveGuildSummary))]
 	[Meta("3090730c-1377-4a56-b379-485baed393e7", IsEnabled = true)]
 	public sealed class LeaveGuild : AdvobotModuleBase

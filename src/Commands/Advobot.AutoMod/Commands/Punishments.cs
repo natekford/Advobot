@@ -8,9 +8,9 @@ using YACCS.Localization;
 namespace Advobot.AutoMod.Commands;
 
 [LocalizedCategory(nameof(Names.PunishmentsCategory))]
-public sealed class Punishments : AdvobotModuleBase
+public sealed class Punishments
 {
-	[LocalizedCommand(nameof(Names.ModifyPunishments), nameof(Names.ModifyPunishmentsAlias))]
+	[Command(nameof(Names.ModifyPunishments), nameof(Names.ModifyPunishmentsAlias))]
 	[LocalizedSummary(nameof(Summaries.ModifyPunishmentsSummary))]
 	[Id("4b4584ae-2b60-4aff-92a1-fb2c929f3daf")]
 	[RequireGuildPermissions]

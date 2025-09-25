@@ -13,14 +13,14 @@ using YACCS.Localization;
 namespace Advobot.Standard.Commands;
 
 [LocalizedCategory(nameof(Names.ChannelsCategory))]
-public sealed class Channels : AdvobotModuleBase
+public sealed class Channels
 {
 	public const ChannelPermission ManageChannelPermissions = 0
 		| ChannelPermission.ManageChannels
 		| ChannelPermission.ManageRoles;
 
 	// On mobile this has to be done 1 by 1
-	[LocalizedCommand(nameof(Names.ClearChannelPerms), nameof(Names.ClearChannelPermsAlias))]
+	[Command(nameof(Names.ClearChannelPerms), nameof(Names.ClearChannelPermsAlias))]
 	[LocalizedSummary(nameof(Summaries.ClearChannelPermsSummary))]
 	[Meta("5710430c-ce62-4474-9296-071eca65c9b1", IsEnabled = true)]
 	[RequireGuildPermissions(GuildPermission.ManageChannels | GuildPermission.ManageRoles)]
@@ -38,7 +38,7 @@ public sealed class Channels : AdvobotModuleBase
 	}
 
 	// Can copy an entire channel on mobile, but not individual overwrites
-	[LocalizedCommand(nameof(Names.CopyChannelPerms), nameof(Names.CopyChannelPermsAlias))]
+	[Command(nameof(Names.CopyChannelPerms), nameof(Names.CopyChannelPermsAlias))]
 	[LocalizedSummary(nameof(Summaries.CopyChannelPermsSummary))]
 	[Meta("621f61a8-f3ba-41d1-b9b8-9e2075bcfa11", IsEnabled = true)]
 	[RequireGuildPermissions(GuildPermission.ManageChannels | GuildPermission.ManageRoles)]

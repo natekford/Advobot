@@ -3301,6 +3301,15 @@ namespace Advobot.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to SelfRoles.
+        /// </summary>
+        public static string SelfRolesCategory {
+            get {
+                return ResourceManager.GetString("SelfRolesCategory", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Send.
         /// </summary>
         public static string Send {

@@ -173,8 +173,13 @@ public sealed class AdvobotLauncher
 
 		Localize.Instance.KeyNotFound += (key, culture) =>
 		{
+#if DEBUG
+			const LogSeverity SEVERITY = LogSeverity.Warning;
+#else
+			const LogSeverity SEVERITY = LogSeverity.Info;
+#endif
 			_ = eventProvider.Log.InvokeAsync(new(
-				severity: LogSeverity.Warning,
+				severity: SEVERITY,
 				source: key,
 				message: $"Unable to find the localization for '{key}' in '{culture}'."
 			));

@@ -8,6 +8,8 @@ using Advobot.TypeReaders;
 
 using Discord;
 
+using System.Collections.Generic;
+
 using YACCS.Commands;
 using YACCS.Commands.Attributes;
 using YACCS.Commands.Building;
@@ -19,14 +21,14 @@ using YACCS.TypeReaders;
 namespace Advobot.Standard.Commands;
 
 [LocalizedCategory(nameof(Names.MiscCategory))]
-public sealed class Misc : AdvobotModuleBase
+public sealed class Misc
 {
-	[LocalizedCommand(nameof(Names.Get), nameof(Names.GetAlias))]
+	[Command(nameof(Names.Get), nameof(Names.GetAlias))]
 	[LocalizedSummary(nameof(Summaries.GetInfoSummary))]
 	[Meta("99dcd5e7-6bb2-49cf-b8b7-66b8e063fd18", IsEnabled = true)]
 	public sealed class Get : AdvobotModuleBase
 	{
-		[LocalizedCommand(nameof(Names.Ban), nameof(Names.BanAlias))]
+		[Command(nameof(Names.Ban), nameof(Names.BanAlias))]
 		[Priority(1)]
 		public Task<AdvobotResult> Ban([Remainder] IBan ban)
 			=> Responses.Misc.InfoBan(ban);
@@ -36,12 +38,12 @@ public sealed class Misc : AdvobotModuleBase
 		public Task<AdvobotResult> BanImplicit([Remainder] IBan ban)
 			=> Responses.Misc.InfoBan(ban);
 
-		[LocalizedCommand(nameof(Names.Bot), nameof(Names.BotAlias))]
+		[Command(nameof(Names.Bot), nameof(Names.BotAlias))]
 		[Priority(1)]
 		public Task<AdvobotResult> Bot()
 			=> Responses.Misc.InfoBot(Context.Client);
 
-		[LocalizedCommand(nameof(Names.Channel), nameof(Names.ChangePunishmentAlias))]
+		[Command(nameof(Names.Channel), nameof(Names.ChangePunishmentAlias))]
 		[Priority(1)]
 		public Task<AdvobotResult> Channel([Remainder] IGuildChannel channel)
 			=> Responses.Misc.InfoChannel(channel);
@@ -51,7 +53,7 @@ public sealed class Misc : AdvobotModuleBase
 		public Task<AdvobotResult> ChannelImplicit([Remainder] IGuildChannel channel)
 			=> Responses.Misc.InfoChannel(channel);
 
-		[LocalizedCommand(nameof(Names.Emote), nameof(Names.EmoteAlias))]
+		[Command(nameof(Names.Emote), nameof(Names.EmoteAlias))]
 		[Priority(1)]
 		public Task<AdvobotResult> Emote([Remainder] Emote emote)
 			=> Responses.Misc.InfoEmote(emote);
@@ -67,12 +69,12 @@ public sealed class Misc : AdvobotModuleBase
 		public Task<AdvobotResult> Failure([Remainder] string _)
 			=> Responses.Misc.InfoNotFound();
 
-		[LocalizedCommand(nameof(Names.Guild), nameof(Names.GuildAlias))]
+		[Command(nameof(Names.Guild), nameof(Names.GuildAlias))]
 		[Priority(1)]
 		public Task<AdvobotResult> Guild()
 			=> Responses.Misc.InfoGuild(Context.Guild);
 
-		[LocalizedCommand(nameof(Names.Invite), nameof(Names.InviteAlias))]
+		[Command(nameof(Names.Invite), nameof(Names.InviteAlias))]
 		[Priority(1)]
 		public Task<AdvobotResult> Invite([Remainder] IInviteMetadata invite)
 			=> Responses.Misc.InfoInvite(invite);
@@ -82,7 +84,7 @@ public sealed class Misc : AdvobotModuleBase
 		public Task<AdvobotResult> InviteImplicit([Remainder] IInviteMetadata invite)
 			=> Responses.Misc.InfoInvite(invite);
 
-		[LocalizedCommand(nameof(Names.Role), nameof(Names.RoleAlias))]
+		[Command(nameof(Names.Role), nameof(Names.RoleAlias))]
 		[Priority(1)]
 		public Task<AdvobotResult> Role([Remainder] IRole role)
 			=> Responses.Misc.InfoRole(role);
@@ -92,7 +94,7 @@ public sealed class Misc : AdvobotModuleBase
 		public Task<AdvobotResult> RoleImplicit([Remainder] IRole role)
 			=> Responses.Misc.InfoRole(role);
 
-		[LocalizedCommand(nameof(Names.User), nameof(Names.UserAlias))]
+		[Command(nameof(Names.User), nameof(Names.UserAlias))]
 		[Priority(1)]
 		public Task<AdvobotResult> User([Remainder] IGuildUser? user = null)
 			=> Responses.Misc.InfoUser(user ?? Context.User);
@@ -102,7 +104,7 @@ public sealed class Misc : AdvobotModuleBase
 		public Task<AdvobotResult> UserImplicit([Remainder] IGuildUser user)
 			=> Responses.Misc.InfoUser(user);
 
-		[LocalizedCommand(nameof(Names.Webhook), nameof(Names.WebhookAlias))]
+		[Command(nameof(Names.Webhook), nameof(Names.WebhookAlias))]
 		[Priority(1)]
 		public Task<AdvobotResult> Webhook([Remainder] IWebhook webhook)
 			=> Responses.Misc.InfoWebhook(webhook);
@@ -113,7 +115,7 @@ public sealed class Misc : AdvobotModuleBase
 			=> Responses.Misc.InfoWebhook(webhook);
 	}
 
-	[LocalizedCommand(nameof(Names.Help), nameof(Names.HelpAlias))]
+	[Command(nameof(Names.Help), nameof(Names.HelpAlias))]
 	[LocalizedSummary(nameof(Summaries.HelpSummary))]
 	[Meta("0e89a6fd-5c9c-4008-a912-7c719ea7827d", IsEnabled = true, CanToggle = false)]
 	public sealed class Help : AdvobotModuleBase
@@ -138,7 +140,9 @@ public sealed class Misc : AdvobotModuleBase
 		public async Task<AdvobotResult> General()
 		{
 			var prefix = await GuildSettings.GetPrefixAsync(Context.Guild).ConfigureAwait(false);
-			var categories = HelpEntries.Commands.SelectMany(x => x.Categories).ToHashSet();
+			var categories = HelpEntries.Commands
+				.SelectMany(x => x.Categories.Select(c => c.Category))
+				.ToHashSet();
 			return Responses.Misc.HelpGeneral(categories, prefix);
 		}
 
@@ -148,7 +152,7 @@ public sealed class Misc : AdvobotModuleBase
 		public Task<AdvobotResult> Name(
 			[LocalizedSummary(nameof(Summaries.HelpVariableCommandSummary))]
 			[LocalizedName(nameof(Names.CommandParameter))]
-			[OverrideTypeReader<CommandsNameTypeReader>]
+			[OverrideTypeReader<CommandsNameExactTypeReader>]
 			[Remainder]
 			IReadOnlyList<IImmutableCommand> commands
 		) => Responses.Misc.Help(commands);
@@ -163,7 +167,7 @@ public sealed class Misc : AdvobotModuleBase
 			int position,
 			[LocalizedSummary(nameof(Summaries.HelpVariableExactCommandSummary))]
 			[LocalizedName(nameof(Names.CommandParameter))]
-			[OverrideTypeReader<CommandsNameTypeReader>]
+			[OverrideTypeReader<CommandsNameExactTypeReader>]
 			[Remainder]
 			IReadOnlyList<IImmutableCommand> commands
 		)
@@ -185,19 +189,16 @@ public sealed class Misc : AdvobotModuleBase
 		)
 		{
 			var entry = await NextItemAtIndexAsync(commands, x => x.Path).ConfigureAwait(false);
-			if (entry.Value?.Commands is IReadOnlyList<IImmutableCommand> list)
+			var list = entry.Value?.Commands;
+			if (list is not null)
 			{
-				if (list.Count == 1)
-				{
-					return Responses.Misc.Help(list[0]);
-				}
 				return Responses.Misc.Help(list);
 			}
 			return Result.EmptySuccess;
 		}
 	}
 
-	[LocalizedCommand(nameof(Names.Test), nameof(Names.TestAlias))]
+	[Command(nameof(Names.Test), nameof(Names.TestAlias))]
 	[LocalizedSummary(nameof(Summaries.TestSummary))]
 	[Meta("6c0b693e-e3ac-421e-910e-3178110d791d", IsEnabled = true)]
 	[RequireBotOwner]

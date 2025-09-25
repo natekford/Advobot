@@ -1862,6 +1862,15 @@ namespace Advobot.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Overloads.
+        /// </summary>
+        public static string MiscTitleOverloads {
+            get {
+                return ResourceManager.GetString("MiscTitleOverloads", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Submodules.
         /// </summary>
         public static string MiscTitleSubmodules {

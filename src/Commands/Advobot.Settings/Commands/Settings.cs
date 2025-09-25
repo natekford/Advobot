@@ -14,15 +14,15 @@ using YACCS.TypeReaders;
 namespace Advobot.Settings.Commands;
 
 [LocalizedCategory(nameof(Names.SettingsCategory))]
-public sealed class Settings : AdvobotModuleBase
+public sealed class Settings
 {
-	[LocalizedCommand(nameof(Names.ModifyCommands), nameof(Names.ModifyCommandsAlias))]
+	[Command(nameof(Names.ModifyCommands), nameof(Names.ModifyCommandsAlias))]
 	[LocalizedSummary(nameof(Summaries.ModifyCommandsSummary))]
 	[Meta("6fb02198-9eab-4e44-a59a-7ba7f7317c10", IsEnabled = true, CanToggle = false)]
 	[RequireGuildPermissions]
-	public sealed class ModifyCommands : AdvobotModuleBase
+	public sealed class ModifyCommands
 	{
-		[LocalizedCommand(nameof(Names.Clear), nameof(Names.ClearAlias))]
+		[Command(nameof(Names.Clear), nameof(Names.ClearAlias))]
 		[LocalizedSummary(nameof(Summaries.ModifyCommandsClearSummary))]
 		public sealed class Clear() : ModifyCommandsModuleBase(null)
 		{
@@ -39,7 +39,7 @@ public sealed class Settings : AdvobotModuleBase
 			) => ModifyAsync(entity, commands, 0);
 		}
 
-		[LocalizedCommand(nameof(Names.Disable), nameof(Names.DisableAlias))]
+		[Command(nameof(Names.Disable), nameof(Names.DisableAlias))]
 		[LocalizedSummary(nameof(Summaries.ModifyCommandsDisableSummary))]
 		public sealed class Disable() : ModifyCommandsModuleBase(false)
 		{
@@ -59,7 +59,7 @@ public sealed class Settings : AdvobotModuleBase
 			) => ModifyAsync(entity, commands, priority);
 		}
 
-		[LocalizedCommand(nameof(Names.Enable), nameof(Names.EnableAlias))]
+		[Command(nameof(Names.Enable), nameof(Names.EnableAlias))]
 		[LocalizedSummary(nameof(Summaries.ModifyCommandsEnableSummary))]
 		public sealed class Enable() : ModifyCommandsModuleBase(true)
 		{

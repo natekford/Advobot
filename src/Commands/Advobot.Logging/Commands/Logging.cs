@@ -16,10 +16,10 @@ using YACCS.Localization;
 namespace Advobot.Logging.Commands;
 
 [LocalizedCategory(nameof(Names.LoggingCategory))]
-[LocalizedCommand(nameof(Names.Logging), nameof(Names.LoggingAlias))]
-public sealed class Logging : AdvobotModuleBase
+[Command(nameof(Names.Logging), nameof(Names.LoggingAlias))]
+public sealed class Logging
 {
-	[LocalizedCommand(nameof(Names.ModifyActions), nameof(Names.ModifyActionsAlias))]
+	[Command(nameof(Names.ModifyActions), nameof(Names.ModifyActionsAlias))]
 	[LocalizedSummary(nameof(Summaries.ModifyActionsSummary))]
 	[Id("1457fb28-6510-47f1-998f-3bdca737f9b9")]
 	[RequireGuildPermissions]
@@ -28,7 +28,7 @@ public sealed class Logging : AdvobotModuleBase
 		[InjectService]
 		public required LogActionsResetter DefaultSetter { get; set; }
 
-		[LocalizedCommand(nameof(Names.All), nameof(Names.AllAlias))]
+		[Command(nameof(Names.All), nameof(Names.AllAlias))]
 		public async Task<AdvobotResult> All(bool enable)
 		{
 			if (enable)
@@ -42,7 +42,7 @@ public sealed class Logging : AdvobotModuleBase
 			return Responses.Logging.ModifiedAllLogActions(enable);
 		}
 
-		[LocalizedCommand(nameof(Names.Default), nameof(Names.DefaultAlias))]
+		[Command(nameof(Names.Default), nameof(Names.DefaultAlias))]
 		public async Task<AdvobotResult> Default()
 		{
 			await DefaultSetter.ResetAsync(Context).ConfigureAwait(false);
@@ -66,13 +66,13 @@ public sealed class Logging : AdvobotModuleBase
 		}
 	}
 
-	[LocalizedCommand(nameof(Names.ModifyIgnoredChannels), nameof(Names.ModifyIgnoredChannelsAlias))]
+	[Command(nameof(Names.ModifyIgnoredChannels), nameof(Names.ModifyIgnoredChannelsAlias))]
 	[LocalizedSummary(nameof(Summaries.ModifyIgnoredChannelsSummary))]
 	[Id("c348ba6c-7112-4a36-b0b9-3a546d8efd68")]
 	[RequireGuildPermissions]
 	public sealed class ModifyIgnoredChannels : LoggingModuleBase
 	{
-		[LocalizedCommand(nameof(Names.Add), nameof(Names.AddAlias))]
+		[Command(nameof(Names.Add), nameof(Names.AddAlias))]
 		public async Task<AdvobotResult> Add(
 			[CanModifyChannel(ChannelPermission.ManageChannels)]
 			params ITextChannel[] channels
@@ -83,7 +83,7 @@ public sealed class Logging : AdvobotModuleBase
 			return Responses.Logging.ModifiedIgnoredLogChannels(channels, true);
 		}
 
-		[LocalizedCommand(nameof(Names.Remove), nameof(Names.RemoveAlias))]
+		[Command(nameof(Names.Remove), nameof(Names.RemoveAlias))]
 		public async Task<AdvobotResult> Remove(
 			[CanModifyChannel(ChannelPermission.ManageChannels)]
 			params ITextChannel[] channels
@@ -95,7 +95,7 @@ public sealed class Logging : AdvobotModuleBase
 		}
 	}
 
-	[LocalizedCommand(nameof(Names.ModifyImageLog), nameof(Names.ModifyImageLogAlias))]
+	[Command(nameof(Names.ModifyImageLog), nameof(Names.ModifyImageLogAlias))]
 	[LocalizedSummary(nameof(Summaries.ModifyImageLogSummary))]
 	[Id("dd36f347-a33b-490a-a751-8d671e50abe1")]
 	[RequireGuildPermissions]
@@ -103,7 +103,7 @@ public sealed class Logging : AdvobotModuleBase
 	{
 		private const Log LogType = Log.Server;
 
-		[LocalizedCommand(nameof(Names.Remove), nameof(Names.RemoveAlias))]
+		[Command(nameof(Names.Remove), nameof(Names.RemoveAlias))]
 		[RequireImageLog]
 		public async Task<AdvobotResult> Remove()
 		{
@@ -122,7 +122,7 @@ public sealed class Logging : AdvobotModuleBase
 		}
 	}
 
-	[LocalizedCommand(nameof(Names.ModifyModLog), nameof(Names.ModifyModLogAlias))]
+	[Command(nameof(Names.ModifyModLog), nameof(Names.ModifyModLogAlias))]
 	[LocalizedSummary(nameof(Summaries.ModifyModLogSummary))]
 	[Id("00199443-02f9-4873-ba21-d6d462a0052a")]
 	[RequireGuildPermissions]
@@ -130,7 +130,7 @@ public sealed class Logging : AdvobotModuleBase
 	{
 		private const Log LogType = Log.Server;
 
-		[LocalizedCommand(nameof(Names.Remove), nameof(Names.RemoveAlias))]
+		[Command(nameof(Names.Remove), nameof(Names.RemoveAlias))]
 		[RequireModLog]
 		public async Task<AdvobotResult> Remove()
 		{
@@ -149,7 +149,7 @@ public sealed class Logging : AdvobotModuleBase
 		}
 	}
 
-	[LocalizedCommand(nameof(Names.ModifyServerLog), nameof(Names.ModifyServerLogAlias))]
+	[Command(nameof(Names.ModifyServerLog), nameof(Names.ModifyServerLogAlias))]
 	[LocalizedSummary(nameof(Summaries.ModifyServerLogSummary))]
 	[Id("58abc6df-6814-4946-9f04-b99b024ec8ac")]
 	[RequireGuildPermissions]
@@ -157,7 +157,7 @@ public sealed class Logging : AdvobotModuleBase
 	{
 		private const Log LogType = Log.Server;
 
-		[LocalizedCommand(nameof(Names.Remove), nameof(Names.RemoveAlias))]
+		[Command(nameof(Names.Remove), nameof(Names.RemoveAlias))]
 		[RequireServerLog]
 		public async Task<AdvobotResult> Remove()
 		{

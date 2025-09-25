@@ -11,9 +11,9 @@ using YACCS.Localization;
 namespace Advobot.Standard.Commands;
 
 [LocalizedCategory(nameof(Names.ClientCategory))]
-public sealed class Client : AdvobotModuleBase
+public sealed class Client
 {
-	[LocalizedCommand(nameof(Names.DisconnectBot), nameof(Names.DisconnectBot), nameof(Names.RunescapeServersAlias))]
+	[Command(nameof(Names.DisconnectBot), nameof(Names.DisconnectBot), nameof(Names.RunescapeServersAlias))]
 	[LocalizedSummary(nameof(Summaries.DisconnectBotSummary))]
 	[Meta("10f3bf15-0652-4bd7-a29f-630136d0164a", IsEnabled = true)]
 	[RequireBotOwner]
@@ -37,7 +37,7 @@ public sealed class Client : AdvobotModuleBase
 		}
 	}
 
-	[LocalizedCommand(nameof(Names.ModifyBotName), nameof(Names.ModifyBotNameAlias))]
+	[Command(nameof(Names.ModifyBotName), nameof(Names.ModifyBotNameAlias))]
 	[LocalizedSummary(nameof(Summaries.ModifyBotNameSummary))]
 	[Meta("6882dc55-3557-4366-8c4c-2954b46cfb2b", IsEnabled = true)]
 	[RequireBotOwner]

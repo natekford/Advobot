@@ -1,12 +1,14 @@
 ﻿using Advobot.Attributes;
 using Advobot.Embeds;
 using Advobot.Modules;
+using Advobot.Preconditions;
 using Advobot.Utilities;
 
 using Discord;
 using Discord.Rest;
 using Discord.WebSocket;
 
+using System.Linq;
 using System.Reflection;
 using System.Text;
 
@@ -15,6 +17,7 @@ using YACCS.Commands.Linq;
 using YACCS.Commands.Models;
 using YACCS.Help.Attributes;
 using YACCS.Localization;
+using YACCS.NamedArguments;
 using YACCS.Preconditions;
 
 using static Advobot.Resources.Responses;
@@ -26,24 +29,23 @@ public sealed partial class Misc : AdvobotResult
 {
 	private static readonly Type _Help = typeof(Commands.Misc.Help);
 
-	public static AdvobotResult Help(IReadOnlyCollection<IImmutableCommand> commands)
+	public static AdvobotResult Help(IReadOnlyList<IImmutableCommand> commands)
 	{
-		var command = commands.First();
-		var meta = command.GetAttributes<MetaAttribute>().Single();
-
-		var enabled = meta.IsEnabled.ToString();
-		if (!meta.CanToggle)
+		if (commands.Count == 1)
 		{
-			enabled += MiscCannotBeDisabled;
+			return Help(commands[0]);
 		}
 
-		var sb = new StringBuilder()
-			.AppendHeaderAndValue(MiscTitleAliases, FormatAliases(command.Paths))
-			.AppendHeaderAndValue(MiscTitleBasePermissions, FormatPreconditions(command.Preconditions))
-			.AppendHeaderAndValue(MiscTitleEnabledByDefault, enabled);
-
+		var sb = new StringBuilder();
+		var overloads = commands.Select((x, i) =>
+		{
+			var parameters = x.Parameters.Select(FormatParameter).Join();
+			return $"{i + 1}. {parameters}";
+		}).Join("\n").WithBigBlock();
 		sb.AppendCategorySeparator()
-			.AppendHeaderAndValue(MiscTitleDescription, GetSummary(command));
+			.AppendHeaderAndValue(MiscTitleOverloads, overloads);
+
+		// TODO: add subcommands
 
 		/*
 		if (commands.Submodules.Count != 0)
@@ -56,28 +58,22 @@ public sealed partial class Misc : AdvobotResult
 				.AppendHeaderAndValue(MiscTitleSubmodules, submodules);
 		}*/
 
-		/*
-		if (commands.Count != 0)
-		{
-			var c = commands.Select((x, i) =>
-			{
-				var parameters = x.Parameters.Select(FormatParameter).Join();
-				var name = string.IsNullOrWhiteSpace(x.Name) ? "" : x.Name + " ";
-				return $"{i + 1}. {name}({parameters})";
-			}).Join("\n").WithBigBlock();
-			sb.AppendCategorySeparator()
-				.AppendHeaderAndValue(MiscTitleCommands, c);
-		}*/
-
-		return Success(CreateHelpEmbed(command.Paths[0].Join(" "), sb.ToString()));
+		return Success(CreateHelpEmbed(commands[0].Paths[0].Join(" "), sb.ToString()));
 	}
 
 	public static AdvobotResult Help(IImmutableCommand command)
 	{
+		var meta = command.GetAttributes<MetaAttribute>().Single();
+		var enabled = meta.IsEnabled.ToString();
+		if (!meta.CanToggle)
+		{
+			enabled += MiscCannotBeDisabled;
+		}
+
 		var sb = new StringBuilder()
 			.AppendHeaderAndValue(MiscTitleAliases, FormatAliases(command.Paths))
 			.AppendHeaderAndValue(MiscTitleBasePermissions, FormatPreconditions(command.Preconditions))
-			.AppendCategorySeparator()
+			.AppendHeaderAndValue(MiscTitleEnabledByDefault, enabled)
 			.AppendHeaderAndValue(MiscTitleDescription, GetSummary(command));
 
 		var embed = CreateHelpEmbed(command.Paths[0].Join(" "), sb.ToString());
@@ -86,8 +82,16 @@ public sealed partial class Misc : AdvobotResult
 			var paramSb = new StringBuilder()
 				.AppendHeaderAndValue(MiscTitleBasePermissions, FormatPreconditions(parameter.Preconditions))
 				.AppendHeaderAndValue(MiscTitleDescription, GetSummary(parameter));
-			// TODO: show named arguments
-			//.AppendHeaderAndValue(MiscTitleNamedArguments, parameter.Join());
+
+			// TODO: show named argument descriptions/preconditions
+			if (parameter.GetAttributes<INamedArgumentParameters>().SingleOrDefault() is INamedArgumentParameters namedArgs)
+			{
+				var names = namedArgs.Parameters
+					.Select(x => x.ParameterName?.Name ?? x.OriginalParameterName)
+					.Join();
+
+				paramSb.AppendHeaderAndValue(MiscTitleNamedArguments, names);
+			}
 
 			embed.TryAddField(FormatParameter(parameter), paramSb.ToString(), true, out _);
 		}
@@ -246,8 +250,10 @@ public sealed partial class Misc : AdvobotResult
 	{
 		var left = p.HasDefaultValue ? VariableOptionalLeft : VariableRequiredLeft;
 		var right = p.HasDefaultValue ? VariableOptionalRight : VariableRequiredRight;
-		return left + p.ParameterName + right;
+		return left + (p.ParameterName?.Name ?? p.OriginalParameterName) + right;
 	}
+
+#warning these output garbage right now
 
 	private static string FormatPreconditions(
 		IReadOnlyDictionary<string, IReadOnlyList<IPrecondition>> preconditions)
@@ -258,12 +264,12 @@ public sealed partial class Misc : AdvobotResult
 		}
 
 		var groups = new List<string>(preconditions.Count);
-		foreach (var (_, values) in preconditions)
+		foreach (var (_, precondition) in preconditions)
 		{
 			var formatted = new List<string>();
-			foreach (var value in values)
+			foreach (var value in precondition)
 			{
-				formatted.Add(value.ToString()!);
+				formatted.Add("PRECONDITION");
 			}
 			groups.Add(formatted.Join(VariableOr));
 		}
@@ -284,12 +290,12 @@ public sealed partial class Misc : AdvobotResult
 		}
 
 		var groups = new List<string>(preconditions.Count);
-		foreach (var (_, values) in preconditions)
+		foreach (var (_, precondition) in preconditions)
 		{
 			var formatted = new List<string>();
-			foreach (var value in values)
+			foreach (var value in precondition)
 			{
-				formatted.Add(value.ToString()!);
+				formatted.Add("PRECONDITION");
 			}
 			groups.Add(formatted.Join(VariableOr));
 		}
@@ -306,9 +312,10 @@ public sealed partial class Misc : AdvobotResult
 		Type command,
 		string args = "")
 	{
-		var attr = command.GetCustomAttribute<LocalizedCommandAttribute>()
+		var attr = command.GetCustomAttribute<CommandAttribute>()
 			?? throw new ArgumentException("Group is null.", nameof(command));
-		return (prefix + attr.Names[0] + (string.IsNullOrEmpty(args) ? "" : " ") + args).WithBlock();
+		var name = Localize.This(attr.Names[0]);
+		return (prefix + name + (string.IsNullOrEmpty(args) ? "" : " ") + args).WithBlock();
 	}
 
 	private static string? GetSummary(IQueryableEntity entity)

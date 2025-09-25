@@ -11,9 +11,9 @@ using YACCS.Localization;
 namespace Advobot.Standard.Commands;
 
 [LocalizedCategory(nameof(Names.NicknamesCategory))]
-public sealed class Nicknames : AdvobotModuleBase
+public sealed class Nicknames
 {
-	[LocalizedCommand(nameof(Names.RemoveAllNickNames), nameof(Names.RemoveAllNickNamesAlias))]
+	[Command(nameof(Names.RemoveAllNickNames), nameof(Names.RemoveAllNickNamesAlias))]
 	[LocalizedSummary(nameof(Summaries.RemoveAllNickNamesSummary))]
 	[Meta("d31a48de-ad5d-4f15-b216-299b8b8c66dd", IsEnabled = true)]
 	[RequireGuildPermissions(GuildPermission.ManageNicknames)]
