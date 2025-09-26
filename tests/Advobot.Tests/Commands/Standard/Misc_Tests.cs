@@ -1,9 +1,14 @@
 ﻿using Advobot.Standard.Commands;
 using Advobot.Tests.Fakes.Discord.Users;
 using Advobot.Tests.TestBases;
+using Advobot.TypeReaders;
 using Advobot.Utilities;
 
 using Discord;
+
+using YACCS.Commands.Attributes;
+using YACCS.Commands.Models;
+using YACCS.TypeReaders;
 
 namespace Advobot.Tests.Commands.Standard;
 
@@ -194,6 +199,60 @@ public sealed class Misc_Tests : Command_Tests
 		var result = await ExecuteWithResultAsync(input).ConfigureAwait(false);
 		Assert.IsTrue(result.InnerResult.IsSuccess);
 		Assert.AreEqual(typeof(IWebhook), result.Command.Parameters.Single().ParameterType);
+	}
+
+	[TestMethod]
+	public async Task HelpCategory_Test()
+	{
+		var input = $"{nameof(Misc.Help)} Levels";
+
+		var result = await ExecuteWithResultAsync(input).ConfigureAwait(false);
+		Assert.IsTrue(result.InnerResult.IsSuccess);
+		var parameter = result.Command.Parameters.Single();
+		Assert.AreEqual(typeof(IReadOnlyList<IImmutableCommand>), parameter.ParameterType);
+		Assert.IsTrue(parameter.Attributes.Any(x => x.Value is OverrideTypeReaderAttribute<CommandsCategoryTypeReader>));
+	}
+
+	[TestMethod]
+	public async Task HelpExact_Test()
+	{
+		var input = $"{nameof(Misc.Help)} Test";
+
+		var result = await ExecuteWithResultAsync(input).ConfigureAwait(false);
+		Assert.IsTrue(result.InnerResult.IsSuccess);
+		var parameter = result.Command.Parameters.Single();
+		Assert.AreEqual(typeof(IReadOnlyList<IImmutableCommand>), parameter.ParameterType);
+		Assert.IsTrue(parameter.Attributes.Any(x => x.Value is OverrideTypeReaderAttribute<CommandsNameExactTypeReader>));
+	}
+
+	[TestMethod]
+	public async Task HelpExactOverload_Test()
+	{
+		var input = $"{nameof(Misc.Help)} 1 Help";
+
+		var result = await ExecuteWithResultAsync(input).ConfigureAwait(false);
+		Assert.IsTrue(result.InnerResult.IsSuccess);
+		Assert.HasCount(2, result.Command.Parameters);
+	}
+
+	[TestMethod]
+	public async Task HelpGeneral_Test()
+	{
+		const string INPUT = nameof(Misc.Help);
+
+		var result = await ExecuteWithResultAsync(INPUT).ConfigureAwait(false);
+		Assert.IsTrue(result.InnerResult.IsSuccess);
+		Assert.IsEmpty(result.Command.Parameters);
+	}
+
+	[TestMethod]
+	public async Task HelpSimilar_Test()
+	{
+		var input = $"{nameof(Misc.Help)} tes";
+
+		var result = await ExecuteWithResultAsync(input).ConfigureAwait(false);
+		Assert.IsTrue(result.InnerResult.IsSuccess);
+		Assert.AreEqual(typeof(IReadOnlyList<SimilarCommands>), result.Command.Parameters.Single().ParameterType);
 	}
 
 	protected override async Task SetupAsync()

@@ -1,5 +1,8 @@
 ﻿using Advobot.Modules;
 
+using Discord;
+using Discord.Net;
+
 using YACCS.Commands.Attributes;
 using YACCS.Preconditions;
 using YACCS.Results;
@@ -21,8 +24,15 @@ public sealed class NotBanned : AdvobotParameterPrecondition<ulong>
 		IGuildContext context,
 		ulong value)
 	{
-		var ban = await context.Guild.GetBanAsync(value).ConfigureAwait(false);
-		if (ban is null)
+		try
+		{
+			var ban = await context.Guild.GetBanAsync(value).ConfigureAwait(false);
+			if (ban is null)
+			{
+				return Result.EmptySuccess;
+			}
+		}
+		catch (HttpException e) when (e.DiscordCode == DiscordErrorCode.UnknownBan)
 		{
 			return Result.EmptySuccess;
 		}

@@ -126,7 +126,6 @@ public sealed class Misc
 		public required CommandService HelpEntries { get; set; }
 
 		[Command]
-		[Priority(1)]
 		public Task<AdvobotResult> Category(
 			[LocalizedSummary(nameof(Summaries.HelpVariableCategorySummary))]
 			[LocalizedName(nameof(Names.CategoryParameter))]
@@ -136,6 +135,7 @@ public sealed class Misc
 		) => Responses.Misc.HelpCategory(commands);
 
 		[Command]
+		[Priority(1)]
 		[LocalizedSummary(nameof(Summaries.HelpGeneralHelpSummary))]
 		public async Task<AdvobotResult> General()
 		{
@@ -147,7 +147,6 @@ public sealed class Misc
 		}
 
 		[Command]
-		[Priority(1)]
 		[LocalizedSummary(nameof(Summaries.HelpModuleHelpSummary))]
 		public Task<AdvobotResult> Name(
 			[LocalizedSummary(nameof(Summaries.HelpVariableCommandSummary))]
@@ -155,10 +154,10 @@ public sealed class Misc
 			[OverrideTypeReader<CommandsNameExactTypeReader>]
 			[Remainder]
 			IReadOnlyList<IImmutableCommand> commands
-		) => Responses.Misc.Help(commands);
+		) => Responses.Misc.HelpAsync(Context, commands);
 
 		[Command]
-		[Priority(2)]
+		[Priority(1)]
 		[LocalizedSummary(nameof(Summaries.HelpCommandHelpSummary))]
 		public Task<AdvobotResult> Name(
 			[LocalizedSummary(nameof(Summaries.HelpVariableCommandPositionSummary))]
@@ -176,11 +175,10 @@ public sealed class Misc
 			{
 				return Responses.Misc.HelpInvalidPosition(commands[0], position);
 			}
-			return Responses.Misc.Help(commands[position - 1]);
+			return Responses.Misc.HelpAsync(Context, commands[position - 1]);
 		}
 
 		[Command]
-		[Priority(-1)]
 		[Hidden]
 		public async Task<IResult> Similar(
 			[OverrideTypeReader<SimilarCommandsTypeReader>]
@@ -192,7 +190,7 @@ public sealed class Misc
 			var list = entry.Value?.Commands;
 			if (list is not null)
 			{
-				return Responses.Misc.Help(list);
+				return await Responses.Misc.HelpAsync(Context, list).ConfigureAwait(false);
 			}
 			return Result.EmptySuccess;
 		}

@@ -29,11 +29,13 @@ public sealed partial class Misc : AdvobotResult
 {
 	private static readonly Type _Help = typeof(Commands.Misc.Help);
 
-	public static AdvobotResult Help(IReadOnlyList<IImmutableCommand> commands)
+	public static Task<AdvobotResult> HelpAsync(
+		IGuildContext context,
+		IReadOnlyList<IImmutableCommand> commands)
 	{
 		if (commands.Count == 1)
 		{
-			return Help(commands[0]);
+			return HelpAsync(context, commands[0]);
 		}
 
 		var sb = new StringBuilder();
@@ -61,7 +63,9 @@ public sealed partial class Misc : AdvobotResult
 		return Success(CreateHelpEmbed(commands[0].Paths[0].Join(" "), sb.ToString()));
 	}
 
-	public static AdvobotResult Help(IImmutableCommand command)
+	public static async Task<AdvobotResult> HelpAsync(
+		IGuildContext context,
+		IImmutableCommand command)
 	{
 		var meta = command.GetAttributes<MetaAttribute>().Single();
 		var enabled = meta.IsEnabled.ToString();
@@ -70,17 +74,19 @@ public sealed partial class Misc : AdvobotResult
 			enabled += MiscCannotBeDisabled;
 		}
 
+		var preconditions = await FormatPreconditionsAsync(context, command.Preconditions).ConfigureAwait(false);
 		var sb = new StringBuilder()
 			.AppendHeaderAndValue(MiscTitleAliases, FormatAliases(command.Paths))
-			.AppendHeaderAndValue(MiscTitleBasePermissions, FormatPreconditions(command.Preconditions))
+			.AppendHeaderAndValue(MiscTitleBasePermissions, preconditions)
 			.AppendHeaderAndValue(MiscTitleEnabledByDefault, enabled)
 			.AppendHeaderAndValue(MiscTitleDescription, GetSummary(command));
 
 		var embed = CreateHelpEmbed(command.Paths[0].Join(" "), sb.ToString());
 		foreach (var parameter in command.Parameters)
 		{
+			var pPreconditions = await FormatPreconditionsAsync(context, parameter.Preconditions).ConfigureAwait(false);
 			var paramSb = new StringBuilder()
-				.AppendHeaderAndValue(MiscTitleBasePermissions, FormatPreconditions(parameter.Preconditions))
+				.AppendHeaderAndValue(MiscTitleBasePermissions, pPreconditions)
 				.AppendHeaderAndValue(MiscTitleDescription, GetSummary(parameter));
 
 			// TODO: show named argument descriptions/preconditions
@@ -253,56 +259,71 @@ public sealed partial class Misc : AdvobotResult
 		return left + (p.ParameterName?.Name ?? p.OriginalParameterName) + right;
 	}
 
-#warning these output garbage right now
-
-	private static string FormatPreconditions(
-		IReadOnlyDictionary<string, IReadOnlyList<IPrecondition>> preconditions)
+	private static async Task<string> FormatPreconditionsAsync<T>(
+		IGuildContext context,
+		IReadOnlyDictionary<string, IReadOnlyList<T>> preconditions)
+		where T : IGroupablePrecondition
 	{
 		if (!preconditions.Any())
 		{
 			return VariableNotApplicable;
 		}
 
-		var groups = new List<string>(preconditions.Count);
-		foreach (var (_, precondition) in preconditions)
+		static Task<string> ConvertAsync(
+			IGuildContext context,
+			IGroupablePrecondition precondition)
 		{
-			var formatted = new List<string>();
-			foreach (var value in precondition)
+			if (precondition is ISummarizableAttribute summarizable)
 			{
-				formatted.Add("PRECONDITION");
+				return summarizable.GetSummaryAsync(context).AsTask();
 			}
-			groups.Add(formatted.Join(VariableOr));
+			else if (precondition is ISummaryAttribute summary)
+			{
+				return Task.FromResult(summary.Summary);
+			}
+			else
+			{
+				return Task.FromResult(precondition.ToString()!);
+			}
+		}
+
+		var groups = new List<StringBuilder>(preconditions.Count);
+		foreach (var (_, value) in preconditions)
+		{
+			var lookup = value.ToLookup(x => x.Op);
+
+			var sb = new StringBuilder();
+			foreach (var and in lookup[Op.And])
+			{
+				if (sb.Length == 0)
+				{
+					sb.Append('(');
+				}
+				else
+				{
+					sb.Append(VariableAnd);
+				}
+				sb.Append(await ConvertAsync(context, and).ConfigureAwait(false));
+			}
+			if (sb.Length > 0)
+			{
+				sb.Append(')');
+			}
+			foreach (var or in lookup[Op.Or])
+			{
+				if (sb.Length != 0)
+				{
+					sb.Append(VariableOr);
+				}
+				sb.Append(await ConvertAsync(context, or).ConfigureAwait(false));
+			}
+
+			groups.Add(sb);
 		}
 
 		if (groups.Count == 1)
 		{
-			return groups[0];
-		}
-		return groups.Select(x => $"({x})").Join(VariableAnd);
-	}
-
-	private static string FormatPreconditions(
-		IReadOnlyDictionary<string, IReadOnlyList<IParameterPrecondition>> preconditions)
-	{
-		if (!preconditions.Any())
-		{
-			return VariableNotApplicable;
-		}
-
-		var groups = new List<string>(preconditions.Count);
-		foreach (var (_, precondition) in preconditions)
-		{
-			var formatted = new List<string>();
-			foreach (var value in precondition)
-			{
-				formatted.Add("PRECONDITION");
-			}
-			groups.Add(formatted.Join(VariableOr));
-		}
-
-		if (groups.Count == 1)
-		{
-			return groups[0];
+			return groups[0].ToString();
 		}
 		return groups.Select(x => $"({x})").Join(VariableAnd);
 	}

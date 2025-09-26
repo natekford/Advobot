@@ -55,7 +55,10 @@ public class FakeMessage : FakeSnowflake, IMessage
 		=> throw new NotImplementedException();
 
 	public Task DeleteAsync(RequestOptions? options = null)
-		=> throw new NotImplementedException();
+	{
+		FakeChannel.FakeMessages.Remove(this);
+		return Task.CompletedTask;
+	}
 
 	public IAsyncEnumerable<IReadOnlyCollection<IUser>> GetReactionUsersAsync(IEmote emoji, int limit, RequestOptions options = null, ReactionType type = ReactionType.Normal)
 		=> throw new NotImplementedException();

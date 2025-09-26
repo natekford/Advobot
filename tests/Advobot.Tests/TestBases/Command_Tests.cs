@@ -1,11 +1,13 @@
 ﻿using Advobot.AutoMod.Properties;
 using Advobot.AutoMod.Service;
+using Advobot.Interactivity;
 using Advobot.Levels.Properties;
 using Advobot.Levels.Service;
 using Advobot.Logging.Properties;
 using Advobot.Logging.Resetters;
 using Advobot.Logging.Service;
 using Advobot.MyCommands.Properties;
+using Advobot.Resources;
 using Advobot.Services.Commands;
 using Advobot.Services.GuildSettings;
 using Advobot.Services.Punishments;
@@ -25,6 +27,7 @@ using System.Reflection;
 using System.Threading.Channels;
 
 using YACCS.Commands;
+using YACCS.Localization;
 
 namespace Advobot.Tests.TestBases;
 
@@ -67,6 +70,7 @@ public abstract class Command_Tests : TestsBase
 			.AddSingleton<AdvobotCommandService>()
 			.AddSingleton<CommandService>(x => x.GetRequiredService<AdvobotCommandService>())
 			.AddSingleton<ICommandService>(x => x.GetRequiredService<AdvobotCommandService>())
+			.AddSingleton<DiscordMessageInput>()
 
 			.AddSingleton<ShutdownApplication>(_ => HasBeenShutdown = true)
 			.AddSingleton<IGuildSettingsService, NaiveGuildSettingsService>()
@@ -87,6 +91,10 @@ public abstract class Command_Tests : TestsBase
 
 	protected override async Task SetupAsync()
 	{
+		Localize.Instance.Append(new ResourceManagerLocalizer(Names.ResourceManager));
+		Localize.Instance.Append(new ResourceManagerLocalizer(Responses.ResourceManager));
+		Localize.Instance.Append(new ResourceManagerLocalizer(Summaries.ResourceManager));
+
 		CommandService = Services.GetRequiredService<AdvobotCommandService>();
 
 		await Context.Client.StartAsync().ConfigureAwait(false);
