@@ -9,7 +9,7 @@ public class FakeGuildUser : FakeUser, IGuildUser
 	private readonly HashSet<ulong> _RoleIds = [];
 	public string DisplayAvatarId => throw new NotImplementedException();
 	public string DisplayName => throw new NotImplementedException();
-	public GuildUserFlags Flags => throw new NotImplementedException();
+	public GuildUserFlags Flags { get; set; }
 	public FakeGuild Guild { get; }
 	public string GuildAvatarId => throw new NotImplementedException();
 	public string GuildBannerHash => throw new NotImplementedException();
@@ -29,7 +29,7 @@ public class FakeGuildUser : FakeUser, IGuildUser
 	public DateTimeOffset? PremiumSince => throw new NotImplementedException();
 	public DateTimeOffset? RequestToSpeakTimestamp => throw new NotImplementedException();
 	public IReadOnlyCollection<ulong> RoleIds => _RoleIds;
-	public DateTimeOffset? TimedOutUntil => throw new NotImplementedException();
+	public DateTimeOffset? TimedOutUntil { get; set; }
 	public IVoiceChannel VoiceChannel { get; set; }
 	public string VoiceSessionId { get; set; }
 	IGuild IGuildUser.Guild => Guild;
@@ -78,7 +78,35 @@ public class FakeGuildUser : FakeUser, IGuildUser
 	}
 
 	public Task ModifyAsync(Action<GuildUserProperties> func, RequestOptions? options = null)
-		=> throw new NotImplementedException();
+	{
+		var args = new GuildUserProperties();
+		func(args);
+
+		VoiceChannel = args.Channel.GetValueOrDefault(VoiceChannel);
+		if (args.ChannelId.IsSpecified)
+		{
+			VoiceChannel = Guild.FakeChannels
+				.OfType<IVoiceChannel>()
+				.SingleOrDefault(x => x.Id == args.ChannelId.Value)!;
+		}
+		IsDeafened = args.Deaf.GetValueOrDefault(IsDeafened);
+		Flags = args.Flags.GetValueOrDefault(Flags);
+		IsMuted = args.Mute.GetValueOrDefault(IsMuted);
+		Nickname = args.Nickname.GetValueOrDefault(Nickname);
+		if (args.Roles.IsSpecified)
+		{
+			_RoleIds.Clear();
+			_RoleIds.UnionWith(args.Roles.Value.Select(x => x.Id));
+		}
+		if (args.RoleIds.IsSpecified)
+		{
+			_RoleIds.Clear();
+			_RoleIds.UnionWith(args.RoleIds.Value);
+		}
+		TimedOutUntil = args.TimedOutUntil.GetValueOrDefault(TimedOutUntil);
+
+		return Task.CompletedTask;
+	}
 
 	public Task RemoveRoleAsync(IRole role, RequestOptions? options = null)
 		=> RemoveRoleAsync(role.Id, options);

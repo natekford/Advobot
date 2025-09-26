@@ -121,9 +121,9 @@ public sealed class Misc
 	public sealed class Help : AdvobotModuleBase
 	{
 		[InjectService]
-		public required IGuildSettingsService GuildSettings { get; set; }
+		public required CommandService Commands { get; set; }
 		[InjectService]
-		public required CommandService HelpEntries { get; set; }
+		public required IGuildSettingsService GuildSettings { get; set; }
 
 		[Command]
 		public Task<AdvobotResult> Category(
@@ -140,7 +140,7 @@ public sealed class Misc
 		public async Task<AdvobotResult> General()
 		{
 			var prefix = await GuildSettings.GetPrefixAsync(Context.Guild).ConfigureAwait(false);
-			var categories = HelpEntries.Commands
+			var categories = Commands.Commands
 				.SelectMany(x => x.Categories.Select(c => c.Category))
 				.ToHashSet();
 			return Responses.Misc.HelpGeneral(categories, prefix);

@@ -44,8 +44,7 @@ public sealed partial class Misc : AdvobotResult
 			var parameters = x.Parameters.Select(FormatParameter).Join();
 			return $"{i + 1}. {parameters}";
 		}).Join("\n").WithBigBlock();
-		sb.AppendCategorySeparator()
-			.AppendHeaderAndValue(MiscTitleOverloads, overloads);
+		sb.AppendHeaderAndValue(MiscTitleOverloads, overloads);
 
 		// TODO: add subcommands
 

@@ -25,7 +25,7 @@ public sealed class Nicknames
 			var amountChanged = await ProcessAsync(
 				getUnlimitedUsers,
 				u => u.Nickname != null,
-				(u, o) => u.ModifyAsync(x => x.Nickname = u.Username, o),
+				(u, o) => u.ModifyAsync(x => x.Nickname = null, o),
 				i => Responses.Users.MultiUserActionProgress(i.AmountLeft).Response,
 				GetOptions()
 			).ConfigureAwait(false);

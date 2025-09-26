@@ -71,7 +71,6 @@ public abstract class MultiUserActionModuleBase : AdvobotModuleBase
 			return token;
 		});
 
-		var hasException = false;
 		var message = default(IUserMessage);
 		var i = 0;
 		for (; i < users.Length; ++i)
@@ -85,11 +84,7 @@ public abstract class MultiUserActionModuleBase : AdvobotModuleBase
 				var args = new MultiUserActionProgressArgs(users.Length, i + 1);
 				try
 				{
-					if (hasException)
-					{
-						continue;
-					}
-					else if (args.IsStart)
+					if (args.IsStart)
 					{
 						message = await Context.Channel.SendMessageAsync(new SendMessageArgs
 						{
@@ -97,22 +92,24 @@ public abstract class MultiUserActionModuleBase : AdvobotModuleBase
 							Options = options,
 						}).ConfigureAwait(false);
 					}
-					else if (message is null)
-					{
-						continue;
-					}
-					else if (args.IsEnd)
+					else if (message is not null && args.IsEnd)
 					{
 						await message.DeleteAsync(options).ConfigureAwait(false);
 					}
-					else if (args.CurrentProgress % 10 == 0)
+					else if (message is not null && args.CurrentProgress % 10 == 0)
 					{
 						await message.ModifyAsync(x => x.Content = formatProgress(args), options).ConfigureAwait(false);
 					}
 				}
-				catch
+				catch (Exception e)
 				{
-					hasException = true;
+					await Context.Channel.SendMessageAsync(new SendMessageArgs
+					{
+						Content = $"An error occurred: {e.Message}",
+						Options = options,
+					}).ConfigureAwait(false);
+					token.Cancel();
+					return i;
 				}
 			}
 

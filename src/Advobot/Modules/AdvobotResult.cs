@@ -59,7 +59,6 @@ public class AdvobotResult : IResult
 	/// </summary>
 	/// <param name="result"></param>
 	public static implicit operator Task<AdvobotResult>(AdvobotResult result)
-		// TODO: remove
 		=> Task.FromResult(result);
 
 	/// <summary>

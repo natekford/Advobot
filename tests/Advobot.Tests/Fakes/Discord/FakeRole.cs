@@ -23,6 +23,7 @@ public sealed class FakeRole : FakeSnowflake, IRole
 	{
 		_Guild = guild;
 		guild.FakeRoles.Add(this);
+		Position = guild.FakeRoles.Count;
 	}
 
 	public int CompareTo(IRole? other)
