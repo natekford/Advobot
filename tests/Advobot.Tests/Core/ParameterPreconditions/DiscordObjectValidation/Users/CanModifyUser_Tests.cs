@@ -63,12 +63,15 @@ public sealed class CanModifyUser_Tests : ParameterPrecondition_Tests<CanModifyU
 		await AssertFailureAsync(User).ConfigureAwait(false);
 	}
 
-	protected override Task SetupAsync()
+	protected override async Task SetupAsync()
 	{
 		HigherRole = new(Context.Guild) { Position = 1, };
 		LowerRole = new(Context.Guild) { Position = -1, };
 		Role = new(Context.Guild) { Position = 0, };
 		User = new(Context.Guild);
-		return Task.CompletedTask;
+
+		await Context.User.RemoveRolesAsync(Context.User.RoleIds).ConfigureAwait(false);
+		await Context.Guild.FakeCurrentUser.RemoveRolesAsync(Context.Guild.FakeCurrentUser.RoleIds).ConfigureAwait(false);
+		await User.RemoveRolesAsync(User.RoleIds).ConfigureAwait(false);
 	}
 }
