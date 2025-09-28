@@ -9,7 +9,10 @@ public static class AssemblyCleanup
 		try
 		{
 			var directory = Path.Combine(Environment.CurrentDirectory, "TestDatabases");
-			Directory.Delete(path: directory, recursive: true);
+			if (Directory.Exists(directory))
+			{
+				Directory.Delete(path: directory, recursive: true);
+			}
 		}
 		catch
 		{

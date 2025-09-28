@@ -348,29 +348,6 @@ public static class FormattingUtils
 	}
 
 	/// <summary>
-	/// Formats the permission values into a string.
-	/// </summary>
-	/// <param name="values"></param>
-	/// <returns></returns>
-	public static string FormatPermissionList(this IDictionary<string, PermValue> values)
-	{
-		var padLength = values.Keys.Max(x => x.Length);
-		return values
-			.Select(kvp =>
-			{
-				var emoji = kvp.Value switch
-				{
-					PermValue.Allow => Constants.ALLOWED,
-					PermValue.Deny => Constants.DENIED,
-					PermValue.Inherit => Constants.INHERITED,
-					_ => throw new IndexOutOfRangeException(nameof(kvp.Value)),
-				};
-				return $"{kvp.Key.PadRight(padLength)} {emoji}";
-			})
-			.Join("\n");
-	}
-
-	/// <summary>
 	/// Joins the strings together with <paramref name="separator"/>.
 	/// </summary>
 	/// <param name="source">The values to join.</param>

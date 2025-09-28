@@ -1,18 +1,11 @@
 ﻿using Advobot.Standard.Commands;
-using Advobot.Tests.Fakes.Discord;
 using Advobot.Tests.Fakes.Discord.Users;
 using Advobot.Tests.TestBases;
-
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Advobot.Tests.Commands.Standard;
 
 [TestClass]
-public sealed class Nickname_Tests : Command_Tests
+public sealed class Nicknames_Tests : Command_Tests
 {
 	[TestMethod]
 	public async Task RemoveAllNicknames_Test()

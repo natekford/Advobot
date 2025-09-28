@@ -43,33 +43,14 @@ public sealed class Roles
 			[CanModifyRole]
 			IRole output)
 		{
-			// Perms which the user can copy from the input role
+			// Perms that the user can copy from the input role
 			var copyable = input.Permissions.RawValue & Context.User.GuildPermissions.RawValue;
-			// Output perms which can't be modified by the user
+			// Perms that can't be modified by the user
 			var immovable = output.Permissions.RawValue & ~Context.User.GuildPermissions.RawValue;
 			var permissions = immovable | copyable;
 
 			await output.ModifyAsync(x => x.Permissions = new GuildPermissions(permissions), GetOptions()).ConfigureAwait(false);
 			return Responses.Roles.CopiedPermissions(input, output, (GuildPermission)copyable);
-		}
-	}
-
-	// Moving roles on mobile sucks
-	[Command(nameof(Names.ModifyRolePosition), nameof(Names.ModifyRolePositionAlias))]
-	[LocalizedSummary(nameof(Summaries.ModifyRolePositionSummary))]
-	[Meta("efb2d8e5-b5d5-4c77-b0f6-66b9c378080d", IsEnabled = true)]
-	[RequireGuildPermissions(GuildPermission.ManageRoles)]
-	public sealed class ModifyRolePosition : AdvobotModuleBase
-	{
-		[Command]
-		public async Task<AdvobotResult> Modify(
-			[CanModifyRole]
-			IRole role,
-			[Positive]
-			int position)
-		{
-			var pos = await role.ModifyRolePositionAsync(position, GetOptions()).ConfigureAwait(false);
-			return Responses.Roles.Moved(role, pos);
 		}
 	}
 
@@ -86,6 +67,7 @@ public sealed class Roles
 			[NotEveryone]
 			IRole role)
 		{
+			var position = role.Position;
 			await role.DeleteAsync(GetOptions()).ConfigureAwait(false);
 			var copy = await Context.Guild.CreateRoleAsync(
 				name: role.Name,
@@ -95,7 +77,7 @@ public sealed class Roles
 				isMentionable: role.IsMentionable,
 				options: GetOptions()
 			).ConfigureAwait(false);
-			await copy.ModifyRolePositionAsync(role.Position, GetOptions()).ConfigureAwait(false);
+			await copy.ModifyAsync(x => x.Position = role.Position, GetOptions()).ConfigureAwait(false);
 			return Responses.Snowflakes.SoftDeleted(role);
 		}
 	}

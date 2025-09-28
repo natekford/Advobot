@@ -1,5 +1,7 @@
 ﻿using Discord;
 
+using System.Threading.Channels;
+
 namespace Advobot.Utilities;
 
 /// <summary>
@@ -7,6 +9,67 @@ namespace Advobot.Utilities;
 /// </summary>
 public static class DiscordUtils
 {
+	/// <summary>
+	/// Removes every overwrite and returns the amount of removed overwrites.
+	/// </summary>
+	/// <param name="channel"></param>
+	/// <param name="options"></param>
+	/// <returns></returns>
+	/// <exception cref="ArgumentException"></exception>
+	public static async Task<int> ClearOverwritesAsync(
+		this IGuildChannel channel,
+		RequestOptions? options = null)
+	{
+		var overwrites = channel.PermissionOverwrites;
+		foreach (var overwrite in overwrites)
+		{
+			var entity = await channel.Guild.GetEntityAsync(overwrite).ConfigureAwait(false);
+			await (entity switch
+			{
+				IRole r => channel.RemovePermissionOverwriteAsync(r, options),
+				IUser u => channel.RemovePermissionOverwriteAsync(u, options),
+				_ => throw NotRoleOrUser(),
+			}).ConfigureAwait(false);
+		}
+		return overwrites.Count;
+	}
+
+	/// <summary>
+	/// If <paramref name="id"/> has a value will only copy overwrites targeting that id, otherwise copies every overwrite.
+	/// </summary>
+	/// <param name="input"></param>
+	/// <param name="output"></param>
+	/// <param name="id"></param>
+	/// <param name="options"></param>
+	/// <returns></returns>
+	/// <exception cref="ArgumentException"></exception>
+	public static async Task<IReadOnlyCollection<Overwrite>> CopyOverwritesAsync(
+		this IGuildChannel input,
+		IGuildChannel output,
+		ulong? id,
+		RequestOptions? options = null)
+	{
+		if (input.GuildId != output.GuildId)
+		{
+			throw new ArgumentException("Both channels must come from the same guild.");
+		}
+
+		var overwrites = id.HasValue
+			? [.. input.PermissionOverwrites.Where(x => x.TargetId == id)]
+			: input.PermissionOverwrites;
+		foreach (var overwrite in overwrites)
+		{
+			var entity = await input.Guild.GetEntityAsync(overwrite).ConfigureAwait(false);
+			await (entity switch
+			{
+				IRole r => output.AddPermissionOverwriteAsync(r, overwrite.Permissions, options),
+				IUser u => output.AddPermissionOverwriteAsync(u, overwrite.Permissions, options),
+				_ => throw NotRoleOrUser(),
+			}).ConfigureAwait(false);
+		}
+		return overwrites;
+	}
+
 	/// <summary>
 	/// Creates a role with a name and no permissions/color.
 	/// </summary>
@@ -58,49 +121,6 @@ public static class DiscordUtils
 	}
 
 	/// <summary>
-	/// Changes the role's position and says the supplied reason in the audit log.
-	/// </summary>
-	/// <param name="role"></param>
-	/// <param name="position"></param>
-	/// <param name="options"></param>
-	/// <returns></returns>
-	public static async Task<int> ModifyRolePositionAsync(
-		this IRole role,
-		int position,
-		RequestOptions options)
-	{
-		// Make sure it's put at the highest a bot can edit, so no permission exception
-		var bot = await role.Guild.GetCurrentUserAsync().ConfigureAwait(false);
-		var roles = role.Guild.Roles
-			.Where(x => x.Id != role.Id && bot.CanModify(x))
-			.OrderBy(x => x.Position)
-			.ToArray();
-		position = Math.Max(1, Math.Min(position, roles.Length));
-
-		var reorderProperties = new ReorderRoleProperties[roles.Length + 1];
-		var newPosition = -1;
-		for (var i = 0; i < reorderProperties.Length; ++i)
-		{
-			if (i > position)
-			{
-				reorderProperties[i] = new(roles[i - 1].Id, i);
-			}
-			else if (i < position)
-			{
-				reorderProperties[i] = new(roles[i].Id, i);
-			}
-			else
-			{
-				reorderProperties[i] = new(role.Id, i);
-				newPosition = i;
-			}
-		}
-
-		await role.Guild.ReorderRolesAsync(reorderProperties, options).ConfigureAwait(false);
-		return newPosition;
-	}
-
-	/// <summary>
 	/// Removes multiple roles in one API call.
 	/// </summary>
 	/// <param name="user"></param>
@@ -130,36 +150,16 @@ public static class DiscordUtils
 		}, options);
 	}
 
-	/// <summary>
-	/// Changes the guild's system channel flags.
-	/// </summary>
-	/// <param name="guild"></param>
-	/// <param name="flags"></param>
-	/// <param name="enable"></param>
-	/// <param name="options"></param>
-	/// <returns></returns>
-	public static Task ModifySystemChannelFlags(
+	private static async Task<ISnowflakeEntity> GetEntityAsync(
 		this IGuild guild,
-		SystemChannelMessageDeny flags,
-		bool enable,
-		RequestOptions options)
+		Overwrite overwrite
+	) => overwrite.TargetType switch
 	{
-		var current = guild.SystemChannelFlags;
+		PermissionTarget.Role => guild.GetRole(overwrite.TargetId),
+		PermissionTarget.User => await guild.GetUserAsync(overwrite.TargetId).ConfigureAwait(false),
+		_ => throw NotRoleOrUser(),
+	};
 
-		//None are disabled and we're trying to enable, so we don't have to do anything.
-		if (current == SystemChannelMessageDeny.None && enable)
-		{
-			return Task.CompletedTask;
-		}
-
-		var toggle = enable ? ~flags : flags;
-		var newValue = current & toggle;
-		//No change so no need to modify
-		if (current == newValue)
-		{
-			return Task.CompletedTask;
-		}
-
-		return guild.ModifyAsync(x => x.SystemChannelFlags = newValue, options);
-	}
+	private static InvalidOperationException NotRoleOrUser()
+		=> new("Not a role or user.");
 }

@@ -47,20 +47,38 @@ public abstract class Command_Tests : TestsBase
 	protected virtual Channel<CommandExecutedResult> ExecutedCommands { get; set; }
 		= Channel.CreateUnbounded<CommandExecutedResult>();
 	protected virtual bool HasBeenShutdown { get; set; }
+	protected virtual Channel<CommandScore> NotExecutedCommands { get; set; }
+		= Channel.CreateUnbounded<CommandScore>();
 	protected virtual FakeTextChannel OtherTextChannel { get; set; }
 	protected virtual FakeVoiceChannel VoiceChannel { get; set; }
 
 	protected virtual async Task ExecuteAsync(string input)
 	{
 		Context.Message.Content = input;
-
 		await CommandService.ExecuteAsync(Context, Context.Message.Content).ConfigureAwait(false);
 	}
 
 	protected virtual async Task<CommandExecutedResult> ExecuteWithResultAsync(string input)
 	{
 		await ExecuteAsync(input).ConfigureAwait(false);
-		return await ExecutedCommands.Reader.ReadAsync(CancellationToken.None).ConfigureAwait(false);
+
+		var cts = new CancellationTokenSource();
+		var executed = ExecutedCommands.Reader.ReadAsync(cts.Token).AsTask();
+		var notExecuted = NotExecutedCommands.Reader.ReadAsync(cts.Token).AsTask();
+
+		var task = await Task.WhenAny([executed, notExecuted]).ConfigureAwait(false);
+		if (task == executed)
+		{
+			cts.Cancel();
+			return await executed.ConfigureAwait(false);
+		}
+		else
+		{
+			cts.Cancel();
+			var score = await notExecuted.ConfigureAwait(false);
+			Assert.Fail(score.InnerResult.Response);
+			throw new NotSupportedException();
+		}
 	}
 
 	protected override void ModifyServices(IServiceCollection services)
@@ -101,6 +119,7 @@ public abstract class Command_Tests : TestsBase
 		await CommandService.InitializeAsync().ConfigureAwait(false);
 
 		EventProvider.CommandExecuted.Add(async x => await ExecutedCommands.Writer.WriteAsync(x).ConfigureAwait(false));
+		EventProvider.CommandNotExecuted.Add(async x => await NotExecutedCommands.Writer.WriteAsync(x).ConfigureAwait(false));
 
 		OtherTextChannel = new(Context.Guild)
 		{
