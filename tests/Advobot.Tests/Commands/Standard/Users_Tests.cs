@@ -1,7 +1,10 @@
-﻿using Advobot.Standard.Commands;
+﻿using Advobot.AutoMod.Database;
+using Advobot.AutoMod.Service;
+using Advobot.Standard.Commands;
 using Advobot.Tests.Fakes.Discord.Channels;
 using Advobot.Tests.Fakes.Discord.Users;
 using Advobot.Tests.TestBases;
+using Advobot.Tests.Utilities;
 
 using Discord;
 
@@ -111,5 +114,55 @@ public sealed class Users_Tests : Command_Tests
 		Assert.IsTrue(result.InnerResult.IsSuccess);
 		Assert.IsEmpty(Context.Guild.FakeUsers.Where(x => x.VoiceChannel?.Id == inputChannel.Id));
 		Assert.HasCount(2, Context.Guild.FakeUsers.Where(x => x.VoiceChannel?.Id == outputChannel.Id));
+	}
+
+	[TestMethod]
+	public async Task Mute_Test()
+	{
+		var user = new FakeGuildUser(Context.Guild);
+		var roles = user.RoleIds.ToHashSet();
+
+		var input = $"{nameof(Users.Mute)} {user}";
+
+		var result = await ExecuteWithResultAsync(input).ConfigureAwait(false);
+		Assert.IsTrue(result.InnerResult.IsSuccess);
+
+		var newRole = Context.Guild.GetRole(user.RoleIds.Single(x => !roles.Contains(x)))!;
+		foreach (var channel in Context.Guild.FakeChannels)
+		{
+			var overwrite = channel.GetPermissionOverwrite(newRole);
+			Assert.IsNotNull(overwrite);
+			Assert.AreEqual(0UL, overwrite.Value.AllowValue);
+			Assert.IsPositive(overwrite.Value.DenyValue);
+		}
+	}
+
+	[TestMethod]
+	public async Task Unban_Test()
+	{
+		await Services.GetDatabaseAsync<TimedPunishmentDatabase>().ConfigureAwait(false);
+
+		var user = new FakeUser();
+		await Context.Guild.AddBanAsync(user).ConfigureAwait(false);
+		Assert.HasCount(1, Context.Guild.FakeBans);
+
+		var input = $"{nameof(Users.Unban)} {user}";
+
+		var result = await ExecuteWithResultAsync(input).ConfigureAwait(false);
+		Assert.IsTrue(result.InnerResult.IsSuccess);
+		Assert.HasCount(0, Context.Guild.FakeBans);
+	}
+
+	[TestMethod]
+	public async Task VoiceMute_Test()
+	{
+		var user = new FakeGuildUser(Context.Guild);
+		Assert.IsFalse(user.IsMuted);
+
+		var input = $"{nameof(Users.VoiceMute)} {user}";
+
+		var result = await ExecuteWithResultAsync(input).ConfigureAwait(false);
+		Assert.IsTrue(result.InnerResult.IsSuccess);
+		Assert.IsTrue(user.IsMuted);
 	}
 }
