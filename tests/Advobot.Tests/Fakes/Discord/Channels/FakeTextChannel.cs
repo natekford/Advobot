@@ -4,7 +4,8 @@ using Discord;
 
 namespace Advobot.Tests.Fakes.Discord.Channels;
 
-public sealed class FakeTextChannel(FakeGuild guild) : FakeGuildChannel(guild), ITextChannel
+public class FakeTextChannel(FakeGuild guild)
+	: FakeGuildChannel(guild), ITextChannel, IIntegrationChannel
 {
 	public ulong? CategoryId => ProtectedCategoryId;
 	public ThreadArchiveDuration DefaultArchiveDuration => throw new NotImplementedException();
@@ -37,7 +38,7 @@ public sealed class FakeTextChannel(FakeGuild guild) : FakeGuildChannel(guild), 
 	public Task<IThreadChannel> CreateThreadAsync(string name, ThreadType type = ThreadType.PublicThread, ThreadArchiveDuration autoArchiveDuration = ThreadArchiveDuration.OneDay, IMessage message = null, bool? invitable = null, int? slowmode = null, RequestOptions options = null)
 		=> throw new NotImplementedException();
 
-	public Task<IWebhook> CreateWebhookAsync(string name, Stream? avatar = null, RequestOptions? options = null)
+	public Task<IWebhook> CreateWebhookAsync(string name, Stream avatar = null, RequestOptions options = null)
 	{
 		var wh = new FakeWebhook(this, FakeGuild.FakeCurrentUser)
 		{
@@ -68,14 +69,14 @@ public sealed class FakeTextChannel(FakeGuild guild) : FakeGuildChannel(guild), 
 		return Task.FromResult<IReadOnlyCollection<IInviteMetadata>>(matches);
 	}
 
-	public Task<IWebhook?> GetWebhookAsync(ulong id, RequestOptions? options = null)
+	public Task<IWebhook?> GetWebhookAsync(ulong id, RequestOptions options = null)
 	{
 		var matches = FakeGuild.FakeWebhooks.Where(x => x.ChannelId == Id);
 		var match = matches.SingleOrDefault(x => x.Id == id);
 		return Task.FromResult<IWebhook?>(match);
 	}
 
-	public Task<IReadOnlyCollection<IWebhook>> GetWebhooksAsync(RequestOptions? options = null)
+	public Task<IReadOnlyCollection<IWebhook>> GetWebhooksAsync(RequestOptions options = null)
 	{
 		var matches = FakeGuild.FakeWebhooks.Where(x => x.ChannelId == Id).ToArray();
 		return Task.FromResult<IReadOnlyCollection<IWebhook>>(matches);

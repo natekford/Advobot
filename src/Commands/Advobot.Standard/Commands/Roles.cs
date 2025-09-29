@@ -1,10 +1,8 @@
 ﻿using Advobot.Attributes;
 using Advobot.Modules;
 using Advobot.ParameterPreconditions.Discord.Roles;
-using Advobot.ParameterPreconditions.Numbers;
 using Advobot.Preconditions.Permissions;
 using Advobot.Resources;
-using Advobot.Utilities;
 
 using Discord;
 

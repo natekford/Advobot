@@ -1,5 +1,4 @@
-﻿using Advobot.Modules;
-using Advobot.Resources;
+﻿using Advobot.Resources;
 
 using YACCS.Localization;
 

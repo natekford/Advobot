@@ -1,14 +1,12 @@
 ﻿using Advobot.Attributes;
 using Advobot.Embeds;
 using Advobot.Modules;
-using Advobot.Preconditions;
 using Advobot.Utilities;
 
 using Discord;
 using Discord.Rest;
 using Discord.WebSocket;
 
-using System.Linq;
 using System.Reflection;
 using System.Text;
 

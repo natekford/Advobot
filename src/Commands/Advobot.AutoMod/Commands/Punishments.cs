@@ -1,5 +1,4 @@
-﻿using Advobot.Modules;
-using Advobot.Preconditions.Permissions;
+﻿using Advobot.Preconditions.Permissions;
 using Advobot.Resources;
 
 using YACCS.Commands.Attributes;

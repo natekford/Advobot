@@ -1,7 +1,5 @@
 ﻿using Discord;
 
-using System.Threading.Channels;
-
 namespace Advobot.Utilities;
 
 /// <summary>

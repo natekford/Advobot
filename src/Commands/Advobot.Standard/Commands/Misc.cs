@@ -8,8 +8,6 @@ using Advobot.TypeReaders;
 
 using Discord;
 
-using System.Collections.Generic;
-
 using YACCS.Commands;
 using YACCS.Commands.Attributes;
 using YACCS.Commands.Building;

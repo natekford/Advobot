@@ -10,7 +10,7 @@ using YACCS.Results;
 namespace Advobot.ParameterPreconditions.Discord;
 
 /// <summary>
-/// Makes sure the passed in <see cref="ulong"/> is not already banned.
+/// Makes sure the passed in <see cref="ulong"/> is not already a banned user.
 /// </summary>
 [AttributeUsage(AttributeUtils.PARAMETERS, AllowMultiple = false, Inherited = true)]
 public sealed class NotBanned : AdvobotParameterPrecondition<ulong>

@@ -88,107 +88,6 @@ public sealed class Users
 		}
 	}
 
-	[Command(nameof(Names.ForAllWithRole), nameof(Names.ForAllWithRoleAlias))]
-	[LocalizedSummary(nameof(Summaries.ForAllWithRoleSummary))]
-	[Meta("0dd92f6d-e4ad-4c80-82f0-da6c3e02743c", IsEnabled = true)]
-	[RequireGuildPermissions]
-	public sealed class ForAllWithRole : MultiUserActionModuleBase
-	{
-		[Command(nameof(Names.ClearNickname), nameof(Names.ClearNicknameAlias))]
-		public Task<AdvobotResult> ClearNickname(
-			IRole target,
-			bool getUnlimitedUsers = false
-		)
-		{
-			return DoAsync(target, getUnlimitedUsers, (user, options) =>
-			{
-				if (user.Nickname != null)
-				{
-					return user.ModifyAsync(x => x.Nickname = user.Username, options);
-				}
-				return Task.CompletedTask;
-			});
-		}
-
-		[Command(nameof(Names.GiveNickname), nameof(Names.GiveNicknameAlias))]
-		public Task<AdvobotResult> GiveNickname(
-			IRole target,
-			[Nickname]
-			string nickname,
-			bool getUnlimitedUsers = false
-		)
-		{
-			return DoAsync(target, getUnlimitedUsers, (user, options) =>
-			{
-				if (user.Nickname != nickname)
-				{
-					return user.ModifyAsync(x => x.Nickname = nickname, options);
-				}
-				return Task.CompletedTask;
-			});
-		}
-
-		[Command(nameof(Names.GiveRole), nameof(Names.GiveRoleAlias))]
-		public Task<AdvobotResult> GiveRole(
-			IRole target,
-			[CanModifyRole]
-			[NotEveryone]
-			[NotManaged]
-			IRole give,
-			bool getUnlimitedUsers = false
-		)
-		{
-			if (target.Id == give.Id)
-			{
-				return Responses.Users.CannotGiveGatheredRole();
-			}
-
-			return DoAsync(target, getUnlimitedUsers, (user, options) =>
-			{
-				if (!user.RoleIds.Contains(give.Id))
-				{
-					return user.AddRoleAsync(give, options);
-				}
-				return Task.CompletedTask;
-			});
-		}
-
-		[Command(nameof(Names.TakeRole), nameof(Names.TakeRoleAlias))]
-		public Task<AdvobotResult> TakeRole(
-			IRole target,
-			[CanModifyRole]
-			[NotEveryone]
-			[NotManaged]
-			IRole take,
-			bool getUnlimitedUsers = false
-		)
-		{
-			return DoAsync(target, getUnlimitedUsers, (user, options) =>
-			{
-				if (user.RoleIds.Contains(take.Id))
-				{
-					return user.RemoveRoleAsync(take, options);
-				}
-				return Task.CompletedTask;
-			});
-		}
-
-		private async Task<AdvobotResult> DoAsync(
-			IRole role,
-			bool getUnlimitedUsers,
-			Func<IGuildUser, RequestOptions, Task> update)
-		{
-			var amountChanged = await ProcessAsync(
-				getUnlimitedUsers,
-				u => u.RoleIds.Contains(role.Id),
-				update,
-				i => Responses.Users.MultiUserActionProgress(i.AmountLeft).Response,
-				GetOptions()
-			).ConfigureAwait(false);
-			return Responses.Users.MultiUserActionSuccess(amountChanged);
-		}
-	}
-
 	[Command(nameof(Names.Kick), nameof(Names.KickAlias))]
 	[LocalizedSummary(nameof(Summaries.KickSummary))]
 	[Meta("1d86aa7d-da06-478c-861b-a62ca279523b", IsEnabled = true)]
@@ -246,15 +145,12 @@ public sealed class Users
 			[CanModifyChannel(ChannelPermission.MoveMembers)]
 			IVoiceChannel input,
 			[CanModifyChannel(ChannelPermission.MoveMembers)]
-			IVoiceChannel output,
-			bool getUnlimitedUsers = false
+			IVoiceChannel output
 		)
 		{
-			var users = await input.GetUsersAsync().FlattenAsync().ConfigureAwait(false);
 			var amountChanged = await ProcessAsync(
-				users,
-				getUnlimitedUsers,
-				_ => true,
+				true,
+				u => u.VoiceChannel?.Id == input.Id,
 				(u, o) => u.ModifyAsync(x => x.Channel = new(output), o),
 				i => Responses.Users.MultiUserActionProgress(i.AmountLeft).Response,
 				GetOptions()
@@ -270,33 +166,16 @@ public sealed class Users
 	public sealed class Mute : AdvobotModuleBase
 	{
 		private static readonly OverwritePermissions CategoryPerms = new(
-			0,
-			TextPerms.DenyValue | VoicePerms.DenyValue
+			allowValue: 0,
+			denyValue: ChannelPermissions.Category.RawValue
 		);
 		private static readonly OverwritePermissions TextPerms = new(
-			0,
-			(ulong)(0
-				| ChannelPermission.CreateInstantInvite
-				| ChannelPermission.ManageChannels
-				| ChannelPermission.ManageRoles
-				| ChannelPermission.ManageWebhooks
-				| ChannelPermission.SendMessages
-				| ChannelPermission.ManageMessages
-				| ChannelPermission.AddReactions
-			)
+			allowValue: 0,
+			denyValue: ChannelPermissions.Text.RawValue
 		);
 		private static readonly OverwritePermissions VoicePerms = new(
-			0,
-			(ulong)(0
-				| ChannelPermission.CreateInstantInvite
-				| ChannelPermission.ManageChannels
-				| ChannelPermission.ManageRoles
-				| ChannelPermission.ManageWebhooks
-				| ChannelPermission.Speak
-				| ChannelPermission.MuteMembers
-				| ChannelPermission.DeafenMembers
-				| ChannelPermission.MoveMembers
-			)
+			allowValue: 0,
+			denyValue: ChannelPermissions.Voice.RawValue
 		);
 
 		[InjectService]

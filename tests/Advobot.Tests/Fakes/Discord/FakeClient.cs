@@ -11,6 +11,7 @@ public sealed class FakeClient : IDiscordClient
 	public FakeApplication FakeApplication { get; set; } = new();
 	public List<FakeGuild> FakeGuilds { get; set; } = [];
 	public bool FakeIsActive { get; private set; }
+	public List<FakeUser> FakeUsers { get; set; } = [];
 	public List<FakeVoiceRegion> FakeVoiceRegions { get; set; } = [];
 	public TokenType TokenType => TokenType.Bot;
 
@@ -119,8 +120,8 @@ public sealed class FakeClient : IDiscordClient
 	public IAsyncEnumerable<IReadOnlyCollection<ISubscription>> GetSKUSubscriptionsAsync(ulong skuId, int limit = 100, ulong? afterId = null, ulong? beforeId = null, ulong? userId = null, RequestOptions options = null)
 		=> throw new NotImplementedException();
 
-	public Task<IUser> GetUserAsync(ulong id, CacheMode mode = CacheMode.AllowDownload, RequestOptions? options = null)
-		=> throw new NotImplementedException();
+	public Task<IUser?> GetUserAsync(ulong id, CacheMode mode = CacheMode.AllowDownload, RequestOptions? options = null)
+		=> Task.FromResult<IUser?>(FakeUsers.SingleOrDefault(x => x.Id == id));
 
 	public Task<IUser> GetUserAsync(string username, string discriminator, RequestOptions? options = null)
 		=> throw new NotImplementedException();

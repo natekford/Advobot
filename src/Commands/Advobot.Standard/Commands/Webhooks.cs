@@ -6,9 +6,6 @@ using Advobot.Preconditions.Permissions;
 using Advobot.Resources;
 
 using Discord;
-using Discord.Webhook;
-
-using System.Collections.Concurrent;
 
 using YACCS.Commands.Attributes;
 using YACCS.Localization;
@@ -37,28 +34,6 @@ public sealed class Webhooks
 		{
 			var webhook = await channel.CreateWebhookAsync(name, options: GetOptions()).ConfigureAwait(false);
 			return Responses.Snowflakes.Created(webhook);
-		}
-	}
-
-	[Command(nameof(Names.SpeakThroughWebhook), nameof(Names.SpeakThroughWebhookAlias))]
-	[LocalizedSummary(nameof(Summaries.SpeakThroughWebhookSummary))]
-	[Id("d830df02-b33b-4e95-88d7-8acb029506f6")]
-	[RequireGuildPermissions(GuildPermission.ManageWebhooks)]
-	public sealed class SpeakThroughWebhook : AdvobotModuleBase
-	{
-		private static readonly ConcurrentDictionary<ulong, DiscordWebhookClient> _Clients = new();
-
-		[Command]
-		public Task Speak(
-			[LocalizedSummary(nameof(Summaries.SpeakThroughWebhookWebhookSummary))]
-			IWebhook webhook,
-			[Remainder]
-			[LocalizedSummary(nameof(Summaries.SpeakThroughWebhookTextSummary))]
-			string text
-		)
-		{
-			var client = _Clients.GetOrAdd(webhook.Id, _ => new(webhook));
-			return client.SendMessageAsync(text);
 		}
 	}
 }
