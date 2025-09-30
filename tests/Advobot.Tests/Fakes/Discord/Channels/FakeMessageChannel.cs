@@ -18,14 +18,35 @@ public abstract class FakeMessageChannel : FakeChannel, IMessageChannel
 	public Task<IMessage> GetMessageAsync(ulong id, CacheMode mode = CacheMode.AllowDownload, RequestOptions? options = null)
 		=> throw new NotImplementedException();
 
-	public IAsyncEnumerable<IReadOnlyCollection<IMessage>> GetMessagesAsync(int limit = 100, CacheMode mode = CacheMode.AllowDownload, RequestOptions? options = null)
-		=> throw new NotImplementedException();
+	public async IAsyncEnumerable<IReadOnlyCollection<IMessage>> GetMessagesAsync(int limit = 100, CacheMode mode = CacheMode.AllowDownload, RequestOptions? options = null)
+	{
+		var batches = ((IEnumerable<IMessage>)FakeMessages)
+			.Reverse()
+			.Take(limit)
+			.Chunk(DiscordConfig.MaxMessagesPerBatch);
+		foreach (var batch in batches)
+		{
+			yield return batch;
+			await Task.Yield();
+		}
+	}
 
-	public IAsyncEnumerable<IReadOnlyCollection<IMessage>> GetMessagesAsync(ulong fromMessageId, Direction dir, int limit = 100, CacheMode mode = CacheMode.AllowDownload, RequestOptions? options = null)
-		=> throw new NotImplementedException();
+	public async IAsyncEnumerable<IReadOnlyCollection<IMessage>> GetMessagesAsync(ulong fromMessageId, Direction dir, int limit = 100, CacheMode mode = CacheMode.AllowDownload, RequestOptions? options = null)
+	{
+		var batches = ((IEnumerable<IMessage>)FakeMessages)
+			.Reverse()
+			.SkipWhile(x => x.Id > fromMessageId)
+			.Take(limit)
+			.Chunk(DiscordConfig.MaxMessagesPerBatch);
+		foreach (var batch in batches)
+		{
+			yield return batch;
+			await Task.Yield();
+		}
+	}
 
 	public IAsyncEnumerable<IReadOnlyCollection<IMessage>> GetMessagesAsync(IMessage fromMessage, Direction dir, int limit = 100, CacheMode mode = CacheMode.AllowDownload, RequestOptions? options = null)
-		=> throw new NotImplementedException();
+		=> GetMessagesAsync(fromMessage.Id, dir, limit, mode, options);
 
 	public Task<IReadOnlyCollection<IMessage>> GetPinnedMessagesAsync(RequestOptions? options = null)
 		=> throw new NotImplementedException();

@@ -49,10 +49,14 @@ public class FakeTextChannel(FakeGuild guild)
 	}
 
 	public Task DeleteMessagesAsync(IEnumerable<IMessage> messages, RequestOptions? options = null)
-		=> throw new NotImplementedException();
+		=> DeleteMessagesAsync(messages.Select(x => x.Id), options);
 
 	public Task DeleteMessagesAsync(IEnumerable<ulong> messageIds, RequestOptions? options = null)
-		=> throw new NotImplementedException();
+	{
+		var set = messageIds.ToHashSet();
+		FakeMessages.RemoveAll(x => set.Contains(x.Id));
+		return Task.CompletedTask;
+	}
 
 	public Task<IReadOnlyCollection<IThreadChannel>> GetActiveThreadsAsync(RequestOptions options = null)
 		=> throw new NotImplementedException();

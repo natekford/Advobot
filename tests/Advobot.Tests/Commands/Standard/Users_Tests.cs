@@ -1,6 +1,7 @@
 ﻿using Advobot.AutoMod.Database;
 using Advobot.AutoMod.Service;
 using Advobot.Standard.Commands;
+using Advobot.Tests.Fakes.Discord;
 using Advobot.Tests.Fakes.Discord.Channels;
 using Advobot.Tests.Fakes.Discord.Users;
 using Advobot.Tests.TestBases;
@@ -135,6 +136,61 @@ public sealed class Users_Tests : Command_Tests
 			Assert.AreEqual(0UL, overwrite.Value.AllowValue);
 			Assert.IsPositive(overwrite.Value.DenyValue);
 		}
+	}
+
+	[TestMethod]
+	public async Task RemoveMessages_Test()
+	{
+		_ = new FakeUserMessage(Context.Channel, Context.User, "asdf1");
+		_ = new FakeUserMessage(Context.Channel, Context.User, "asdf2");
+		_ = new FakeUserMessage(Context.Channel, Context.User, "asdf3");
+		Assert.HasCount(4, Context.Channel.FakeMessages);
+
+		var input = $"{nameof(Users.RemoveMessages)} 10";
+
+		var result = await ExecuteWithResultAsync(input).ConfigureAwait(false);
+		Assert.IsTrue(result.InnerResult.IsSuccess);
+		Assert.AreEqual(typeof(int), result.Command.Parameters.Single().ParameterType);
+		Assert.IsEmpty(Context.Channel.FakeMessages);
+	}
+
+	[TestMethod]
+	public async Task RemoveMessagesCurrentChannelFromUser_Test()
+	{
+		var user = new FakeGuildUser(Context.Guild);
+		_ = new FakeUserMessage(Context.Channel, user, "asdf1");
+		_ = new FakeUserMessage(Context.Channel, user, "asdf2");
+		_ = new FakeUserMessage(Context.Channel, user, "asdf3");
+		Context.Channel.FakeMessages.Remove(Context.Message);
+		Context.Channel.FakeMessages.Add(Context.Message);
+		Context.Message.Id = SnowflakeGenerator.UTCNext();
+		Assert.HasCount(4, Context.Channel.FakeMessages);
+
+		var input = $"{nameof(Users.RemoveMessages)} 10 {user}";
+
+		var result = await ExecuteWithResultAsync(input).ConfigureAwait(false);
+		Assert.IsTrue(result.InnerResult.IsSuccess);
+		Assert.AreEqual(typeof(int), result.Command.Parameters[0].ParameterType);
+		Assert.AreEqual(typeof(IGuildUser), result.Command.Parameters[1].ParameterType);
+		Assert.HasCount(1, Context.Channel.FakeMessages);
+	}
+
+	[TestMethod]
+	public async Task RemoveMessagesOtherChannel_Test()
+	{
+		var channel = new FakeTextChannel(Context.Guild);
+		_ = new FakeUserMessage(channel, Context.User, "asdf1");
+		_ = new FakeUserMessage(channel, Context.User, "asdf2");
+		_ = new FakeUserMessage(channel, Context.User, "asdf3");
+		Assert.HasCount(3, channel.FakeMessages);
+
+		var input = $"{nameof(Users.RemoveMessages)} 10 {channel}";
+
+		var result = await ExecuteWithResultAsync(input).ConfigureAwait(false);
+		Assert.IsTrue(result.InnerResult.IsSuccess);
+		Assert.AreEqual(typeof(int), result.Command.Parameters[0].ParameterType);
+		Assert.AreEqual(typeof(ITextChannel), result.Command.Parameters[1].ParameterType);
+		Assert.IsEmpty(channel.FakeMessages);
 	}
 
 	[TestMethod]
