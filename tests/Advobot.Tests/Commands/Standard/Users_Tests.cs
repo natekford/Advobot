@@ -144,6 +144,9 @@ public sealed class Users_Tests : Command_Tests
 		_ = new FakeUserMessage(Context.Channel, Context.User, "asdf1");
 		_ = new FakeUserMessage(Context.Channel, Context.User, "asdf2");
 		_ = new FakeUserMessage(Context.Channel, Context.User, "asdf3");
+		Context.Channel.FakeMessages.Remove(Context.Message);
+		Context.Channel.FakeMessages.Add(Context.Message);
+		Context.Message.Id = SnowflakeGenerator.UTCNext();
 		Assert.HasCount(4, Context.Channel.FakeMessages);
 
 		var input = $"{nameof(Users.RemoveMessages)} 10";
