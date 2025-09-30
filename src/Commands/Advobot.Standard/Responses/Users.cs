@@ -78,8 +78,8 @@ public sealed class Users : AdvobotResult
 		));
 	}
 
-	public static AdvobotResult SoftBanned(ulong userId)
-		=> Punished(true, VariableSoftBanned, string.Empty, Format(userId), null);
+	public static AdvobotResult SoftBanned(IUser user)
+		=> Punished(true, VariableSoftBanned, string.Empty, Format(user), null);
 
 	public static AdvobotResult Unbanned(IUser user)
 		=> Punished(false, VariableBanned, VariableUnbanned, Format(user), null);

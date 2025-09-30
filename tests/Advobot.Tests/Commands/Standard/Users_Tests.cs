@@ -138,6 +138,42 @@ public sealed class Users_Tests : Command_Tests
 	}
 
 	[TestMethod]
+	public async Task SoftBan_Test()
+	{
+		var user = new FakeGuildUser(Context.Guild);
+
+		var input = $"{nameof(Users.SoftBan)} {user}";
+
+		var result = await ExecuteWithResultAsync(input).ConfigureAwait(false);
+		Assert.IsTrue(result.InnerResult.IsSuccess);
+		Assert.IsEmpty(Context.Guild.FakeUsers.Where(x => x.Id == user.Id));
+		Assert.IsEmpty(Context.Guild.FakeBans);
+	}
+
+	[TestMethod]
+	public async Task SoftBanNotInGuild_Test()
+	{
+		var user = new FakeUser();
+		Context.Client.FakeUsers.Add(user);
+
+		var input = $"{nameof(Users.SoftBan)} {user}";
+
+		var result = await ExecuteWithResultAsync(input).ConfigureAwait(false);
+		Assert.IsTrue(result.InnerResult.IsSuccess);
+		Assert.IsEmpty(Context.Guild.FakeBans);
+	}
+
+	[TestMethod]
+	public async Task SoftBanUserDoesntExist_Test()
+	{
+		var input = $"{nameof(Users.SoftBan)} 1234";
+
+		var result = await ExecuteWithResultAsync(input).ConfigureAwait(false);
+		Assert.IsFalse(result.InnerResult.IsSuccess);
+		Assert.IsEmpty(Context.Guild.FakeBans);
+	}
+
+	[TestMethod]
 	public async Task Unban_Test()
 	{
 		await Services.GetDatabaseAsync<TimedPunishmentDatabase>().ConfigureAwait(false);

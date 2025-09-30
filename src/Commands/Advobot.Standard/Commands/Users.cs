@@ -289,7 +289,7 @@ public sealed class Users
 					: null,
 				Predicate = user is null
 					? null
-					: x => x.Author.Id == user?.Id,
+					: x => x.Author.Id == user.Id,
 			}).ConfigureAwait(false);
 			return Responses.Users.RemovedMessages(channel, user, deleted);
 		}
@@ -308,22 +308,33 @@ public sealed class Users
 			IGuildUser user,
 			[Remainder]
 			ModerationReason reason = default
-		) => Targeted(user.Id, reason);
+		) => SoftBanAsync(user, user.Id, reason);
 
 		[Command]
 		[Priority(0)]
-		public async Task<AdvobotResult> Targeted(
+		public Task<AdvobotResult> Targeted(
 			[NotBanned]
 			ulong userId,
 			[Remainder]
 			ModerationReason reason = default
-		)
+		) => SoftBanAsync(null, userId, reason);
+
+		private async Task<AdvobotResult> SoftBanAsync(
+			IUser? user,
+			ulong userId,
+			ModerationReason reason)
 		{
-			await PunishmentService.PunishAsync(new Punishments.Ban(Context.Guild, userId, true)
+			user ??= await Context.Client.GetUserAsync(userId, CacheMode.AllowDownload).ConfigureAwait(false);
+			if (user is null)
+			{
+				return Responses.Users.CannotFindUser(userId);
+			}
+
+			await PunishmentService.PunishAsync(new Punishments.SoftBan(Context.Guild, userId)
 			{
 				Duration = reason.Time,
 			}, GetOptions(reason.Reason)).ConfigureAwait(false);
-			return Responses.Users.SoftBanned(userId);
+			return Responses.Users.SoftBanned(user);
 		}
 	}
 
