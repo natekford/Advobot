@@ -2,7 +2,7 @@
 using Advobot.Tests.Fakes.Discord.Users;
 using Advobot.Tests.TestBases;
 
-namespace Advobot.Tests.Commands.Standard;
+namespace Advobot.Tests.Commands.Standard.Commands;
 
 [TestClass]
 public sealed class Nicknames_Tests : Command_Tests

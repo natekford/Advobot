@@ -33,7 +33,7 @@ public sealed class Settings
 			[Command]
 			public Task<AdvobotResult> Select(
 				CommandOverrideEntity entity,
-				[OverrideTypeReader<CommandsNameTypeReader>]
+				[OverrideTypeReader<CommandsNameExactTypeReader>]
 				[Remainder]
 				IReadOnlyCollection<IImmutableCommand> commands
 			) => ModifyAsync(entity, commands, 0);
@@ -53,7 +53,7 @@ public sealed class Settings
 			public Task<AdvobotResult> Select(
 				int priority,
 				CommandOverrideEntity entity,
-				[OverrideTypeReader<CommandsNameTypeReader>]
+				[OverrideTypeReader<CommandsNameExactTypeReader>]
 				[Remainder]
 				IReadOnlyCollection<IImmutableCommand> commands
 			) => ModifyAsync(entity, commands, priority);
@@ -73,7 +73,7 @@ public sealed class Settings
 			public Task<AdvobotResult> Select(
 				int priority,
 				CommandOverrideEntity entity,
-				[OverrideTypeReader<CommandsNameTypeReader>]
+				[OverrideTypeReader<CommandsNameExactTypeReader>]
 				[Remainder]
 				IReadOnlyCollection<IImmutableCommand> commands
 			) => ModifyAsync(entity, commands, priority);

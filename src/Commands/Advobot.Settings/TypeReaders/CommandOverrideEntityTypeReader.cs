@@ -1,6 +1,7 @@
 ﻿using Advobot.Modules;
 using Advobot.Settings.Database.Models;
 using Advobot.TypeReaders.Discord;
+using Advobot.Utilities;
 
 using Discord;
 
@@ -11,10 +12,9 @@ using YACCS.TypeReaders;
 namespace Advobot.Settings.TypeReaders;
 
 [TypeReaderTargetTypes(typeof(CommandOverrideEntity))]
-public class EntityTypeReader : DiscordTypeReader<CommandOverrideEntity>
+public class CommandOverrideEntityTypeReader : DiscordTypeReader<CommandOverrideEntity>
 {
 	private static readonly TextChannelTypeReader _ChannelTypeReader = new();
-	private static readonly GuildTypeReader _GuildTypeReader = new();
 	private static readonly RoleTypeReader _RoleTypeReader = new();
 	private static readonly UserTypeReader _UserTypeReader = new();
 
@@ -22,10 +22,9 @@ public class EntityTypeReader : DiscordTypeReader<CommandOverrideEntity>
 		IGuildContext context,
 		ReadOnlyMemory<string> input)
 	{
-		var userResult = await _UserTypeReader.ReadAsync(context, input).ConfigureAwait(false);
-		if (userResult.InnerResult.IsSuccess && userResult.Value is IGuildUser user)
+		if (input.Span.Length == 1 && input.Span[0].CaseInsEquals("guild"))
 		{
-			return Success(new(user));
+			return Success(new(context.Guild));
 		}
 
 		var roleResult = await _RoleTypeReader.ReadAsync(context, input).ConfigureAwait(false);
@@ -40,15 +39,10 @@ public class EntityTypeReader : DiscordTypeReader<CommandOverrideEntity>
 			return Success(new(channel));
 		}
 
-		var guildResult = await _GuildTypeReader.ReadAsync(context, input).ConfigureAwait(false);
-		if (guildResult.InnerResult.IsSuccess && guildResult.Value is IGuild guild)
+		var userResult = await _UserTypeReader.ReadAsync(context, input).ConfigureAwait(false);
+		if (userResult.InnerResult.IsSuccess && userResult.Value is IGuildUser user)
 		{
-			return Success(new(guild));
-		}
-
-		if (input.Span[0] == "guild")
-		{
-			return Success(new(context.Guild));
+			return Success(new(user));
 		}
 
 		return TypeReaderResult<CommandOverrideEntity>.NotFound.Result;

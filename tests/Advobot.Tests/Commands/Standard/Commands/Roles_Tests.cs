@@ -4,7 +4,7 @@ using Advobot.Tests.TestBases;
 
 using Discord;
 
-namespace Advobot.Tests.Commands.Standard;
+namespace Advobot.Tests.Commands.Standard.Commands;
 
 [TestClass]
 public sealed class Roles_Tests : Command_Tests

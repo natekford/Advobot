@@ -1,7 +1,7 @@
 ﻿using Advobot.Standard.Commands;
 using Advobot.Tests.TestBases;
 
-namespace Advobot.Tests.Commands.Standard;
+namespace Advobot.Tests.Commands.Standard.Commands;
 
 [TestClass]
 public sealed class Webhooks_Tests : Command_Tests

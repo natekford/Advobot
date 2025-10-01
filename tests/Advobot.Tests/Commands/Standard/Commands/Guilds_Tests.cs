@@ -2,7 +2,7 @@
 using Advobot.Tests.Fakes.Discord;
 using Advobot.Tests.TestBases;
 
-namespace Advobot.Tests.Commands.Standard;
+namespace Advobot.Tests.Commands.Standard.Commands;
 
 [TestClass]
 public sealed class Guilds_Tests : Command_Tests

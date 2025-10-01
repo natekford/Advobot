@@ -10,7 +10,7 @@ using YACCS.Commands.Attributes;
 using YACCS.Commands.Models;
 using YACCS.TypeReaders;
 
-namespace Advobot.Tests.Commands.Standard;
+namespace Advobot.Tests.Commands.Standard.Commands;
 
 [TestClass]
 public sealed class Misc_Tests : Command_Tests
