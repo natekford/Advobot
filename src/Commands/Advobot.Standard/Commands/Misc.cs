@@ -11,6 +11,7 @@ using Discord;
 using YACCS.Commands;
 using YACCS.Commands.Attributes;
 using YACCS.Commands.Building;
+using YACCS.Commands.Linq;
 using YACCS.Commands.Models;
 using YACCS.Localization;
 using YACCS.Results;
@@ -156,8 +157,9 @@ public sealed class Misc
 			IReadOnlyList<IImmutableCommand> commands
 		)
 		{
-			var subcommands = GetSubcommands(commands);
-			if (commands.Count == 1 && subcommands.Count == 0)
+			var paths = commands.SelectMany(x => x.Paths);
+			var subcommands = Commands.Commands.Root.GetSubitems(paths).Distinct();
+			if (commands.Count == 1 && !subcommands.Any())
 			{
 				return Responses.Misc.HelpAsync(Context, commands[0]);
 			}
@@ -201,31 +203,6 @@ public sealed class Misc
 				return await Name(list).ConfigureAwait(false);
 			}
 			return Result.EmptySuccess;
-		}
-
-		private HashSet<IImmutableCommand> GetSubcommands(IReadOnlyList<IImmutableCommand> commands)
-		{
-			var subcommands = new HashSet<IImmutableCommand>();
-			foreach (var command in commands)
-			{
-				foreach (var path in command.Paths)
-				{
-					var followed = Commands.Commands.Root.FollowPath(path);
-					if (followed is null)
-					{
-						continue;
-					}
-
-					foreach (var edge in followed.Edges)
-					{
-						foreach (var subcommand in edge)
-						{
-							subcommands.Add(subcommand);
-						}
-					}
-				}
-			}
-			return subcommands;
 		}
 	}
 

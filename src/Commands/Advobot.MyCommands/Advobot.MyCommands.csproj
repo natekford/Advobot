@@ -4,7 +4,7 @@
 	</PropertyGroup>
 	
 	<ItemGroup>
-		<PackageReference Include="DetectLanguage" Version="1.0.0" />
+		<PackageReference Include="DetectLanguage" Version="2.0.0" />
 	</ItemGroup>
 
 	<ItemGroup>

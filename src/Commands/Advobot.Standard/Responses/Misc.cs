@@ -43,7 +43,7 @@ public sealed partial class Misc : AdvobotResult
 		{
 			var submodules = subcommands
 				.Where(NotHidden)
-				.Select(x => x.Paths[0].Join(" "))
+				.Select(x => x.GetJoinedPaths().First())
 				.Distinct()
 				.Order()
 				.Select((x, i) => $"{i + 1}. {x}")
@@ -101,7 +101,7 @@ public sealed partial class Misc : AdvobotResult
 		static string GetPath(IImmutableCommand command, int length)
 			=> command.Paths[0].Take(length).Join(" ");
 
-		static string GetModulePath(IGrouping<string, IImmutableCommand> x)
+		static string GetModulePath(IEnumerable<IImmutableCommand> x)
 		{
 			// (get, g) (get ban, g b) => get
 
@@ -200,7 +200,7 @@ public sealed partial class Misc : AdvobotResult
 	{
 		return Failure(MiscInvalidHelpEntryNumber.Format(
 			position.ToString().WithBlock(),
-			command.Paths[0].Join(" ").WithBlock()
+			command.GetJoinedPaths().First().WithBlock()
 		));
 	}
 
@@ -208,7 +208,7 @@ public sealed partial class Misc : AdvobotResult
 	{
 		return new()
 		{
-			Title = command.Paths[0].Join(" "),
+			Title = command.GetJoinedPaths().First(),
 			Description = description,
 			Footer = new()
 			{

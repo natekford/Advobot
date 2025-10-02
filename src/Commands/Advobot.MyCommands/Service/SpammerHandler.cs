@@ -96,7 +96,7 @@ public sealed class SpammerHandler(
 		}
 
 		_Ids.Add(user.Id);
-		if (languages.Any(x => x.confidence > config.ConfidenceLimit && x.language == "tr"))
+		if (languages.Any(x => x.score > config.ConfidenceLimit && x.language == "tr"))
 		{
 			var reason = @$"turkish activity so probable spammer (""{status.State}"").";
 			await user.BanAsync(reason: reason).ConfigureAwait(false);

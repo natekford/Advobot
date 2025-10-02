@@ -6,8 +6,8 @@
 
 	<ItemGroup>
 		<PackageReference Include="Discord.Net" Version="3.18.0" />
-		<PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="9.0.7" />
-		<PackageReference Include="YACCS" Version="0.0.0-alpha.0.396" />
+		<PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="9.0.9" />
+		<PackageReference Include="YACCS" Version="0.0.0-alpha.0.397" />
 	</ItemGroup>
 
 	<ItemGroup>
