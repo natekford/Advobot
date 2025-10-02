@@ -45,7 +45,7 @@ public sealed partial class Misc : AdvobotResult
 				.Where(NotHidden)
 				.Select(x => x.Paths[0].Join(" "))
 				.Distinct()
-				.OrderBy(x => x)
+				.Order()
 				.Select((x, i) => $"{i + 1}. {x}")
 				.Join("\n")
 				.WithBigBlock();

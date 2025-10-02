@@ -65,7 +65,7 @@ public sealed class Settings_Tests : Command_Tests
 	{
 		var input = $"{nameof(Settings.ModifyCommands)} " +
 			$"{nameof(Settings.ModifyCommands.Disable)} " +
-			$"1 " +
+			"1 " +
 			$"{Context.User}";
 
 		var expected = CommandService.Commands.Select(x => x.PrimaryId).ToHashSet();
@@ -80,7 +80,7 @@ public sealed class Settings_Tests : Command_Tests
 	{
 		var input = $"{nameof(Settings.ModifyCommands)} " +
 			$"{nameof(Settings.ModifyCommands.Disable)} " +
-			$"1 " +
+			"1 " +
 			$"{Context.User} " +
 			$"{GetBanCommand()}";
 
@@ -96,7 +96,7 @@ public sealed class Settings_Tests : Command_Tests
 	{
 		var input = $"{nameof(Settings.ModifyCommands)} " +
 			$"{nameof(Settings.ModifyCommands.Enable)} " +
-			$"1 " +
+			"1 " +
 			$"{Context.User}";
 
 		var expected = CommandService.Commands.Select(x => x.PrimaryId).ToHashSet();
@@ -111,7 +111,7 @@ public sealed class Settings_Tests : Command_Tests
 	{
 		var input = $"{nameof(Settings.ModifyCommands)} " +
 			$"{nameof(Settings.ModifyCommands.Enable)} " +
-			$"1 " +
+			"1 " +
 			$"{Context.User} " +
 			$"{GetBanCommand()}";
 

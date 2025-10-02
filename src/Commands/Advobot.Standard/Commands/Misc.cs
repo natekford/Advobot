@@ -142,7 +142,7 @@ public sealed class Misc
 			var categories = Commands.Commands
 				.SelectMany(x => x.Categories.Select(c => c.Category))
 				.ToHashSet()
-				.OrderBy(x => x);
+				.Order();
 			return Responses.Misc.HelpGeneral(categories, prefix);
 		}
 
