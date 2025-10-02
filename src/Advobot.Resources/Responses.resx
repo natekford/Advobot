@@ -585,9 +585,7 @@ Level: {3}</value>
     <value>{0} log must exist.</value>
   </data>
   <data name="MiscBasicSyntax" xml:space="preserve">
-    <value>{0} means required.
-{1} means optional.
-{2} means or.</value>
+    <value>{0} means required, {1} means optional, and {2} means or.</value>
   </data>
   <data name="MiscFooterHelp" xml:space="preserve">
     <value>Help</value>
@@ -599,7 +597,8 @@ Level: {3}</value>
   </data>
   <data name="MiscGeneralHelp" xml:space="preserve">
     <value>Type {0} to see the commands in a category.
-Type {1} for help with a command.</value>
+Type {1} to see a command's overrides and subcommands.
+Type {2} for help with a command.</value>
   </data>
   <data name="MiscInvalidHelpEntryNumber" xml:space="preserve">
     <value>{0} is not a valid help entry command number for {1}.</value>
@@ -609,7 +608,7 @@ Type {1} for help with a command.</value>
 [Discord Server]({1})</value>
   </data>
   <data name="MiscMentionSyntax" xml:space="preserve">
-    <value>`User` means `@User|"Username#Discriminator"`
+    <value>`User` means `@User|"Username"`
 `Role` means `@Role|"Role name"`
 `Channel` means `#Channel|"Channel name"`</value>
   </data>
@@ -977,7 +976,7 @@ Type {1} for help with a command.</value>
     <value>Successfully disabled and set the priority to {0} for {1}.</value>
   </data>
   <data name="MiscTitleSubmodules" xml:space="preserve">
-    <value>Submodules</value>
+    <value>Subcommands</value>
   </data>
   <data name="PersistentRolesGave" xml:space="preserve">
     <value>Successfully gave {0} the persistent role {1}.</value>
@@ -1213,5 +1212,8 @@ Type {1} for help with a command.</value>
   </data>
   <data name="MiscTitleOverloads" xml:space="preserve">
     <value>Overloads</value>
+  </data>
+  <data name="VariableOverloadParameters" xml:space="preserve">
+    <value>[Position] [Command]</value>
   </data>
 </root>

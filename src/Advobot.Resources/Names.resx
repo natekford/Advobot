@@ -1359,4 +1359,16 @@
   <data name="SelfRolesCategory" xml:space="preserve">
     <value>SelfRoles</value>
   </data>
+  <data name="MyCommandsCategory" xml:space="preserve">
+    <value>MyCommands</value>
+  </data>
+  <data name="Spanitch" xml:space="preserve">
+    <value>Spanitch</value>
+  </data>
+  <data name="Hard" xml:space="preserve">
+    <value>Hard</value>
+  </data>
+  <data name="Unspanitch" xml:space="preserve">
+    <value>Unspanitch</value>
+  </data>
 </root>

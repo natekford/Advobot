@@ -33,7 +33,7 @@ public sealed class Settings
 			[Command]
 			public Task<AdvobotResult> Select(
 				CommandOverrideEntity entity,
-				[OverrideTypeReader<CommandsNameExactTypeReader>]
+				[OverrideTypeReader<CommandsPathExactTypeReader>]
 				[Remainder]
 				IReadOnlyCollection<IImmutableCommand> commands
 			) => ModifyAsync(entity, commands, 0);
@@ -53,7 +53,7 @@ public sealed class Settings
 			public Task<AdvobotResult> Select(
 				int priority,
 				CommandOverrideEntity entity,
-				[OverrideTypeReader<CommandsNameExactTypeReader>]
+				[OverrideTypeReader<CommandsPathExactTypeReader>]
 				[Remainder]
 				IReadOnlyCollection<IImmutableCommand> commands
 			) => ModifyAsync(entity, commands, priority);
@@ -73,7 +73,7 @@ public sealed class Settings
 			public Task<AdvobotResult> Select(
 				int priority,
 				CommandOverrideEntity entity,
-				[OverrideTypeReader<CommandsNameExactTypeReader>]
+				[OverrideTypeReader<CommandsPathExactTypeReader>]
 				[Remainder]
 				IReadOnlyCollection<IImmutableCommand> commands
 			) => ModifyAsync(entity, commands, priority);
@@ -93,9 +93,10 @@ public sealed class Settings
 				IEnumerable<IImmutableCommand> commands,
 				int priority)
 			{
-				var overrides = commands.Select(x => new CommandOverride(entity)
+				var ids = commands.Select(x => x.PrimaryId).ToHashSet();
+				var overrides = ids.Select(x => new CommandOverride(entity)
 				{
-					CommandId = x.PrimaryId,
+					CommandId = x,
 					Enabled = ShouldEnable ?? false,
 					Priority = priority,
 				});

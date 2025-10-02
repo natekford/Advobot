@@ -19,7 +19,7 @@ namespace Advobot.Resources {
     // class via a tool like ResGen or Visual Studio.
     // To add or remove a member, edit your .ResX file then rerun ResGen
     // with the /str option, or rebuild your VS project.
-    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "17.0.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "18.0.0.0")]
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
     [global::System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
     public class Responses {
@@ -1638,9 +1638,7 @@ namespace Advobot.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to {0} means required.
-        ///{1} means optional.
-        ///{2} means or..
+        ///   Looks up a localized string similar to {0} means required, {1} means optional, and {2} means or..
         /// </summary>
         public static string MiscBasicSyntax {
             get {
@@ -1679,7 +1677,8 @@ namespace Advobot.Resources {
         
         /// <summary>
         ///   Looks up a localized string similar to Type {0} to see the commands in a category.
-        ///Type {1} for help with a command..
+        ///Type {1} to see a command&apos;s overrides and subcommands.
+        ///Type {2} for help with a command..
         /// </summary>
         public static string MiscGeneralHelp {
             get {
@@ -1707,7 +1706,7 @@ namespace Advobot.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to `User` means `@User|&quot;Username#Discriminator&quot;`
+        ///   Looks up a localized string similar to `User` means `@User|&quot;Username&quot;`
         ///`Role` means `@Role|&quot;Role name&quot;`
         ///`Channel` means `#Channel|&quot;Channel name&quot;`.
         /// </summary>
@@ -1871,7 +1870,7 @@ namespace Advobot.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Submodules.
+        ///   Looks up a localized string similar to Subcommands.
         /// </summary>
         public static string MiscTitleSubmodules {
             get {
@@ -3100,6 +3099,15 @@ namespace Advobot.Resources {
         public static string VariableOr {
             get {
                 return ResourceManager.GetString("VariableOr", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to [Position] [Command].
+        /// </summary>
+        public static string VariableOverloadParameters {
+            get {
+                return ResourceManager.GetString("VariableOverloadParameters", resourceCulture);
             }
         }
         

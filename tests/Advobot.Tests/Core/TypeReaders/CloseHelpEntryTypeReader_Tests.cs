@@ -1,16 +1,24 @@
-﻿namespace Advobot.Tests.Core.TypeReaders;
+﻿using Advobot.Services.Commands;
+using Advobot.Tests.TestBases;
+using Advobot.TypeReaders;
 
-#warning reenable
-/*
+using Microsoft.Extensions.DependencyInjection;
+
+using YACCS.Commands;
+using YACCS.Commands.Models;
+
+namespace Advobot.Tests.Core.TypeReaders;
+
 [TestClass]
 public sealed class CloseHelpEntryTypeReader_Tests
-	: TypeReader_Tests<CloseHelpEntryTypeReader>
+	: TypeReader_Tests<SimilarCommandsTypeReader>
 {
-	protected override CloseHelpEntryTypeReader Instance { get; } = new();
+	protected override SimilarCommandsTypeReader Instance { get; } = new();
 
 	[TestMethod]
 	public async Task Valid_Test()
 	{
+		var commands = Context.Services.GetRequiredService<AdvobotCommandService>();
 		foreach (var name in new[]
 		{
 			"dog",
@@ -18,14 +26,19 @@ public sealed class CloseHelpEntryTypeReader_Tests
 			"pneumonoultramicroscopicsilicovolcanoconiosis"
 		})
 		{
-			Help.Add(new FakeHelpEntry
-			{
-				Name = name,
-			});
+			commands.Commands.Add(new DelegateCommand(() => { }, [[name]]).ToImmutable());
 		}
 
-		var result = await ReadAsync(Help.GetHelpModules(true).First().Name).ConfigureAwait(false);
-		Assert.IsTrue(result.IsSuccess);
-		Assert.IsInstanceOfType<IEnumerable<IHelpModule>>(result.BestMatch);
+		var result = await ReadAsync("hog").ConfigureAwait(false);
+		Assert.IsTrue(result.InnerResult.IsSuccess);
+		Assert.IsInstanceOfType<IReadOnlyList<SimilarCommands>>(result.Value);
+		Assert.HasCount(2, (IReadOnlyList<SimilarCommands>)result.Value);
 	}
-}*/
+
+	protected override void ModifyServices(IServiceCollection services)
+	{
+		services.AddSingleton<AdvobotCommandService>()
+			.AddSingleton<CommandService>(x => x.GetRequiredService<AdvobotCommandService>())
+			.AddSingleton<ICommandService>(x => x.GetRequiredService<AdvobotCommandService>());
+	}
+}

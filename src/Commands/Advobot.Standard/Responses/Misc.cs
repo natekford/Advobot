@@ -27,37 +27,32 @@ public sealed partial class Misc : AdvobotResult
 {
 	private static readonly Type _Help = typeof(Commands.Misc.Help);
 
-	public static Task<AdvobotResult> HelpAsync(
-		IGuildContext context,
-		IReadOnlyList<IImmutableCommand> commands)
+	public static AdvobotResult Help(
+		IEnumerable<IImmutableCommand> commands,
+		IEnumerable<IImmutableCommand> subcommands)
 	{
-		if (commands.Count == 1)
-		{
-			return HelpAsync(context, commands[0]);
-		}
-
 		var sb = new StringBuilder();
-		var overloads = commands.Select((x, i) =>
-		{
-			var parameters = x.Parameters.Select(FormatParameter).Join();
-			return $"{i + 1}. {parameters}";
-		}).Join("\n").WithBigBlock();
+		var overloads = commands
+			.Where(NotHidden)
+			.Select((x, i) => $"{i + 1}. {x.Parameters.Select(FormatParameter).Join()}")
+			.Join("\n")
+			.WithBigBlock();
 		sb.AppendHeaderAndValue(MiscTitleOverloads, overloads);
 
-		// TODO: add subcommands
-
-		/*
-		if (commands.Submodules.Count != 0)
+		if (subcommands.Any())
 		{
-			var submodules = commands.Submodules
-				.Select((x, i) => $"{i + 1}. {x.Name}")
+			var submodules = subcommands
+				.Where(NotHidden)
+				.Select(x => x.Paths[0].Join(" "))
+				.Distinct()
+				.OrderBy(x => x)
+				.Select((x, i) => $"{i + 1}. {x}")
 				.Join("\n")
 				.WithBigBlock();
-			sb.AppendCategorySeparator()
-				.AppendHeaderAndValue(MiscTitleSubmodules, submodules);
-		}*/
+			sb.AppendHeaderAndValue(MiscTitleSubmodules, submodules);
+		}
 
-		return Success(CreateHelpEmbed(commands[0].Paths[0].Join(" "), sb.ToString()));
+		return Success(CreateHelpEmbed(commands.First(), sb.ToString()));
 	}
 
 	public static async Task<AdvobotResult> HelpAsync(
@@ -78,7 +73,7 @@ public sealed partial class Misc : AdvobotResult
 			.AppendHeaderAndValue(MiscTitleEnabledByDefault, enabled)
 			.AppendHeaderAndValue(MiscTitleDescription, GetSummary(command));
 
-		var embed = CreateHelpEmbed(command.Paths[0].Join(" "), sb.ToString());
+		var embed = CreateHelpEmbed(command, sb.ToString());
 		foreach (var parameter in command.Parameters)
 		{
 			var pPreconditions = await FormatPreconditionsAsync(context, parameter.Preconditions).ConfigureAwait(false);
@@ -96,7 +91,7 @@ public sealed partial class Misc : AdvobotResult
 				paramSb.AppendHeaderAndValue(MiscTitleNamedArguments, names);
 			}
 
-			embed.TryAddField(FormatParameter(parameter), paramSb.ToString(), true, out _);
+			embed.TryAddField(FormatParameter(parameter), paramSb.ToString(), false, out _);
 		}
 		return Success(embed);
 	}
@@ -152,12 +147,13 @@ public sealed partial class Misc : AdvobotResult
 	{
 		var description = MiscGeneralHelp.Format(
 			GetPrefixedCommand(prefix, _Help, VariableCategoryParameter),
-			GetPrefixedCommand(prefix, _Help, VariableCommandParameter)
+			GetPrefixedCommand(prefix, _Help, VariableCommandParameter),
+			GetPrefixedCommand(prefix, _Help, VariableOverloadParameters)
 		);
 		var syntaxFieldValue = MiscBasicSyntax.Format(
 			(VariableRequiredLeft + VariableRequiredRight).WithBlock(),
 			(VariableOptionalLeft + VariableOptionalRight).WithBlock(),
-			VariableOr.WithBlock()
+			VariableOr.Trim().WithBlock()
 		);
 		return Success(new EmbedWrapper
 		{
@@ -208,12 +204,12 @@ public sealed partial class Misc : AdvobotResult
 		));
 	}
 
-	private static EmbedWrapper CreateHelpEmbed(string name, string entry)
+	private static EmbedWrapper CreateHelpEmbed(IImmutableCommand command, string description)
 	{
 		return new()
 		{
-			Title = name,
-			Description = entry,
+			Title = command.Paths[0].Join(" "),
+			Description = description,
 			Footer = new()
 			{
 				Text = MiscFooterHelp,

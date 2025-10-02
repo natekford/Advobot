@@ -19,7 +19,7 @@ namespace Advobot.Resources {
     // class via a tool like ResGen or Visual Studio.
     // To add or remove a member, edit your .ResX file then rerun ResGen
     // with the /str option, or rebuild your VS project.
-    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "17.0.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "18.0.0.0")]
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
     [global::System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
     public class Names {
@@ -1492,6 +1492,15 @@ namespace Advobot.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Hard.
+        /// </summary>
+        public static string Hard {
+            get {
+                return ResourceManager.GetString("Hard", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Harem.
         /// </summary>
         public static string Harem {
@@ -2860,6 +2869,15 @@ namespace Advobot.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to MyCommands.
+        /// </summary>
+        public static string MyCommandsCategory {
+            get {
+                return ResourceManager.GetString("MyCommandsCategory", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Names.
         /// </summary>
         public static string Name {
@@ -3481,6 +3499,15 @@ namespace Advobot.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Spanitch.
+        /// </summary>
+        public static string Spanitch {
+            get {
+                return ResourceManager.GetString("Spanitch", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to SpeakThroughWebhook.
         /// </summary>
         public static string SpeakThroughWebhook {
@@ -3675,6 +3702,15 @@ namespace Advobot.Resources {
         public static string UnbanAlias {
             get {
                 return ResourceManager.GetString("UnbanAlias", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Unspanitch.
+        /// </summary>
+        public static string Unspanitch {
+            get {
+                return ResourceManager.GetString("Unspanitch", resourceCulture);
             }
         }
         

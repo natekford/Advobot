@@ -222,7 +222,7 @@ public sealed class Misc_Tests : Command_Tests
 		Assert.IsTrue(result.InnerResult.IsSuccess);
 		var parameter = result.Command.Parameters.Single();
 		Assert.AreEqual(typeof(IReadOnlyList<IImmutableCommand>), parameter.ParameterType);
-		Assert.IsTrue(parameter.Attributes.Any(x => x.Value is OverrideTypeReaderAttribute<CommandsNameExactTypeReader>));
+		Assert.IsTrue(parameter.Attributes.Any(x => x.Value is OverrideTypeReaderAttribute<CommandsPathExactTypeReader>));
 	}
 
 	[TestMethod]

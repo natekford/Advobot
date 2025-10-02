@@ -609,4 +609,13 @@
   <data name="HelpVariableCategorySummary" xml:space="preserve">
     <value>The name of a category. This does need to be exact.</value>
   </data>
+  <data name="SpanitchSummary" xml:space="preserve">
+    <value>spanitches a user</value>
+  </data>
+  <data name="SpanitchHardSummary" xml:space="preserve">
+    <value>makes it so if they leave the server and rejoin they are still spanitched</value>
+  </data>
+  <data name="UnspanitchSummary" xml:space="preserve">
+    <value>unspanitches a user</value>
+  </data>
 </root>

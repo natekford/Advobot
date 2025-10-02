@@ -5,22 +5,23 @@ using Advobot.Modules;
 using Advobot.ParameterPreconditions.Discord.Users;
 using Advobot.Preconditions;
 using Advobot.Preconditions.Permissions;
+using Advobot.Resources;
 using Advobot.Utilities;
 
 using Discord;
 
 using YACCS.Commands.Attributes;
 using YACCS.Commands.Models;
-using YACCS.Help.Attributes;
+using YACCS.Localization;
 using YACCS.Results;
 
 namespace Advobot.MyCommands.Commands;
 
-[Category(nameof(MyCommands))]
+[LocalizedCategory(nameof(Names.MyCommandsCategory))]
 public sealed class MyCommands
 {
-	[Command("spanitch")]
-	[Summary("spanitches a user")]
+	[Command(nameof(Names.Spanitch))]
+	[LocalizedSummary(nameof(Summaries.SpanitchSummary))]
 	[Meta("0c96c96b-5d11-41cd-941b-8864b7542349", IsEnabled = true)]
 	[RequireGuildPermissionsOrMickezoor(GuildPermission.ManageRoles)]
 	[RequireGuild(199339772118827008)]
@@ -49,8 +50,8 @@ public sealed class MyCommands
 			return AdvobotResult.Success("they have been spanitched");
 		}
 
-		[Command("hard")]
-		[Summary("makes it so if they leave the server and rejoin they are still spanitched")]
+		[Command(nameof(Names.Hard))]
+		[LocalizedSummary(nameof(Summaries.SpanitchHardSummary))]
 		[Priority(1)]
 		public async Task<AdvobotResult> Permanent([CanModifyUser] IGuildUser user)
 		{
@@ -58,8 +59,8 @@ public sealed class MyCommands
 			return await Permanent(user.Id).ConfigureAwait(false);
 		}
 
-		[Command("hard")]
-		[Summary("makes it so if they leave the server and rejoin they are still spanitched")]
+		[Command(nameof(Names.Hard))]
+		[LocalizedSummary(nameof(Summaries.SpanitchHardSummary))]
 		[Priority(0)]
 		public async Task<AdvobotResult> Permanent(ulong user)
 		{
@@ -71,8 +72,8 @@ public sealed class MyCommands
 			return AdvobotResult.Success("they have been spanitched hard");
 		}
 
-		[Command("unspanitch")]
-		[Summary("unspanitches a user")]
+		[Command(nameof(Names.Unspanitch))]
+		[LocalizedSummary(nameof(Summaries.UnspanitchSummary))]
 		public async Task<AdvobotResult> Remove([CanModifyUser] IGuildUser user)
 		{
 			await user.ModifyRolesAsync(
@@ -151,11 +152,22 @@ public sealed class MyCommands
 					}
 				}
 
-				if (hasMute && hasSpan)
+				if (!hasMute && !hasSpan)
+				{
+					return new(Result.Failure("both roles don't exist anymore"));
+				}
+				else if (!hasMute)
+				{
+					return new(Result.Failure("mute role doesn't exist anymore"));
+				}
+				else if (!hasSpan)
+				{
+					return new(Result.Failure("spanitch role doesn't exist anymore"));
+				}
+				else
 				{
 					return new(Result.EmptySuccess);
 				}
-				return new(Result.Failure("one of the roles doesn't exist anymore."));
 			}
 		}
 	}

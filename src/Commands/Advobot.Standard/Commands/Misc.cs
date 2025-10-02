@@ -14,6 +14,7 @@ using YACCS.Commands.Building;
 using YACCS.Commands.Models;
 using YACCS.Localization;
 using YACCS.Results;
+using YACCS.Trie;
 using YACCS.TypeReaders;
 
 namespace Advobot.Standard.Commands;
@@ -140,7 +141,8 @@ public sealed class Misc
 			var prefix = await GuildSettings.GetPrefixAsync(Context.Guild).ConfigureAwait(false);
 			var categories = Commands.Commands
 				.SelectMany(x => x.Categories.Select(c => c.Category))
-				.ToHashSet();
+				.ToHashSet()
+				.OrderBy(x => x);
 			return Responses.Misc.HelpGeneral(categories, prefix);
 		}
 
@@ -149,10 +151,18 @@ public sealed class Misc
 		public Task<AdvobotResult> Name(
 			[LocalizedSummary(nameof(Summaries.HelpVariableCommandSummary))]
 			[LocalizedName(nameof(Names.CommandParameter))]
-			[OverrideTypeReader<CommandsNameExactTypeReader>]
+			[OverrideTypeReader<CommandsPathExactTypeReader>]
 			[Remainder]
 			IReadOnlyList<IImmutableCommand> commands
-		) => Responses.Misc.HelpAsync(Context, commands);
+		)
+		{
+			var subcommands = GetSubcommands(commands);
+			if (commands.Count == 1 && subcommands.Count == 0)
+			{
+				return Responses.Misc.HelpAsync(Context, commands[0]);
+			}
+			return Responses.Misc.Help(commands, subcommands);
+		}
 
 		[Command]
 		[Priority(1)]
@@ -164,7 +174,7 @@ public sealed class Misc
 			int position,
 			[LocalizedSummary(nameof(Summaries.HelpVariableExactCommandSummary))]
 			[LocalizedName(nameof(Names.CommandParameter))]
-			[OverrideTypeReader<CommandsNameExactTypeReader>]
+			[OverrideTypeReader<CommandsPathExactTypeReader>]
 			[Remainder]
 			IReadOnlyList<IImmutableCommand> commands
 		)
@@ -188,9 +198,34 @@ public sealed class Misc
 			var list = entry.Value?.Commands;
 			if (list is not null)
 			{
-				return await Responses.Misc.HelpAsync(Context, list).ConfigureAwait(false);
+				return await Name(list).ConfigureAwait(false);
 			}
 			return Result.EmptySuccess;
+		}
+
+		private HashSet<IImmutableCommand> GetSubcommands(IReadOnlyList<IImmutableCommand> commands)
+		{
+			var subcommands = new HashSet<IImmutableCommand>();
+			foreach (var command in commands)
+			{
+				foreach (var path in command.Paths)
+				{
+					var followed = Commands.Commands.Root.FollowPath(path);
+					if (followed is null)
+					{
+						continue;
+					}
+
+					foreach (var edge in followed.Edges)
+					{
+						foreach (var subcommand in edge)
+						{
+							subcommands.Add(subcommand);
+						}
+					}
+				}
+			}
+			return subcommands;
 		}
 	}
 

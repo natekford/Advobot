@@ -19,7 +19,7 @@ namespace Advobot.Resources {
     // class via a tool like ResGen or Visual Studio.
     // To add or remove a member, edit your .ResX file then rerun ResGen
     // with the /str option, or rebuild your VS project.
-    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "17.0.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "18.0.0.0")]
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
     [global::System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
     public class Summaries {
@@ -1456,6 +1456,24 @@ namespace Advobot.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to makes it so if they leave the server and rejoin they are still spanitched.
+        /// </summary>
+        public static string SpanitchHardSummary {
+            get {
+                return ResourceManager.GetString("SpanitchHardSummary", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to spanitches a user.
+        /// </summary>
+        public static string SpanitchSummary {
+            get {
+                return ResourceManager.GetString("SpanitchSummary", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Sends a message through a webhook. Use this command if you&apos;re annoying..
         /// </summary>
         public static string SpeakThroughWebhookSummary {
@@ -1524,6 +1542,15 @@ namespace Advobot.Resources {
         public static string UnbanSummary {
             get {
                 return ResourceManager.GetString("UnbanSummary", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to unspanitches a user.
+        /// </summary>
+        public static string UnspanitchSummary {
+            get {
+                return ResourceManager.GetString("UnspanitchSummary", resourceCulture);
             }
         }
         

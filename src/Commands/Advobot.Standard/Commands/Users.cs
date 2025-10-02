@@ -2,10 +2,8 @@
 using Advobot.Modules;
 using Advobot.ParameterPreconditions.Discord;
 using Advobot.ParameterPreconditions.Discord.Channels;
-using Advobot.ParameterPreconditions.Discord.Roles;
 using Advobot.ParameterPreconditions.Discord.Users;
 using Advobot.ParameterPreconditions.Numbers;
-using Advobot.ParameterPreconditions.Strings;
 using Advobot.Preconditions.Permissions;
 using Advobot.Punishments;
 using Advobot.Resources;

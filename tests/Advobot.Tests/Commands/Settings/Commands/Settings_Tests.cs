@@ -1,15 +1,8 @@
-﻿using Advobot.AutoMod.Database;
-using Advobot.Settings.Database;
+﻿using Advobot.Settings.Database;
 using Advobot.Settings.Database.Models;
 using Advobot.Tests.TestBases;
 using Advobot.Tests.Utilities;
 using Advobot.Utilities;
-
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 using YACCS.Commands.Linq;
 
@@ -61,6 +54,68 @@ public sealed class Settings_Tests : Command_Tests
 			$"{nameof(Settings.ModifyCommands.Clear)} " +
 			$"{Context.User} " +
 			$"{GetBanCommand()}";
+
+		var result = await ExecuteWithResultAsync(input).ConfigureAwait(false);
+		Assert.IsTrue(result.InnerResult.IsSuccess);
+		Assert.HasCount(1, await Db.GetCommandOverridesAsync(Context.Guild.Id).ConfigureAwait(false));
+	}
+
+	[TestMethod]
+	public async Task DisableAll_Test()
+	{
+		var input = $"{nameof(Settings.ModifyCommands)} " +
+			$"{nameof(Settings.ModifyCommands.Disable)} " +
+			$"1 " +
+			$"{Context.User}";
+
+		var expected = CommandService.Commands.Select(x => x.PrimaryId).ToHashSet();
+
+		var result = await ExecuteWithResultAsync(input).ConfigureAwait(false);
+		Assert.IsTrue(result.InnerResult.IsSuccess);
+		Assert.AreEqual(expected.Count, (await Db.GetCommandOverridesAsync(Context.Guild.Id).ConfigureAwait(false)).Count);
+	}
+
+	[TestMethod]
+	public async Task DisableSelect_Test()
+	{
+		var input = $"{nameof(Settings.ModifyCommands)} " +
+			$"{nameof(Settings.ModifyCommands.Disable)} " +
+			$"1 " +
+			$"{Context.User} " +
+			$"{GetBanCommand()}";
+
+		var expected = CommandService.Commands.Select(x => x.PrimaryId).ToHashSet();
+
+		var result = await ExecuteWithResultAsync(input).ConfigureAwait(false);
+		Assert.IsTrue(result.InnerResult.IsSuccess);
+		Assert.HasCount(1, await Db.GetCommandOverridesAsync(Context.Guild.Id).ConfigureAwait(false));
+	}
+
+	[TestMethod]
+	public async Task EnableAll_Test()
+	{
+		var input = $"{nameof(Settings.ModifyCommands)} " +
+			$"{nameof(Settings.ModifyCommands.Enable)} " +
+			$"1 " +
+			$"{Context.User}";
+
+		var expected = CommandService.Commands.Select(x => x.PrimaryId).ToHashSet();
+
+		var result = await ExecuteWithResultAsync(input).ConfigureAwait(false);
+		Assert.IsTrue(result.InnerResult.IsSuccess);
+		Assert.AreEqual(expected.Count, (await Db.GetCommandOverridesAsync(Context.Guild.Id).ConfigureAwait(false)).Count);
+	}
+
+	[TestMethod]
+	public async Task EnableSelect_Test()
+	{
+		var input = $"{nameof(Settings.ModifyCommands)} " +
+			$"{nameof(Settings.ModifyCommands.Enable)} " +
+			$"1 " +
+			$"{Context.User} " +
+			$"{GetBanCommand()}";
+
+		var expected = CommandService.Commands.Select(x => x.PrimaryId).ToHashSet();
 
 		var result = await ExecuteWithResultAsync(input).ConfigureAwait(false);
 		Assert.IsTrue(result.InnerResult.IsSuccess);

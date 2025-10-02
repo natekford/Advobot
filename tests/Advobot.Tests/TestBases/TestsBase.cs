@@ -66,7 +66,6 @@ public abstract class TestsBase
 			})
 			.AddSingleton<IReadOnlyDictionary<Type, ITypeReader>, TypeReaderRegistry>()
 			.AddSingleton<IReadOnlyDictionary<Type, string>, TypeNameRegistry>()
-			//.AddSingleton<IHelpService>(Help)
 			.AddSingleton<EventProvider>(EventProvider)
 
 			.AddFakeDatabase<AutoModDatabase>()

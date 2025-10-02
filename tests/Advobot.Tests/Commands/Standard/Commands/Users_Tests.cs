@@ -1,5 +1,4 @@
 ﻿using Advobot.AutoMod.Database;
-using Advobot.AutoMod.Service;
 using Advobot.Standard.Commands;
 using Advobot.Tests.Fakes.Discord;
 using Advobot.Tests.Fakes.Discord.Channels;
@@ -8,13 +7,6 @@ using Advobot.Tests.TestBases;
 using Advobot.Tests.Utilities;
 
 using Discord;
-
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Runtime.CompilerServices;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Advobot.Tests.Commands.Standard.Commands;
 
