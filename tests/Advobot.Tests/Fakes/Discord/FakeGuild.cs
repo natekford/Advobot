@@ -48,6 +48,11 @@ public sealed class FakeGuild : FakeSnowflake, IGuild
 		get => base.Id;
 		set
 		{
+			foreach (var user in FakeUsers)
+			{
+				user.RoleIds.Remove(base.Id);
+				user.RoleIds.Add(value);
+			}
 			FakeEveryoneRole.Id = value;
 			base.Id = value;
 		}

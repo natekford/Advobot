@@ -6,7 +6,6 @@ namespace Advobot.Tests.Fakes.Discord.Users;
 
 public class FakeGuildUser : FakeUser, IGuildUser
 {
-	private readonly HashSet<ulong> _RoleIds = [];
 	public string DisplayAvatarId => throw new NotImplementedException();
 	public string DisplayName => throw new NotImplementedException();
 	public GuildUserFlags Flags { get; set; }
@@ -28,17 +27,18 @@ public class FakeGuildUser : FakeUser, IGuildUser
 	public string Nickname { get; set; }
 	public DateTimeOffset? PremiumSince => throw new NotImplementedException();
 	public DateTimeOffset? RequestToSpeakTimestamp => throw new NotImplementedException();
-	public IReadOnlyCollection<ulong> RoleIds => _RoleIds;
+	public HashSet<ulong> RoleIds { get; set; } = [];
 	public DateTimeOffset? TimedOutUntil { get; set; }
 	public IVoiceChannel VoiceChannel { get; set; }
 	public string VoiceSessionId { get; set; }
 	IGuild IGuildUser.Guild => Guild;
+	IReadOnlyCollection<ulong> IGuildUser.RoleIds => RoleIds;
 
 	public FakeGuildUser(FakeGuild guild)
 	{
 		Guild = guild;
 		Guild.FakeUsers.Add(this);
-		_RoleIds.Add(guild.FakeEveryoneRole.Id);
+		RoleIds.Add(guild.FakeEveryoneRole.Id);
 	}
 
 	public Task AddRoleAsync(IRole role, RequestOptions? options = null)
@@ -46,7 +46,7 @@ public class FakeGuildUser : FakeUser, IGuildUser
 
 	public Task AddRoleAsync(ulong roleId, RequestOptions? options = null)
 	{
-		_RoleIds.Add(roleId);
+		RoleIds.Add(roleId);
 		return Task.CompletedTask;
 	}
 
@@ -57,7 +57,7 @@ public class FakeGuildUser : FakeUser, IGuildUser
 	{
 		foreach (var roleId in roleIds)
 		{
-			_RoleIds.Add(roleId);
+			RoleIds.Add(roleId);
 		}
 		return Task.CompletedTask;
 	}
@@ -95,13 +95,15 @@ public class FakeGuildUser : FakeUser, IGuildUser
 		Nickname = args.Nickname.GetValueOrDefault(Nickname);
 		if (args.Roles.IsSpecified)
 		{
-			_RoleIds.Clear();
-			_RoleIds.UnionWith(args.Roles.Value.Select(x => x.Id));
+			RoleIds.Clear();
+			RoleIds.UnionWith(args.Roles.Value.Select(x => x.Id));
+			RoleIds.Add(Guild.FakeEveryoneRole.Id);
 		}
 		if (args.RoleIds.IsSpecified)
 		{
-			_RoleIds.Clear();
-			_RoleIds.UnionWith(args.RoleIds.Value);
+			RoleIds.Clear();
+			RoleIds.UnionWith(args.RoleIds.Value);
+			RoleIds.Add(Guild.FakeEveryoneRole.Id);
 		}
 		TimedOutUntil = args.TimedOutUntil.GetValueOrDefault(TimedOutUntil);
 
@@ -113,7 +115,7 @@ public class FakeGuildUser : FakeUser, IGuildUser
 
 	public Task RemoveRoleAsync(ulong roleId, RequestOptions? options = null)
 	{
-		_RoleIds.Remove(roleId);
+		RoleIds.Remove(roleId);
 		return Task.CompletedTask;
 	}
 
@@ -122,7 +124,7 @@ public class FakeGuildUser : FakeUser, IGuildUser
 
 	public Task RemoveRolesAsync(IEnumerable<ulong> roleIds, RequestOptions? options = null)
 	{
-		_RoleIds.ExceptWith(roleIds);
+		RoleIds.ExceptWith(roleIds);
 		return Task.CompletedTask;
 	}
 
