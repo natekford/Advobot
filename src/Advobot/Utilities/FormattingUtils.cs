@@ -86,7 +86,7 @@ public static class FormattingUtils
 			.AppendHeaderAndValue(TitleId, id)
 			.AppendHeaderAndValue(TitleCreatedAt, FormatCreatedAt.Format(
 				dt.DateTime.ToReadable().WithNoMarkdown(),
-				diff.ToString("0:00").WithNoMarkdown()
+				diff.ToString("0.00").WithNoMarkdown()
 			));
 	}
 
