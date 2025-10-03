@@ -1,16 +1,7 @@
 ﻿using Advobot.Tests.Fakes.Discord;
 using Advobot.Tests.TestBases;
-
-using Advobot.MyCommands.Commands;
-
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using Advobot.Tests.Fakes.Discord.Users;
 using Advobot.AutoMod.Database;
-using Microsoft.Extensions.DependencyInjection;
 using Advobot.Tests.Utilities;
 
 namespace Advobot.Tests.Commands.MyCommands.Commands;

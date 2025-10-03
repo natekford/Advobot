@@ -11,7 +11,6 @@ using Discord;
 using YACCS.Commands;
 using YACCS.Commands.Attributes;
 using YACCS.Commands.Building;
-using YACCS.Commands.Linq;
 using YACCS.Commands.Models;
 using YACCS.Localization;
 using YACCS.Results;
