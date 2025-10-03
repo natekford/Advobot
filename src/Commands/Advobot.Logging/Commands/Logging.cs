@@ -101,7 +101,7 @@ public sealed class Logging
 	[RequireGuildPermissions]
 	public sealed class ModifyImageLog : LoggingModuleBase
 	{
-		private const Log LogType = Log.Server;
+		private const Log LogType = Log.Image;
 
 		[Command(nameof(Names.Remove), nameof(Names.RemoveAlias))]
 		[RequireImageLog]
@@ -128,7 +128,7 @@ public sealed class Logging
 	[RequireGuildPermissions]
 	public sealed class ModifyModLog : LoggingModuleBase
 	{
-		private const Log LogType = Log.Server;
+		private const Log LogType = Log.Mod;
 
 		[Command(nameof(Names.Remove), nameof(Names.RemoveAlias))]
 		[RequireModLog]

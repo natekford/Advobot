@@ -107,6 +107,29 @@ public abstract class Command_Tests : TestsBase
 			.AddDefaultOptionsSetter<GoodbyeNotificationResetter>();
 	}
 
+	protected virtual async Task<CommandScore> NoExecuteWithResultAsync(string input)
+	{
+		await ExecuteAsync(input).ConfigureAwait(false);
+
+		var cts = new CancellationTokenSource();
+		var executed = ExecutedCommands.Reader.ReadAsync(cts.Token).AsTask();
+		var notExecuted = NotExecutedCommands.Reader.ReadAsync(cts.Token).AsTask();
+
+		var task = await Task.WhenAny([executed, notExecuted]).ConfigureAwait(false);
+		if (task == notExecuted)
+		{
+			cts.Cancel();
+			return await notExecuted.ConfigureAwait(false);
+		}
+		else
+		{
+			cts.Cancel();
+			var result = await executed.ConfigureAwait(false);
+			Assert.Fail(result.InnerResult.Response);
+			throw new NotSupportedException();
+		}
+	}
+
 	protected override async Task SetupAsync()
 	{
 		Localize.Instance.Append(new ResourceManagerLocalizer(Names.ResourceManager));
