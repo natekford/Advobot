@@ -632,7 +632,7 @@ partial class LoggingService
 		var age = time.GetUtcNow() - context.User.CreatedAt.ToUniversalTime();
 		if (age.TotalHours < 24)
 		{
-			sb.AppendHeaderAndValue(TitleNewAccount, age.ToString("hh:mm:ss"));
+			sb.AppendHeaderAndValue(TitleNewAccount, age.ToString(@"hh\:mm\:ss"));
 		}
 
 		messageQueue.EnqueueSend(channels.ServerLog, new EmbedWrapper
