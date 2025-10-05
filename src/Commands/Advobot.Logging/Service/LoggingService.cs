@@ -664,7 +664,7 @@ partial class LoggingService
 		if (context.User is IGuildUser { JoinedAt: DateTimeOffset joinedAt })
 		{
 			var length = time.GetUtcNow() - joinedAt.ToUniversalTime();
-			sb.AppendHeaderAndValue(TitleStayedFor, length.ToString(@"d\.hh\:mm\:ss"));
+			sb.AppendHeaderAndValue(TitleStayedFor, length.ToString(@"d\:hh\:mm\:ss"));
 		}
 
 		messageQueue.EnqueueSend(channels.ServerLog, new EmbedWrapper

@@ -34,7 +34,7 @@ public sealed partial class Misc : AdvobotResult
 		var sb = new StringBuilder();
 		var overloads = commands
 			.Where(NotHidden)
-			.Select((x, i) => $"{i + 1}. {x.Parameters.Select(FormatParameter).Join()}")
+			.Select(x => $"{x.RuntimeId}. {x.Parameters.Select(FormatParameter).Join()}")
 			.Join("\n")
 			.WithBigBlock();
 		sb.AppendHeaderAndValue(MiscTitleOverloads, overloads);
@@ -46,7 +46,6 @@ public sealed partial class Misc : AdvobotResult
 				.Select(x => x.GetJoinedPaths().First())
 				.Distinct()
 				.Order()
-				.Select((x, i) => $"{i + 1}. {x}")
 				.Join("\n")
 				.WithBigBlock();
 			sb.AppendHeaderAndValue(MiscTitleSubmodules, submodules);
@@ -96,7 +95,8 @@ public sealed partial class Misc : AdvobotResult
 		return Success(embed);
 	}
 
-	public static AdvobotResult HelpCategory(IEnumerable<IImmutableCommand> commands)
+	public static AdvobotResult HelpCategory(
+		IEnumerable<IImmutableCommand> commands)
 	{
 		static string GetPath(IImmutableCommand command, int length)
 			=> command.Paths[0].Take(length).Join(" ");
@@ -143,7 +143,9 @@ public sealed partial class Misc : AdvobotResult
 		});
 	}
 
-	public static AdvobotResult HelpGeneral(IEnumerable<string> categories, string prefix)
+	public static AdvobotResult HelpGeneral(
+		IEnumerable<string> categories,
+		string prefix)
 	{
 		var description = MiscGeneralHelp.Format(
 			GetPrefixedCommand(prefix, _Help, VariableCategoryParameter),
@@ -196,11 +198,11 @@ public sealed partial class Misc : AdvobotResult
 		});
 	}
 
-	public static AdvobotResult HelpInvalidPosition(IImmutableCommand command, int position)
+	public static AdvobotResult HelpInvalidDuplicateRuntimeIds(
+		IEnumerable<IImmutableCommand> commands)
 	{
-		return Failure(MiscInvalidHelpEntryNumber.Format(
-			position.ToString().WithBlock(),
-			command.GetJoinedPaths().First().WithBlock()
+		return Failure(MiscInvalidHelpDuplicateRuntimeIds.Format(
+			commands.Select(x => x.GetJoinedPaths().First().WithBlock().Current).Join().WithNoMarkdown()
 		));
 	}
 

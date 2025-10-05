@@ -147,6 +147,24 @@ public sealed class Misc
 		}
 
 		[Command]
+		[Priority(1)]
+		[LocalizedSummary(nameof(Summaries.HelpCommandHelpSummary))]
+		public Task<AdvobotResult> Id(
+			[LocalizedSummary(nameof(Summaries.HelpVariableRuntimeIdSummary))]
+			[LocalizedName(nameof(Names.CommandParameter))]
+			[OverrideTypeReader<CommandsRuntimeIdTypeReader>]
+			[Remainder]
+			IReadOnlyList<IImmutableCommand> commands
+		)
+		{
+			if (commands.Count > 1)
+			{
+				return Responses.Misc.HelpInvalidDuplicateRuntimeIds(commands);
+			}
+			return Responses.Misc.HelpAsync(Context, commands.Single());
+		}
+
+		[Command]
 		[LocalizedSummary(nameof(Summaries.HelpModuleHelpSummary))]
 		public Task<AdvobotResult> Name(
 			[LocalizedSummary(nameof(Summaries.HelpVariableCommandSummary))]
@@ -163,28 +181,6 @@ public sealed class Misc
 				return Responses.Misc.HelpAsync(Context, commands[0]);
 			}
 			return Responses.Misc.Help(commands, subcommands);
-		}
-
-		[Command]
-		[Priority(1)]
-		[LocalizedSummary(nameof(Summaries.HelpCommandHelpSummary))]
-		public Task<AdvobotResult> Name(
-			[LocalizedSummary(nameof(Summaries.HelpVariableCommandPositionSummary))]
-			[LocalizedName(nameof(Names.PositionParameter))]
-			[Positive]
-			int position,
-			[LocalizedSummary(nameof(Summaries.HelpVariableExactCommandSummary))]
-			[LocalizedName(nameof(Names.CommandParameter))]
-			[OverrideTypeReader<CommandsPathExactTypeReader>]
-			[Remainder]
-			IReadOnlyList<IImmutableCommand> commands
-		)
-		{
-			if (commands.Count < position)
-			{
-				return Responses.Misc.HelpInvalidPosition(commands[0], position);
-			}
-			return Responses.Misc.HelpAsync(Context, commands[position - 1]);
 		}
 
 		[Command]

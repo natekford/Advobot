@@ -10,6 +10,7 @@ using Discord;
 
 using YACCS.Commands;
 using YACCS.Commands.Building;
+using YACCS.Commands.Models;
 using YACCS.Interactivity;
 using YACCS.TypeReaders;
 

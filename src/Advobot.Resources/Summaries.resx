@@ -618,4 +618,7 @@
   <data name="UnspanitchSummary" xml:space="preserve">
     <value>unspanitches a user</value>
   </data>
+  <data name="HelpVariableRuntimeIdSummary" xml:space="preserve">
+    <value>The runtime id of a command. This will be a number and can be found in the Overloads section of a command.</value>
+  </data>
 </root>
