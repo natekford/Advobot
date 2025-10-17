@@ -1,4 +1,5 @@
-﻿using Advobot.Logging.Database.Models;
+﻿using Advobot.Attributes;
+using Advobot.Logging.Database.Models;
 using Advobot.Logging.ParameterPreconditions;
 using Advobot.Logging.Preconditions;
 using Advobot.Logging.Resetters;
@@ -21,7 +22,7 @@ public sealed class Logging
 {
 	[Command(nameof(Names.ModifyActions), nameof(Names.ModifyActionsAlias))]
 	[LocalizedSummary(nameof(Summaries.ModifyActionsSummary))]
-	[Id("1457fb28-6510-47f1-998f-3bdca737f9b9")]
+	[Meta("1457fb28-6510-47f1-998f-3bdca737f9b9", IsEnabled = true)]
 	[RequireGuildPermissions]
 	public sealed class ModifyActions : LoggingModuleBase
 	{
@@ -68,7 +69,7 @@ public sealed class Logging
 
 	[Command(nameof(Names.ModifyIgnoredChannels), nameof(Names.ModifyIgnoredChannelsAlias))]
 	[LocalizedSummary(nameof(Summaries.ModifyIgnoredChannelsSummary))]
-	[Id("c348ba6c-7112-4a36-b0b9-3a546d8efd68")]
+	[Meta("c348ba6c-7112-4a36-b0b9-3a546d8efd68", IsEnabled = true)]
 	[RequireGuildPermissions]
 	public sealed class ModifyIgnoredChannels : LoggingModuleBase
 	{
@@ -97,7 +98,7 @@ public sealed class Logging
 
 	[Command(nameof(Names.ModifyImageLog), nameof(Names.ModifyImageLogAlias))]
 	[LocalizedSummary(nameof(Summaries.ModifyImageLogSummary))]
-	[Id("dd36f347-a33b-490a-a751-8d671e50abe1")]
+	[Meta("dd36f347-a33b-490a-a751-8d671e50abe1", IsEnabled = true)]
 	[RequireGuildPermissions]
 	public sealed class ModifyImageLog : LoggingModuleBase
 	{
@@ -124,7 +125,7 @@ public sealed class Logging
 
 	[Command(nameof(Names.ModifyModLog), nameof(Names.ModifyModLogAlias))]
 	[LocalizedSummary(nameof(Summaries.ModifyModLogSummary))]
-	[Id("00199443-02f9-4873-ba21-d6d462a0052a")]
+	[Meta("00199443-02f9-4873-ba21-d6d462a0052a", IsEnabled = true)]
 	[RequireGuildPermissions]
 	public sealed class ModifyModLog : LoggingModuleBase
 	{
@@ -151,7 +152,7 @@ public sealed class Logging
 
 	[Command(nameof(Names.ModifyServerLog), nameof(Names.ModifyServerLogAlias))]
 	[LocalizedSummary(nameof(Summaries.ModifyServerLogSummary))]
-	[Id("58abc6df-6814-4946-9f04-b99b024ec8ac")]
+	[Meta("58abc6df-6814-4946-9f04-b99b024ec8ac", IsEnabled = true)]
 	[RequireGuildPermissions]
 	public sealed class ModifyServerLog : LoggingModuleBase
 	{

@@ -9,6 +9,9 @@ using Microsoft.Extensions.Logging;
 
 using System.Collections.Concurrent;
 using System.Text;
+using System.Threading.Channels;
+
+using YACCS.Preconditions.Locked;
 
 using static Advobot.Resources.Responses;
 
@@ -19,84 +22,74 @@ public sealed class MessageQueue(
 	IDiscordClient client
 ) : StartableService, IConfigurableService
 {
-	private readonly ConcurrentQueue<(IMessageChannel, SendMessageArgs)> _ToSend = new();
-
+	private readonly Channel<(IMessageChannel, SendMessageArgs)> _ToSend
+		= Channel.CreateUnbounded<(IMessageChannel, SendMessageArgs)>();
+	// This isn't a channel so the messages can get grouped together
 	private ConcurrentDictionary<ulong, ConcurrentBag<IMessage>> _ToLog = new();
 
 	public void EnqueueDeleted(IMessageChannel channel, IMessage message)
 		=> _ToLog.GetOrAdd(channel.Id, _ => []).Add(message);
 
 	public void EnqueueSend(IMessageChannel channel, SendMessageArgs message)
-		=> _ToSend.Enqueue((channel, message));
+		=> _ToSend.Writer.TryWrite((channel, message));
 
 	protected override Task StartAsyncImpl()
 	{
-		_ = Task.Run(async () =>
+		RepeatInBackground(async () =>
 		{
-			while (IsRunning)
+			var (channel, args) = await _ToSend.Reader.ReadAsync(CancellationToken).ConfigureAwait(false);
+			try
 			{
-				while (_ToSend.TryDequeue(out var item))
-				{
-					var (channel, args) = item;
-					try
+				await channel.SendMessageAsync(args).ConfigureAwait(false);
+			}
+			catch (Exception e)
+			{
+				logger.LogWarning(
+					exception: e,
+					message: "Exception occurred while sending message. {@Info}",
+					args: new
 					{
-						await channel.SendMessageAsync(args).ConfigureAwait(false);
+						Channel = channel.Id
 					}
-					catch (Exception e)
-					{
-						logger.LogWarning(
-							exception: e,
-							message: "Exception occurred while sending message. {@Info}",
-							args: new
-							{
-								Channel = channel.Id
-							}
-						);
-					}
-				}
-
-				await Task.Delay(TimeSpan.FromSeconds(1)).ConfigureAwait(false);
+				);
 			}
 		});
-		_ = Task.Run(async () =>
+		RepeatInBackground(async () =>
 		{
-			while (IsRunning)
+			foreach (var (channelId, messages) in Interlocked.Exchange(ref _ToLog, []))
 			{
-				foreach (var (channelId, messages) in Interlocked.Exchange(ref _ToLog, []))
+				try
 				{
-					try
-					{
-						var channel = await client.GetChannelAsync(channelId).ConfigureAwait(false);
-						if (channel is not IMessageChannel messageChannel)
-						{
-							logger.LogWarning(
-								message: "Channel was null while queuing deleted message. {@Info}",
-								args: new
-								{
-									Channel = channelId
-								}
-							);
-							continue;
-						}
-
-						QueueDeletedMessages(messageChannel, messages);
-					}
-					catch (Exception e)
+					var channel = await client.GetChannelAsync(channelId).ConfigureAwait(false);
+					if (channel is not IMessageChannel messageChannel)
 					{
 						logger.LogWarning(
-							exception: e,
-							message: "Exception occurred while queuing deleted messages. {@Info}",
+							message: "Channel was null while queuing deleted message. {@Info}",
 							args: new
 							{
-								Channel = channelId,
-								Messages = messages.Select(x => x.Id).ToArray(),
+								Channel = channelId
 							}
 						);
+						continue;
 					}
-				}
 
-				await Task.Delay(TimeSpan.FromSeconds(5)).ConfigureAwait(false);
+					QueueDeletedMessages(messageChannel, messages);
+				}
+				catch (Exception e)
+				{
+					logger.LogWarning(
+						exception: e,
+						message: "Exception occurred while queuing deleted messages. {@Info}",
+						args: new
+						{
+							Channel = channelId,
+							Messages = messages.Select(x => x.Id).ToArray(),
+						}
+					);
+				}
 			}
+
+			await Task.Delay(TimeSpan.FromSeconds(5), CancellationToken).ConfigureAwait(false);
 		});
 		return Task.CompletedTask;
 	}

@@ -1,4 +1,5 @@
-﻿using Advobot.AutoMod.Database.Models;
+﻿using Advobot.Attributes;
+using Advobot.AutoMod.Database.Models;
 using Advobot.Modules;
 using Advobot.ParameterPreconditions.Discord.Roles;
 using Advobot.ParameterPreconditions.Numbers;
@@ -18,7 +19,7 @@ public sealed class SelfRoles
 {
 	[Command(nameof(Names.AssignSelfRole), nameof(Names.AssignSelfRoleAlias))]
 	[LocalizedSummary(nameof(Summaries.AssignSelfRoleSummary))]
-	[Id("6c574af7-31a7-4733-9f10-badfe1e72f4c")]
+	[Meta("6c574af7-31a7-4733-9f10-badfe1e72f4c", IsEnabled = true)]
 	public sealed class AssignSelfRole : AutoModModuleBase
 	{
 		[Command]
@@ -51,7 +52,7 @@ public sealed class SelfRoles
 
 	[Command(nameof(Names.DisplaySelfRoles), nameof(Names.DisplaySelfRolesAlias))]
 	[LocalizedSummary(nameof(Summaries.DisplaySelfRolesSummary))]
-	[Id("3e3487e0-691a-45fa-9974-9d345b5337b7")]
+	[Meta("3e3487e0-691a-45fa-9974-9d345b5337b7", IsEnabled = true)]
 	public sealed class DisplaySelfRoles : AutoModModuleBase
 	{
 		[Command]
@@ -74,8 +75,8 @@ public sealed class SelfRoles
 
 	[Command(nameof(Names.ModifySelfRoles), nameof(Names.ModifySelfRolesAlias))]
 	[LocalizedSummary(nameof(Summaries.ModifySelfRolesSummary))]
-	[Id("2cb8f177-dc52-404c-a7f4-a63c84d976ba")]
-	[RequireGuildPermissions]
+	[Meta("2cb8f177-dc52-404c-a7f4-a63c84d976ba", IsEnabled = true)]
+	[RequireGuildPermissions(GuildPermission.ManageRoles)]
 	public sealed class ModifySelfRoles : AutoModModuleBase
 	{
 		[Command(nameof(Names.Add), nameof(Names.AddAlias))]

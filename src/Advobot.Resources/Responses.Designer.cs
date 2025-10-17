@@ -3112,7 +3112,7 @@ namespace Advobot.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to [Position] [Command].
+        ///   Looks up a localized string similar to [Runtime Id].
         /// </summary>
         public static string VariableOverloadParameters {
             get {

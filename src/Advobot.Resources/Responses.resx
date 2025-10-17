@@ -1214,7 +1214,7 @@ Type {2} for help with a command.</value>
     <value>Overloads</value>
   </data>
   <data name="VariableOverloadParameters" xml:space="preserve">
-    <value>[Position] [Command]</value>
+    <value>[Runtime Id]</value>
   </data>
   <data name="MiscInvalidHelpDuplicateRuntimeIds" xml:space="preserve">
     <value>Duplicate runtime ids detected between the following commands: {0}.</value>

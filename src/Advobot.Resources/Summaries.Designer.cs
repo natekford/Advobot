@@ -601,7 +601,7 @@ namespace Advobot.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Prints out help information for a specific command in a specified module..
+        ///   Looks up a localized string similar to Prints out help information for a specific command overload..
         /// </summary>
         public static string HelpCommandHelpSummary {
             get {
@@ -619,7 +619,7 @@ namespace Advobot.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Prints out help information for a module..
+        ///   Looks up a localized string similar to Prints out the overloads and subcommands of a command..
         /// </summary>
         public static string HelpModuleHelpSummary {
             get {

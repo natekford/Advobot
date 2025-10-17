@@ -277,13 +277,13 @@
     <value>Displays information about commands.</value>
   </data>
   <data name="HelpCommandHelpSummary" xml:space="preserve">
-    <value>Prints out help information for a specific command in a specified module.</value>
+    <value>Prints out help information for a specific command overload.</value>
   </data>
   <data name="HelpGeneralHelpSummary" xml:space="preserve">
     <value>Prints out general help information for the bot.</value>
   </data>
   <data name="HelpModuleHelpSummary" xml:space="preserve">
-    <value>Prints out help information for a module.</value>
+    <value>Prints out the overloads and subcommands of a command.</value>
   </data>
   <data name="HelpVariableCommandSummary" xml:space="preserve">
     <value>The name of a command. This does not need to be exact; commands with similar names will be found.</value>

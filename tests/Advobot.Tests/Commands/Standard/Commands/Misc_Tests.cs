@@ -228,11 +228,11 @@ public sealed class Misc_Tests : Command_Tests
 	[TestMethod]
 	public async Task HelpExactOverload_Test()
 	{
-		var input = $"{nameof(Misc.Help)} 1 Help";
+		var input = $"{nameof(Misc.Help)} 1";
 
 		var result = await ExecuteWithResultAsync(input).ConfigureAwait(false);
 		Assert.IsTrue(result.InnerResult.IsSuccess);
-		Assert.HasCount(2, result.Command.Parameters);
+		Assert.HasCount(1, result.Command.Parameters);
 	}
 
 	[TestMethod]

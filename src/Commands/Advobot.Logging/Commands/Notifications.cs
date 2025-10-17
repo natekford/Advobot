@@ -1,4 +1,5 @@
-﻿using Advobot.Logging.Database.Models;
+﻿using Advobot.Attributes;
+using Advobot.Logging.Database.Models;
 using Advobot.Logging.Resetters;
 using Advobot.Preconditions.Permissions;
 using Advobot.Resources;
@@ -15,7 +16,7 @@ public sealed class Notifications
 {
 	[Command(nameof(Names.ModifyGoodbyeMessage), nameof(Names.ModifyGoodbyeMessageAlias))]
 	[LocalizedSummary(nameof(Summaries.ModifyGoodbyeMessageSummary))]
-	[Id("c59f41ec-5892-496e-beaa-eabceca4bded")]
+	[Meta("c59f41ec-5892-496e-beaa-eabceca4bded", IsEnabled = true)]
 	[RequireGuildPermissions]
 	public sealed class ModifyGoodbyeMessage()
 		: NotificationModuleBase(Notification.Goodbye)
@@ -27,7 +28,7 @@ public sealed class Notifications
 
 	[Command(nameof(Names.ModifyWelcomeMessage), nameof(Names.ModifyWelcomeMessageAlias))]
 	[LocalizedSummary(nameof(Summaries.ModifyWelcomeMessageSummary))]
-	[Id("e95c8444-6a9a-40e7-a287-91e59200d4b6")]
+	[Meta("e95c8444-6a9a-40e7-a287-91e59200d4b6", IsEnabled = true)]
 	[RequireGuildPermissions]
 	public sealed class ModifyWelcomeMessage()
 		: NotificationModuleBase(Notification.Welcome)

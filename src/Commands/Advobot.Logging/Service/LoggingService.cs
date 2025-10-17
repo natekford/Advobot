@@ -12,6 +12,7 @@ using Advobot.Services.Events;
 using Advobot.Utilities;
 
 using Discord;
+using Discord.Net;
 using Discord.WebSocket;
 
 using Microsoft.Extensions.Logging;
@@ -21,9 +22,11 @@ using MimeTypes;
 using System.Collections.Concurrent;
 using System.Net.WebSockets;
 using System.Text;
+using System.Threading.Channels;
 
 using YACCS.Commands;
 using YACCS.Commands.Models;
+using YACCS.Preconditions.Locked;
 using YACCS.Results;
 
 using static Advobot.Resources.Responses;
@@ -41,7 +44,8 @@ public sealed partial class LoggingService(
 ) : StartableService, IConfigurableService
 {
 	private readonly ConcurrentDictionary<ulong, InviteCache> _InviteCaches = new();
-	private readonly ConcurrentQueue<(ILogContext, Func<Task>)> _LoggingQueue = new();
+	private readonly Channel<(ILogContext, Func<Task>)> _LogQueue
+		= Channel.CreateUnbounded<(ILogContext, Func<Task>)>();
 
 	protected override Task StartAsyncImpl()
 	{
@@ -64,28 +68,20 @@ public sealed partial class LoggingService(
 		eventProvider.UserLeft.Add(OnUserLeft);
 		eventProvider.UserUpdated.Add(OnUserUpdated);
 
-		_ = Task.Run(async () =>
+		RepeatInBackground(async () =>
 		{
-			while (IsRunning)
+			var (state, handler) = await _LogQueue.Reader.ReadAsync(CancellationToken).ConfigureAwait(false);
+			try
 			{
-				while (_LoggingQueue.TryDequeue(out var item))
-				{
-					var (state, handler) = item;
-					try
-					{
-						await handler.Invoke().ConfigureAwait(false);
-					}
-					catch (Exception e)
-					{
-						logger.LogWarning(
-							exception: e,
-							message: "Exception occurred while logging to Discord. {@Info}",
-							args: state
-						);
-					}
-				}
-
-				await Task.Delay(TimeSpan.FromSeconds(1)).ConfigureAwait(false);
+				await handler.Invoke().ConfigureAwait(false);
+			}
+			catch (Exception e)
+			{
+				logger.LogWarning(
+					exception: e,
+					message: "Exception occurred while logging to Discord. {@Info}",
+					args: state
+				);
 			}
 		});
 		return Task.CompletedTask;
@@ -152,7 +148,10 @@ public sealed partial class LoggingService(
 		);
 		foreach (var handler in handlers)
 		{
-			_LoggingQueue.Enqueue((context, () => handler.Invoke(context, logChannels)));
+			await _LogQueue.Writer.WriteAsync((
+				context,
+				() => handler.Invoke(context, logChannels)
+			)).ConfigureAwait(false);
 		}
 	}
 
@@ -258,7 +257,10 @@ partial class LoggingService
 		var e = message.Exception;
 		// Gateway reconnects have a warning severity, but all they are is spam
 		if (e is GatewayReconnectException
-			|| (e?.InnerException is WebSocketException wse && wse.WebSocketErrorCode == WebSocketError.ConnectionClosedPrematurely))
+			// Happens randomly but almost always reconnects fine
+			|| (e?.InnerException is WebSocketException wse && wse.WebSocketErrorCode == WebSocketError.ConnectionClosedPrematurely)
+			// CloudFlare WebSocket proxy restarting
+			|| (e?.InnerException?.InnerException is WebSocketClosedException wsce && wsce.CloseCode == 1001))
 		{
 			message = new(LogSeverity.Info, message.Source, message.Message, e);
 		}
