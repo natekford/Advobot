@@ -254,13 +254,22 @@ partial class LoggingService
 
 	public Task OnLog(LogMessage message)
 	{
+		static bool IsUnimportantException(Exception? e)
+		{
+			return e is not null && (
+				// Gateway reconnects have a warning severity, but all they are is spam
+				e is GatewayReconnectException
+				// Happens randomly but almost always reconnects fine
+				|| (e is WebSocketException wse && wse.WebSocketErrorCode == WebSocketError.ConnectionClosedPrematurely)
+				// 1001 = CloudFlare WebSocket proxy restarting
+				// 1000 = Normal close
+				|| (e is WebSocketClosedException wsce && (wsce.CloseCode == 1001 || wsce.CloseCode == 1000))
+				|| IsUnimportantException(e.InnerException)
+			);
+		}
+
 		var e = message.Exception;
-		// Gateway reconnects have a warning severity, but all they are is spam
-		if (e is GatewayReconnectException
-			// Happens randomly but almost always reconnects fine
-			|| (e?.InnerException is WebSocketException wse && wse.WebSocketErrorCode == WebSocketError.ConnectionClosedPrematurely)
-			// CloudFlare WebSocket proxy restarting
-			|| (e?.InnerException?.InnerException is WebSocketClosedException wsce && wsce.CloseCode == 1001))
+		if (IsUnimportantException(e))
 		{
 			message = new(LogSeverity.Info, message.Source, message.Message, e);
 		}
